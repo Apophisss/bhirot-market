@@ -1,16 +1,35 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { fmtDate } from "@/lib/format";
 import { getLastAgentRun } from "@/lib/markets";
 import { timeAgo } from "@/lib/format";
+import { JsonLd } from "@/components/JsonLd";
+import { FAQ, breadcrumbs, faqGraph } from "@/lib/seo";
+import { CATEGORIES } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "איך זה עובד" };
+
+const DESCRIPTION = `איך עובד ${SITE_NAME}: שוק חיזויים בכסף וירטואלי על בחירות 2026 לכנסת — מניות "כן" ו"לא", תמחור LMSR, ₪10,000 וירטואליים לכל משתמש, והכרעת שווקים לפי מקורות פומביים.`;
+
+export const metadata: Metadata = {
+  title: "איך זה עובד — שאלות ותשובות",
+  description: DESCRIPTION,
+  alternates: { canonical: "/about" },
+  openGraph: { url: "/about", title: `איך זה עובד | ${SITE_NAME}`, description: DESCRIPTION },
+};
 
 export default async function AboutPage() {
   const last = await getLastAgentRun();
   return (
     <article className="mx-auto max-w-3xl space-y-8">
+      <JsonLd data={faqGraph()} />
+      <JsonLd
+        data={breadcrumbs([
+          { name: "שווקים", path: "/" },
+          { name: "איך זה עובד", path: "/about" },
+        ])}
+      />
       <header>
         <h1 className="text-3xl font-black text-text-strong">איך {SITE_NAME} עובד</h1>
         <p className="mt-2 text-muted">
@@ -89,6 +108,37 @@ export default async function AboutPage() {
           תמונות של אישי ציבור מגיעות מ־Wikimedia Commons תחת רישיונות חופשיים. אין כאן ייעוץ, הימורים או כסף אמיתי.
         </p>
       </Section>
+
+      <section id="faq" className="space-y-3">
+        <h2 className="text-2xl font-black text-text-strong">שאלות ותשובות</h2>
+        <div className="space-y-2">
+          {FAQ.map((f) => (
+            <details key={f.q} className="card group p-4">
+              <summary className="cursor-pointer list-none font-bold text-text-strong marker:content-none">
+                <span className="me-2 text-muted-2 transition group-open:text-accent">▾</span>
+                {f.q}
+              </summary>
+              <p className="mt-2 text-[15px] leading-relaxed text-text">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-2xl font-black text-text-strong">הקטגוריות באתר</h2>
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.id}
+              href={`/category/${c.id}`}
+              className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-muted hover:border-border-2 hover:text-text-strong"
+            >
+              <span className="me-1">{c.emoji}</span>
+              {c.label}
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <div className="flex gap-3">
         <Link href="/" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">לשווקים</Link>

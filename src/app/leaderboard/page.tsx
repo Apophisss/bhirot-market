@@ -1,10 +1,18 @@
+import type { Metadata } from "next";
 import { getLeaderboard } from "@/lib/portfolio";
 import { Avatar } from "@/components/Avatar";
 import { money, signedMoney } from "@/lib/format";
 import { auth } from "@/lib/auth";
+import { SITE_NAME } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "לוח המובילים" };
+export const metadata: Metadata = {
+  title: "לוח המובילים",
+  description:
+    "מי הכי טוב בחיזוי הבחירות? דירוג הסוחרים של בחירות מרקט לפי שווי תיק כולל — יתרה בכסף וירטואלי בתוספת שווי הפוזיציות הפתוחות במחירי השוק.",
+  alternates: { canonical: "/leaderboard" },
+  openGraph: { url: "/leaderboard", title: `לוח המובילים | ${SITE_NAME}` },
+};
 
 export default async function LeaderboardPage() {
   const [rows, session] = await Promise.all([getLeaderboard(), auth()]);

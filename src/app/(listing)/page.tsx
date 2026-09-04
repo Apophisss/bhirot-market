@@ -1,40 +1,81 @@
 import Link from "next/link";
-import { listMarkets, getMarketStats, getCategoryCounts, type MarketSort } from "@/lib/markets";
+import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
+import { listMarkets, getMarketStats, getCategoryCounts } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { MarketCard } from "@/components/MarketCard";
-import { CategoryTabs } from "@/components/CategoryTabs";
+import { MarketBrowser, PAGE, browseHref, parseSort } from "@/components/MarketBrowser";
 import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
+import { JsonLd } from "@/components/JsonLd";
 import { money } from "@/lib/format";
-import { SITE_TAGLINE } from "@/lib/config";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/config";
+import { findCategory } from "@/lib/categories";
+import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 type Search = { category?: string; q?: string; sort?: string; status?: string; show?: string };
 
-const SORTS: { id: MarketSort; label: string }[] = [
-  { id: "trending", label: "חם" },
-  { id: "newest", label: "חדש" },
-  { id: "closing", label: "נסגר בקרוב" },
-  { id: "volume", label: "נפח" },
-];
+const RESOLVED_DESCRIPTION =
+  "כל שוקי החיזוי של בחירות 2026 שכבר הוכרעו — התוצאה, ההסבר והמקור שהכריע כל שאלה, לצד הגרף שמראה איך השוק תמחר אותה עד הרגע האחרון.";
 
-const PAGE = 36;
+/** Backstop for the /?category=<id> -> /category/<id> redirect that middleware.ts issues. */
+function legacyCategoryRedirect(sp: Search) {
+  if (!sp.category || sp.category === "all") return;
+  const cat = findCategory(sp.category);
+  if (cat) permanentRedirect(browseHref(`/category/${cat.id}`, { q: sp.q, sort: sp.sort, status: sp.status, show: sp.show }));
+}
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Search> }): Promise<Metadata> {
+  const sp = await searchParams;
+  legacyCategoryRedirect(sp);
+  const q = sp.q?.trim();
+  // search results and pagination/sort variants add no unique value to the index
+  if (q) {
+    return {
+      title: `חיפוש: ${q}`,
+      description: `תוצאות החיפוש "${q}" בשוקי החיזוי של ${SITE_NAME}.`,
+      robots: { index: false, follow: true },
+    };
+  }
+  if (sp.sort || sp.show || (sp.category && sp.category !== "all")) {
+    return { robots: { index: false, follow: true } };
+  }
+  if (sp.status === "resolved") {
+    return {
+      title: "שווקים שהוכרעו",
+      description: RESOLVED_DESCRIPTION,
+      alternates: { canonical: "/?status=resolved" },
+      openGraph: { url: "/?status=resolved", title: `שווקים שהוכרעו | ${SITE_NAME}`, description: RESOLVED_DESCRIPTION },
+    };
+  }
+  return {
+    title: { absolute: `${SITE_NAME} — ${SITE_TAGLINE} | סקרים, קואליציה ומנדטים` },
+    description: SITE_DESCRIPTION,
+    alternates: { canonical: "/" },
+    openGraph: { url: "/" },
+  };
+}
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureSynced();
   const sp = await searchParams;
-  const category = sp.category ?? "all";
-  const sort = (SORTS.find((s) => s.id === sp.sort)?.id ?? "trending") as MarketSort;
+
+  legacyCategoryRedirect(sp);
+
+  const sort = parseSort(sp.sort);
   const status = sp.status === "resolved" ? "resolved" : "open";
   const q = sp.q?.trim() || undefined;
   const show = Math.min(Math.max(Number(sp.show) || PAGE, PAGE), 600);
-  const filtered = Boolean(q || category !== "all" || status === "resolved");
+  const filtered = Boolean(q || status === "resolved");
+  // only the two canonical listings (/ and /?status=resolved) carry the ItemList
+  const indexable = !q && !sp.sort && !sp.show;
 
   const [markets, stats, counts, session, recentlyResolved, closingSoon] = await Promise.all([
-    listMarkets({ category, q, sort, status, limit: 600 }),
+    listMarkets({ category: "all", q, sort, status, limit: 600 }),
     getMarketStats(),
     getCategoryCounts(status === "resolved" ? "resolved" : "open"),
     auth(),
@@ -48,21 +89,19 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const skip = new Set([...featured.map((m) => m.id), ...soonIds]);
   const rest = skip.size ? visible.filter((m) => !skip.has(m.id)) : visible;
 
-  const link = (patch: Partial<Search>) => {
-    const next = { ...sp, ...patch };
-    const usp = new URLSearchParams();
-    for (const [k, v] of Object.entries(next)) {
-      if (!v) continue;
-      if (k === "category" && v === "all") continue;
-      if (k === "status" && v === "open") continue;
-      usp.set(k, String(v));
-    }
-    const s = usp.toString();
-    return s ? `/?${s}` : "/";
-  };
-
   return (
     <div className="space-y-6">
+      {indexable && (
+        <JsonLd
+          data={collectionPage({
+            path: status === "resolved" ? "/?status=resolved" : "/",
+            name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
+            description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
+            markets: [...closingSoon, ...featured, ...rest].slice(0, 30),
+          })}
+        />
+      )}
+
       {!filtered && (
         <section className="hero-dark relative overflow-hidden rounded-3xl border border-brand-deep">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -105,13 +144,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       )}
 
+      {status === "resolved" && !q && (
+        <header className="space-y-1">
+          <h1 className="text-2xl font-extrabold text-text-strong">שווקים שהוכרעו</h1>
+          <p className="max-w-3xl text-sm text-muted">{RESOLVED_DESCRIPTION}</p>
+        </header>
+      )}
+
       {!filtered && !session?.user && <HowToPlay />}
 
       {closingSoon.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-baseline justify-between">
             <h2 className="text-lg font-bold text-text-strong">⏱️ נסגר היום או מחר</h2>
-            <Link href="/?sort=closing" className="text-sm text-accent-2 hover:underline">
+            <Link href="/?sort=closing" className="text-sm text-accent-2 hover:underline" rel="nofollow">
               כל השאלות לפי מועד סגירה
             </Link>
           </div>
@@ -135,62 +181,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       )}
 
-      <section className="space-y-3">
-        <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status }} counts={counts} />
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1 text-sm">
-            <Link href={link({ status: "open", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
-              פתוחים
-            </Link>
-            <Link href={link({ status: "resolved", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
-              הוכרעו
-            </Link>
-            {q && (
-              <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
-                חיפוש: <strong className="text-text">{q}</strong>
-                <Link href={link({ q: undefined })} className="ms-1 text-muted-2 hover:text-no" aria-label="נקה חיפוש">✕</Link>
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="me-1 text-muted-2">מיון:</span>
-            {SORTS.map((s) => (
-              <Link key={s.id} href={link({ sort: s.id })} className={`rounded-md px-2 py-1 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
-                {s.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {rest.length ? (
-          <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {rest.map((m) => (
-                <MarketCard key={m.id} m={m} />
-              ))}
-            </div>
-            {markets.length > show && (
-              <div className="flex flex-col items-center gap-1 pt-2">
-                <Link
-                  href={link({ show: String(show + PAGE) })}
-                  className="rounded-xl border border-border-2 bg-surface px-6 py-2.5 font-semibold text-text hover:bg-surface-2"
-                  scroll={false}
-                >
-                  הצגת עוד שאלות
-                </Link>
-                <span className="tabular text-xs text-muted-2">
-                  {visible.length} מתוך {markets.length}
-                </span>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="card p-12 text-center text-muted">
-            <div className="text-4xl">🤷</div>
-            <p className="mt-2">לא נמצאו שווקים. נסו קטגוריה אחרת או <Link href="/" className="text-accent-2 hover:underline">נקו את הסינון</Link>.</p>
-          </div>
-        )}
-      </section>
+      <MarketBrowser
+        basePath="/"
+        category="all"
+        params={{ q, sort: sp.sort, status: sp.status, show: sp.show }}
+        items={rest}
+        shown={visible.length}
+        total={markets.length}
+        counts={counts}
+      />
 
       {recentlyResolved.length > 0 && (
         <section className="space-y-3">

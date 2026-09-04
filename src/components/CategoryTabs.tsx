@@ -10,12 +10,13 @@ export function CategoryTabs({
   params: Record<string, string | undefined>;
   counts?: Record<string, number>;
 }) {
+  // every category has its own indexable landing page; "all" is the home page
   const mk = (id: string) => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v && k !== "category") sp.set(k, v);
-    if (id !== "all") sp.set("category", id);
+    const base = id === "all" ? "/" : `/category/${id}`;
     const qs = sp.toString();
-    return qs ? `/?${qs}` : "/";
+    return qs ? `${base}?${qs}` : base;
   };
   const items = [{ id: "all", label: "הכל", emoji: "🔥" }, ...CATEGORIES];
   return (
