@@ -8,8 +8,8 @@ export const maxDuration = 300;
 
 /**
  * Hourly job (Vercel Cron, see vercel.json):
- *  1. sync data/markets.json -> DB (picks up anything the Claude routine committed)
- *  2. if ANTHROPIC_API_KEY is set, ask Claude (with web search) for new, current questions
+ *  1. sync data/markets.json -> DB (picks up anything the editorial routine committed)
+ *  2. if an API key is configured, run the built-in question generator (with web search) for new, current questions
  * Auth: Vercel sends `Authorization: Bearer ${CRON_SECRET}`; ADMIN_TOKEN also works.
  */
 export async function GET(req: Request) {

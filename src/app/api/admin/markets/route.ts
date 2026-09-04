@@ -14,7 +14,7 @@ const Body = z.object({
 });
 
 /**
- * Upsert / resolve markets directly (used by the Claude routine for instant updates,
+ * Upsert / resolve markets directly (used by the editorial routine for instant updates,
  * without waiting for a redeploy). Auth: Bearer ADMIN_TOKEN.
  * Body: { markets: MarketContent[], note?: string, source?: string }
  */
