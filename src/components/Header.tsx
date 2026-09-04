@@ -7,6 +7,7 @@ import { Avatar } from "./Avatar";
 
 const NAV = [
   { href: "/", label: "שווקים" },
+  { href: "/rapid", label: "מצב זריז" },
   { href: "/activity", label: "פעילות" },
   { href: "/leaderboard", label: "מובילים" },
   { href: "/about", label: "איך זה עובד" },
@@ -52,6 +53,15 @@ export async function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/rapid"
+            title="מצב זריז — שאלה אחרי שאלה, כן או לא"
+            className="inline-flex items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-2 text-sm font-bold text-accent-2 hover:bg-accent/20 lg:hidden"
+          >
+            <span aria-hidden>⚡</span>
+            <span className="hidden sm:inline">מצב זריז</span>
+            <span className="sr-only sm:hidden">מצב זריז</span>
+          </Link>
           {user ? (
             <>
               <UserBalance />

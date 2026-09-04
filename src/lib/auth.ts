@@ -11,8 +11,8 @@ declare module "next-auth" {
   }
 }
 
-/** Password-less "quick login" for local development. Never set ALLOW_DEV_LOGIN=true on a public deployment. */
-export const devLoginEnabled = process.env.ALLOW_DEV_LOGIN === "true";
+/** Password-less "quick login" for local development. Ignored in production builds, so a stray env var can't open the public site. */
+export const devLoginEnabled = process.env.ALLOW_DEV_LOGIN === "true" && process.env.NODE_ENV !== "production";
 
 export const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
