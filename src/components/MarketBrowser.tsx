@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { MarketSort, MarketView } from "@/lib/markets";
 import { MarketCard } from "./MarketCard";
 import { CategoryTabs } from "./CategoryTabs";
+import { BoltIcon } from "./BoltIcon";
 
 export const SORTS: { id: MarketSort; label: string }[] = [
   { id: "trending", label: "חם" },
@@ -100,8 +101,9 @@ export function MarketBrowser({
         <div className="flex items-center gap-1 text-xs">
           <Link
             href="/rapid"
-            className="me-2 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1 font-bold text-accent-2 hover:bg-accent/20"
+            className="me-2 inline-flex items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1 font-bold text-accent-2 hover:bg-accent/20"
           >
+            <BoltIcon />
             ענו ברצף
           </Link>
           <span className="me-1 text-muted-2">מיון:</span>

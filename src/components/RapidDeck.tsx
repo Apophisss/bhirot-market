@@ -580,9 +580,12 @@ function RapidCardView({
           <Link
             href={`/market/${card.id}`}
             target="_blank"
-            className="ms-auto rounded-md border border-border px-2 py-0.5 hover:text-text-strong"
+            className="ms-auto inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 hover:text-text-strong"
           >
             פרטים
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
           </Link>
         </div>
 

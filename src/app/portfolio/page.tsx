@@ -7,6 +7,7 @@ import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money, signedMoney, pct, shares as fmtShares, agora } from "@/lib/format";
 import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
+import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -31,8 +32,9 @@ export default async function PortfolioPage() {
         <h1 className="text-2xl font-extrabold text-text-strong">התיק של {user.name}</h1>
         <Link
           href="/rapid"
-          className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-sm font-bold text-accent-2 hover:bg-accent/20"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-sm font-bold text-accent-2 hover:bg-accent/20"
         >
+          <BoltIcon />
           סבב זריז
         </Link>
       </div>

@@ -6,7 +6,7 @@
  *   npx tsx scripts/audit-markets.ts --new 7    horizon mix over markets created in the last 7 days
  *   npx tsx scripts/audit-markets.ts --strict   exit 1 if anything is an error
  *
- * Errors (✗) must be fixed before committing; warnings (⚠) are judgement calls
+ * Errors (ERR) must be fixed before committing; warnings (WARN) are judgement calls
  * the editor should look at and may knowingly accept.
  */
 import fs from "node:fs";
@@ -52,13 +52,13 @@ let errors = 0;
 let warnings = 0;
 function err(msg: string) {
   errors++;
-  console.log(`  ✗ ${msg}`);
+  console.log(`  ERR  ${msg}`);
 }
 function warn(msg: string) {
   warnings++;
-  console.log(`  ⚠ ${msg}`);
+  console.log(`  WARN ${msg}`);
 }
-const ok = (msg: string) => console.log(`  ✓ ${msg}`);
+const ok = (msg: string) => console.log(`  ok   ${msg}`);
 const info = (msg: string) => console.log(`  · ${msg}`);
 const section = (title: string) => console.log(`\n${title}`);
 

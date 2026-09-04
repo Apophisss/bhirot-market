@@ -6,6 +6,7 @@ import { listRapidFeed, toRapidCard } from "@/lib/rapid-feed";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE, RAPID_SORTS, type RapidSort } from "@/lib/rapid";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { RapidDeck } from "@/components/RapidDeck";
+import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -41,7 +42,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
     <div className="mx-auto flex h-[calc(100svh-6rem)] min-h-[600px] w-full max-w-3xl flex-col gap-3">
       <div className="scrollbar-none -mx-4 flex shrink-0 items-center gap-1 overflow-x-auto px-4 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
         <div className="flex shrink-0 items-center gap-1">
-          <h1 className="me-1 font-black text-text-strong">מצב זריז</h1>
+          <h1 className="me-1 inline-flex items-center gap-1 font-black text-text-strong"><BoltIcon /> מצב זריז</h1>
           {RAPID_SORTS.map((s) => (
             <Link
               key={s.id}

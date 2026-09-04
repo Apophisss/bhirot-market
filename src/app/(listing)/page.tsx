@@ -16,6 +16,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 import { findCategory } from "@/lib/categories";
 import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
+import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -124,7 +125,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <strong className="text-white">{stats.open} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/rapid" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+                <Link href="/rapid" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+                  <BoltIcon size={16} />
                   מצב זריז · {stats.open} שאלות ברצף
                 </Link>
                 {session?.user ? (
