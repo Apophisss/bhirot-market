@@ -33,6 +33,9 @@ const WEAK_SOURCES = new Set(["en.wikipedia.org", "he.wikipedia.org", "x.com", "
 const NO_CASE = /["״'׳]לא["״'׳]|אחרת|לא\s+(?:יתפרסם|יפורסם|יוגש|יוכרז|יתקיים|יתרחש|יקרה|תוגש|תפורסם)|אינ(?:ו|ה|ם|ן)\s+נחשב|לא\s+נחשב/;
 const DEADLINE_WORDS = ["עד ", "לפני ", "מחר", "היום", "הערב", "הקרוב", "הקרובה", "הבא", "הבאה", "מוצאי", "בתוך "];
 
+// piping into `head` closes stdout early; that is not an error worth a stack trace
+process.stdout.on("error", () => {});
+
 const args = process.argv.slice(2);
 const flag = (name: string, fallback: string) => {
   const i = args.indexOf(`--${name}`);
