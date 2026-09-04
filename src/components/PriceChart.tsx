@@ -17,7 +17,9 @@ const H = 280;
 const PAD = { top: 16, right: 44, bottom: 28, left: 8 };
 
 const fmtTip = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const fmtAxis = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
+const fmtAxisDay = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
+const fmtAxisTime = new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit" });
+const fmtAxisBoth = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", hour: "2-digit" });
 
 export function PriceChart({ points, current, isOpen }: { points: Point[]; current: number; isOpen: boolean }) {
   const [range, setRange] = useState<Range>("ALL");
@@ -83,6 +85,10 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
   const ticks = useMemo(() => {
     return Array.from({ length: nTicks + 1 }, (_, i) => t0 + ((t1 - t0) * i) / nTicks);
   }, [t0, t1, nTicks]);
+
+  // short ranges get clock labels, long ranges get dates
+  const span = t1 - t0;
+  const fmtAxis = span < 36 * 3600_000 ? fmtAxisTime : span < 10 * 86_400_000 ? fmtAxisBoth : fmtAxisDay;
 
   return (
     <div className="card p-4">

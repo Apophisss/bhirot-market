@@ -27,7 +27,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: m.title,
     description: m.subtitle ?? m.description.slice(0, 160),
-    openGraph: { title: m.title, description: m.subtitle ?? undefined, images: [m.image] },
+    openGraph: {
+      title: m.title,
+      description: m.subtitle ?? undefined,
+      images: [m.image.startsWith("/people/") ? "/og.png" : m.image],
+    },
+    twitter: { card: "summary_large_image", images: ["/og.png"] },
   };
 }
 
