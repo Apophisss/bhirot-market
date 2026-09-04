@@ -3,6 +3,7 @@ import { getDb, schema } from "./db";
 import { getCategory } from "./categories";
 import { isTeamAuthored } from "./config";
 import { toView, type MarketView } from "./markets";
+import { boardFrequencies, EMPTY_TASTE, focusProfile, getTasteProfile, tasteAffinity, type TasteProfile } from "./recommendations";
 import type { RapidCard, RapidSort } from "./rapid";
 
 const { markets, positions } = schema;
@@ -46,14 +47,22 @@ export async function listRapidFeed(opts: RapidFeedOptions = {}): Promise<Market
     );
   }
 
-  const rows = await db
-    .select()
-    .from(markets)
-    .where(and(...conds))
-    .orderBy(...sqlOrder(sort))
-    .limit(Math.min(limit * POOL_FACTOR, POOL_CAP));
+  // only "mix" reorders in JS, so the taste profile is only worth a query there
+  const [rows, taste] = await Promise.all([
+    db
+      .select()
+      .from(markets)
+      .where(and(...conds))
+      .orderBy(...sqlOrder(sort))
+      .limit(Math.min(limit * POOL_FACTOR, POOL_CAP)),
+    sort === "mix" ? getTasteProfile(opts.userId, now.getTime()) : Promise.resolve(EMPTY_TASTE),
+  ]);
 
-  return orderFeed(rows.map((r) => toView(r, now.getTime())), sort, now.getTime()).slice(0, limit);
+  const views = rows.map((r) => toView(r, now.getTime()));
+  // the same inverse-frequency correction the recommendations use: an interest only
+  // counts to the extent that it singles questions out on this board
+  const focused = taste.strength > 0 ? focusProfile(taste, boardFrequencies(views)) : taste;
+  return orderFeed(views, sort, now.getTime(), focused).slice(0, limit);
 }
 
 export function toRapidCard(m: MarketView): RapidCard {
@@ -97,13 +106,15 @@ function sqlOrder(sort: RapidSort) {
  * is fresh and already has trading on it makes a better rapid card than one that
  * closes in four months.
  */
-function rapidScore(m: MarketView, now: number): number {
+function rapidScore(m: MarketView, now: number, taste: TasteProfile): number {
   const days = Math.max(0.5, (m.closesAt.getTime() - now) / 86_400_000);
   const urgency = 1 / Math.sqrt(days);
   const heat = Math.log10(1 + m.volume) / 5;
   const fresh = Math.max(0, 1 - (now - m.createdAt.getTime()) / (14 * 86_400_000)) * 0.4;
   const uncertainty = 1 - Math.abs(m.probability - 0.5) * 2;
-  return urgency + heat + fresh + uncertainty * 0.6 + (m.featured ? 0.5 : 0);
+  // a nudge, not a filter: the deck should still feel like the whole board
+  const affinity = taste.strength > 0 ? tasteAffinity(taste, m) * 0.8 : 0;
+  return urgency + heat + fresh + uncertainty * 0.6 + affinity + (m.featured ? 0.5 : 0);
 }
 
 /** Round-robin over categories so two questions about the same thing never sit back to back. */
@@ -125,7 +136,7 @@ function interleaveByCategory(list: MarketView[]): MarketView[] {
   return out;
 }
 
-export function orderFeed(list: MarketView[], sort: RapidSort, now = Date.now()): MarketView[] {
+export function orderFeed(list: MarketView[], sort: RapidSort, now = Date.now(), taste: TasteProfile = EMPTY_TASTE): MarketView[] {
   const sorted = [...list];
   switch (sort) {
     case "closing":
@@ -140,7 +151,7 @@ export function orderFeed(list: MarketView[], sort: RapidSort, now = Date.now())
     default: {
       const inPlay = sorted.filter((m) => m.probability >= CERTAIN_LOW && m.probability <= CERTAIN_HIGH);
       const base = inPlay.length ? inPlay : sorted;
-      base.sort((a, b) => rapidScore(b, now) - rapidScore(a, now));
+      base.sort((a, b) => rapidScore(b, now, taste) - rapidScore(a, now, taste));
       return interleaveByCategory(base);
     }
   }

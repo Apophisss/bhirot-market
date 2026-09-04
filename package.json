@@ -20,7 +20,7 @@
     "history:verify": "tsx scripts/verify-synthetic-history.ts",
     "markets:audit": "tsx scripts/audit-markets.ts",
     "markets:liquidity": "tsx scripts/liquidity.ts",
-    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/validate-markets.ts",
+    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-recommendations.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/validate-markets.ts",
     "test:lmsr": "tsx scripts/test-lmsr.ts"
   },
   "dependencies": {

@@ -6,7 +6,7 @@ import { getCategory } from "@/lib/categories";
 import { SITE_TEAM, isTeamAuthored } from "@/lib/config";
 import { PeopleStack } from "./PeopleStack";
 
-export function MarketCard({ m }: { m: MarketView }) {
+export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
   const href = `/market/${m.id}`;
   const cat = getCategory(m.category);
   const resolved = m.status !== "open";
@@ -31,6 +31,7 @@ export function MarketCard({ m }: { m: MarketView }) {
           <Link href={href} className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2">
             {m.title}
           </Link>
+          {note && <p className="mt-1 text-[11px] font-medium text-accent-2 sm:text-xs">{note}</p>}
         </div>
         <ProbabilityGauge p={m.probability} size={58} />
       </div>

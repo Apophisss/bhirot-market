@@ -9,6 +9,7 @@ import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
 import { PmCandidates } from "@/components/PmCandidates";
+import { RecommendationSection } from "@/components/Recommendations";
 import { JsonLd } from "@/components/JsonLd";
 import { getPerson } from "@/lib/content";
 import { money } from "@/lib/format";
@@ -16,6 +17,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 import { findCategory } from "@/lib/categories";
 import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
+import { getRecommendations } from "@/lib/recommendations";
 import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +67,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureSynced();
-  const sp = await searchParams;
+  const [sp, session] = await Promise.all([searchParams, auth()]);
 
   legacyCategoryRedirect(sp);
 
@@ -81,20 +83,23 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // only the two canonical listings (/ and /?status=resolved) carry the ItemList
   const indexable = !q && !person && !sp.sort && !sp.show;
 
-  const [markets, stats, counts, peopleCounts, session, recentlyResolved, closingSoon] = await Promise.all([
+  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended] = await Promise.all([
     listMarkets({ category: "all", q, sort, status, person: person?.id, limit: 600 }),
     getMarketStats(),
     getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
     getPeopleCounts("open"),
-    auth(),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
+    !filtered ? getRecommendations({ userId: session?.user?.id, limit: 6 }) : Promise.resolve(null),
   ]);
 
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
-  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id)).slice(0, 3) : [];
-  const skip = new Set([...featured.map((m) => m.id), ...soonIds]);
+  // a question already surfaced by "closing today" is not worth a second slot in the recommendations
+  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 3);
+  const recIds = new Set(recommendations.map((r) => r.market.id));
+  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recIds.has(m.id)).slice(0, 3) : [];
+  const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recIds]);
   const rest = skip.size ? visible.filter((m) => !skip.has(m.id)) : visible;
 
   return (
@@ -105,7 +110,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             path: status === "resolved" ? "/?status=resolved" : "/",
             name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
-            markets: [...closingSoon, ...featured, ...rest].slice(0, 30),
+            markets: [...closingSoon, ...recommendations.map((r) => r.market), ...featured, ...rest].slice(0, 30),
           })}
         />
       )}
@@ -219,6 +224,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ))}
           </div>
         </section>
+      )}
+
+      {recommendations.length > 0 && (
+        <RecommendationSection items={recommendations} personalized={Boolean(recommended?.personalized)} loggedIn={Boolean(session?.user)} />
       )}
 
       {featured.length > 0 && (
