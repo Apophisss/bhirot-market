@@ -1,16 +1,18 @@
 import Link from "next/link";
-import { listMarkets, getMarketStats, type MarketSort } from "@/lib/markets";
+import { listMarkets, getMarketStats, getCategoryCounts, type MarketSort } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { MarketCard } from "@/components/MarketCard";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
+import { HowToPlay } from "@/components/HowToPlay";
 import { money } from "@/lib/format";
 import { SITE_TAGLINE } from "@/lib/config";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-type Search = { category?: string; q?: string; sort?: string; status?: string };
+type Search = { category?: string; q?: string; sort?: string; status?: string; show?: string };
 
 const SORTS: { id: MarketSort; label: string }[] = [
   { id: "trending", label: "חם" },
@@ -19,6 +21,8 @@ const SORTS: { id: MarketSort; label: string }[] = [
   { id: "volume", label: "נפח" },
 ];
 
+const PAGE = 36;
+
 export default async function HomePage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureSynced();
   const sp = await searchParams;
@@ -26,18 +30,33 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const sort = (SORTS.find((s) => s.id === sp.sort)?.id ?? "trending") as MarketSort;
   const status = sp.status === "resolved" ? "resolved" : "open";
   const q = sp.q?.trim() || undefined;
+  const show = Math.min(Math.max(Number(sp.show) || PAGE, PAGE), 600);
   const filtered = Boolean(q || category !== "all" || status === "resolved");
 
-  const [markets, stats, recentlyResolved] = await Promise.all([
-    listMarkets({ category, q, sort, status }),
+  const [markets, stats, counts, session, recentlyResolved, closingSoon] = await Promise.all([
+    listMarkets({ category, q, sort, status, limit: 600 }),
     getMarketStats(),
+    getCategoryCounts(status === "resolved" ? "resolved" : "open"),
+    auth(),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
+    !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
   ]);
+
+  const visible = markets.slice(0, show);
+  const soonIds = new Set(closingSoon.map((m) => m.id));
+  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id)).slice(0, 3) : [];
+  const skip = new Set([...featured.map((m) => m.id), ...soonIds]);
+  const rest = skip.size ? visible.filter((m) => !skip.has(m.id)) : visible;
 
   const link = (patch: Partial<Search>) => {
     const next = { ...sp, ...patch };
     const usp = new URLSearchParams();
-    for (const [k, v] of Object.entries(next)) if (v && !(k === "category" && v === "all") && !(k === "status" && v === "open")) usp.set(k, v);
+    for (const [k, v] of Object.entries(next)) {
+      if (!v) continue;
+      if (k === "category" && v === "all") continue;
+      if (k === "status" && v === "open") continue;
+      usp.set(k, String(v));
+    }
     const s = usp.toString();
     return s ? `/?${s}` : "/";
   };
@@ -54,13 +73,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <AgentBadge />
               <h1 className="mt-4 text-3xl font-black leading-tight text-text-strong sm:text-5xl">{SITE_TAGLINE}</h1>
               <p className="mt-3 max-w-xl text-base text-muted sm:text-lg">
-                סקרים, קואליציות, משפטים, תביעות ומהלכים פוליטיים — מי צודק, השוק או הפרשנים? סחרו בכסף וירטואלי על השאלות
-                החדות של הקמפיין, שמתעדכנות כל שעה.
+                סקרים, קואליציות, משפטים, תביעות ומהלכים פוליטיים — מי צודק, השוק או הפרשנים? סחרו בכסף וירטואלי על
+                {" "}
+                <strong className="text-text">{stats.open} השאלות</strong> החדות של הקמפיין, שמתעדכנות כל שעה.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/login" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white shadow-lg shadow-accent/25 hover:bg-accent-2">
-                  התחברות וקבלת ₪10,000 וירטואליים
-                </Link>
+                {session?.user ? (
+                  <Link href="/portfolio" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white shadow-lg shadow-accent/25 hover:bg-accent-2">
+                    לתיק שלי
+                  </Link>
+                ) : (
+                  <Link href="/login" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white shadow-lg shadow-accent/25 hover:bg-accent-2">
+                    התחברות וקבלת ₪10,000 וירטואליים
+                  </Link>
+                )}
                 <Link href="/about" className="rounded-xl border border-border-2 bg-surface/70 px-5 py-2.5 font-semibold text-text hover:bg-surface">
                   איך זה עובד?
                 </Link>
@@ -68,7 +94,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
               <Countdown />
-              <div className="flex gap-4 text-xs text-muted">
+              <div className="flex flex-wrap gap-4 text-xs text-muted">
                 <span><strong className="tabular text-text-strong">{stats.open}</strong> שווקים פתוחים</span>
                 <span><strong className="tabular text-text-strong">{stats.resolved}</strong> הוכרעו</span>
                 <span><strong className="tabular text-text-strong">{money(stats.volume, { compact: true })}</strong> נפח</span>
@@ -79,14 +105,44 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       )}
 
+      {!filtered && !session?.user && <HowToPlay />}
+
+      {closingSoon.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-lg font-bold text-text-strong">⏱️ נסגר היום או מחר</h2>
+            <Link href="/?sort=closing" className="text-sm text-accent-2 hover:underline">
+              כל השאלות לפי מועד סגירה
+            </Link>
+          </div>
+          <p className="-mt-1 text-sm text-muted">שאלות שההכרעה שלהן מגיעה תוך שעות — המקום הכי טוב להתחיל לשחק בו.</p>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {closingSoon.map((m) => (
+              <MarketCard key={m.id} m={m} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {featured.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-bold text-text-strong">🔥 השאלות הבוערות</h2>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {featured.map((m) => (
+              <MarketCard key={m.id} m={m} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-3">
-        <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status }} />
+        <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status }} counts={counts} />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1 text-sm">
-            <Link href={link({ status: "open" })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
+            <Link href={link({ status: "open", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
               פתוחים
             </Link>
-            <Link href={link({ status: "resolved" })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
+            <Link href={link({ status: "resolved", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
               הוכרעו
             </Link>
             {q && (
@@ -106,12 +162,28 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
         </div>
 
-        {markets.length ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {markets.map((m) => (
-              <MarketCard key={m.id} m={m} />
-            ))}
-          </div>
+        {rest.length ? (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {rest.map((m) => (
+                <MarketCard key={m.id} m={m} />
+              ))}
+            </div>
+            {markets.length > show && (
+              <div className="flex flex-col items-center gap-1 pt-2">
+                <Link
+                  href={link({ show: String(show + PAGE) })}
+                  className="rounded-xl border border-border-2 bg-surface px-6 py-2.5 font-semibold text-text hover:bg-surface-2"
+                  scroll={false}
+                >
+                  הצגת עוד שאלות
+                </Link>
+                <span className="tabular text-xs text-muted-2">
+                  {visible.length} מתוך {markets.length}
+                </span>
+              </div>
+            )}
+          </>
         ) : (
           <div className="card p-12 text-center text-muted">
             <div className="text-4xl">🤷</div>

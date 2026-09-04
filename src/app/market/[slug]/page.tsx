@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { auth, currentUser } from "@/lib/auth";
-import { getMarket, getPriceHistory, getRecentTrades, getComments } from "@/lib/markets";
+import { getMarket, getPriceHistory, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
@@ -12,7 +12,8 @@ import { PriceChart } from "@/components/PriceChart";
 import { TradePanel } from "@/components/TradePanel";
 import { TradeList } from "@/components/TradeList";
 import { Comments } from "@/components/Comments";
-import { MarketImage } from "@/components/MarketImage";
+import { PeopleStack } from "@/components/PeopleStack";
+import { MarketCard } from "@/components/MarketCard";
 
 export const dynamic = "force-dynamic";
 
@@ -37,11 +38,12 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   if (!market) notFound();
 
   const session = await auth();
-  const [history, recent, comments, user] = await Promise.all([
+  const [history, recent, comments, user, related] = await Promise.all([
     getPriceHistory(slug),
     getRecentTrades(slug, 25),
     getComments(slug),
     currentUser(),
+    getRelatedMarkets(market, 3),
   ]);
   const position = user ? await getPosition(user.id, slug) : null;
   const cat = getCategory(market.category);
@@ -56,7 +58,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
         </nav>
 
         <header className="flex gap-4">
-          <MarketImage src={market.image} fallback={cat.cover} alt={market.personName ?? ""} className="h-20 w-20 shrink-0 rounded-2xl border border-border object-cover sm:h-24 sm:w-24" />
+          <PeopleStack photos={market.photos} fallback={cat.cover} size={84} max={3} />
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
               <span className="rounded-md px-1.5 py-0.5 font-semibold" style={{ background: `${cat.accent}22`, color: cat.accent }}>
@@ -72,7 +74,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             {people.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {people.map((p) => (
-                  <span key={p!.id} className="rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] text-muted">
+                  <span key={p!.id} className="rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] text-muted" title={p!.role}>
                     {p!.name}
                   </span>
                 ))}
@@ -144,6 +146,17 @@ export default async function MarketPage({ params, searchParams }: { params: Par
         </section>
 
         <Comments marketId={market.id} comments={comments} loggedIn={Boolean(session?.user)} />
+
+        {related.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="font-bold text-text-strong">שווקים קשורים</h2>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {related.map((r) => (
+                <MarketCard key={r.id} m={r} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       <aside className="hidden lg:block">

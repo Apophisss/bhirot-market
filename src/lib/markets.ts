@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, like, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, like, lte, ne, or, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { getCategory } from "./categories";
 import { getPerson } from "./content";
@@ -7,12 +7,21 @@ const { markets, trades, priceHistory, users, comments } = schema;
 
 export type MarketRow = typeof markets.$inferSelect;
 
+export interface PersonPhoto {
+  id: string;
+  name: string;
+  role?: string;
+  image: string;
+}
+
 export interface MarketView extends Omit<MarketRow, "tags" | "people" | "sources"> {
   tags: string[];
   people: string[];
   sources: { title: string; url: string }[];
   image: string;
   personName?: string;
+  /** every person on the market that has a photo, in order */
+  photos: PersonPhoto[];
   categoryLabel: string;
   isTradable: boolean;
 }
@@ -40,13 +49,20 @@ export function resolveImage(m: Pick<MarketRow, "imageUrl" | "people" | "categor
 
 export function toView(m: MarketRow, now = Date.now()): MarketView {
   const { image, personName } = resolveImage(m);
+  const peopleIds = parseJson<string[]>(m.people, []);
+  const photos: PersonPhoto[] = [];
+  for (const id of peopleIds) {
+    const p = getPerson(id);
+    if (p?.image) photos.push({ id: p.id, name: p.name, role: p.role, image: p.image });
+  }
   return {
     ...m,
     tags: parseJson<string[]>(m.tags, []),
-    people: parseJson<string[]>(m.people, []),
+    people: peopleIds,
     sources: parseJson<{ title: string; url: string }[]>(m.sources, []),
     image,
     personName,
+    photos,
     categoryLabel: getCategory(m.category).label,
     isTradable: m.status === "open" && m.closesAt.getTime() > now,
   };
@@ -60,9 +76,15 @@ export async function listMarkets(opts: {
   status?: "open" | "resolved" | "all";
   sort?: MarketSort;
   limit?: number;
+  /** only markets that close within this many hours from now */
+  closingWithinHours?: number;
 } = {}): Promise<MarketView[]> {
   const db = await getDb();
   const conds = [];
+  if (opts.closingWithinHours) {
+    conds.push(lte(markets.closesAt, new Date(Date.now() + opts.closingWithinHours * 3600_000)));
+    conds.push(gte(markets.closesAt, new Date()));
+  }
   if (opts.category && opts.category !== "all") conds.push(eq(markets.category, opts.category));
   if (opts.status === "open") conds.push(eq(markets.status, "open"));
   else if (opts.status === "resolved") conds.push(inArray(markets.status, ["resolved", "cancelled"]));
@@ -148,6 +170,47 @@ export async function getComments(slug: string, limit = 50) {
     .where(eq(comments.marketId, slug))
     .orderBy(desc(comments.createdAt))
     .limit(limit);
+}
+
+/** How many open markets each category currently has, for the tab counters. */
+export async function getCategoryCounts(status: "open" | "resolved" | "all" = "open") {
+  const db = await getDb();
+  const rows = await db
+    .select({ category: markets.category, n: sql<number>`count(*)` })
+    .from(markets)
+    .where(status === "all" ? undefined : status === "open" ? eq(markets.status, "open") : inArray(markets.status, ["resolved", "cancelled"]))
+    .groupBy(markets.category);
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (const r of rows) {
+    counts[r.category] = r.n;
+    total += r.n;
+  }
+  counts.all = total;
+  return counts;
+}
+
+/** Other open markets that share a category, person or tag with `market`. */
+export async function getRelatedMarkets(market: MarketView, limit = 4): Promise<MarketView[]> {
+  const db = await getDb();
+  const rows = await db
+    .select()
+    .from(markets)
+    .where(and(eq(markets.status, "open"), ne(markets.id, market.id)))
+    .orderBy(desc(markets.volume), desc(markets.createdAt))
+    .limit(200);
+  const scored = rows
+    .map((r) => {
+      const v = toView(r);
+      let score = 0;
+      if (v.category === market.category) score += 3;
+      score += v.people.filter((p) => market.people.includes(p)).length * 4;
+      score += v.tags.filter((t) => market.tags.includes(t)).length * 2;
+      return { v, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map((x) => x.v);
 }
 
 export async function getMarketStats() {

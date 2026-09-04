@@ -128,7 +128,7 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
           `אנשים זמינים (id — שם — תפקיד):\n${people.map((p) => `${p.id} — ${p.name}${p.role ? ` — ${p.role}` : ""}`).join("\n")}`,
           `שווקים פתוחים כרגע (slug | כותרת | נסגר):\n${existingOpen.map((m) => `${m.id} | ${m.title} | ${m.closesAt.toISOString()}`).join("\n")}`,
           `תדריך החדשות:\n${briefing}`,
-          `על בסיס התדריך, הצע 3–6 שאלות חדשות (רק אם הן באמת חדשות ועומדות בכללים), והכרעות לשווקים קיימים שהוכרעו במציאות. אל תציע שאלה שדומה לשאלה קיימת.`,
+          `על בסיס התדריך, הצע 3–6 שאלות חדשות (רק אם הן באמת חדשות ועומדות בכללים), והכרעות לשווקים קיימים שהוכרעו במציאות. אל תציע שאלה שדומה לשאלה קיימת. זכור את כלל התמהיל: לפחות שליש מהשאלות חייבות להיסגר תוך 24–72 שעות.`,
         ].join("\n\n"),
       },
     ],
@@ -172,7 +172,7 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
       continue;
     }
     const closes = new Date(candidate.data.closesAt).getTime();
-    if (closes < now.getTime() + 6 * 3600_000 || closes > now.getTime() + 120 * 86_400_000) {
+    if (closes < now.getTime() + 2 * 3600_000 || closes > now.getTime() + 120 * 86_400_000) {
       result.rejected.push({ slug: p.slug, reason: "closesAt out of range" });
       continue;
     }

@@ -14,6 +14,7 @@ if (!people.success) {
   process.exit(1);
 }
 const peopleIds = new Set(people.data.people.map((p) => p.id));
+const peopleWithImage = new Set(people.data.people.filter((p) => p.image).map((p) => p.id));
 
 const file = MarketsFileSchema.safeParse(marketsRaw);
 if (!file.success) {
@@ -37,9 +38,21 @@ for (const m of file.data.markets) {
     console.error(`market ${m.slug}: title must be in Hebrew`);
     problems++;
   }
+  if (!m.imageUrl && !m.people.some((id) => peopleWithImage.has(id))) {
+    console.error(`market ${m.slug}: no photo — add a person that has an image (run npm run people:fetch) or set imageUrl`);
+    problems++;
+  }
+  if (!m.title.includes("?")) {
+    console.error(`market ${m.slug}: title must end with a question mark`);
+    problems++;
+  }
 }
 if (problems) process.exit(1);
 
 const open = file.data.markets.filter((m) => m.status === "open").length;
 const resolved = file.data.markets.length - open;
+const byCategory = new Map<string, number>();
+for (const m of file.data.markets) byCategory.set(m.category, (byCategory.get(m.category) ?? 0) + 1);
+const spread = [...byCategory.entries()].sort((a, b) => b[1] - a[1]).map(([c, n]) => `${c}:${n}`).join(" ");
 console.log(`OK: ${file.data.markets.length} markets (${open} open, ${resolved} resolved/cancelled), ${peopleIds.size} people`);
+console.log(`categories: ${spread}`);

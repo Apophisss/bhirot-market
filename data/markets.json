@@ -905,7 +905,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed"
+      "createdBy": "seed",
+      "imageUrl": "/covers/election-day.svg"
     },
     {
       "slug": "netanyahu-bloc-61-election-result",

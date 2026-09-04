@@ -71,7 +71,10 @@ export const PersonSchema = z.object({
   role: z.string().optional(),
   /** English Wikipedia article title, used to fetch the photo */
   wiki: z.string().optional(),
-  image: z.string().url().optional(),
+  /** local path under /public (photos are vendored so the site never hotlinks Wikimedia) */
+  image: z.string().optional(),
+  /** original Wikimedia URL the local copy came from */
+  imageSource: z.string().url().optional(),
   imageCredit: z.string().optional(),
 });
 export type Person = z.infer<typeof PersonSchema>;

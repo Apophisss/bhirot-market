@@ -15,7 +15,8 @@
     "markets:validate": "tsx scripts/validate-markets.ts",
     "markets:sync": "tsx scripts/sync.ts",
     "markets:generate": "tsx scripts/generate-questions.ts",
-    "people:fetch": "tsx scripts/fetch-people.ts"
+    "people:fetch": "tsx scripts/fetch-people.ts",
+    "markets:merge": "tsx scripts/merge-markets.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

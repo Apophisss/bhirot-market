@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/categories";
 
-export function CategoryTabs({ active, params }: { active: string; params: Record<string, string | undefined> }) {
+export function CategoryTabs({
+  active,
+  params,
+  counts = {},
+}: {
+  active: string;
+  params: Record<string, string | undefined>;
+  counts?: Record<string, number>;
+}) {
   const mk = (id: string) => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v && k !== "category") sp.set(k, v);
@@ -14,6 +22,8 @@ export function CategoryTabs({ active, params }: { active: string; params: Recor
     <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
       {items.map((c) => {
         const isActive = active === c.id;
+        const n = counts[c.id];
+        if (c.id !== "all" && n === 0) return null;
         return (
           <Link
             key={c.id}
@@ -24,6 +34,7 @@ export function CategoryTabs({ active, params }: { active: string; params: Recor
           >
             <span className="me-1">{c.emoji}</span>
             {c.label}
+            {typeof n === "number" && <span className="tabular ms-1.5 text-xs text-muted-2">{n}</span>}
           </Link>
         );
       })}

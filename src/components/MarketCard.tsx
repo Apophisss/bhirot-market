@@ -1,19 +1,21 @@
 import Link from "next/link";
 import type { MarketView } from "@/lib/markets";
-import { money, pct, closesLabel } from "@/lib/format";
+import { money, pct, closesLabel, daysUntil } from "@/lib/format";
 import { ProbabilityGauge } from "./ProbabilityGauge";
 import { getCategory } from "@/lib/categories";
-import { MarketImage } from "./MarketImage";
+import { PeopleStack } from "./PeopleStack";
 
 export function MarketCard({ m }: { m: MarketView }) {
   const href = `/market/${m.id}`;
   const cat = getCategory(m.category);
   const resolved = m.status !== "open";
+  const days = daysUntil(m.closesAt);
+  const soon = !resolved && days >= 0 && days <= 7;
   return (
     <article className="card card-hover flex flex-col gap-3 p-4">
       <div className="flex items-start gap-3">
-        <Link href={href} className="shrink-0">
-          <MarketImage src={m.image} fallback={cat.cover} alt={m.personName ?? ""} className="h-12 w-12 rounded-xl border border-border object-cover" />
+        <Link href={href} className="shrink-0" aria-label={m.title}>
+          <PeopleStack photos={m.photos} fallback={cat.cover} size={46} max={3} />
         </Link>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2 text-[11px] text-muted">
@@ -21,6 +23,7 @@ export function MarketCard({ m }: { m: MarketView }) {
               {cat.emoji} {cat.label}
             </span>
             {m.createdBy.startsWith("claude") && <span title="נוצר אוטומטית על ידי Claude">🤖</span>}
+            {soon && <span className="rounded-md bg-warn/15 px-1.5 py-0.5 font-semibold text-warn">⏳ נסגר בקרוב</span>}
           </div>
           <Link href={href} className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2">
             {m.title}

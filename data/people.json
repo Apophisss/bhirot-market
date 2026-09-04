@@ -5,440 +5,495 @@
       "name": "בנימין נתניהו",
       "role": "ראש הממשלה, יו״ר הליכוד",
       "wiki": "Benjamin_Netanyahu",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Benjamin_Netanyahu%2C_February_2023.jpg/330px-Benjamin_Netanyahu%2C_February_2023.jpg",
-      "imageCredit": "Wikimedia Commons (Benjamin Netanyahu)"
+      "image": "/people/benjamin-netanyahu.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Benjamin_Netanyahu%2C_February_2023.jpg/330px-Benjamin_Netanyahu%2C_February_2023.jpg",
+      "imageCredit": "Wikimedia Commons — Benjamin Netanyahu"
     },
     {
       "id": "sara-netanyahu",
       "name": "שרה נתניהו",
       "role": "רעיית ראש הממשלה",
       "wiki": "Sara_Netanyahu",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Sara_Netanyahu_July_2025.jpg/330px-Sara_Netanyahu_July_2025.jpg",
-      "imageCredit": "Wikimedia Commons (Sara Netanyahu)"
+      "image": "/people/sara-netanyahu.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Sara_Netanyahu_July_2025.jpg/330px-Sara_Netanyahu_July_2025.jpg",
+      "imageCredit": "Wikimedia Commons — Sara Netanyahu"
     },
     {
       "id": "yair-golan",
       "name": "יאיר גולן",
       "role": "יו״ר הדמוקרטים",
       "wiki": "Yair_Golan",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Yair_Golan_%28SHL_9404%29.jpg/330px-Yair_Golan_%28SHL_9404%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yair Golan)"
+      "image": "/people/yair-golan.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Yair_Golan_%28SHL_9404%29.jpg/330px-Yair_Golan_%28SHL_9404%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yair Golan"
     },
     {
       "id": "naftali-bennett",
       "name": "נפתלי בנט",
       "role": "ראש ממשלה לשעבר, יו״ר ״בנט 2026״",
       "wiki": "Naftali_Bennett",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Naftali_Bennett_official_portrait.jpg/330px-Naftali_Bennett_official_portrait.jpg",
-      "imageCredit": "Wikimedia Commons (Naftali Bennett)"
+      "image": "/people/naftali-bennett.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Naftali_Bennett_official_portrait.jpg/330px-Naftali_Bennett_official_portrait.jpg",
+      "imageCredit": "Wikimedia Commons — Naftali Bennett"
     },
     {
       "id": "gadi-eisenkot",
       "name": "גדי איזנקוט",
       "role": "רמטכ״ל לשעבר, יו״ר ״ישר!״",
       "wiki": "Gadi_Eizenkot",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Gadi_Eisenkot_2_%28cropped%29.jpg/330px-Gadi_Eisenkot_2_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Gadi Eizenkot)"
+      "image": "/people/gadi-eisenkot.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Gadi_Eisenkot_2_%28cropped%29.jpg/330px-Gadi_Eisenkot_2_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Gadi Eizenkot"
     },
     {
       "id": "yair-lapid",
       "name": "יאיר לפיד",
       "role": "יו״ר האופוזיציה, יש עתיד",
       "wiki": "Yair_Lapid",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Yair_Lapid_%28D1237-011%29.jpg/330px-Yair_Lapid_%28D1237-011%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yair Lapid)"
+      "image": "/people/yair-lapid.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Yair_Lapid_%28D1237-011%29.jpg/330px-Yair_Lapid_%28D1237-011%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yair Lapid"
     },
     {
       "id": "avigdor-lieberman",
       "name": "אביגדור ליברמן",
       "role": "יו״ר ישראל ביתנו",
       "wiki": "Avigdor_Lieberman",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Avigdor_Lieberman_2017.jpg/330px-Avigdor_Lieberman_2017.jpg",
-      "imageCredit": "Wikimedia Commons (Avigdor Lieberman)"
+      "image": "/people/avigdor-lieberman.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Avigdor_Lieberman_2017.jpg/330px-Avigdor_Lieberman_2017.jpg",
+      "imageCredit": "Wikimedia Commons — Avigdor Lieberman"
     },
     {
       "id": "benny-gantz",
       "name": "בני גנץ",
       "role": "יו״ר כחול לבן",
       "wiki": "Benny_Gantz",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Israeli_Minister_Benny_Gantz_at_the_Department_of_State_in_Washington%2C_D.C._on_March_5%2C_2024_%28cropped%29.jpg/330px-Israeli_Minister_Benny_Gantz_at_the_Department_of_State_in_Washington%2C_D.C._on_March_5%2C_2024_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Benny Gantz)"
+      "image": "/people/benny-gantz.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Israeli_Minister_Benny_Gantz_at_the_Department_of_State_in_Washington%2C_D.C._on_March_5%2C_2024_%28cropped%29.jpg/330px-Israeli_Minister_Benny_Gantz_at_the_Department_of_State_in_Washington%2C_D.C._on_March_5%2C_2024_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Benny Gantz"
     },
     {
       "id": "itamar-ben-gvir",
       "name": "איתמר בן גביר",
       "role": "השר לביטחון לאומי, עוצמה יהודית",
       "wiki": "Itamar_Ben-Gvir",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Itamar_Ben_Gvir_3_%28cropped%29.jpg/330px-Itamar_Ben_Gvir_3_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Itamar Ben-Gvir)"
+      "image": "/people/itamar-ben-gvir.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Itamar_Ben_Gvir_3_%28cropped%29.jpg/330px-Itamar_Ben_Gvir_3_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Itamar Ben-Gvir"
     },
     {
       "id": "bezalel-smotrich",
       "name": "בצלאל סמוטריץ׳",
       "role": "שר האוצר, הציונות הדתית",
       "wiki": "Bezalel_Smotrich",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Bezalel_Smotrich.jpg/330px-Bezalel_Smotrich.jpg",
-      "imageCredit": "Wikimedia Commons (Bezalel Smotrich)"
+      "image": "/people/bezalel-smotrich.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Bezalel_Smotrich.jpg/330px-Bezalel_Smotrich.jpg",
+      "imageCredit": "Wikimedia Commons — Bezalel Smotrich"
     },
     {
       "id": "aryeh-deri",
       "name": "אריה דרעי",
       "role": "יו״ר ש״ס",
       "wiki": "Aryeh_Deri",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/%D7%90%D7%A8%D7%99%D7%94_%D7%93%D7%A8%D7%A2%D7%99_2.jpg/330px-%D7%90%D7%A8%D7%99%D7%94_%D7%93%D7%A8%D7%A2%D7%99_2.jpg",
-      "imageCredit": "Wikimedia Commons (Aryeh Deri)"
+      "image": "/people/aryeh-deri.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/%D7%90%D7%A8%D7%99%D7%94_%D7%93%D7%A8%D7%A2%D7%99_2.jpg/330px-%D7%90%D7%A8%D7%99%D7%94_%D7%93%D7%A8%D7%A2%D7%99_2.jpg",
+      "imageCredit": "Wikimedia Commons — Aryeh Deri"
     },
     {
       "id": "yitzhak-goldknopf",
       "name": "יצחק גולדקנופף",
       "role": "יו״ר יהדות התורה",
       "wiki": "Yitzhak_Goldknopf",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Yitzchak_Goldknopf_1.jpg/330px-Yitzchak_Goldknopf_1.jpg",
-      "imageCredit": "Wikimedia Commons (Yitzhak Goldknopf)"
+      "image": "/people/yitzhak-goldknopf.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Yitzchak_Goldknopf_1.jpg/330px-Yitzchak_Goldknopf_1.jpg",
+      "imageCredit": "Wikimedia Commons — Yitzhak Goldknopf"
     },
     {
       "id": "moshe-gafni",
       "name": "משה גפני",
       "role": "דגל התורה",
       "wiki": "Moshe_Gafni",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Moshe_Gafni_%28E32J1400%29.jpg/330px-Moshe_Gafni_%28E32J1400%29.jpg",
-      "imageCredit": "Wikimedia Commons (Moshe Gafni)"
+      "image": "/people/moshe-gafni.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Moshe_Gafni_%28E32J1400%29.jpg/330px-Moshe_Gafni_%28E32J1400%29.jpg",
+      "imageCredit": "Wikimedia Commons — Moshe Gafni"
     },
     {
       "id": "mansour-abbas",
       "name": "מנסור עבאס",
       "role": "יו״ר רע״ם",
       "wiki": "Mansour_Abbas",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Mansour_Abbas%2C_April_3_2023_%28cropped%29.jpg/330px-Mansour_Abbas%2C_April_3_2023_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Mansour Abbas)"
+      "image": "/people/mansour-abbas.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Mansour_Abbas%2C_April_3_2023_%28cropped%29.jpg/330px-Mansour_Abbas%2C_April_3_2023_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Mansour Abbas"
     },
     {
       "id": "ayman-odeh",
       "name": "איימן עודה",
       "role": "יו״ר חד״ש",
       "wiki": "Ayman_Odeh",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Ayman_Odeh_2021.png/330px-Ayman_Odeh_2021.png",
-      "imageCredit": "Wikimedia Commons (Ayman Odeh)"
+      "image": "/people/ayman-odeh.png",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Ayman_Odeh_2021.png/330px-Ayman_Odeh_2021.png",
+      "imageCredit": "Wikimedia Commons — Ayman Odeh"
     },
     {
       "id": "ahmad-tibi",
       "name": "אחמד טיבי",
       "role": "יו״ר תע״ל",
       "wiki": "Ahmad_Tibi",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Ahmad_Tibi_2021.png/330px-Ahmad_Tibi_2021.png",
-      "imageCredit": "Wikimedia Commons (Ahmad Tibi)"
+      "image": "/people/ahmad-tibi.png",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Ahmad_Tibi_2021.png/330px-Ahmad_Tibi_2021.png",
+      "imageCredit": "Wikimedia Commons — Ahmad Tibi"
     },
     {
       "id": "gali-baharav-miara",
       "name": "גלי בהרב-מיארה",
       "role": "היועצת המשפטית לממשלה",
       "wiki": "Gali_Baharav-Miara",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Gali_Baharav-Miara.jpg/330px-Gali_Baharav-Miara.jpg",
-      "imageCredit": "Wikimedia Commons (Gali Baharav-Miara)"
+      "image": "/people/gali-baharav-miara.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Gali_Baharav-Miara.jpg/330px-Gali_Baharav-Miara.jpg",
+      "imageCredit": "Wikimedia Commons — Gali Baharav-Miara"
     },
     {
       "id": "yariv-levin",
       "name": "יריב לוין",
       "role": "שר המשפטים",
       "wiki": "Yariv_Levin",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Yariv_Levin_1_%28cropped%29.jpg/330px-Yariv_Levin_1_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yariv Levin)"
+      "image": "/people/yariv-levin.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Yariv_Levin_1_%28cropped%29.jpg/330px-Yariv_Levin_1_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yariv Levin"
     },
     {
       "id": "israel-katz",
       "name": "ישראל כ״ץ",
       "role": "שר הביטחון",
       "wiki": "Israel_Katz",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Israel_Katz_on_July_3%2C_2024_%28cropped%29.jpg/330px-Israel_Katz_on_July_3%2C_2024_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Israel Katz)"
+      "image": "/people/israel-katz.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Israel_Katz_on_July_3%2C_2024_%28cropped%29.jpg/330px-Israel_Katz_on_July_3%2C_2024_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Israel Katz"
     },
     {
       "id": "ron-dermer",
       "name": "רון דרמר",
       "role": "השר לעניינים אסטרטגיים",
       "wiki": "Ron_Dermer",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Ron_Dermer.jpg/330px-Ron_Dermer.jpg",
-      "imageCredit": "Wikimedia Commons (Ron Dermer)"
+      "image": "/people/ron-dermer.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Ron_Dermer.jpg/330px-Ron_Dermer.jpg",
+      "imageCredit": "Wikimedia Commons — Ron Dermer"
     },
     {
       "id": "gideon-saar",
       "name": "גדעון סער",
       "role": "שר החוץ",
       "wiki": "Gideon_Sa'ar",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Gideon_Saar_new.jpg/330px-Gideon_Saar_new.jpg",
-      "imageCredit": "Wikimedia Commons (Gideon Sa'ar)"
+      "image": "/people/gideon-saar.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Gideon_Saar_new.jpg/330px-Gideon_Saar_new.jpg",
+      "imageCredit": "Wikimedia Commons — Gideon Sa'ar"
     },
     {
       "id": "isaac-herzog",
       "name": "יצחק הרצוג",
       "role": "נשיא המדינה",
       "wiki": "Isaac_Herzog",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Isaac_Herzog%2C_July_2021_%28D1233-049%29.JPG/330px-Isaac_Herzog%2C_July_2021_%28D1233-049%29.JPG",
-      "imageCredit": "Wikimedia Commons (Isaac Herzog)"
+      "image": "/people/isaac-herzog.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Isaac_Herzog%2C_July_2021_%28D1233-049%29.JPG/330px-Isaac_Herzog%2C_July_2021_%28D1233-049%29.JPG",
+      "imageCredit": "Wikimedia Commons — Isaac Herzog"
     },
     {
       "id": "eyal-zamir",
       "name": "אייל זמיר",
       "role": "הרמטכ״ל",
       "wiki": "Eyal_Zamir",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Eyal_Zamir-RAV_ALUF.jpg/330px-Eyal_Zamir-RAV_ALUF.jpg",
-      "imageCredit": "Wikimedia Commons (Eyal Zamir)"
+      "image": "/people/eyal-zamir.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Eyal_Zamir-RAV_ALUF.jpg/330px-Eyal_Zamir-RAV_ALUF.jpg",
+      "imageCredit": "Wikimedia Commons — Eyal Zamir"
     },
     {
       "id": "yoav-gallant",
       "name": "יואב גלנט",
       "role": "שר הביטחון לשעבר",
       "wiki": "Yoav_Gallant",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Yoav_Galant_Portrait_%28cropped%29.jpg/330px-Yoav_Galant_Portrait_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yoav Gallant)"
+      "image": "/people/yoav-gallant.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Yoav_Galant_Portrait_%28cropped%29.jpg/330px-Yoav_Galant_Portrait_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yoav Gallant"
     },
     {
       "id": "miri-regev",
       "name": "מירי רגב",
       "role": "שרת התחבורה, ליכוד",
       "wiki": "Miri_Regev",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Miri_Regev_02_%28cropped%29.jpg/330px-Miri_Regev_02_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Miri Regev)"
+      "image": "/people/miri-regev.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Miri_Regev_02_%28cropped%29.jpg/330px-Miri_Regev_02_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Miri Regev"
     },
     {
       "id": "amir-ohana",
       "name": "אמיר אוחנה",
       "role": "יו״ר הכנסת",
       "wiki": "Amir_Ohana",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Amir_Ohana_-_Official.jpg/330px-Amir_Ohana_-_Official.jpg",
-      "imageCredit": "Wikimedia Commons (Amir Ohana)"
+      "image": "/people/amir-ohana.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Amir_Ohana_-_Official.jpg/330px-Amir_Ohana_-_Official.jpg",
+      "imageCredit": "Wikimedia Commons — Amir Ohana"
     },
     {
       "id": "david-amsalem",
       "name": "דודי אמסלם",
       "role": "שר, ליכוד",
       "wiki": "David_Amsalem",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/David_Amsalem.jpg/330px-David_Amsalem.jpg",
-      "imageCredit": "Wikimedia Commons (David Amsalem)"
+      "image": "/people/david-amsalem.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/David_Amsalem.jpg/330px-David_Amsalem.jpg",
+      "imageCredit": "Wikimedia Commons — David Amsalem"
     },
     {
       "id": "shlomo-karhi",
       "name": "שלמה קרעי",
       "role": "שר התקשורת",
       "wiki": "Shlomo_Karhi",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Shlomo_Karhi_%28SHL_8894%29.jpg/330px-Shlomo_Karhi_%28SHL_8894%29.jpg",
-      "imageCredit": "Wikimedia Commons (Shlomo Karhi)"
+      "image": "/people/shlomo-karhi.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Shlomo_Karhi_%28SHL_8894%29.jpg/330px-Shlomo_Karhi_%28SHL_8894%29.jpg",
+      "imageCredit": "Wikimedia Commons — Shlomo Karhi"
     },
     {
       "id": "yoav-kisch",
       "name": "יואב קיש",
       "role": "שר החינוך",
       "wiki": "Yoav_Kisch",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Yoav_Kish_%28SHL_9437%29.jpg/330px-Yoav_Kish_%28SHL_9437%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yoav Kisch)"
+      "image": "/people/yoav-kisch.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Yoav_Kish_%28SHL_9437%29.jpg/330px-Yoav_Kish_%28SHL_9437%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yoav Kisch"
     },
     {
       "id": "nir-barkat",
       "name": "ניר ברקת",
       "role": "שר הכלכלה",
       "wiki": "Nir_Barkat",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Nir_Barkat.jpg/330px-Nir_Barkat.jpg",
-      "imageCredit": "Wikimedia Commons (Nir Barkat)"
+      "image": "/people/nir-barkat.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Nir_Barkat.jpg/330px-Nir_Barkat.jpg",
+      "imageCredit": "Wikimedia Commons — Nir Barkat"
     },
     {
       "id": "eli-cohen",
       "name": "אלי כהן",
       "role": "שר האנרגיה",
       "wiki": "Eli_Cohen_(politician,_born_1972)",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Eli_Cohen_portrait.jpg/330px-Eli_Cohen_portrait.jpg",
-      "imageCredit": "Wikimedia Commons (Eli Cohen (politician, born 1972))"
+      "image": "/people/eli-cohen.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Eli_Cohen_portrait.jpg/330px-Eli_Cohen_portrait.jpg",
+      "imageCredit": "Wikimedia Commons — Eli Cohen (politician, born 1972)"
     },
     {
       "id": "yuli-edelstein",
       "name": "יולי אדלשטיין",
       "role": "ח״כ ליכוד, יו״ר ועדת חוץ וביטחון לשעבר",
       "wiki": "Yuli_Edelstein",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/July_Edelstein_%28R_H_4830%29.jpg/330px-July_Edelstein_%28R_H_4830%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yuli Edelstein)"
+      "image": "/people/yuli-edelstein.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/July_Edelstein_%28R_H_4830%29.jpg/330px-July_Edelstein_%28R_H_4830%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yuli Edelstein"
     },
     {
       "id": "boaz-bismuth",
       "name": "בועז ביסמוט",
       "role": "ח״כ ליכוד",
       "wiki": "Boaz_Bismuth",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Boaz_Bismuth_%28cropped%29.jpeg/330px-Boaz_Bismuth_%28cropped%29.jpeg",
-      "imageCredit": "Wikimedia Commons (Boaz Bismuth)"
+      "imageCredit": "Wikimedia Commons — Boaz Bismuth",
+      "image": "/people/boaz-bismuth.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Boaz_Bismuth_%28cropped%29.jpeg/330px-Boaz_Bismuth_%28cropped%29.jpeg"
     },
     {
       "id": "tally-gotliv",
       "name": "טלי גוטליב",
       "role": "ח״כית ליכוד",
       "wiki": "Tally_Gotliv",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Tali_Gottleib_%28R_H_3795%29.jpg/330px-Tali_Gottleib_%28R_H_3795%29.jpg",
-      "imageCredit": "Wikimedia Commons (Tally Gotliv)"
+      "imageCredit": "Wikimedia Commons — Tally Gotliv",
+      "image": "/people/tally-gotliv.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Tali_Gottleib_%28R_H_3795%29.jpg/330px-Tali_Gottleib_%28R_H_3795%29.jpg"
     },
     {
       "id": "ayelet-shaked",
       "name": "איילת שקד",
       "role": "שרת הפנים לשעבר",
       "wiki": "Ayelet_Shaked",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Ayelet_Shaked_%28SHL_8986%29.jpg/330px-Ayelet_Shaked_%28SHL_8986%29.jpg",
-      "imageCredit": "Wikimedia Commons (Ayelet Shaked)"
+      "image": "/people/ayelet-shaked.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Ayelet_Shaked_%28SHL_8986%29.jpg/330px-Ayelet_Shaked_%28SHL_8986%29.jpg",
+      "imageCredit": "Wikimedia Commons — Ayelet Shaked"
     },
     {
       "id": "yossi-cohen",
       "name": "יוסי כהן",
       "role": "ראש המוסד לשעבר",
       "wiki": "Yossi_Cohen",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Yossi_Cohen_%28cropped%29.jpg/330px-Yossi_Cohen_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yossi Cohen)"
+      "imageCredit": "Wikimedia Commons — Yossi Cohen",
+      "image": "/people/yossi-cohen.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Yossi_Cohen_%28cropped%29.jpg/330px-Yossi_Cohen_%28cropped%29.jpg"
     },
     {
       "id": "moshe-yaalon",
       "name": "משה (בוגי) יעלון",
       "role": "שר הביטחון לשעבר",
       "wiki": "Moshe_Ya'alon",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Moshe_Ya%27alon_%28cropped%29.jpg/330px-Moshe_Ya%27alon_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Moshe Ya'alon)"
+      "image": "/people/moshe-yaalon.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Moshe_Ya%27alon_%28cropped%29.jpg/330px-Moshe_Ya%27alon_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Moshe Ya'alon"
     },
     {
       "id": "ehud-barak",
       "name": "אהוד ברק",
       "role": "ראש ממשלה לשעבר",
       "wiki": "Ehud_Barak",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Ehud_Barak_1999.jpg/330px-Ehud_Barak_1999.jpg",
-      "imageCredit": "Wikimedia Commons (Ehud Barak)"
+      "image": "/people/ehud-barak.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Ehud_Barak_1999.jpg/330px-Ehud_Barak_1999.jpg",
+      "imageCredit": "Wikimedia Commons — Ehud Barak"
     },
     {
       "id": "shikma-bressler",
       "name": "שקמה ברסלר",
       "role": "מובילת מחאה",
       "wiki": "Shikma_Bressler",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Shikma_Bressler.jpg/330px-Shikma_Bressler.jpg",
-      "imageCredit": "Wikimedia Commons (Shikma Bressler)"
+      "imageCredit": "Wikimedia Commons — Shikma Bressler",
+      "image": "/people/shikma-bressler.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Shikma_Bressler.jpg/330px-Shikma_Bressler.jpg"
     },
     {
       "id": "amit-segal",
       "name": "עמית סגל",
       "role": "פרשן פוליטי, חדשות 12",
       "wiki": "Amit_Segal",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Amit_Segal_2015_%28cropped%29.jpg/330px-Amit_Segal_2015_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Amit Segal)"
+      "image": "/people/amit-segal.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Amit_Segal_2015_%28cropped%29.jpg/330px-Amit_Segal_2015_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Amit Segal"
     },
     {
       "id": "yinon-magal",
       "name": "ינון מגל",
       "role": "מגיש, ערוץ 14",
       "wiki": "Yinon_Magal",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Yinon_Magal_%28cropped2%29.jpg/330px-Yinon_Magal_%28cropped2%29.jpg",
-      "imageCredit": "Wikimedia Commons (Yinon Magal)"
+      "image": "/people/yinon-magal.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Yinon_Magal_%28cropped2%29.jpg/330px-Yinon_Magal_%28cropped2%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yinon Magal"
     },
     {
       "id": "ronen-bar",
       "name": "רונן בר",
       "role": "ראש השב״כ לשעבר",
       "wiki": "Ronen_Bar",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Ronen_Bar%2C_October_2021_%28GPODBG_7092%29_%28cropped%29.jpg/330px-Ronen_Bar%2C_October_2021_%28GPODBG_7092%29_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Ronen Bar)"
+      "image": "/people/ronen-bar.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Ronen_Bar%2C_October_2021_%28GPODBG_7092%29_%28cropped%29.jpg/330px-Ronen_Bar%2C_October_2021_%28GPODBG_7092%29_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Ronen Bar"
     },
     {
       "id": "david-zini",
       "name": "דוד זיני",
       "role": "ראש השב״כ",
       "wiki": "David_Zini",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/David_Zini_Taal_portrait.jpg/330px-David_Zini_Taal_portrait.jpg",
-      "imageCredit": "Wikimedia Commons (David Zini)"
+      "image": "/people/david-zini.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/David_Zini_Taal_portrait.jpg/330px-David_Zini_Taal_portrait.jpg",
+      "imageCredit": "Wikimedia Commons — David Zini"
     },
     {
       "id": "donald-trump",
       "name": "דונלד טראמפ",
       "role": "נשיא ארה״ב",
       "wiki": "Donald_Trump",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Official_Presidential_Portrait_of_President_Donald_J._Trump_%282025%29.jpg/330px-Official_Presidential_Portrait_of_President_Donald_J._Trump_%282025%29.jpg",
-      "imageCredit": "Wikimedia Commons (Donald Trump)"
+      "image": "/people/donald-trump.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Official_Presidential_Portrait_of_President_Donald_J._Trump_%282025%29.jpg/330px-Official_Presidential_Portrait_of_President_Donald_J._Trump_%282025%29.jpg",
+      "imageCredit": "Wikimedia Commons — Donald Trump"
     },
     {
       "id": "yoaz-hendel",
       "name": "יועז הנדל",
       "role": "שר התקשורת לשעבר",
       "wiki": "Yoaz_Hendel",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/%D7%99%D7%95%D7%A2%D7%96-%D7%94%D7%A0%D7%93%D7%9C-%D7%91%D7%90%D7%95%D7%9C%D7%A4%D7%9F-103fm-%D7%A6%D7%99%D7%9C%D7%95%D7%9D-%D7%99%D7%A0%D7%99%D7%91-%D7%9E%D7%95%D7%A8%D7%95%D7%96%D7%95%D7%91%D7%A1%D7%A7%D7%99.jpg/330px-%D7%99%D7%95%D7%A2%D7%96-%D7%94%D7%A0%D7%93%D7%9C-%D7%91%D7%90%D7%95%D7%9C%D7%A4%D7%9F-103fm-%D7%A6%D7%99%D7%9C%D7%95%D7%9D-%D7%99%D7%A0%D7%99%D7%91-%D7%9E%D7%95%D7%A8%D7%95%D7%96%D7%95%D7%91%D7%A1%D7%A7%D7%99.jpg",
-      "imageCredit": "Wikimedia Commons (Yoaz Hendel)"
+      "image": "/people/yoaz-hendel.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/%D7%99%D7%95%D7%A2%D7%96-%D7%94%D7%A0%D7%93%D7%9C-%D7%91%D7%90%D7%95%D7%9C%D7%A4%D7%9F-103fm-%D7%A6%D7%99%D7%9C%D7%95%D7%9D-%D7%99%D7%A0%D7%99%D7%91-%D7%9E%D7%95%D7%A8%D7%95%D7%96%D7%95%D7%91%D7%A1%D7%A7%D7%99.jpg/330px-%D7%99%D7%95%D7%A2%D7%96-%D7%94%D7%A0%D7%93%D7%9C-%D7%91%D7%90%D7%95%D7%9C%D7%A4%D7%9F-103fm-%D7%A6%D7%99%D7%9C%D7%95%D7%9D-%D7%99%D7%A0%D7%99%D7%91-%D7%9E%D7%95%D7%A8%D7%95%D7%96%D7%95%D7%91%D7%A1%D7%A7%D7%99.jpg",
+      "imageCredit": "Wikimedia Commons — Yoaz Hendel"
     },
     {
       "id": "meirav-michaeli",
       "name": "מרב מיכאלי",
       "role": "יו״ר העבודה לשעבר",
       "wiki": "Merav_Michaeli",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Merav_Michaeli_%28R_H_4127%29.jpg/330px-Merav_Michaeli_%28R_H_4127%29.jpg",
-      "imageCredit": "Wikimedia Commons (Merav Michaeli)"
+      "image": "/people/meirav-michaeli.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Merav_Michaeli_%28R_H_4127%29.jpg/330px-Merav_Michaeli_%28R_H_4127%29.jpg",
+      "imageCredit": "Wikimedia Commons — Merav Michaeli"
     },
     {
       "id": "orit-strock",
       "name": "אורית סטרוק",
       "role": "שרת ההתיישבות",
       "wiki": "Orit_Strook",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Orit_Strook.jpg/330px-Orit_Strook.jpg",
-      "imageCredit": "Wikimedia Commons (Orit Strook)"
+      "image": "/people/orit-strock.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Orit_Strook.jpg/330px-Orit_Strook.jpg",
+      "imageCredit": "Wikimedia Commons — Orit Strook"
     },
     {
       "id": "michael-malkieli",
       "name": "מיכאל מלכיאלי",
       "role": "ש״ס",
       "wiki": "Michael_Malkieli",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Michael_Malchieli_1.jpg/330px-Michael_Malchieli_1.jpg",
-      "imageCredit": "Wikimedia Commons (Michael Malkieli)"
+      "image": "/people/michael-malkieli.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Michael_Malchieli_1.jpg/330px-Michael_Malchieli_1.jpg",
+      "imageCredit": "Wikimedia Commons — Michael Malkieli"
     },
     {
       "id": "almog-cohen",
       "name": "אלמוג כהן",
       "role": "ח״כ עוצמה יהודית",
       "wiki": "Almog_Cohen_(politician)",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Almog_Cohen.jpg/330px-Almog_Cohen.jpg",
-      "imageCredit": "Wikimedia Commons (Almog Cohen (politician))"
+      "image": "/people/almog-cohen.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Almog_Cohen.jpg/330px-Almog_Cohen.jpg",
+      "imageCredit": "Wikimedia Commons — Almog Cohen (politician)"
     },
     {
       "id": "avi-dichter",
       "name": "אבי דיכטר",
       "role": "שר החקלאות",
       "wiki": "Avi_Dichter",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Avi_Dichter_%28R_H_4415%29.jpg/330px-Avi_Dichter_%28R_H_4415%29.jpg",
-      "imageCredit": "Wikimedia Commons (Avi Dichter)"
+      "image": "/people/avi-dichter.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Avi_Dichter_%28R_H_4415%29.jpg/330px-Avi_Dichter_%28R_H_4415%29.jpg",
+      "imageCredit": "Wikimedia Commons — Avi Dichter"
     },
     {
       "id": "ofer-winter",
       "name": "עופר וינטר",
       "role": "תא״ל (במיל׳), יו״ר ״עמך ישראל״",
       "wiki": "Ofer_Winter",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Ofer_Winter_2026.png/330px-Ofer_Winter_2026.png",
-      "imageCredit": "Wikimedia Commons (Ofer Winter)"
+      "image": "/people/ofer-winter.png",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Ofer_Winter_2026.png/330px-Ofer_Winter_2026.png",
+      "imageCredit": "Wikimedia Commons — Ofer Winter"
     },
     {
       "id": "moshe-feiglin",
       "name": "משה פייגלין",
       "role": "יו״ר זהות",
       "wiki": "Moshe_Feiglin",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Moshe_Feiglin_%28cropped%29.jpg/330px-Moshe_Feiglin_%28cropped%29.jpg",
-      "imageCredit": "Wikimedia Commons (Moshe Feiglin)"
+      "image": "/people/moshe-feiglin.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Moshe_Feiglin_%28cropped%29.jpg/330px-Moshe_Feiglin_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Moshe Feiglin"
     },
     {
       "id": "yousef-jabareen",
       "name": "יוסף ג׳בארין",
       "role": "יו״ר חד״ש",
       "wiki": "Yousef_Jabareen",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Yousef_Jabareen_2021.png/330px-Yousef_Jabareen_2021.png",
-      "imageCredit": "Wikimedia Commons (Yousef Jabareen)"
+      "image": "/people/yousef-jabareen.png",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Yousef_Jabareen_2021.png/330px-Yousef_Jabareen_2021.png",
+      "imageCredit": "Wikimedia Commons — Yousef Jabareen"
     },
     {
       "id": "sami-abou-shahadeh",
       "name": "סאמי אבו שחאדה",
       "role": "יו״ר בל״ד",
       "wiki": "Sami_Abu_Shehadeh",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Sami_Abou_Shahadeh.png/330px-Sami_Abou_Shahadeh.png",
-      "imageCredit": "Wikimedia Commons (Sami Abu Shehadeh)"
+      "image": "/people/sami-abou-shahadeh.png",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Sami_Abou_Shahadeh.png/330px-Sami_Abou_Shahadeh.png",
+      "imageCredit": "Wikimedia Commons — Sami Abu Shehadeh"
     },
     {
       "id": "hili-tropper",
       "name": "חילי טרופר",
       "role": "ח״כ, לשעבר כחול לבן",
       "wiki": "Hili_Tropper",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/%D7%97%D7%99%D7%9C%D7%99_%D7%98%D7%A8%D7%95%D7%A4%D7%A8_-_%D7%97%D7%95%D7%A1%D7%9F_%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C.jpg/330px-%D7%97%D7%99%D7%9C%D7%99_%D7%98%D7%A8%D7%95%D7%A4%D7%A8_-_%D7%97%D7%95%D7%A1%D7%9F_%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C.jpg",
-      "imageCredit": "Wikimedia Commons (Hili Tropper)"
+      "image": "/people/hili-tropper.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/%D7%97%D7%99%D7%9C%D7%99_%D7%98%D7%A8%D7%95%D7%A4%D7%A8_-_%D7%97%D7%95%D7%A1%D7%9F_%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C.jpg/330px-%D7%97%D7%99%D7%9C%D7%99_%D7%98%D7%A8%D7%95%D7%A4%D7%A8_-_%D7%97%D7%95%D7%A1%D7%9F_%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C.jpg",
+      "imageCredit": "Wikimedia Commons — Hili Tropper"
     }
   ]
 }
