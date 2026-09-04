@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { pct } from "@/lib/format";
 
-type Point = { t: number; p: number };
+/** `synthetic` points are a display-only estimate — see src/lib/synthetic-history.ts. */
+type Point = { t: number; p: number; synthetic?: boolean };
 type Range = "1D" | "1W" | "1M" | "ALL";
 
 const RANGES: { id: Range; label: string; ms: number }[] = [
@@ -13,16 +14,38 @@ const RANGES: { id: Range; label: string; ms: number }[] = [
   { id: "ALL", label: "הכל", ms: Infinity },
 ];
 
-const fmtTip = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const fmtAxisDay = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
-const fmtAxisTime = new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit" });
-const fmtAxisBoth = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", hour: "2-digit" });
+// Israel time on both sides of the render: the server runs in UTC, so without an
+// explicit zone an evening tick SSRs one day and hydrates as another.
+const TZ = "Asia/Jerusalem";
+const fmtTip = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const fmtAxisDay = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short" });
+const fmtAxisTime = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+const fmtAxisBoth = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit" });
 
-export function PriceChart({ points, current, isOpen }: { points: Point[]; current: number; isOpen: boolean }) {
+export function PriceChart({
+  points,
+  current,
+  isOpen,
+  estimateBand,
+  tradeCount,
+  now: nowProp,
+}: {
+  points: Point[];
+  current: number;
+  isOpen: boolean;
+  /** how far the estimate may stray from the recorded price, in probability units */
+  estimateBand?: number;
+  /** real trades executed on this market — the estimate must never be mistaken for these */
+  tradeCount?: number;
+  /** the rendering server's clock — passed in so the server and the client agree */
+  now?: number;
+}) {
   const [range, setRange] = useState<Range>("ALL");
   const [hover, setHover] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const [now] = useState(() => Date.now());
+  // Never read the clock here: this component is server-rendered and then hydrated,
+  // and a second reading would put a different curve on each side.
+  const now = nowProp ?? (points.length ? points[points.length - 1].t : 0);
   // Render at the container's real pixel width so axis text stays legible on phones.
   const [W, setW] = useState(800);
   useEffect(() => {
@@ -42,15 +65,18 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
 
   const data = useMemo(() => {
     const sorted = [...points].sort((a, b) => a.t - b.t);
-    const last = sorted.length ? sorted[sorted.length - 1] : { t: now, p: current };
-    const withNow: Point[] = isOpen ? [...sorted, { t: now, p: current }] : sorted;
+    const last = sorted.length ? sorted[sorted.length - 1] : { t: now, p: current, synthetic: false };
+    // the appended "now" point is the real current price, never an estimate
+    const withNow: Point[] = isOpen && now > last.t ? [...sorted, { t: now, p: current }] : sorted;
     const r = RANGES.find((x) => x.id === range)!;
     if (!Number.isFinite(r.ms)) return withNow.length ? withNow : [{ t: now, p: current }];
     const start = now - r.ms;
     const inRange = withNow.filter((pt) => pt.t >= start);
     const before = withNow.filter((pt) => pt.t < start);
-    const carry = before.length ? before[before.length - 1].p : inRange.length ? inRange[0].p : last.p;
-    return [{ t: start, p: carry }, ...inRange];
+    // the carried-over left edge keeps its provenance: otherwise the most visible
+    // pixel of a 1W view would be an estimate drawn as solid, real data
+    const carry = before.length ? before[before.length - 1] : (inRange[0] ?? last);
+    return [{ t: start, p: carry.p, synthetic: carry.synthetic }, ...inRange];
   }, [points, current, isOpen, range, now]);
 
   const t0 = data[0].t;
@@ -59,12 +85,40 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
   const nTicks = W < 480 ? 2 : 4;
   const y = (p: number) => PAD.top + (1 - p) * (H - PAD.top - PAD.bottom);
 
-  const path = data.map((pt, i) => `${i ? "L" : "M"}${x(pt.t).toFixed(1)},${y(pt.p).toFixed(1)}`).join(" ");
-  const area = `${path} L${x(t1).toFixed(1)},${y(0)} L${x(t0).toFixed(1)},${y(0)} Z`;
+  const toPath = (pts: Point[]) => pts.map((pt, i) => `${i ? "L" : "M"}${x(pt.t).toFixed(1)},${y(pt.p).toFixed(1)}`).join(" ");
+
+  /** Consecutive stretches of the same provenance. Neighbouring runs share their
+   *  boundary point, so the estimate hands over to the real line with no gap. */
+  const runs = useMemo(() => {
+    const out: { synthetic: boolean; pts: Point[] }[] = [];
+    for (let i = 1; i < data.length; i++) {
+      const synthetic = Boolean(data[i - 1].synthetic || data[i].synthetic);
+      const open = out[out.length - 1];
+      if (open && open.synthetic === synthetic) open.pts.push(data[i]);
+      else out.push({ synthetic, pts: [data[i - 1], data[i]] });
+    }
+    if (!out.length) out.push({ synthetic: Boolean(data[0].synthetic), pts: [data[0]] });
+    return out;
+  }, [data]);
+
   const lastPt = data[data.length - 1];
   const hoverPt = hover != null ? data[hover] : null;
 
-  const change = data.length > 1 ? lastPt.p - data[0].p : 0;
+  // Never a fabricated headline number: the change is measured across real trading only.
+  const realPts = data.filter((d) => !d.synthetic);
+  const traded = tradeCount == null ? realPts.length > 1 : tradeCount > 0;
+  const change = traded && realPts.length > 1 ? realPts[realPts.length - 1].p - realPts[0].p : null;
+  const hasEstimate = data.some((d) => d.synthetic);
+
+  // where the estimate ends and real trading begins
+  const openIdx = data.findIndex((d) => !d.synthetic);
+  const openAt = openIdx > 0 ? data[openIdx].t : null;
+  const estX0 = hasEstimate ? x(data[0].t) : 0;
+  const estX1 = hasEstimate ? x(openAt ?? data[data.length - 1].t) : 0;
+  // a market that opened minutes ago puts the boundary at the very edge — flip the
+  // label inwards instead of letting it clip
+  const openNearEdge = openAt !== null && x(openAt) > W - PAD.right - 80;
+  const bandLabel = estimateBand ? `עד ${(estimateBand * 100).toFixed(1)} נק׳` : null;
 
   function onMove(e: React.PointerEvent<SVGSVGElement>) {
     const svg = svgRef.current;
@@ -97,13 +151,25 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
         <div>
           <div className="text-xs text-muted">סיכוי ל״כן״</div>
           <div className="flex flex-wrap items-baseline gap-2">
-            <span className="tabular text-2xl font-extrabold text-text-strong sm:text-3xl">{pct(hoverPt ? hoverPt.p : current, 1)}</span>
-            {!hoverPt && data.length > 1 && (
+            <span className={`tabular text-2xl font-extrabold sm:text-3xl ${hoverPt?.synthetic ? "text-muted" : "text-text-strong"}`}>
+              {hoverPt?.synthetic ? "≈" : ""}
+              {pct(hoverPt ? hoverPt.p : current, 1)}
+            </span>
+            {!hoverPt && change !== null && Math.abs(change) >= 0.0005 && (
               <span className={`tabular text-sm font-semibold ${change >= 0 ? "text-yes" : "text-no"}`}>
                 {`${change >= 0 ? "+" : "-"}${Math.abs(change * 100).toFixed(1)} נק׳`}
               </span>
             )}
-            {hoverPt && <span className="text-xs text-muted">{fmtTip.format(hoverPt.t)}</span>}
+            {!hoverPt && !traded && (
+              <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-muted-2">טרם נסחר</span>
+            )}
+            {hoverPt && (
+              <span className="flex items-center gap-1.5 text-xs text-muted">
+                {/* a fabricated point must never read as "5 בספט 14:30 — 61%" */}
+                {hoverPt.synthetic ? fmtAxisDay.format(hoverPt.t) : fmtTip.format(hoverPt.t)}
+                {hoverPt.synthetic && <span className="rounded bg-surface-2 px-1 py-0.5 text-[10px] text-muted-2">אומדן</span>}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex gap-1 rounded-lg bg-surface-2 p-1" role="tablist" aria-label="טווח זמן">
@@ -136,13 +202,22 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
         onPointerCancel={() => setHover(null)}
         onPointerLeave={() => setHover(null)}
         role="img"
-        aria-label="גרף הסתברות לאורך זמן"
+        aria-label={
+          hasEstimate
+            ? "גרף סיכוי לאורך זמן. הקטע המקווקו הוא אומדן להמחשה ולא מסחר אמיתי."
+            : "גרף הסתברות לאורך זמן"
+        }
       >
         <defs>
           <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="var(--color-accent)" stopOpacity="0.22" />
             <stop offset="1" stopColor="var(--color-accent)" stopOpacity="0.02" />
           </linearGradient>
+          {/* the estimate is hatched, so a cropped screenshot still shows it is not real trading */}
+          <pattern id="chart-estimate" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="7" height="7" fill="var(--color-muted-2)" opacity="0.05" />
+            <line x1="0" y1="0" x2="0" y2="7" stroke="var(--color-muted-2)" strokeWidth="1" opacity="0.22" />
+          </pattern>
         </defs>
         {[0, 0.25, 0.5, 0.75, 1].map((g) => (
           <g key={g}>
@@ -157,8 +232,44 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
             {fmtAxis.format(t)}
           </text>
         ))}
-        <path d={area} fill="url(#chart-fill)" />
-        <path d={path} fill="none" stroke="var(--color-accent)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        {runs.map((r, i) => (
+          <path
+            key={`area-${i}`}
+            d={`${toPath(r.pts)} L${x(r.pts[r.pts.length - 1].t).toFixed(1)},${y(0)} L${x(r.pts[0].t).toFixed(1)},${y(0)} Z`}
+            fill={r.synthetic ? "url(#chart-estimate)" : "url(#chart-fill)"}
+          />
+        ))}
+        {runs.map((r, i) => (
+          <path
+            key={`line-${i}`}
+            d={toPath(r.pts)}
+            fill="none"
+            stroke={r.synthetic ? "var(--color-muted-2)" : "var(--color-accent)"}
+            strokeWidth={r.synthetic ? 1.75 : 2}
+            strokeDasharray={r.synthetic ? "5 4" : undefined}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        ))}
+        {hasEstimate && estX1 - estX0 > 90 && (
+          <text x={(estX0 + estX1) / 2} y={PAD.top + 14} fontSize={11} fill="var(--color-muted-2)" opacity={0.75} textAnchor="middle">
+            אומדן{bandLabel ? ` · ${bandLabel}` : ""}
+          </text>
+        )}
+        {openAt !== null && (
+          <g>
+            <line x1={x(openAt)} x2={x(openAt)} y1={PAD.top} y2={H - PAD.bottom} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="3 3" />
+            <text
+              x={x(openAt) + (openNearEdge ? -6 : 6)}
+              y={H - PAD.bottom - 6}
+              fontSize={10}
+              fill="var(--color-muted-2)"
+              textAnchor={openNearEdge ? "end" : "start"}
+            >
+              פתיחת המסחר
+            </text>
+          </g>
+        )}
         {/* end marker with surface ring */}
         <circle cx={x(lastPt.t)} cy={y(lastPt.p)} r={6} fill="var(--color-surface)" />
         <circle cx={x(lastPt.t)} cy={y(lastPt.p)} r={4} fill="var(--color-accent)" />
@@ -166,14 +277,20 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
           <g>
             <line x1={x(hoverPt.t)} x2={x(hoverPt.t)} y1={PAD.top} y2={H - PAD.bottom} stroke="var(--color-muted-2)" strokeWidth={1} />
             <circle cx={x(hoverPt.t)} cy={y(hoverPt.p)} r={7} fill="var(--color-surface)" />
-            <circle cx={x(hoverPt.t)} cy={y(hoverPt.p)} r={5} fill="var(--color-accent-2)" />
+            <circle cx={x(hoverPt.t)} cy={y(hoverPt.p)} r={5} fill={hoverPt.synthetic ? "var(--color-muted-2)" : "var(--color-accent-2)"} />
           </g>
         )}
       </svg>
-      {points.length > 1 && (
+      {traded && (
         <p className="mt-1 text-center text-[11px] text-muted-2 lg:hidden">החליקו על הגרף כדי לראות מחיר בזמן מסוים</p>
       )}
-      {points.length <= 1 && <p className="mt-2 text-center text-xs text-muted-2">עדיין אין עסקאות — הגרף יתעדכן עם המסחר הראשון</p>}
+      {!traded && (
+        <p className="mt-2 text-center text-xs text-muted-2">
+          {hasEstimate
+            ? `עדיין אין עסקאות — הקו המקווקו הוא אומדן להמחשה בלבד${bandLabel ? ` (סטייה של ${bandLabel} מהמחיר הרשום)` : ""}, לא מסחר אמיתי`
+            : "עדיין אין עסקאות — הגרף יתעדכן עם המסחר הראשון"}
+        </p>
+      )}
     </div>
   );
 }

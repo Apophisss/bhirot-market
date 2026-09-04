@@ -77,6 +77,8 @@
 - הכריעו רק עם ראיה מפורשת ופומבית. אם מועד היעד עבר והאירוע לא קרה — `"resolution": "NO"` עם הסבר.
 - שוק שהתברר כלא ניתן להכרעה (למשל השאלה התבססה על הנחה שגויה) — `"status": "cancelled"` + `resolutionNote`. כל הכסף מוחזר.
 - לעולם אל תשנו את `initialProbability`, `liquidity` או `slug` של שוק קיים. מותר לתקן ניסוח/מקורות/`closesAt` אם התגלתה טעות.
+- הגרף מציג לפני מועד הפתיחה **אומדן מקווקו** חסום ל-±3 נקודות אחוז מהמחיר הרשום (`src/lib/synthetic-history.ts`, תצוגה בלבד).
+  זו סיבה נוספת לתמחר את `initialProbability` בכנות: הוא העוגן שהאומדן נבנה סביבו.
 
 ## הפורמט של `data/markets.json`
 
@@ -110,6 +112,7 @@ npm run markets:audit                # חוב הכרעות, תמהיל מועד�
 # ... עריכת data/markets.json (+ data/people.json במידת הצורך, ואז npm run people:fetch) ...
 npm run markets:validate             # סכמה — חייב לעבור
 npm run markets:audit                # בריאות הלוח — תקנו כל ✗
+npm run history:verify               # רק אם נגעתם ב-src/lib/synthetic-history.ts
 git add data/markets.json data/people.json
 git commit -m "markets: <תקציר קצר בעברית של מה נוסף/הוכרע>"
 git push

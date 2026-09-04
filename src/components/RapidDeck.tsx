@@ -120,6 +120,8 @@ export function RapidDeck({
   const [feed] = useState(cards);
   const scroller = useRef<HTMLDivElement>(null);
   const queue = useRef<Answer[]>([]);
+  /** ids already sent or waiting to be sent — the ref is a render ahead of `answers` */
+  const claimed = useRef(new Set<string>());
   const draining = useRef(false);
   const alive = useRef(true);
   /** index a programmatic scroll is heading to — scroll events are ignored until it lands */
@@ -136,14 +138,14 @@ export function RapidDeck({
   const [liveBalance, setLiveBalance] = useState<number | null>(balance);
   const [halted, setHalted] = useState(false);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    alive.current = true;
+    return () => {
       alive.current = false;
       window.clearTimeout(targetTimer.current);
       window.clearTimeout(advanceTimer.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const answered = useMemo(() => Object.values(answers), [answers]);
   const pendingCount = answered.filter((a) => a.status === "pending").length;
@@ -153,13 +155,12 @@ export function RapidDeck({
   const broke = halted || (available != null && available < stake);
   const outOfMoney = halted || (available != null && available < RAPID_MIN_STAKE);
 
-  const okCount = answered.filter((a) => a.status !== "error").length;
+  const okCount = answered.filter((a) => a.status === "ok").length;
   const failedCount = answered.filter((a) => a.status === "error").length;
 
   const goTo = useCallback(
     (i: number, delay = 0) => {
       const clamped = Math.max(0, Math.min(feed.length, i));
-      setIndex(clamped);
       window.clearTimeout(advanceTimer.current);
       const run = () => {
         const el = scroller.current;
@@ -168,7 +169,11 @@ export function RapidDeck({
         el.scrollTo({ top: clamped * el.clientHeight, behavior: reduceMotion ? "auto" : "smooth" });
         window.clearTimeout(targetTimer.current);
         targetTimer.current = window.setTimeout(() => {
+          // the landing scroll event can go missing (interrupted scroll, or a
+          // scrollTo that was already a no-op) — re-derive rather than leaving
+          // `index` pointing at a card that is not on screen
           target.current = null;
+          if (el.clientHeight) setIndex(Math.round(el.scrollTop / el.clientHeight));
         }, 900);
       };
       if (delay) advanceTimer.current = window.setTimeout(run, delay);
@@ -201,22 +206,17 @@ export function RapidDeck({
         } catch {
           patch = { ...job, status: "error", error: "שגיאת רשת" };
         }
-        if (!alive.current) return;
-        if (patch.status === "ok" && typeof data?.balance === "number") setLiveBalance(data.balance);
-
         // out of money: every queued answer after this one would fail the same way,
         // so stop the run instead of firing a burst of doomed requests
-        if (data?.code === "INSUFFICIENT_BALANCE") {
-          const stranded = queue.current.splice(0);
-          setHalted(true);
-          setAnswers((prev) => {
-            const next = { ...prev, [job.marketId]: patch };
-            for (const s of stranded) next[s.marketId] = { ...s, status: "error", error: "נגמרה היתרה" };
-            return next;
-          });
-          continue;
-        }
-        setAnswers((prev) => ({ ...prev, [job.marketId]: patch }));
+        const stranded = data?.code === "INSUFFICIENT_BALANCE" ? queue.current.splice(0) : [];
+        if (!alive.current) continue; // unmounted mid-run: keep sending, stop painting
+        if (patch.status === "ok" && typeof data?.balance === "number") setLiveBalance(data.balance);
+        if (stranded.length || data?.code === "INSUFFICIENT_BALANCE") setHalted(true);
+        setAnswers((prev) => {
+          const next = { ...prev, [job.marketId]: patch };
+          for (const s of stranded) next[s.marketId] = { ...s, status: "error", error: "נגמרה היתרה" };
+          return next;
+        });
       }
     } finally {
       draining.current = false;
@@ -229,7 +229,8 @@ export function RapidDeck({
         router.push("/login?callbackUrl=%2Frapid");
         return;
       }
-      if (answers[card.id] || broke) return; // answered already, or nothing left to bet
+      if (answers[card.id] || claimed.current.has(card.id) || broke) return; // answered already, or nothing left to bet
+      claimed.current.add(card.id);
       const job: Answer = { marketId: card.id, side, stake, status: "pending" };
       setAnswers((prev) => ({ ...prev, [card.id]: job }));
       queue.current.push(job);
@@ -285,8 +286,10 @@ export function RapidDeck({
           e.preventDefault();
           answer(card, "NO");
           break;
-        case "ArrowDown":
         case " ":
+          if (t?.closest("button, a, [role='button']")) return; // let the focused control handle it
+        // fallthrough
+        case "ArrowDown":
           e.preventDefault();
           goTo(index + 1);
           break;
@@ -335,9 +338,9 @@ export function RapidDeck({
   }, [answered.length, feed.length, index, pendingCount, router]);
 
   const atSummary = index >= feed.length;
-  const totalStaked = answered.filter((a) => a.status !== "error").reduce((s, a) => s + a.stake, 0);
+  const totalStaked = answered.filter((a) => a.status === "ok").reduce((s, a) => s + a.stake, 0);
   const totalPayout = answered.filter((a) => a.status === "ok").reduce((s, a) => s + (a.shares ?? 0), 0);
-  const yesCount = answered.filter((a) => a.side === "YES" && a.status !== "error").length;
+  const yesCount = answered.filter((a) => a.side === "YES" && a.status === "ok").length;
   const firstError = answered.find((a) => a.status === "error")?.error;
 
   if (!feed.length) return <>{children}</>;
@@ -396,7 +399,10 @@ export function RapidDeck({
             totalStaked={totalStaked}
             totalPayout={totalPayout}
             showActions={atSummary}
-            onRestart={() => goTo(0)}
+            onRestart={() => {
+              refreshed.current = false;
+              goTo(0);
+            }}
           />
         </div>
       </div>
@@ -477,7 +483,7 @@ function RapidCardView({
 }) {
   const [dx, setDx] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const drag = useRef<{ id: number; x0: number; y0: number; axis: "?" | "x" | "y" } | null>(null);
+  const drag = useRef<{ id: number; x0: number; y0: number; dx: number; axis: "?" | "x" | "y" } | null>(null);
 
   const state: MarketState = { qYes: card.qYes, qNo: card.qNo, b: card.liquidity };
   const payouts = useMemo(
@@ -492,7 +498,7 @@ function RapidCardView({
 
   function onPointerDown(e: React.PointerEvent) {
     if (done || locked || e.pointerType === "mouse") return;
-    drag.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, axis: "?" };
+    drag.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, axis: "?" };
   }
 
   function onPointerMove(e: React.PointerEvent) {
@@ -509,7 +515,10 @@ function RapidCardView({
         setDragging(true);
       }
     }
-    if (d.axis === "x") setDx(mx);
+    if (d.axis === "x") {
+      d.dx = mx;
+      setDx(mx);
+    }
   }
 
   function endDrag(e: React.PointerEvent) {
@@ -517,10 +526,23 @@ function RapidCardView({
     if (!d || d.id !== e.pointerId) return;
     drag.current = null;
     setDragging(false);
-    // כן sits on the right everywhere on this site, so a drag to the right is כן
-    const committed = Math.abs(dx) >= DRAG_COMMIT ? (dx > 0 ? "YES" : "NO") : null;
     setDx(0);
-    if (committed) onAnswer(committed);
+    if (d.axis !== "x") return;
+    // the distance comes off the ref, not the `dx` state: React batches
+    // pointermove, so the state can be a frame behind where the finger really
+    // was — and this commits money. (Nor from e.clientX: a pointerup can arrive
+    // without usable coordinates.)
+    // כן sits on the right everywhere on this site, so a drag to the right is כן
+    if (Math.abs(d.dx) >= DRAG_COMMIT) onAnswer(d.dx > 0 ? "YES" : "NO");
+  }
+
+  /** the OS took the gesture away — unwind it, never treat it as a deliberate answer */
+  function cancelDrag(e: React.PointerEvent) {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    drag.current = null;
+    setDragging(false);
+    setDx(0);
   }
 
   return (
@@ -534,7 +556,7 @@ function RapidCardView({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
-      onPointerCancel={endDrag}
+      onPointerCancel={cancelDrag}
     >
       {intent && !done && (
         <div
