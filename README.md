@@ -16,7 +16,7 @@
 | מסד נתונים | libSQL / SQLite (קובץ מקומי בפיתוח, [Turso](https://turso.tech) בפרודקשן) דרך Drizzle ORM |
 | מנוע שוק | LMSR בינארי (`src/lib/lmsr.ts`) — ₪10,000 וירטואליים לכל משתמש, תשלום ₪1 למניה מנצחת |
 | תוכן | `data/markets.json` — מקור האמת לשאלות; מסונכרן למסד הנתונים אוטומטית |
-| תמונות | תמונות אישי ציבור מ־Wikimedia Commons (`data/people.json`, `npm run people:fetch`) + עטיפות SVG לפי קטגוריה |
+| תמונות | תמונות אישי ציבור מוורדות מ־Wikimedia Commons אל `public/people/` (`npm run people:fetch`) — האתר לא מקשר החוצה — + עטיפות SVG לכל קטגוריה ותמונת שיתוף (`public/og.png`) |
 | עדכון אוטומטי | (א) **Claude Code Routine** שעתית שעורכת את `data/markets.json` לפי `AGENT.md`; (ב) מחולל מובנה `/api/cron/refresh` (Vercel Cron) שמפעיל את Claude API עם חיפוש באינטרנט |
 
 ## הרצה מקומית
@@ -43,6 +43,13 @@ npm run dev                       # http://localhost:3000
 2. ב־Vercel הגדירו משתני סביבה: `DATABASE_URL` (libsql://…), `DATABASE_AUTH_TOKEN`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`,
    `AUTH_GOOGLE_SECRET`, `ADMIN_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, ואופציונלית `ANTHROPIC_API_KEY` (+`CLAUDE_MODEL`).
 3. `vercel.json` כבר מגדיר Cron שעתי ל־`/api/cron/refresh`, שמסנכרן את `data/markets.json` ומריץ את המחולל המובנה אם יש מפתח API.
+
+## שאלות קצרות טווח
+
+הלב של האתר הן שאלות שנסגרות **תוך 24–72 שעות** ("עד מוצאי שבת", "בישיבת הממשלה מחר", "במהדורה של הערב") —
+אפשר לקנות, לראות הכרעה ולחזור. גם הרוטינה השעתית וגם המחולל המובנה מחויבים לתמהיל: **לפחות שליש**
+מהשאלות בכל ריצה חייבות להיסגר בטווח הזה, והשאר 1–6 שבועות. דף הבית מציג אותן במדור "⏱️ נסגר היום או מחר",
+והכרטיס מראה ספירה לאחור בשעות.
 
 ## איך העדכון השעתי עובד
 
@@ -79,9 +86,10 @@ npm run dev                       # http://localhost:3000
 ## סקריפטים
 
 ```bash
-npm run markets:validate   # בדיקת סכמה של data/markets.json ו-data/people.json
+npm run markets:validate   # סכמה + כל שוק חייב תמונה וכותרת שמסתיימת בסימן שאלה
 npm run markets:sync       # סנכרון הקובץ למסד הנתונים (לפי DATABASE_URL)
-npm run people:fetch       # השלמת תמונות מוויקיפדיה לאנשים חדשים
+npm run markets:merge f.json --note "..."   # איחוד אצווה של שאלות שנוצרו אוטומטית, עם דה-דופליקציה
+npm run people:fetch       # הורדת תמונות חדשות מוויקיפדיה אל public/people (‎-- --force לרענון)
 npm run markets:generate   # הרצת המחולל המובנה (דורש ANTHROPIC_API_KEY)
 npm run db:generate        # יצירת מיגרציה אחרי שינוי בסכמה
 ```
@@ -90,7 +98,8 @@ npm run db:generate        # יצירת מיגרציה אחרי שינוי בס�
 
 ```
 data/markets.json        השאלות (מקור האמת, נערך ע"י Claude)
-data/people.json         אנשים + תמונות
+data/people.json         אנשים + נתיב לתמונה המקומית
+public/people/           תמונות אישי ציבור (Wikimedia Commons, רישיונות חופשיים)
 AGENT.md                 הנחיות לרוטינה של Claude
 src/lib/lmsr.ts          מתמטיקת עושה השוק
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
