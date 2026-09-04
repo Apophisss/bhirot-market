@@ -34,7 +34,12 @@ export async function Header() {
 
         <form action="/" className="hidden flex-1 md:block">
           <label className="relative block max-w-md">
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-2">🔎</span>
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+            </span>
             <input
               name="q"
               placeholder="חיפוש שוק: נתניהו, סקר, בנט…"

@@ -26,7 +26,7 @@ function test(name: string, fn: () => void) {
     fn();
     passed++;
   } catch (err) {
-    console.error(`✗ ${name}`);
+    console.error(`FAIL ${name}`);
     throw err;
   }
 }
@@ -174,4 +174,4 @@ test("zero and negative amounts buy nothing", () => {
   close(sharesForAmount(s, "YES", -100), 0, 1e-12);
 });
 
-console.log(`✓ lmsr: ${passed} invariant tests passed`);
+console.log(`lmsr: ${passed} invariant tests passed`);

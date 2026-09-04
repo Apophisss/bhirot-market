@@ -17,7 +17,7 @@ export function CategoryTabs({
     const qs = sp.toString();
     return qs ? `/?${qs}` : "/";
   };
-  const items = [{ id: "all", label: "הכל", emoji: "🔥" }, ...CATEGORIES];
+  const items = [{ id: "all", label: "כל השווקים", accent: "#1d4ed8" }, ...CATEGORIES];
   return (
     <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
       {items.map((c) => {
@@ -32,7 +32,11 @@ export function CategoryTabs({
               isActive ? "border-accent bg-accent/15 text-accent-2" : "border-border bg-surface text-muted hover:border-border-2 hover:text-text-strong"
             }`}
           >
-            <span className="me-1">{c.emoji}</span>
+            <span
+              className="me-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
+              style={{ background: c.accent }}
+              aria-hidden
+            />
             {c.label}
             {typeof n === "number" && <span className="tabular ms-1.5 text-xs text-muted-2">{n}</span>}
           </Link>

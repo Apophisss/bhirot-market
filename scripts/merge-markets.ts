@@ -116,5 +116,5 @@ fs.writeFileSync("data/people.json", JSON.stringify({ people: peopleFile.people 
 fs.writeFileSync("data/markets.json", JSON.stringify(file, null, 2) + "\n");
 
 console.log(`added ${added.length} markets, ${addedPeople} people; rejected ${rejected.length}`);
-for (const r of rejected) console.log(`  ✗ ${r.slug}: ${r.reason}`);
+for (const r of rejected) console.log(`  rejected ${r.slug}: ${r.reason}`);
 console.log(`total markets now: ${file.markets.length}`);

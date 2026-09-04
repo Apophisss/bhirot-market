@@ -68,12 +68,12 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
               <span className="rounded-md px-1.5 py-0.5 font-semibold" style={{ background: `${cat.accent}22`, color: cat.accent }}>
-                {cat.emoji} {cat.label}
+                {cat.label}
               </span>
               <span className="tabular">{money(market.volume, { compact: true })} נפח</span>
               <span>·</span>
               <span>{market.status === "open" ? closesLabel(market.closesAt) : market.status === "resolved" ? `הוכרע ${market.resolvedAt ? timeAgo(market.resolvedAt) : ""}` : "בוטל"}</span>
-              {isTeamAuthored(market.createdBy) && <span title={`נוסף על ידי ${SITE_TEAM}`}>· ✍️ {SITE_TEAM}</span>}
+              {isTeamAuthored(market.createdBy) && <span>· נוסף על ידי {SITE_TEAM}</span>}
             </div>
             <h1 className="text-xl font-extrabold leading-tight text-text-strong sm:text-2xl">{market.title}</h1>
             {market.subtitle && <p className="mt-1 text-sm text-muted">{market.subtitle}</p>}
