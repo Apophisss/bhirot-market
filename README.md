@@ -70,12 +70,14 @@ npm run dev                       # http://localhost:3000
 
 ### א. רוטינת העדכון של צוות המערכת (הדרך העיקרית)
 
-הרוטינה רצה פעם בשעה, פותחת סשן חדש בריפו, וקוראת את [`AGENT.md`](AGENT.md) — נוהל העבודה של המערכת:
+הרוטינה רצה פעם בשעה, פותחת סשן חדש בריפו, וקוראת את [`AGENT.md`](AGENT.md) — נוהל העבודה של המערכת —
+ואת הסקיל [`.claude/skills/market-questions`](.claude/skills/market-questions/SKILL.md), שמכיל את שיטת ההחלטה:
+איך מחפשים שאלה, שבעת שערי הווידוא, בסיסי השכיחות לקביעת האחוזים, ובחירת גמישות השוק:
 
 1. חוקרת את החדשות הפוליטיות של 24–72 השעות האחרונות (חיפוש באינטרנט).
 2. מוסיפה 2–6 שאלות חדשות, חדות וניתנות להכרעה, עם מועד יעד, קריטריוני הכרעה ומקורות.
 3. מכריעה שווקים שהאירוע שלהם קרה (עם ראיה ומקור) — הפוזיציות משולמות אוטומטית.
-4. מריצה `npm run markets:validate`, מבצעת commit + push של `data/markets.json`.
+4. מריצה `npm run markets:validate` (סכמה) ו־`npm run markets:audit` (בריאות הלוח: חוב הכרעות, תמהיל מועדים, משמעת אחוזים, כיול), ומבצעת commit + push של `data/markets.json`.
 5. אם מוגדרים `SITE_URL` ו־`ADMIN_TOKEN` בסביבת הרוטינה — דוחפת מיד ל־`POST /api/admin/markets`, אחרת השינוי עולה עם ה־deploy הבא.
 
 ### ב. המחולל המובנה (`src/lib/agent/generate.ts`)
@@ -103,6 +105,8 @@ npm run dev                       # http://localhost:3000
 
 ```bash
 npm run markets:validate   # סכמה + כל שוק חייב תמונה וכותרת שמסתיימת בסימן שאלה
+npm run markets:audit      # ביקורת עריכה של הלוח: חוב הכרעות, תמהיל מועדים, אחוזים, כפילויות, מקורות, כיול
+npm run markets:liquidity -- --p 0.3   # כמה גמיש השוק יהיה בכל ערך liquidity, ומה מומלץ
 npm run markets:sync       # סנכרון הקובץ למסד הנתונים (לפי DATABASE_URL)
 npm run markets:merge f.json --note "..."   # איחוד אצווה של שאלות שנוצרו אוטומטית, עם דה-דופליקציה
 npm run people:fetch       # הורדת תמונות חדשות מוויקיפדיה אל public/people (‎-- --force לרענון)
@@ -117,9 +121,11 @@ data/markets.json        השאלות (מקור האמת, נערך ע"י צוו�
 data/people.json         אנשים + נתיב לתמונה המקומית
 public/people/           תמונות אישי ציבור (Wikimedia Commons, רישיונות חופשיים)
 AGENT.md                 נוהל העבודה של רוטינת העדכון
+.claude/skills/          שיטת העבודה: חיפוש, ווידוא, תמחור ובחירת גמישות של שאלות
 src/lib/lmsr.ts          מתמטיקת עושה השוק
 src/lib/rapid.ts         קבועי ״מצב זריז״ (טווח הסכום המחייב) — ללא תלויות, נטען גם בדפדפן
 src/lib/rapid-feed.ts    בניית פיד ״מצב זריז״ (שאילתה, ניקוד וסידור)
+src/lib/elasticity.ts    תרגום liquidity לגמישות מחיר (כמה ₪100 מזיזים)
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
