@@ -25,13 +25,11 @@ const BASE: Item[] = [
 
 /**
  * Thumb-reachable tab bar. The header nav only appears from `lg` up, so on phones and
- * tablets this is the site's primary navigation.
+ * tablets this is the site's primary navigation — on every route, rapid mode included:
+ * the deck there sizes itself against the bar (`.deck-height`) instead of under it.
  */
 export function MobileNav({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname();
-  // rapid mode is a full-screen deck sized against the viewport — a bar over it would
-  // eat the answer buttons on a short phone (the page keeps its own way back out)
-  if (pathname.startsWith("/rapid")) return null;
   const items: Item[] = [
     ...BASE,
     loggedIn ? { href: "/portfolio", label: "התיק שלי", icon: "wallet" } : { href: "/login", label: "התחברות", icon: "login" },

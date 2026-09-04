@@ -39,7 +39,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   };
 
   return (
-    <div className="deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 sm:gap-3">
+    <div className="deck-page deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 sm:gap-3">
       <div className="scrollbar-none swipe-x -mx-3 flex shrink-0 items-center gap-1 px-3 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
         <div className="flex shrink-0 items-center gap-1">
           <h1 className="me-1 inline-flex items-center gap-1 font-black text-text-strong"><BoltIcon /> מצב זריז</h1>

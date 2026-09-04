@@ -193,8 +193,7 @@
   .px-safe {
     padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
   }
-  /* the tab bar is not on every route (rapid mode hides it), so the page reserves
-     room for it only when it is actually rendered */
+  /* the page reserves room for the tab bar only where it is actually rendered */
   body:has(nav[data-mobile-nav]) {
     padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   }
@@ -202,14 +201,31 @@
     bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   }
 
-  /* rapid mode owns the screen: the deck fills what is left under the header */
-  .deck-height {
-    height: calc(100svh - 7rem);
-    min-height: 420px;
+  /* Rapid mode owns the screen: the deck fills what is left between the header and
+     the tab bar, so the answer buttons never end up under the bar. `.deck-page` hands
+     back the bottom padding `main` keeps for ordinary pages, so making room for the
+     bar costs the deck as little height as possible. */
+  .deck-page {
+    margin-bottom: -2.5rem; /* main's pb-10 */
   }
+  /* 4.5rem / 5.25rem = the sticky header plus `main`'s top padding, and a couple of
+     pixels of slack for the hairline borders the bars carry. */
+  .deck-height {
+    height: calc(100svh - 4.5rem - var(--nav-h) - env(safe-area-inset-bottom, 0px));
+    min-height: 360px;
+  }
+  @media (min-width: 640px) {
+    .deck-page {
+      margin-bottom: -4rem; /* main's sm:pb-16 */
+    }
+    .deck-height {
+      height: calc(100svh - 5.25rem - var(--nav-h) - env(safe-area-inset-bottom, 0px));
+    }
+  }
+  /* from `lg` the header carries the nav and the tab bar is gone */
   @media (min-width: 1024px) {
     .deck-height {
-      height: calc(100svh - 6rem);
+      height: calc(100svh - 5.25rem);
       min-height: 600px;
     }
   }
