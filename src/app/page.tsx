@@ -1,18 +1,20 @@
 import Link from "next/link";
-import { listMarkets, getMarketStats, getCategoryCounts, type MarketSort } from "@/lib/markets";
+import { listMarkets, getMarketStats, getCategoryCounts, getPeopleCounts, type MarketSort } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { MarketCard } from "@/components/MarketCard";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
+import { PmCandidates } from "@/components/PmCandidates";
+import { getPerson } from "@/lib/content";
 import { money } from "@/lib/format";
 import { SITE_TAGLINE } from "@/lib/config";
 import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-type Search = { category?: string; q?: string; sort?: string; status?: string; show?: string };
+type Search = { category?: string; q?: string; sort?: string; status?: string; show?: string; person?: string };
 
 const SORTS: { id: MarketSort; label: string }[] = [
   { id: "trending", label: "חם" },
@@ -30,13 +32,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const sort = (SORTS.find((s) => s.id === sp.sort)?.id ?? "trending") as MarketSort;
   const status = sp.status === "resolved" ? "resolved" : "open";
   const q = sp.q?.trim() || undefined;
+  const person = sp.person && /^[a-z0-9-]+$/.test(sp.person) ? getPerson(sp.person) : undefined;
   const show = Math.min(Math.max(Number(sp.show) || PAGE, PAGE), 600);
-  const filtered = Boolean(q || category !== "all" || status === "resolved");
+  const filtered = Boolean(q || person || category !== "all" || status === "resolved");
+  // the candidate strip doubles as the person filter, so keep it up while it is the only filter
+  const showCandidates = !q && category === "all" && status === "open";
 
-  const [markets, stats, counts, session, recentlyResolved, closingSoon] = await Promise.all([
-    listMarkets({ category, q, sort, status, limit: 600 }),
+  const [markets, stats, counts, peopleCounts, session, recentlyResolved, closingSoon] = await Promise.all([
+    listMarkets({ category, q, sort, status, person: person?.id, limit: 600 }),
     getMarketStats(),
-    getCategoryCounts(status === "resolved" ? "resolved" : "open"),
+    getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
+    getPeopleCounts("open"),
     auth(),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
@@ -105,6 +111,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       )}
 
+      {showCandidates && <PmCandidates counts={peopleCounts} active={person?.id} />}
+
       {!filtered && !session?.user && <HowToPlay />}
 
       {closingSoon.length > 0 && (
@@ -136,7 +144,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       <section className="space-y-3">
-        <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status }} counts={counts} />
+        <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status, person: person?.id }} counts={counts} />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1 text-sm">
             <Link href={link({ status: "open", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
@@ -149,6 +157,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
                 חיפוש: <strong className="text-text">{q}</strong>
                 <Link href={link({ q: undefined })} className="ms-1 text-muted-2 hover:text-no" aria-label="נקה חיפוש">✕</Link>
+              </span>
+            )}
+            {person && (
+              <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
+                מועמד: <strong className="text-text">{person.name}</strong>
+                <Link href={link({ person: undefined })} className="ms-1 text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">✕</Link>
               </span>
             )}
           </div>
