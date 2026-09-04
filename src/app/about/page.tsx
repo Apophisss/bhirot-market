@@ -52,8 +52,8 @@ export default async function AboutPage() {
           וכל הפוזיציות משולמות אוטומטית.
         </p>
         <p>
-          כל שאלה שהוסיף {SITE_TEAM} אחרי ההשקה מסומנת ב־✍️. השאלות והמקורות שמורים בקובץ פתוח בריפו (<code>data/markets.json</code>)
-          כך שאפשר לעקוב אחרי כל שינוי.
+          כל שאלה שהוסיף {SITE_TEAM} אחרי ההשקה מסומנת ב־✍️. בדף של כל שוק מופיעים קריטריוני ההכרעה
+          והמקורות שעליהם השאלה מבוססת, כך שאפשר לבדוק כל הכרעה בעצמכם.
         </p>
         {last && (
           <p className="rounded-lg border border-border bg-surface-2 p-3 text-sm">
