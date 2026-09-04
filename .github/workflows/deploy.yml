@@ -1,0 +1,393 @@
+name: Deploy to server
+
+# Every push to main puts the site on the server at $DOMAIN.
+#
+# The image is built here, on a runner with real memory, and the server only
+# pulls it: `next build` exhausts V8's heap on a small box, and a build there
+# would make every deploy as slow as a cold npm install.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'Domain to serve (must already have an A record pointing at the server)'
+        required: true
+        default: 'bhirot-market.com'
+
+# Two deploys at once would race over the same .env and the same containers.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      DOMAIN: ${{ github.event.inputs.domain || vars.DOMAIN || 'bhirot-market.com' }}
+      REMOTE_DIR: /opt/bhirot-market
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # SSH_HOST and SSH_USER have working defaults, so the only thing that has
+      # to be configured for a first deploy is the password. Failing here, by
+      # name, beats failing four minutes later inside sshpass with "permission
+      # denied" and no indication of which half is missing.
+      - name: Validate required secrets
+        # Through env: rather than interpolated into the script, so a password
+        # containing a quote cannot break the test that is checking for it.
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          if [ -z "$SSH_PASSWORD" ]; then
+            echo "Missing repository secret: SSH_PASSWORD" >&2
+            echo "Add it under Settings → Secrets and variables → Actions." >&2
+            exit 1
+          fi
+
+      - name: Resolve image name
+        run: |
+          # Container registries reject uppercase, and the owner has capitals.
+          echo "IMAGE=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      # NEXT_PUBLIC_SITE_URL is inlined into the client bundle at build time, so
+      # it is passed here as well as written to the server's .env below. Only
+      # one of the two halves is enough to ship links pointing at localhost.
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://${{ env.DOMAIN }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install ssh tooling
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass rsync
+
+      - name: Add server to known_hosts
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Install Docker on the server if missing
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          set -euo pipefail
+          if ! command -v docker >/dev/null 2>&1; then
+            echo "Installing Docker..."
+            curl -fsSL https://get.docker.com | sh
+          fi
+          if ! docker compose version >/dev/null 2>&1; then
+            echo "Docker Compose plugin missing" >&2
+            exit 1
+          fi
+          systemctl enable --now docker
+          docker --version && docker compose version
+          REMOTE
+
+      - name: Preflight — check ports 80/443 are free
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          set -uo pipefail
+          echo "Listening on 80/443:"
+          ss -tlnp 2>/dev/null | grep -E ':(80|443)\s' || echo "  (nothing)"
+          # Anything that is not our own Caddy container will make the bind fail.
+          holder=$(ss -tlnp 2>/dev/null | grep -E ':(80|443)\s' | grep -v docker-proxy || true)
+          if [ -n "$holder" ]; then
+            echo "WARNING: a non-Docker process is holding port 80 or 443." >&2
+            echo "Stop it first (e.g. systemctl stop nginx apache2) or the deploy will fail." >&2
+          fi
+          REMOTE
+
+      - name: Ensure the server has swap headroom
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          set -euo pipefail
+          echo "Memory:"; free -h
+          # Runtime headroom for Node and Caddy on a small droplet. The build
+          # happens on the runner, so this is not about the build.
+          if [ -z "$(swapon --show --noheadings 2>/dev/null)" ]; then
+            echo "No swap configured — creating a 2G swapfile."
+            fallocate -l 2G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none
+            chmod 600 /swapfile
+            mkswap /swapfile >/dev/null
+            swapon /swapfile
+            grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+            echo "Swap enabled:"; free -h
+          else
+            echo "Swap already present."
+          fi
+          REMOTE
+
+      - name: Copy application to the server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" "mkdir -p $REMOTE_DIR"
+          # The server needs the compose file, the Caddyfile and the cron
+          # script — the application itself arrives as the image. --delete
+          # keeps the directory honest, and the excludes are what must survive
+          # it: the .env this workflow writes and the generated secrets under
+          # .secrets/ that back it.
+          sshpass -e rsync -az --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude '.next' \
+            --exclude '*.db' \
+            --exclude '.env' \
+            --exclude '.secrets' \
+            -e "ssh -o StrictHostKeyChecking=accept-new" \
+            ./ "$SSH_USER@$SSH_HOST:$REMOTE_DIR/"
+
+      # AUTH_SECRET, ADMIN_TOKEN and CRON_SECRET have no external counterpart —
+      # nothing outside this deployment has to agree with their values — so
+      # rather than making a first deploy wait on three secrets being pasted in
+      # by hand, the server generates whatever it was not given and keeps it.
+      #
+      # Kept, specifically, and not regenerated per deploy: a fresh AUTH_SECRET
+      # invalidates every session, so every logged-in visitor would be signed
+      # out by an unrelated push. Set the repository secret of the same name to
+      # take a value over; it wins from the next deploy on.
+      - name: Ensure long-lived server secrets exist
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
+          set -euo pipefail
+          # $1 is REMOTE_DIR: this heredoc is quoted so that nothing in it is
+          # expanded by the runner, which means the path has to arrive as an
+          # argument rather than be interpolated in.
+          mkdir -p "$1/.secrets"
+          chmod 700 "$1/.secrets"
+          cd "$1/.secrets"
+          for name in auth_secret admin_token cron_secret; do
+            if [ ! -s "$name" ]; then
+              openssl rand -hex 32 > "$name" 2>/dev/null || head -c 32 /dev/urandom | base64 | tr -d '\n=/+' > "$name"
+              echo "generated $name"
+            fi
+            chmod 600 "$name"
+          done
+          REMOTE
+
+      - name: Write server environment file
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+          # A var rather than a secret, and off unless someone deliberately
+          # turns it on: ALLOW_DEV_LOGIN is the passwordless "quick login",
+          # which on a public site means anyone can sign in as any name. A
+          # secret is write-only in the UI, and for a switch like this not
+          # being able to read its current state is the wrong trade.
+          ALLOW_DEV_LOGIN: ${{ vars.ALLOW_DEV_LOGIN }}
+        run: |
+          # Read back whatever the server generated, for the three that were
+          # not supplied here. Masked so a later `set -x` or an error message
+          # cannot print them into a public log.
+          fetch() {
+            sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" "cat $REMOTE_DIR/.secrets/$1"
+          }
+          AUTH_SECRET="${AUTH_SECRET:-$(fetch auth_secret)}"
+          ADMIN_TOKEN="${ADMIN_TOKEN:-$(fetch admin_token)}"
+          CRON_SECRET="${CRON_SECRET:-$(fetch cron_secret)}"
+          echo "::add-mask::$AUTH_SECRET"
+          echo "::add-mask::$ADMIN_TOKEN"
+          echo "::add-mask::$CRON_SECRET"
+
+          # Piped over stdin, so no secret is ever an argument to a process and
+          # none can be read out of `ps` on the server.
+          #
+          # This truncates and rewrites the whole file, so the list below is the
+          # entire server environment: a value edited on the box by hand
+          # survives exactly until the next deploy.
+          cat <<ENVFILE | sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+            "cat > $REMOTE_DIR/.env && chmod 600 $REMOTE_DIR/.env"
+          APP_IMAGE=$IMAGE:$GITHUB_SHA
+          DOMAIN=$DOMAIN
+          DATABASE_URL=file:/data/bhirot.db
+          AUTH_SECRET=$AUTH_SECRET
+          AUTH_GOOGLE_ID=$AUTH_GOOGLE_ID
+          AUTH_GOOGLE_SECRET=$AUTH_GOOGLE_SECRET
+          AUTH_URL=https://$DOMAIN
+          NEXT_PUBLIC_SITE_URL=https://$DOMAIN
+          ADMIN_TOKEN=$ADMIN_TOKEN
+          CRON_SECRET=$CRON_SECRET
+          ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+          CLAUDE_MODEL=$CLAUDE_MODEL
+          ALLOW_DEV_LOGIN=$ALLOW_DEV_LOGIN
+          ENVFILE
+
+      - name: Reclaim disk space on the server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          set -uo pipefail
+          echo "=== disk before ==="; df -h / | tail -1
+          # A deploy a day leaves a superseded image a day. Unused images only:
+          # anything backing a running container is kept, and volumes are never
+          # touched by this — the database lives in the bhirot-data volume.
+          docker image prune -af >/dev/null 2>&1 || true
+          docker container prune -f >/dev/null 2>&1 || true
+          docker builder prune -af >/dev/null 2>&1 || true
+          echo "=== disk after ==="; df -h / | tail -1
+          avail_kb=$(df --output=avail / | tail -1)
+          if [ "$avail_kb" -lt 2097152 ]; then
+            echo "WARNING: under 2G free after cleanup; the image pull may fail." >&2
+          fi
+          REMOTE
+
+      - name: Pull the image and start
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+          REGISTRY_TOKEN: ${{ github.token }}
+        run: |
+          # The heredoc is piped over stdin, so the token is never an argument
+          # to any process and cannot be read out of `ps`.
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<REMOTE
+          set -euo pipefail
+          cd $REMOTE_DIR
+          # The package inherits the repository's visibility, so the server
+          # authenticates with the workflow's token. It is valid only for the
+          # duration of this run, which is all that is needed: the pulled image
+          # is cached locally and survives restarts on its own.
+          echo '$REGISTRY_TOKEN' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+          docker compose pull
+          docker compose up -d --remove-orphans
+          docker logout ghcr.io >/dev/null 2>&1 || true
+          REMOTE
+
+      # `compose up -d` sees an unchanged `caddy` service and leaves the
+      # container running with the config it read at boot, so an edited
+      # Caddyfile would be copied to the server and never applied.
+      #
+      # `</dev/null` on everything here because the remote script arrives on
+      # ssh's stdin, which every command in it inherits: without it the first
+      # `docker compose` reads the rest of the script as its own input, bash
+      # reaches end of input, and the step exits 0 having done nothing.
+      - name: Apply the deployed Caddyfile
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
+          set -euo pipefail
+          cd "$1"
+
+          echo "Validating the deployed Caddyfile."
+          # In a throwaway container, against the file on disk: a config that
+          # cannot parse must never reach the one serving traffic.
+          # --env-file because the Caddyfile interpolates {$DOMAIN}.
+          docker run --rm --env-file .env -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile </dev/null
+
+          echo "Recreating Caddy so it reads it."
+          # Certificates live in the caddy-data volume and survive this, so
+          # nothing is re-issued; the blip is a second.
+          docker compose up -d --force-recreate caddy </dev/null
+
+          echo "Caddy container now:"
+          docker compose ps --format '{{.Name}}  created={{.CreatedAt}}  status={{.Status}}' caddy </dev/null
+          REMOTE
+
+      - name: Wait for health
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
+          set -uo pipefail
+          cd "$1"
+          # First boot includes the drizzle migrations and the initial sync of
+          # data/markets.json into the database, so allow three minutes.
+          for i in $(seq 1 60); do
+            if curl -fsS --max-time 5 http://127.0.0.1/api/health >/dev/null 2>&1; then
+              echo "Healthy after about $((i * 3))s"
+              curl -sS --max-time 5 http://127.0.0.1/api/health </dev/null || true
+              echo
+              exit 0
+            fi
+            # A crash-looping container will never become healthy, so stop
+            # waiting the full three minutes and report immediately.
+            if [ "$i" -ge 5 ] && docker compose ps app | grep -q Restarting; then
+              echo "App container is restarting in a loop; not waiting further." >&2
+              break
+            fi
+            sleep 3
+          done
+          # Printed to stdout, not stderr: GitHub interleaves the two streams
+          # unpredictably, and these lines are the whole point of the step.
+          echo "APP_DID_NOT_START >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          docker compose ps app
+          # app only: Caddy logs a 502 per request and would otherwise flood
+          # the tail with noise, hiding the actual startup error.
+          echo "APP_LOGS >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          docker compose logs app --tail 80 --no-log-prefix 2>&1 | tail -50
+          echo "APP_LOGS_END >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          exit 1
+          REMOTE
+
+      - name: Report status
+        if: always()
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+            "cd $REMOTE_DIR && docker compose ps" || true
+          echo "---"
+          echo "Public check (may fail until DNS points at the server):"
+          curl -sS -o /dev/null -w "https://$DOMAIN -> %{http_code}\n" --max-time 15 "https://$DOMAIN/" || true

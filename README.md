@@ -52,7 +52,41 @@ npm run dev                       # http://localhost:3000
 2. Authorized redirect URIs: `http://localhost:3000/api/auth/callback/google` ובפרודקשן `https://<domain>/api/auth/callback/google`.
 3. העתיקו ל־`.env.local`: `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`.
 
-## פריסה ל־Vercel
+## פריסה לשרת (bhirot-market.com)
+
+האתר רץ על שרת משלנו: כל דחיפה ל־`main` בונה תמונת Docker ומעלה אותה לאתר. הכל ב־
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+1. **סוד אחד חובה** — `Settings → Secrets and variables → Actions`:
+   `SSH_PASSWORD` (סיסמת ה־root של השרת). `SSH_HOST` ברירת מחדל `bhirot-market.com` ו־`SSH_USER` ברירת מחדל `root`;
+   הגדירו אותם רק אם השרת נמצא במקום אחר.
+2. **סודות אופציונליים**: `AUTH_GOOGLE_ID` + `AUTH_GOOGLE_SECRET` (בלעדיהם אין דרך להתחבר לאתר),
+   `ANTHROPIC_API_KEY` (מפעיל את מחולל השאלות בכל שעה), וכן `AUTH_SECRET` / `ADMIN_TOKEN` / `CRON_SECRET`
+   אם רוצים לקבוע אותם ידנית — אחרת השרת מגריל אותם בפריסה הראשונה ושומר אותם ב־`/opt/bhirot-market/.secrets/`,
+   כדי שפריסה לא תנתק כל מי שמחובר.
+3. **משתנים** (`vars`, ניתנים לקריאה בממשק): `DOMAIN` (ברירת מחדל `bhirot-market.com`), `CLAUDE_MODEL`,
+   ו־`ALLOW_DEV_LOGIN` — כניסה מהירה ללא סיסמה, כבויה כברירת מחדל ולא כדאי להדליק באתר ציבורי.
+4. **DNS**: רשומת `A` של הדומיין (ואופציונלית `www`) אל כתובת ה־IP של השרת. Caddy מנפיק תעודת Let's Encrypt לבד.
+
+מה רץ על השרת (`/opt/bhirot-market`, ראו [`docker-compose.yml`](docker-compose.yml)):
+
+| שירות | תפקיד |
+|---|---|
+| `app` | האתר עצמו (תמונה בנויה מראש מ־ghcr.io). המסד הוא קובץ SQLite ב־volume בשם `bhirot-data` — פריסה לא נוגעת בו |
+| `caddy` | HTTPS, הפניית `www`, ו־reverse proxy אל האפליקציה |
+| `cron` | השעון של [`/api/cron/refresh`](scripts/cron-refresh.sh) — מה ש־`vercel.json` נתן ב־Vercel |
+
+הפריסה בונה את התמונה על ה־runner ולא על השרת (‏`next build` חונק את הזיכרון של מכונה קטנה), מסנכרנת את
+קבצי ההרצה ב־rsync, כותבת `.env` דרך stdin (שום סוד לא מגיע לשורת פקודה), מרימה, ומחכה ל־`/api/health` —
+אם האתר לא עולה תוך שלוש דקות הריצה נכשלת ומדפיסה את הלוג של הקונטיינר.
+
+הרצה מקומית של אותה ערימה: `cp .env.example .env` (הוסיפו `APP_IMAGE=bhirot-market:local` ו־`DOMAIN=localhost`),
+`docker build -t bhirot-market:local .`, `docker compose up -d`.
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) מריץ typecheck, lint, בדיקות ו־build על כל PR — כדאי
+להגדיר את `Checks / verify` כ־required status check על `main`, אחרת אפשר למזג ולפרוס בנייה שבורה.
+
+## פריסה ל־Vercel (חלופה)
 
 1. צרו מסד Turso: `turso db create bhirot-market` → `turso db show --url` ו־`turso db tokens create`.
 2. ב־Vercel הגדירו משתני סביבה: `DATABASE_URL` (libsql://…), `DATABASE_AUTH_TOKEN`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`,
