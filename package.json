@@ -17,7 +17,9 @@
     "markets:generate": "tsx scripts/generate-questions.ts",
     "people:fetch": "tsx scripts/fetch-people.ts",
     "markets:merge": "tsx scripts/merge-markets.ts",
-    "test": "tsx scripts/test-lmsr.ts && tsx scripts/validate-markets.ts",
+    "markets:audit": "tsx scripts/audit-markets.ts",
+    "markets:liquidity": "tsx scripts/liquidity.ts",
+    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/validate-markets.ts",
     "test:lmsr": "tsx scripts/test-lmsr.ts"
   },
   "dependencies": {

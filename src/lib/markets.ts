@@ -78,6 +78,8 @@ export async function listMarkets(opts: {
   limit?: number;
   /** only markets that close within this many hours from now */
   closingWithinHours?: number;
+  /** only markets tagged with this person id (see data/people.json) */
+  person?: string;
 } = {}): Promise<MarketView[]> {
   const db = await getDb();
   const conds = [];
@@ -86,6 +88,8 @@ export async function listMarkets(opts: {
     conds.push(gte(markets.closesAt, new Date()));
   }
   if (opts.category && opts.category !== "all") conds.push(eq(markets.category, opts.category));
+  // people is a JSON string[] column, so an id match is a substring match on the quoted id
+  if (opts.person) conds.push(like(markets.people, `%"${opts.person}"%`));
   if (opts.status === "open") conds.push(eq(markets.status, "open"));
   else if (opts.status === "resolved") conds.push(inArray(markets.status, ["resolved", "cancelled"]));
   if (opts.q) {
@@ -173,12 +177,16 @@ export async function getComments(slug: string, limit = 50) {
 }
 
 /** How many open markets each category currently has, for the tab counters. */
-export async function getCategoryCounts(status: "open" | "resolved" | "all" = "open") {
+export async function getCategoryCounts(status: "open" | "resolved" | "all" = "open", person?: string) {
   const db = await getDb();
+  const conds = [];
+  if (status === "open") conds.push(eq(markets.status, "open"));
+  else if (status === "resolved") conds.push(inArray(markets.status, ["resolved", "cancelled"]));
+  if (person) conds.push(like(markets.people, `%"${person}"%`));
   const rows = await db
     .select({ category: markets.category, n: sql<number>`count(*)` })
     .from(markets)
-    .where(status === "all" ? undefined : status === "open" ? eq(markets.status, "open") : inArray(markets.status, ["resolved", "cancelled"]))
+    .where(conds.length ? and(...conds) : undefined)
     .groupBy(markets.category);
   const counts: Record<string, number> = {};
   let total = 0;
@@ -187,6 +195,20 @@ export async function getCategoryCounts(status: "open" | "resolved" | "all" = "o
     total += r.n;
   }
   counts.all = total;
+  return counts;
+}
+
+/** How many markets each person id appears on, for the candidate strip on the home page. */
+export async function getPeopleCounts(status: "open" | "resolved" | "all" = "open"): Promise<Record<string, number>> {
+  const db = await getDb();
+  const rows = await db
+    .select({ people: markets.people })
+    .from(markets)
+    .where(status === "all" ? undefined : status === "open" ? eq(markets.status, "open") : inArray(markets.status, ["resolved", "cancelled"]));
+  const counts: Record<string, number> = {};
+  for (const r of rows) {
+    for (const id of parseJson<string[]>(r.people, [])) counts[id] = (counts[id] ?? 0) + 1;
+  }
   return counts;
 }
 

@@ -1,18 +1,21 @@
 import Link from "next/link";
-import { listMarkets, getMarketStats, getCategoryCounts, type MarketSort } from "@/lib/markets";
+import { listMarkets, getMarketStats, getCategoryCounts, getPeopleCounts, type MarketSort } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { MarketCard } from "@/components/MarketCard";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
+import { PmCandidates } from "@/components/PmCandidates";
+import { getPerson } from "@/lib/content";
 import { money } from "@/lib/format";
 import { SITE_TAGLINE } from "@/lib/config";
 import { auth } from "@/lib/auth";
+import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
 
-type Search = { category?: string; q?: string; sort?: string; status?: string; show?: string };
+type Search = { category?: string; q?: string; sort?: string; status?: string; show?: string; person?: string };
 
 const SORTS: { id: MarketSort; label: string }[] = [
   { id: "trending", label: "חם" },
@@ -30,13 +33,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const sort = (SORTS.find((s) => s.id === sp.sort)?.id ?? "trending") as MarketSort;
   const status = sp.status === "resolved" ? "resolved" : "open";
   const q = sp.q?.trim() || undefined;
+  const person = sp.person && /^[a-z0-9-]+$/.test(sp.person) ? getPerson(sp.person) : undefined;
   const show = Math.min(Math.max(Number(sp.show) || PAGE, PAGE), 600);
-  const filtered = Boolean(q || category !== "all" || status === "resolved");
+  const filtered = Boolean(q || person || category !== "all" || status === "resolved");
+  // the candidate strip doubles as the person filter, so keep it up while it is the only filter
+  const showCandidates = !q && category === "all" && status === "open";
 
-  const [markets, stats, counts, session, recentlyResolved, closingSoon] = await Promise.all([
-    listMarkets({ category, q, sort, status, limit: 600 }),
+  const [markets, stats, counts, peopleCounts, session, recentlyResolved, closingSoon] = await Promise.all([
+    listMarkets({ category, q, sort, status, person: person?.id, limit: 600 }),
     getMarketStats(),
-    getCategoryCounts(status === "resolved" ? "resolved" : "open"),
+    getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
+    getPeopleCounts("open"),
     auth(),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
@@ -78,12 +85,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <strong className="text-white">{stats.open} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
+                <Link href="/rapid" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+                  <BoltIcon size={16} />
+                  מצב זריז · {stats.open} שאלות ברצף
+                </Link>
                 {session?.user ? (
-                  <Link href="/portfolio" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+                  <Link href="/portfolio" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
                     לתיק שלי
                   </Link>
                 ) : (
-                  <Link href="/login" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+                  <Link href="/login" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
                     התחברות וקבלת ₪10,000 וירטואליים
                   </Link>
                 )}
@@ -104,6 +115,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
         </section>
       )}
+
+      {showCandidates && <PmCandidates counts={peopleCounts} active={person?.id} />}
 
       {!filtered && !session?.user && <HowToPlay />}
 
@@ -136,7 +149,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       <section className="space-y-3">
-        <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status }} counts={counts} />
+        <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status, person: person?.id }} counts={counts} />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1 text-sm">
             <Link href={link({ status: "open", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
@@ -155,8 +168,25 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 </Link>
               </span>
             )}
+            {person && (
+              <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
+                מועמד: <strong className="text-text">{person.name}</strong>
+                <Link href={link({ person: undefined })} className="ms-1 flex text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </Link>
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1 text-xs">
+            <Link
+              href="/rapid"
+              className="me-2 inline-flex items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1 font-bold text-accent-2 hover:bg-accent/20"
+            >
+              <BoltIcon />
+              ענו ברצף
+            </Link>
             <span className="me-1 text-muted-2">מיון:</span>
             {SORTS.map((s) => (
               <Link key={s.id} href={link({ sort: s.id })} className={`rounded-md px-2 py-1 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
@@ -190,7 +220,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </>
         ) : (
           <div className="card p-12 text-center text-muted">
-            <p>לא נמצאו שווקים. נסו קטגוריה אחרת או <Link href="/" className="text-accent-2 hover:underline">נקו את הסינון</Link>.</p>
+            <p>
+              לא נמצאו שווקים. נסו קטגוריה אחרת, <Link href="/" className="text-accent-2 hover:underline">נקו את הסינון</Link>, או עברו{" "}
+              <Link href="/rapid" className="text-accent-2 hover:underline">למצב זריז</Link>.
+            </p>
           </div>
         )}
       </section>
