@@ -169,7 +169,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {person && (
               <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
                 מועמד: <strong className="text-text">{person.name}</strong>
-                <Link href={link({ person: undefined })} className="ms-1 text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">✕</Link>
+                <Link href={link({ person: undefined })} className="ms-1 flex text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </Link>
               </span>
             )}
           </div>

@@ -30,7 +30,7 @@ function detail(p: number, b: number) {
   console.log("  to reach: " + targets.map((t) => `${pct(t)} = ${money(amountToReach(state, t))}`).join("  "));
   console.log(`  band cap: ${money(maxBuyAmount(state, "YES"))} buys YES up to 99%, ${money(maxBuyAmount(state, "NO"))} buys NO down to 1%`);
   const v = verdict(p, b);
-  console.log(`  verdict:  ${v.ok ? "✓" : "·"} ${v.zone} — ${v.note}`);
+  console.log(`  verdict:  ${v.ok ? "ok" : " ·"} ${v.zone} — ${v.note}`);
 }
 
 function compare(p: number, traffic: Traffic) {
@@ -50,7 +50,7 @@ function compare(p: number, traffic: Traffic) {
     const five = money(amountToReach(state, toward(0.05))).padEnd(10);
     const cap = money(maxBuyAmount(state, cheap)).padEnd(9);
     const v = verdict(p, b);
-    console.log(`  ${String(b).padEnd(8)} ${priceAfter(10)} ${priceAfter(100)} ${priceAfter(500)} ${priceAfter(1000)} ${five} ${cap} ${v.ok ? "✓" : "·"} ${v.note}`);
+    console.log(`  ${String(b).padEnd(8)} ${priceAfter(10)} ${priceAfter(100)} ${priceAfter(500)} ${priceAfter(1000)} ${five} ${cap} ${v.ok ? "ok" : " ·"} ${v.note}`);
   }
   console.log(`\n  → liquidity for a ${traffic} question at ${pct(p)}: ${recommend(p, traffic)}`);
 }
@@ -63,7 +63,7 @@ function auditFile() {
   for (const m of open) {
     const v = verdict(m.initialProbability, m.liquidity);
     if (!v.ok) off++;
-    console.log(`  ${v.ok ? "✓" : "·"} ${m.slug.padEnd(46)} p=${pct(m.initialProbability).padStart(5)} b=${String(m.liquidity).padEnd(5)} ${v.note}`);
+    console.log(`  ${v.ok ? "ok" : " ·"} ${m.slug.padEnd(46)} p=${pct(m.initialProbability).padStart(5)} b=${String(m.liquidity).padEnd(5)} ${v.note}`);
   }
   console.log(`\n${open.length - off} of ${open.length} open markets sit in the healthy window.`);
   if (off) console.log("the rest are only worth re-pricing if they have no trades yet — liquidity is frozen once a market is live.");
