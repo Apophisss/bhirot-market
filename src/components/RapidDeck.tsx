@@ -40,6 +40,27 @@ interface AnswerResult {
 const ADVANCE_MS = 420;
 /** horizontal drag distance (px) that commits an answer */
 const DRAG_COMMIT = 96;
+/** wheel distance (px) that counts as one deliberate "next card" gesture */
+const WHEEL_STEP = 42;
+/** how long the deck ignores the wheel after a step, so one flick moves one card */
+const WHEEL_COOLDOWN_MS = 380;
+
+/**
+ * Does anything between `from` and `stopAt` still have room to scroll by `dy`?
+ * The card body scrolls on its own when its question is long, and the deck must
+ * not steal the wheel from it.
+ */
+function scrollableUnder(from: EventTarget | null, stopAt: HTMLElement, dy: number): boolean {
+  let el = from instanceof HTMLElement ? from : null;
+  while (el && el !== stopAt) {
+    const room = el.scrollHeight - el.clientHeight;
+    if (room > 1 && getComputedStyle(el).overflowY !== "visible") {
+      if (dy > 0 ? el.scrollTop < room - 1 : el.scrollTop > 1) return true;
+    }
+    el = el.parentElement;
+  }
+  return false;
+}
 
 /* ------------------------------------------------- the stake, as a store --
  * The chosen stake survives reloads. Reading localStorage during render would
@@ -266,6 +287,45 @@ export function RapidDeck({
     };
   }, []);
 
+  /* the wheel handler is bound once and reads the live index/goTo from here */
+  const indexRef = useRef(0);
+  const goToRef = useRef(goTo);
+  useEffect(() => {
+    indexRef.current = index;
+    goToRef.current = goTo;
+  }, [index, goTo]);
+
+  /* mouse wheel and trackpad: one card per gesture.
+   * The panels are mandatory snap targets, so a wheel notch that covers a fraction
+   * of a panel just springs back to the card it started on — on a desktop the deck
+   * looks stuck. Taking the wheel over turns every flick into a whole card. */
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    let acc = 0;
+    let last = 0;
+    let until = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return; // pinch-to-zoom
+      // DOM_DELTA_LINE / DOM_DELTA_PAGE (Firefox, some mice) report in lines/pages
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * el.clientHeight : e.deltaY;
+      if (!dy || Math.abs(dy) <= Math.abs(e.deltaX)) return; // a sideways gesture is not ours
+      if (scrollableUnder(e.target, el, dy)) return; // a long question is scrolling inside the card
+      e.preventDefault();
+      const now = e.timeStamp;
+      if (now - last > 200 || Math.sign(dy) !== Math.sign(acc)) acc = 0; // new gesture
+      last = now;
+      if (now < until) return; // still riding out the previous step
+      acc += dy;
+      if (Math.abs(acc) < WHEEL_STEP) return;
+      until = now + WHEEL_COOLDOWN_MS;
+      goToRef.current(indexRef.current + (acc > 0 ? 1 : -1));
+      acc = 0;
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
   /* keyboard rapid-fire */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -346,79 +406,86 @@ export function RapidDeck({
   if (!feed.length) return <>{children}</>;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col gap-2">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="tabular rounded-full border border-border bg-surface px-2.5 py-1 font-bold text-text-strong">
-            {Math.min(index + 1, feed.length)} / {feed.length}
-          </span>
-          <span className="text-muted">
-            נענו <strong className="tabular text-text">{okCount}</strong>
-            {pendingCount > 0 && <span className="text-muted-2"> · {pendingCount} בדרך</span>}
-            {failedCount > 0 && <span className="text-no"> · {failedCount} נכשלו</span>}
-          </span>
-        </div>
-        {liveBalance != null && (
-          <span
-            className={`tabular rounded-full border border-border bg-surface px-2.5 py-1 font-semibold ${outOfMoney ? "text-no" : "text-yes"}`}
-          >
-            יתרה {money(Math.max(0, available ?? liveBalance))}
-          </span>
-        )}
-      </header>
+    // On a phone everything stacks. From lg the stake panel moves into a column of
+    // its own: a laptop window is wide and short, so the height it gives back is
+    // exactly what the card was missing.
+    <section className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row lg:items-stretch lg:gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="tabular rounded-full border border-border bg-surface px-2.5 py-1 font-bold text-text-strong">
+              {Math.min(index + 1, feed.length)} / {feed.length}
+            </span>
+            <span className="text-muted">
+              נענו <strong className="tabular text-text">{okCount}</strong>
+              {pendingCount > 0 && <span className="text-muted-2"> · {pendingCount} בדרך</span>}
+              {failedCount > 0 && <span className="text-no"> · {failedCount} נכשלו</span>}
+            </span>
+          </div>
+          {liveBalance != null && (
+            <span
+              className={`tabular rounded-full border border-border bg-surface px-2.5 py-1 font-semibold ${outOfMoney ? "text-no" : "text-yes"}`}
+            >
+              יתרה {money(Math.max(0, available ?? liveBalance))}
+            </span>
+          )}
+        </header>
 
-      <RunTape cards={feed} answers={answers} index={index} />
+        <RunTape cards={feed} answers={answers} index={index} />
 
-      <div
-        ref={scroller}
-        className="scrollbar-none min-h-0 flex-1 snap-y snap-mandatory overflow-y-auto overscroll-contain"
-      >
-        {feed.map((card, i) => (
-          <div key={card.id} className="h-full snap-start snap-always pb-1">
-            <RapidCardView
-              card={card}
-              stake={stake}
-              answer={answers[card.id]}
-              locked={broke && !answers[card.id]}
-              outOfMoney={outOfMoney}
-              loggedIn={loggedIn}
-              reduceMotion={reduceMotion}
-              showKeys={showKeys}
-              onAnswer={(side) => answer(card, side)}
-              onSkip={() => goTo(i + 1)}
+        <div
+          ref={scroller}
+          className="scrollbar-none min-h-0 flex-1 snap-y snap-mandatory overflow-y-auto overscroll-contain"
+        >
+          {feed.map((card, i) => (
+            <div key={card.id} className="h-full snap-start snap-always pb-1">
+              <RapidCardView
+                card={card}
+                stake={stake}
+                answer={answers[card.id]}
+                locked={broke && !answers[card.id]}
+                outOfMoney={outOfMoney}
+                loggedIn={loggedIn}
+                reduceMotion={reduceMotion}
+                showKeys={showKeys}
+                onAnswer={(side) => answer(card, side)}
+                onSkip={() => goTo(i + 1)}
+              />
+            </div>
+          ))}
+          <div className="h-full snap-start snap-always pb-1">
+            <RunSummary
+              done={okCount}
+              failed={failedCount}
+              firstError={firstError}
+              total={feed.length}
+              yesCount={yesCount}
+              totalStaked={totalStaked}
+              totalPayout={totalPayout}
+              showActions={atSummary}
+              onRestart={() => {
+                refreshed.current = false;
+                goTo(0);
+              }}
             />
           </div>
-        ))}
-        <div className="h-full snap-start snap-always pb-1">
-          <RunSummary
-            done={okCount}
-            failed={failedCount}
-            firstError={firstError}
-            total={feed.length}
-            yesCount={yesCount}
-            totalStaked={totalStaked}
-            totalPayout={totalPayout}
-            showActions={atSummary}
-            onRestart={() => {
-              refreshed.current = false;
-              goTo(0);
-            }}
-          />
         </div>
+
+        <p className="sr-only" aria-live="polite">
+          {atSummary ? "סוף הרצף" : `שאלה ${index + 1} מתוך ${feed.length}: ${feed[index]?.title ?? ""}`}
+        </p>
       </div>
 
-      <p className="sr-only" aria-live="polite">
-        {atSummary ? "סוף הרצף" : `שאלה ${index + 1} מתוך ${feed.length}: ${feed[index]?.title ?? ""}`}
-      </p>
-
-      <StakeBar
-        stake={stake}
-        available={available}
-        broke={broke}
-        outOfMoney={outOfMoney}
-        showKeys={showKeys}
-        dimmed={atSummary}
-      />
+      <aside className="scrollbar-none shrink-0 lg:w-72 lg:overflow-y-auto xl:w-80">
+        <StakeBar
+          stake={stake}
+          available={available}
+          broke={broke}
+          outOfMoney={outOfMoney}
+          showKeys={showKeys}
+          dimmed={atSummary}
+        />
+      </aside>
     </section>
   );
 }
@@ -497,7 +564,15 @@ function RapidCardView({
   const strength = Math.min(1, Math.abs(dx) / DRAG_COMMIT);
 
   function onPointerDown(e: React.PointerEvent) {
-    if (done || locked || e.pointerType === "mouse") return;
+    if (done || locked) return;
+    if (e.button > 0) return; // right/middle click is not a swipe
+    if (e.pointerType === "mouse") {
+      // A finger can start a swipe anywhere on the card, but a mouse press on a
+      // control belongs to that control — never turn a click on "דלג" or on an
+      // answer button into a drag.
+      const t = e.target as HTMLElement | null;
+      if (t?.closest("button, a, input, label, [role='button']")) return;
+    }
     drag.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, axis: "?" };
   }
 
@@ -508,10 +583,13 @@ function RapidCardView({
     const my = e.clientY - d.y0;
     if (d.axis === "?") {
       if (Math.abs(mx) < 10 && Math.abs(my) < 10) return;
-      // let the browser keep the vertical scroll; only take over sideways drags
-      d.axis = Math.abs(mx) > Math.abs(my) ? "x" : "y";
+      // A finger has to keep the vertical scroll, so only a sideways drag is taken.
+      // A mouse has no drag-to-scroll to protect: any press-and-move is a swipe.
+      d.axis = e.pointerType === "mouse" || Math.abs(mx) > Math.abs(my) ? "x" : "y";
       if (d.axis === "x") {
         e.currentTarget.setPointerCapture(e.pointerId);
+        // a mouse drag across text would otherwise paint a selection behind the card
+        if (e.pointerType === "mouse") window.getSelection()?.removeAllRanges();
         setDragging(true);
       }
     }
@@ -547,16 +625,19 @@ function RapidCardView({
 
   return (
     <article
-      className="card relative flex h-full flex-col overflow-hidden"
+      className={`card relative flex h-full flex-col overflow-hidden ${dragging ? "select-none" : ""}`}
       style={{
         transform: dx ? `translateX(${dx}px) rotate(${dx / 60}deg)` : undefined,
         transition: dragging || reduceMotion ? undefined : "transform 0.2s ease-out",
         touchAction: "pan-y",
+        cursor: done || locked ? undefined : dragging ? "grabbing" : "grab",
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={cancelDrag}
+      /* the browser's own image/text drag would fight the swipe */
+      onDragStart={(e) => e.preventDefault()}
     >
       {intent && !done && (
         <div
@@ -602,7 +683,7 @@ function RapidCardView({
           <Link
             href={`/market/${card.id}`}
             target="_blank"
-            className="ms-auto inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 hover:text-text-strong"
+            className="ms-auto inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 py-0.5 hover:text-text-strong"
           >
             פרטים
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -659,7 +740,7 @@ function RapidCardView({
           />
         </div>
         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-2">
-          <button onClick={onSkip} className="shrink-0 rounded-md px-2 py-1 font-semibold hover:text-text-strong">
+          <button onClick={onSkip} className="shrink-0 cursor-pointer rounded-md px-2 py-1 font-semibold hover:text-text-strong">
             דלג
           </button>
           <span className="line-clamp-2 text-end">
@@ -700,7 +781,7 @@ function AnswerButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={`${yes ? "כן" : "לא"} ב־${stake} שקלים וירטואליים`}
-      className={`rounded-2xl py-3 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`cursor-pointer rounded-2xl py-3 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
         yes ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
       }`}
     >
