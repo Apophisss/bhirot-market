@@ -46,16 +46,15 @@ export function PmCandidates({ counts = {}, active }: { counts?: Record<string, 
                   alt={c.name}
                   className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.04]"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-surface via-surface/80 to-transparent" />
                 {n > 0 && (
-                  <span className="tabular absolute end-1.5 top-1.5 rounded-full bg-bg/80 px-1.5 py-0.5 text-[10px] font-bold text-text backdrop-blur">
+                  <span className="tabular absolute end-1.5 top-1.5 rounded-full bg-ink/75 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
                     {questionsLabel(n)}
                   </span>
                 )}
-                <div className="absolute inset-x-0 bottom-0 p-2">
-                  <div className="truncate text-[13px] font-bold leading-tight text-text-strong">{c.name}</div>
-                  <div className="truncate text-[11px] text-muted">{c.list}</div>
-                </div>
+              </div>
+              <div className={`px-2 py-1.5 ${on ? "bg-accent-soft" : ""}`}>
+                <div className="truncate text-[13px] font-bold leading-tight text-text-strong">{c.name}</div>
+                <div className="truncate text-[11px] text-muted">{c.list}</div>
               </div>
             </Link>
           );
