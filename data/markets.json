@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-05T01:15:48+03:00",
-  "lastUpdateNote": "מיזוג אצווה: שאלות על סקרים, רשימות, מפלגות, משפט, ביטחון, כלכלה, חברה, קואליציה ואישים",
+  "updatedAt": "2026-09-05T02:30:00+03:00",
+  "lastUpdateNote": "ניקוי כפילויות: 16 שווקים שנשאלו על אותו אירוע כמו שוק פתוח אחר בוטלו והכסף בהם הוחזר.",
   "markets": [
     {
       "slug": "golan-sues-sara-netanyahu-oct7",
@@ -727,7 +727,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "המכון הישראלי לדמוקרטיה: פסילת רשימות ומועמדים",
@@ -739,7 +739,10 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed"
+      "createdBy": "seed",
+      "resolutionNote": "בוטל ככפילות של \"האם ועדת הבחירות המרכזית תפסול לפחות מועמד אחד או רשימה אחת עד מועד ההכרעה, 29 בספטמבר 2026, בחול המועד סוכות?\" (cec-disqualification-decision-by-september-29). השאלה הזו רחבה משתי שאלות פסילה פתוחות אחרות וכוללת אותן, אך תומחרה נמוך מהן (15% מול 45% ו-58%) - כלומר אותו אירוע בתמחור לא עקבי. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "state-commission-oct7-decision-before-election",
@@ -2422,7 +2425,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "מפלגת הליכוד אישרה: טלי גוטליב תוכל להתמודד בעוצמה יהודית | זה המקום המסתמן ברשימה",
@@ -2438,7 +2441,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם הליכוד ועוצמה יהודית יחתמו על הסכם עודפים ביניהן עד 16.10.2026?\" (likud-otzma-surplus-agreement-by-oct16). אותו הסכם עודפים בין הליכוד לעוצמה יהודית, אותו מועד אחרון (16.10.2026) ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "likud-ad-pulled-by-elections-committee",
@@ -2541,7 +2547,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "בחירות 2026 | המפלגה של בנט ולפיד דועכת, והקולות בעד איחוד עם איזנקוט מתגברים - הארץ",
@@ -2561,7 +2567,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם 'ביחד' (בנט-לפיד) ו'ישר!' (איזנקוט) יגישו רשימה משותפת לוועדת הבחירות עד 10.9?\" (beyachad-yashar-joint-list-by-sept10). אותה שאלה: רשימה משותפת אחת של ישר ושל ביחד עד סגירת ההגשה ב-10.9.2026. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "beyachad-splits-separate-lists",
@@ -2739,7 +2748,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "בחירות 2026 | סקר חדשות 13: לראשונה, מפלגת ישר של איזנקוט עוקפת את הליכוד במנדט - הארץ",
@@ -2759,7 +2768,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם 'ישר!' של איזנקוט תגיע ל-25 מנדטים ומעלה בסקר של חדשות 12, חדשות 13 או כאן עד 30.9?\" (yashar-25-plus-mainstream-poll-by-sept30). אותו סף (25 מנדטים לישר) בחלון חופף כמעט לגמרי. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "bennett-largest-party-rule-pledge",
@@ -2941,7 +2953,7 @@
       "initialProbability": 0.33,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "בחירות 2026 | סקר חדשות 13: לראשונה, מפלגת ישר של איזנקוט עוקפת את הליכוד במנדט - הארץ",
@@ -2957,7 +2969,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם הרשימה בראשות גדי איזנקוט תהיה הרשימה הגדולה ביותר בתוצאות הרשמיות של הבחירות ב-27.10.2026?\" (eisenkot-list-largest-in-official-results). אותה שאלה: האם הרשימה בראשות איזנקוט תהיה הגדולה ביותר בתוצאות הרשמיות. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "beyachad-recommends-eisenkot-to-herzog",
@@ -3770,7 +3785,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "Netanyahu claims defense officials intentionally failed to wake him in hours before Oct. 7 attack — The Times of Israel",
@@ -3782,7 +3797,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "netanyahu-televised-head-to-head-debate-2026",
@@ -3806,7 +3824,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "2026 Israeli legislative election — Wikipedia",
@@ -3818,7 +3836,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם יתקיים עימות טלוויזיוני ישיר בין נתניהו לאיזנקוט לפני יום הבחירות?\" (netanyahu-eisenkot-tv-debate-before-election). אותו אירוע: עימות טלוויזיוני של נתניהו מול מועמד יריב. השאלה הרחבה תומחרה נמוך מהמצומצמת ממנה (7% מול 10%). כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "netanyahu-unga-podium-speech-september-2026",
@@ -4186,7 +4207,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "בחירות 2026 | בניסיון נוסף לפסול את בן גביר, ארגונים יפנו לוועדת הבחירות בטענה שהתערבותו במשטרה פגעה בדמוקרטיה - הארץ",
@@ -4202,7 +4223,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם תוגש לוועדת הבחירות המרכזית בקשה לפסילת מועמדותו של איתמר בן גביר עד 30.9?\" (petition-disqualify-ben-gvir-filed-by-sept30). אותה שאלה: הגשת בקשת פסילה נגד בן גביר או עוצמה יהודית. המועד האחרון להגשה הוא 15.9, ולכן שני החלונות מוכרעים יחד. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "ag-supports-disqualification-by-sept-17",
@@ -5611,7 +5635,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "196 דקות בשבעה חודשים: נתניהו מתראיין רק בערוץ 14 | העין השביעית",
@@ -5627,7 +5651,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "likud-ministers-return-to-channel-12-studio",
@@ -6459,7 +6486,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "Fitch keeps Israel's 'A' credit rating, negative outlook amid rise in public debt, war-related risks – The Times of Israel",
@@ -6479,7 +6506,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם פיץ' תסיר את התחזית השלילית מדירוג האשראי של ישראל ותקבע לו תחזית יציבה או חיובית עד 20.11.2026?\" (fitch-israel-outlook-off-negative-by-20-november-2026). אותה פעולת דירוג של פיץ עד 20.11.2026 - הסרת התחזית השלילית - ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "israel-sovereign-rating-upgrade-by-nov-17-2026",
@@ -6545,7 +6575,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "תקציב 2027: הבור האמיתי עמוק בעשרות מיליארדי שקלים – כלכליסט",
@@ -6565,7 +6595,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם הממשלה תאשר הצעת תקציב מדינה לשנת 2027 עד 5.11.2026?\" (cabinet-approves-2027-state-budget-proposal-by-5-nov-2026). אותו אירוע: אישור הצעת תקציב 2027 בממשלה. החלון שנשמר ארוך יותר והקריטריון בו חד יותר. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "deficit-above-5-percent-september-2026-report",
@@ -7378,7 +7411,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "Rahat — population and 2022 election voting breakdown",
@@ -7394,7 +7427,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם רע\"ם תקבל יותר מ-60% מהקולות הכשרים ברהט בבחירות 27.10.2026?\" (raam-above-60-percent-in-rahat). אותו אירוע עם סף נמוך יותר, ובכל זאת תומחר באותם 55% בדיוק - סף נמוך יותר חייב להיות סביר יותר, ולכן השאלה אינה מוסיפה מידע. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "shas-utj-combined-18-seats-2026",
@@ -7803,7 +7839,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "מדד וממוצע סקרים 2026 – ישר! עם איזנקוט. 24 מנדטים - סקר הסקרים",
@@ -7823,7 +7859,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם הרשימה המשותפת תקבל יותר מנדטים מרע\"ם בתוצאות הרשמיות של הבחירות שיפורסמו ב-4.11.2026?\" (joint-list-more-seats-than-raam-official-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, רעם או הרשימה המשותפת. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "liberman-vs-winter-official-results",
@@ -8115,7 +8154,7 @@
       "initialProbability": 0.27,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "סקר ערוץ 14, 30.08.2026 – הליכוד 31, ישר! 24",
@@ -8131,7 +8170,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם גוש נתניהו (ליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית, עמך ישראל) יגיע ל-61 מנדטים בבחירות?\" (netanyahu-bloc-61-election-result). אותה שאלה: 61 מנדטים לגוש הימין-חרדים בתוצאות הרשמיות. בנוסף, סעיף ההמלצות אצל הנשיא אינו ניתן להכרעה עד מועד הסגירה. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "change-bloc-61-without-arab-parties",
@@ -10446,7 +10488,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "בן גביר פסל סופית, וינטר רוצה להיות \"כליא ברק\" | האופציות הפוחתות של נתניהו",
@@ -10462,7 +10504,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם עופר וינטר יודיע עד יום ראשון בערב (6.9) על הצטרפות לרשימה אחרת או על פרישה מהמרוץ?\" (winter-join-or-quit-sunday). אותה הודעה של עופר וינטר על חיבור לרשימה אחרת, בחלון החופף ב-9 שעות בלבד. השוק שנשמר רחב יותר וכולל גם פרישה. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "pm-rotation-agreement-announced-by-sept10",
@@ -12895,7 +12940,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "featured": false,
-      "status": "open",
+      "status": "cancelled",
       "sources": [
         {
           "title": "Smotrich, Feiglin announce joint election run, urge other right-wing parties to join – The Times of Israel",
@@ -12911,7 +12956,10 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "resolutionNote": "בוטל ככפילות של \"האם עוצמה יהודית של בן גביר תקבל יותר מנדטים מרשימת הציונות הדתית של סמוטריץ' ופייגלין בתוצאות הבחירות ב-27.10.2026?\" (otzma-yehudit-vs-smotrich-feiglin-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, עוצמה יהודית או הציונות הדתית-זהות. סכום שני האחוזים היה 107% - יותר מ-100. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
+      "updatedAt": "2026-09-05T02:30:00+03:00"
     },
     {
       "slug": "democrats-beyachad-joint-list-by-sept10",
