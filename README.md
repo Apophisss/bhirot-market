@@ -17,6 +17,7 @@
 | מנוע שוק | LMSR בינארי (`src/lib/lmsr.ts`) — ₪10,000 וירטואליים לכל משתמש, תשלום ₪1 למניה מנצחת |
 | תוכן | `data/markets.json` — מקור האמת לשאלות; מסונכרן למסד הנתונים אוטומטית |
 | תמונות | תמונות אישי ציבור מ־Wikimedia Commons (`data/people.json`, `npm run people:fetch`) + עטיפות SVG לפי קטגוריה |
+| גרף המגמה | היסטוריה אמיתית מ־`price_history` + אומדן טרום־מסחר מקווקו לתצוגה בלבד (`src/lib/synthetic-history.ts`), חסום ל־±3 נק׳ מהמחיר הרשום |
 | עדכון אוטומטי | (א) **Claude Code Routine** שעתית שעורכת את `data/markets.json` לפי `AGENT.md`; (ב) מחולל מובנה `/api/cron/refresh` (Vercel Cron) שמפעיל את Claude API עם חיפוש באינטרנט |
 
 ## הרצה מקומית
@@ -67,7 +68,7 @@ npm run dev                       # http://localhost:3000
 | נתיב | תיאור |
 |---|---|
 | `GET /api/markets?status=open&category=polls&q=…&sort=trending` | רשימת שווקים (ציבורי) |
-| `GET /api/markets/:slug` | שוק + היסטוריית מחירים + עסקאות אחרונות |
+| `GET /api/markets/:slug` | שוק + היסטוריית מחירים אמיתית (`history`) + סדרת הגרף עם האומדן (`chartHistory`, `chartHistoryMeta`) + עסקאות אחרונות |
 | `POST /api/trade` `{marketId, side, action, quantity}` | קנייה/מכירה (דורש התחברות) |
 | `POST /api/comments` | תגובה לשוק |
 | `POST /api/admin/markets` `{markets:[…], note, source}` | Upsert/הכרעה של שווקים (Bearer `ADMIN_TOKEN`) |
@@ -76,6 +77,27 @@ npm run dev                       # http://localhost:3000
 | `GET /api/cron/refresh` | סנכרון + מחולל Claude (Bearer `CRON_SECRET`/`ADMIN_TOKEN`) |
 | `GET /api/health` | סטטיסטיקות ועדכון אוטומטי אחרון |
 
+## גרף המגמה: אומדן חסום לפני העסקה הראשונה
+
+שוק חדש נפתח עם נקודת מחיר אחת, ולכן הגרף שלו שטוח עד לעסקה הראשונה. `src/lib/synthetic-history.ts` מצייר
+לפני מועד הפתיחה **קו מקווקו של אומדן** — כדי שיהיה מה לראות, בלי לשנות את החיזוי:
+
+- **חסם קשיח.** האומדן לעולם לא מתרחק מהמחיר הרשום ביותר מ־`SYNTHETIC_HISTORY_MAX_DEV` (ברירת מחדל 3 נק׳,
+  תקרה קשיחה 5 נק׳ שאי אפשר לעקוף דרך משתני סביבה), ולא יותר מ־35% מהמרחק ל־0/1 — כלומר 1.05 נק׳ בלבד בשוק של 3%.
+  ה״מחיר הרשום״ הוא קריאת LOCF של `price_history`, וזה מדויק: מחיר LMSR זז רק כשעסקה מזיזה אותו.
+- **הנקודה האחרונה היא האמת עצמה.** הסדרה מסתיימת ב־`market.probability` בהשוואת `===`, וכל שורת `price_history`
+  אמיתית מועברת כמות שהיא — בלי רעש, בלי clamp ובלי סימון.
+- **תצוגה בלבד.** המודול חסין: אין בו שום `import`, שום שעון ושום אקראיות, ו־`eslint.config.mjs` אוסר עליו לייבא
+  את מסד הנתונים ואוסר על `trade`/`sync`/`portfolio`/`lmsr`/המחולל לייבא אותו. שום נקודה משוערת לא נכתבת ל־DB.
+- **דטרמיניסטי ובלתי משתנה.** הרעש ממופתח לפי זמן אבסולוטי, ולכן העבר לא ״נכתב מחדש״ בין רענונים.
+- **נסוג מאליו.** מ־8 עסקאות אמיתיות ומעלה, ובשוק שהוכרע/בוטל/נסגר, האומדן נעלם לגמרי.
+- **מסומן בגלוי.** קו מקווקו, רקע מקווקו, תווית ״אומדן״ וקו ״פתיחת המסחר״ בתוך הגרף; ריחוף מציג `≈` ותאריך ברמת יום;
+  שינוי האחוזים בכותרת מחושב מנתונים אמיתיים בלבד. ב־API הציבורי `history` נשאר אמיתי, והאומדן נשלח בנפרד
+  כ־`chartHistory` + `chartHistoryMeta`.
+
+`npm run history:verify` בודק את כל זה (חסם, אנכור עצמאי, דטרמיניזם, אי־שינוי העבר, טוהר, שערים) על 28 השווקים
+האמיתיים ועל עשרות אלפי מקרים אקראיים. הגדרות: ראו `.env.example`.
+
 ## סקריפטים
 
 ```bash
@@ -83,6 +105,7 @@ npm run markets:validate   # בדיקת סכמה של data/markets.json ו-data/
 npm run markets:sync       # סנכרון הקובץ למסד הנתונים (לפי DATABASE_URL)
 npm run people:fetch       # השלמת תמונות מוויקיפדיה לאנשים חדשים
 npm run markets:generate   # הרצת המחולל המובנה (דורש ANTHROPIC_API_KEY)
+npm run history:verify     # בדיקת החסמים של גרף האומדן (--sparklines להצגת העקומות)
 npm run db:generate        # יצירת מיגרציה אחרי שינוי בסכמה
 ```
 
@@ -93,6 +116,7 @@ data/markets.json        השאלות (מקור האמת, נערך ע"י Claude)
 data/people.json         אנשים + תמונות
 AGENT.md                 הנחיות לרוטינה של Claude
 src/lib/lmsr.ts          מתמטיקת עושה השוק
+src/lib/synthetic-history.ts  אומדן הגרף לפני העסקה הראשונה (תצוגה בלבד, חסום)
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           המחולל המובנה (Claude API + web search)

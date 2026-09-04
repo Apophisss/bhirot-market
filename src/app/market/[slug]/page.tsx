@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { auth, currentUser } from "@/lib/auth";
-import { getMarket, getPriceHistory, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
+import { getMarket, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
+import { getChartHistory } from "@/lib/display-history";
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
@@ -38,8 +39,8 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   if (!market) notFound();
 
   const session = await auth();
-  const [history, recent, comments, user, related] = await Promise.all([
-    getPriceHistory(slug),
+  const [chart, recent, comments, user, related] = await Promise.all([
+    getChartHistory(market),
     getRecentTrades(slug, 25),
     getComments(slug),
     currentUser(),
@@ -96,7 +97,14 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           </div>
         )}
 
-        <PriceChart points={history} current={market.probability} isOpen={market.status === "open"} />
+        <PriceChart
+          points={chart.points}
+          current={market.probability}
+          isOpen={market.status === "open"}
+          estimateBand={chart.synthetic ? chart.maxDeviation : undefined}
+          tradeCount={market.tradeCount}
+          now={chart.now}
+        />
 
         <div className="lg:hidden">
           <TradePanel
