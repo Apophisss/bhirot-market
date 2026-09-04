@@ -8,7 +8,6 @@ export const metadata = { title: "לוח המובילים" };
 
 export default async function LeaderboardPage() {
   const [rows, session] = await Promise.all([getLeaderboard(), auth()]);
-  const medals = ["🥇", "🥈", "🥉"];
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
@@ -30,7 +29,7 @@ export default async function LeaderboardPage() {
             <tbody className="divide-y divide-border">
               {rows.map((r, i) => (
                 <tr key={r.userId} className={r.userId === session?.user?.id ? "bg-accent/10" : "hover:bg-surface-2/60"}>
-                  <td className="tabular px-4 py-2.5 text-muted">{medals[i] ?? i + 1}</td>
+                  <td className={`tabular px-4 py-2.5 ${i < 3 ? "font-bold text-text-strong" : "text-muted"}`}>{i + 1}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Avatar name={r.name} image={r.image} size={28} />
@@ -45,7 +44,7 @@ export default async function LeaderboardPage() {
             </tbody>
           </table>
         ) : (
-          <p className="p-8 text-center text-sm text-muted">עדיין אין סוחרים בדירוג. היו הראשונים לסחור!</p>
+          <p className="p-8 text-center text-sm text-muted">עדיין אין סוחרים בדירוג.</p>
         )}
       </div>
     </div>

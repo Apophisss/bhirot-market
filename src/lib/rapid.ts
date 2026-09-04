@@ -38,7 +38,6 @@ export interface RapidCard {
   title: string;
   subtitle: string | null;
   categoryLabel: string;
-  categoryEmoji: string;
   categoryAccent: string;
   image: string;
   fallbackImage: string;

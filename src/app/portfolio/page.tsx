@@ -28,7 +28,7 @@ export default async function PortfolioPage() {
           href="/rapid"
           className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-sm font-bold text-accent-2 hover:bg-accent/20"
         >
-          ⚡ סבב זריז
+          סבב זריז
         </Link>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

@@ -22,11 +22,11 @@ export function MarketCard({ m }: { m: MarketView }) {
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2 text-[11px] text-muted">
             <span className="rounded-md px-1.5 py-0.5" style={{ background: `${cat.accent}22`, color: cat.accent }}>
-              {cat.emoji} {cat.label}
+              {cat.label}
             </span>
-            {isTeamAuthored(m.createdBy) && <span title={`נוסף על ידי ${SITE_TEAM}`}>✍️</span>}
-            {urgent && <span className="rounded-md bg-no/15 px-1.5 py-0.5 font-semibold text-no">⚡ {closesLabel(m.closesAt)}</span>}
-            {soon && <span className="rounded-md bg-warn/15 px-1.5 py-0.5 font-semibold text-warn">⏳ נסגר בקרוב</span>}
+            {isTeamAuthored(m.createdBy) && <span className="text-muted-2">{SITE_TEAM}</span>}
+            {urgent && <span className="rounded-md bg-no/15 px-1.5 py-0.5 font-semibold text-no">{closesLabel(m.closesAt)}</span>}
+            {soon && <span className="rounded-md bg-warn/15 px-1.5 py-0.5 font-semibold text-warn">נסגר בקרוב</span>}
           </div>
           <Link href={href} className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2">
             {m.title}
@@ -41,7 +41,7 @@ export function MarketCard({ m }: { m: MarketView }) {
             m.status === "cancelled" ? "bg-surface-2 text-muted" : m.resolution === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"
           }`}
         >
-          {m.status === "cancelled" ? "בוטל" : m.resolution === "YES" ? "הוכרע: כן ✓" : "הוכרע: לא ✗"}
+          {m.status === "cancelled" ? "בוטל" : m.resolution === "YES" ? "הוכרע: כן" : "הוכרע: לא"}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
@@ -62,7 +62,7 @@ export function MarketCard({ m }: { m: MarketView }) {
 
       <footer className="mt-auto flex items-center justify-between text-xs text-muted">
         <span className="tabular">{money(m.volume, { compact: true })} נפח · {m.tradeCount} עסקאות</span>
-        <span>{resolved ? "" : closesLabel(m.closesAt)}</span>
+        <span>{resolved || urgent ? "" : closesLabel(m.closesAt)}</span>
       </footer>
     </article>
   );

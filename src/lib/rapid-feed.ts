@@ -63,7 +63,6 @@ export function toRapidCard(m: MarketView): RapidCard {
     title: m.title,
     subtitle: m.subtitle,
     categoryLabel: cat.label,
-    categoryEmoji: cat.emoji,
     categoryAccent: cat.accent,
     image: m.image,
     fallbackImage: cat.cover,

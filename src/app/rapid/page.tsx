@@ -41,7 +41,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
     <div className="mx-auto flex h-[calc(100svh-6rem)] min-h-[600px] w-full max-w-3xl flex-col gap-3">
       <div className="scrollbar-none -mx-4 flex shrink-0 items-center gap-1 overflow-x-auto px-4 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
         <div className="flex shrink-0 items-center gap-1">
-          <h1 className="me-1 font-black text-text-strong">⚡ מצב זריז</h1>
+          <h1 className="me-1 font-black text-text-strong">מצב זריז</h1>
           {RAPID_SORTS.map((s) => (
             <Link
               key={s.id}
@@ -94,7 +94,6 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
 function EmptyFeed({ category, includeAnswered }: { category: string; includeAnswered: boolean }) {
   return (
     <div className="card flex flex-col items-center gap-3 p-12 text-center">
-      <div className="text-5xl">🏁</div>
       <h2 className="text-xl font-extrabold text-text-strong">
         {includeAnswered ? "אין כרגע שאלות פתוחות" : "ענית על כל השאלות הפתוחות"}
       </h2>

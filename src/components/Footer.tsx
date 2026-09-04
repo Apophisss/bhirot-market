@@ -11,7 +11,7 @@ export function Footer() {
         </p>
         <nav className="flex shrink-0 gap-4">
           <Link href="/about" className="hover:text-white">איך זה עובד</Link>
-          <Link href="/about#updates" className="hover:text-white">העדכון השעתי</Link>
+          <Link href="/about#updates" className="hover:text-white">מי כותב את השאלות</Link>
         </nav>
       </div>
     </footer>

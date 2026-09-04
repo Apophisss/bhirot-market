@@ -23,7 +23,7 @@ function test(name: string, fn: () => void) {
     fn();
     passed++;
   } catch (err) {
-    console.error(`✗ ${name}`);
+    console.error(`FAIL ${name}`);
     throw err;
   }
 }
@@ -134,4 +134,4 @@ test("recommend prefers the house default whenever it is healthy", () => {
   }
 });
 
-console.log(`✓ elasticity: ${passed} invariant tests passed`);
+console.log(`elasticity: ${passed} invariant tests passed`);

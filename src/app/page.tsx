@@ -79,13 +79,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <AgentBadge />
               <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">{SITE_TAGLINE}</h1>
               <p className="mt-3 max-w-xl text-base text-white/75 sm:text-lg">
-                סקרים, קואליציות, משפטים, תביעות ומהלכים פוליטיים — מי צודק, השוק או הפרשנים? סחרו בכסף וירטואלי על
+                סקרים, קואליציות, משפטים ומהלכים פוליטיים. כרגע פתוחות
                 {" "}
-                <strong className="text-white">{stats.open} השאלות</strong> החדות של הקמפיין, שמתעדכנות כל שעה.
+                <strong className="text-white">{stats.open} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link href="/rapid" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
-                  ⚡ מצב זריז · {stats.open} שאלות ברצף
+                  מצב זריז · {stats.open} שאלות ברצף
                 </Link>
                 {session?.user ? (
                   <Link href="/portfolio" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
@@ -121,12 +121,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {closingSoon.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-bold text-text-strong">⏱️ נסגר היום או מחר</h2>
+            <h2 className="text-lg font-bold text-text-strong">נסגר היום או מחר</h2>
             <Link href="/?sort=closing" className="text-sm text-accent-2 hover:underline">
               כל השאלות לפי מועד סגירה
             </Link>
           </div>
-          <p className="-mt-1 text-sm text-muted">שאלות שההכרעה שלהן מגיעה תוך שעות — המקום הכי טוב להתחיל לשחק בו.</p>
+          <p className="-mt-1 text-sm text-muted">שאלות שההכרעה שלהן מגיעה בתוך יום־יומיים.</p>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {closingSoon.map((m) => (
               <MarketCard key={m.id} m={m} />
@@ -137,7 +137,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {featured.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-text-strong">🔥 השאלות הבוערות</h2>
+          <h2 className="text-lg font-bold text-text-strong">שאלות מובילות</h2>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {featured.map((m) => (
               <MarketCard key={m.id} m={m} />
@@ -159,7 +159,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {q && (
               <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
                 חיפוש: <strong className="text-text">{q}</strong>
-                <Link href={link({ q: undefined })} className="ms-1 text-muted-2 hover:text-no" aria-label="נקה חיפוש">✕</Link>
+                <Link href={link({ q: undefined })} className="ms-1 flex text-muted-2 hover:text-no" aria-label="נקה חיפוש">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </Link>
               </span>
             )}
             {person && (
@@ -174,7 +178,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               href="/rapid"
               className="me-2 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1 font-bold text-accent-2 hover:bg-accent/20"
             >
-              ⚡ ענו ברצף
+              ענו ברצף
             </Link>
             <span className="me-1 text-muted-2">מיון:</span>
             {SORTS.map((s) => (
@@ -209,8 +213,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </>
         ) : (
           <div className="card p-12 text-center text-muted">
-            <div className="text-4xl">🤷</div>
-            <p className="mt-2">
+            <p>
               לא נמצאו שווקים. נסו קטגוריה אחרת, <Link href="/" className="text-accent-2 hover:underline">נקו את הסינון</Link>, או עברו{" "}
               <Link href="/rapid" className="text-accent-2 hover:underline">למצב זריז</Link>.
             </p>

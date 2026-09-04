@@ -79,7 +79,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 1200)); // be polite to the Wikipedia API
     const t = await thumb(p.wiki);
     if (!t) {
-      console.warn(`✗ ${p.id}: no image found for ${p.wiki}`);
+      console.warn(`skip ${p.id}: no image found for ${p.wiki}`);
       continue;
     }
     const local = await download(t.url, p.id);
@@ -88,7 +88,7 @@ async function main() {
     p.imageSource = t.url;
     p.imageCredit = t.credit;
     changed++;
-    console.log(`✓ ${p.id} -> ${local}`);
+    console.log(`ok   ${p.id} -> ${local}`);
   }
   fs.writeFileSync("data/people.json", JSON.stringify({ people: file.people }, null, 2) + "\n");
   const missing = file.people.filter((x) => !x.image).map((x) => x.id);

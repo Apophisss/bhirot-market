@@ -555,7 +555,7 @@ function RapidCardView({
               answer.status === "error" ? "text-no" : answer.side === "YES" ? "text-yes" : "text-no"
             }`}
           >
-            {answer.status === "error" ? "✕" : answer.side === "YES" ? "כן ✓" : "לא ✓"}
+            {answer.status === "error" ? "שגיאה" : answer.side === "YES" ? "כן" : "לא"}
           </div>
           {answer.status === "error" ? (
             <p className="max-w-xs text-sm text-no">{answer.error}</p>
@@ -573,16 +573,16 @@ function RapidCardView({
             className="rounded-md px-1.5 py-0.5 font-semibold"
             style={{ background: `${card.categoryAccent}22`, color: card.categoryAccent }}
           >
-            {card.categoryEmoji} {card.categoryLabel}
+            {card.categoryLabel}
           </span>
           <span>{closesLabel(card.closesAt)}</span>
-          {card.byTeam && <span title={`נוסף על ידי ${SITE_TEAM}`}>✍️</span>}
+          {card.byTeam && <span className="text-muted-2">{SITE_TEAM}</span>}
           <Link
             href={`/market/${card.id}`}
             target="_blank"
             className="ms-auto rounded-md border border-border px-2 py-0.5 hover:text-text-strong"
           >
-            פרטים ↗
+            פרטים
           </Link>
         </div>
 
@@ -635,7 +635,7 @@ function RapidCardView({
         </div>
         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-2">
           <button onClick={onSkip} className="shrink-0 rounded-md px-2 py-1 font-semibold hover:text-text-strong">
-            דלג ↓
+            דלג
           </button>
           <span className="text-end">
             {outOfMoney
@@ -794,7 +794,6 @@ function RunSummary({
 }) {
   return (
     <div className="card flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
-      <div className="text-5xl">{done ? "🎉" : "👋"}</div>
       <h2 className="text-2xl font-black text-text-strong">{done ? "סיימת את הרצף" : "לא ענית על אף שאלה"}</h2>
       {done ? (
         <>
