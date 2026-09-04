@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 600" width="760" height="600">
+<defs>
+ <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9a3412"/><stop offset="1" stop-color="#f97316"/></linearGradient>
+ <radialGradient id="r" cx="0.8" cy="0.1" r="0.9"><stop offset="0" stop-color="#fff" stop-opacity="0.35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ <pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#fff" stroke-opacity="0.08"/></pattern>
+</defs>
+<rect width="760" height="600" fill="url(#g)"/>
+<rect width="760" height="600" fill="url(#p)"/>
+<rect width="760" height="600" fill="url(#r)"/>
+<g fill="#fff" opacity="0.92"><rect x="210" y="170" width="340" height="290" rx="22"/></g><rect x="210" y="170" width="340" height="70" rx="22" fill="#fde047"/><g fill="#9a3412"><rect x="250" y="270" width="50" height="50" rx="10"/><rect x="320" y="270" width="50" height="50" rx="10"/><rect x="390" y="270" width="50" height="50" rx="10"/><rect x="460" y="270" width="50" height="50" rx="10"/><rect x="250" y="340" width="50" height="50" rx="10"/><rect x="320" y="340" width="50" height="50" rx="10"/><rect x="390" y="340" width="50" height="50" rx="10" fill="#f97316"/><rect x="460" y="340" width="50" height="50" rx="10"/></g>
+</svg>

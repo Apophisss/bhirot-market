@@ -1,0 +1,43 @@
+{
+  "name": "bhirot-market",
+  "version": "0.1.0",
+  "private": true,
+  "description": "שוק חיזויים (כסף וירטואלי) על בחירות 2026 לכנסת — בסגנון Polymarket, עם שאלות שמתעדכנות כל שעה על ידי Claude",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "markets:validate": "tsx scripts/validate-markets.ts",
+    "markets:sync": "tsx scripts/sync.ts",
+    "markets:generate": "tsx scripts/generate-questions.ts",
+    "people:fetch": "tsx scripts/fetch-people.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0",
+    "@auth/drizzle-adapter": "^1.11.3",
+    "@libsql/client": "^0.18.0",
+    "drizzle-orm": "^0.45.2",
+    "next": "^16.3.4",
+    "next-auth": "5.0.0-beta.32",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.3.4",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.0"
+  }
+}
