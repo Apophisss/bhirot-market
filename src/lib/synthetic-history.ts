@@ -212,16 +212,16 @@ function rawField(seed: number, t: number, cfg: SynthConfig): number {
  * Per-market gain. A handful of octaves over one market's window is a small
  * sample, so some seeds land in a quiet stretch of the field and would draw the
  * dead flat line this whole module exists to avoid. Measuring the market's own
- * spread on a FIXED window (derived from its opening instant, never from `now`)
- * and correcting for it keeps every chart equally alive while staying immutable.
+ * spread over its own window — derived from its opening instant and its closing
+ * date, never from `now` — and correcting for it keeps every chart equally alive
+ * while staying immutable.
  */
-function marketGain(seed: number, opensAt: number, cfg: SynthConfig): number {
-  const from = opensAt - cfg.maxWindowMs;
+function marketGain(seed: number, from: number, to: number, cfg: SynthConfig): number {
   const n = 128;
   let sum = 0;
   let sq = 0;
   for (let i = 0; i < n; i++) {
-    const v = rawField(seed, from + ((opensAt - from) * i) / n, cfg);
+    const v = rawField(seed, from + ((to - from) * i) / n, cfg);
     sum += v;
     sq += v * v;
   }
@@ -366,7 +366,7 @@ export function buildDisplayHistory(input: SynthInput, config: SynthConfig = DEF
   /* -- emit ---------------------------------------------------------------- */
   const seed = fnv1a32(`${cfg.seedSalt}|${marketId}|v${SYNTH_VERSION}`);
   const energy = 0.5 + (AMP_MAX - 0.5) * unit(hash32(seed, 0xa1)); // per-market character, ≤ AMP_MAX
-  const gain = marketGain(seed, opensAt, cfg);
+  const gain = marketGain(seed, tStart < opensAt ? tStart : opensAt - cfg.maxWindowMs, opensAt, cfg);
   const out: DisplayPoint[] = [];
   let j = 0; // last anchor at or before t
   let k = 0; // first anchor at or after t

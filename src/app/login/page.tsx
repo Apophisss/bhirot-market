@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { signIn, devLoginEnabled, googleEnabled, auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -6,7 +7,12 @@ import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "התחברות" };
+export const metadata: Metadata = {
+  title: "התחברות",
+  description: "התחברו וקבלו ₪10,000 וירטואליים למסחר בשוקי החיזוי של בחירות 2026.",
+  alternates: { canonical: "/login" },
+  robots: { index: false, follow: true },
+};
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string; error?: string }> }) {
   const { callbackUrl, error } = await searchParams;

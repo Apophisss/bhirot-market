@@ -2,28 +2,35 @@
 
 @theme {
   --font-sans: var(--font-heebo), "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-  --color-bg: #0a0e17;
-  --color-surface: #111827;
-  --color-surface-2: #172036;
-  --color-surface-3: #1f2a44;
-  --color-border: #1f2937;
-  --color-border-2: #2b3650;
-  --color-text: #e5e7eb;
-  --color-text-strong: #f9fafb;
-  --color-muted: #9ca3af;
-  --color-muted-2: #6b7280;
-  --color-accent: #3b82f6;
-  --color-accent-2: #60a5fa;
-  --color-yes: #22c55e;
-  --color-yes-2: #16a34a;
-  --color-no: #ef4444;
-  --color-no-2: #dc2626;
-  --color-warn: #f59e0b;
+  /* Light, white-first surfaces with a faint blue cast */
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f5fc;
+  --color-surface-3: #dfe8f8;
+  --color-border: #e3e9f4;
+  --color-border-2: #c2d2ec;
+  --color-text: #1c2b45;
+  --color-text-strong: #0a1020;
+  --color-muted: #576b8b;
+  --color-muted-2: #8494ae;
+  /* Blue is the brand colour; the darker tone doubles as link + hover state */
+  --color-accent: #1d4ed8;
+  --color-accent-2: #1a3fae;
+  --color-accent-soft: #eaf0fe;
+  /* Near-black anchors: footer, hero, strong headings */
+  --color-ink: #0a1020;
+  --color-ink-2: #16203a;
+  --color-brand-deep: #0d2a6b;
+  --color-yes: #15803d;
+  --color-yes-2: #166534;
+  --color-no: #dc2626;
+  --color-no-2: #b91c1c;
+  --color-warn: #b45309;
   --radius-card: 14px;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html {
@@ -43,7 +50,7 @@ body {
 }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.35);
+  background: rgba(29, 78, 216, 0.18);
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -60,6 +67,7 @@ input[type="number"] {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgba(10, 16, 32, 0.04), 0 6px 16px -12px rgba(13, 42, 107, 0.18);
 }
 
 .card-hover {
@@ -68,7 +76,12 @@ input[type="number"] {
 .card-hover:hover {
   border-color: var(--color-border-2);
   transform: translateY(-1px);
-  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 12px 28px -14px rgba(13, 42, 107, 0.35);
+}
+
+/* Deep-blue hero band: the one large block of colour on an otherwise white page */
+.hero-dark {
+  background: linear-gradient(135deg, #0a1020 0%, #0d2a6b 45%, #1d4ed8 100%);
 }
 
 .line-clamp-2 {
@@ -93,14 +106,6 @@ input[type="number"] {
 
 .tabular {
   font-variant-numeric: tabular-nums;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-.live-dot {
-  animation: pulse-dot 1.6s ease-in-out infinite;
 }
 
 .prose-he p + p {

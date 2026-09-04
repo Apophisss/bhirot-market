@@ -39,8 +39,8 @@ const CASES = arg("cases", 20_000);
 const SEED = arg("seed", 1);
 const SPARKLINES = argv.includes("--sparklines");
 
-/** Fixed clock: nothing in this script may read the real one. */
-const NOW = Date.parse("2026-09-04T22:30:00+03:00");
+/** Fixed clock, derived from the fixtures themselves: nothing here may read the real one. */
+let NOW = Date.parse("2026-09-04T22:30:00+03:00");
 
 let failures = 0;
 let checks = 0;
@@ -191,6 +191,8 @@ function sameSeries(a: DisplayPoint[], b: DisplayPoint[]): boolean {
 /* --------------------------------- fixtures ------------------------------- */
 
 const file = MarketsFileSchema.parse(JSON.parse(fs.readFileSync("data/markets.json", "utf8")));
+// an hour after the newest market was written, so every fixture is already open
+NOW = Math.max(NOW, ...file.markets.map((m) => Date.parse(m.createdAt))) + HOUR;
 const fixtures: SynthInput[] = file.markets.map((m) => ({
   marketId: m.slug,
   real: [{ t: Date.parse(m.createdAt), p: m.initialProbability }],
@@ -200,6 +202,8 @@ const fixtures: SynthInput[] = file.markets.map((m) => ({
   tradeCount: 0,
   now: NOW,
 }));
+/** the fixtures a live site would actually draw an estimate for */
+const liveFixtures = fixtures.filter((f) => f.status === "open" && f.closesAt > f.now);
 
 /* ---------------------------------- run ----------------------------------- */
 
@@ -209,8 +213,13 @@ console.log(`synthetic-history verify — ${fixtures.length} fixtures + ${CASES}
 const t0 = performance.now();
 for (const f of fixtures) {
   const r = buildDisplayHistory(f, cfg);
-  check(r.synthetic, "V0 FIXTURES SYNTHESIZE", f.marketId, { reason: r.reason });
   checkSeries(f.marketId, f, cfg, r);
+  if (f.status !== "open" || f.closesAt <= f.now) {
+    // resolved, cancelled or already closed: the estimate must be gated off entirely
+    check(!r.synthetic, "V14 GATES", f.marketId, { reason: r.reason });
+    continue;
+  }
+  check(r.synthetic, "V0 FIXTURES SYNTHESIZE", f.marketId, { reason: r.reason });
 
   // V16 PLAUSIBILITY — a bound so tight the chart is flat again is a failure too
   const syn = r.points.filter((q) => q.synthetic).map((q) => q.p);
@@ -228,13 +237,13 @@ check(fixtureMs < 1000, "V19 BUDGET", "fixtures", { fixtureMs });
 
 /* V7 DETERMINISM, V8 IMMUTABLE PAST, V9 PURITY, V10 OFF, V11 ZERO, V14 GATES */
 
-const f0 = fixtures[0];
+const f0 = liveFixtures[0];
 check(sameSeries(buildDisplayHistory(f0, cfg).points, buildDisplayHistory(f0, cfg).points), "V7 DETERMINISM", f0.marketId, {});
 {
   const shuffled: SynthInput = { ...f0, real: [...f0.real].reverse() };
   check(sameSeries(buildDisplayHistory(shuffled, cfg).points, buildDisplayHistory(f0, cfg).points), "V7 DETERMINISM (input order)", f0.marketId, {});
 }
-for (const f of fixtures) {
+for (const f of liveFixtures) {
   const base = buildDisplayHistory(f, cfg).points;
   for (const jitter of [1, 7 * MIN, cfg.clockStepMs - 1]) {
     const j = buildDisplayHistory({ ...f, now: f.now + jitter }, cfg).points;
@@ -276,7 +285,7 @@ for (const f of fixtures) {
   }
 }
 
-for (const f of fixtures.slice(0, 4)) {
+for (const f of liveFixtures.slice(0, 4)) {
   const off = buildDisplayHistory(f, { ...cfg, enabled: false });
   check(!off.synthetic && off.points.length === f.real.length, "V10 OFF SWITCH", f.marketId, off);
   check(off.points.every((q, i) => q.t === f.real[i].t && q.p === f.real[i].p), "V10 OFF SWITCH", f.marketId, off.points);
@@ -382,7 +391,7 @@ for (const forbidden of [/^\s*import\s/m, /\bfrom\s+["']/, /\brequire\(/, /\.ins
 if (SPARKLINES) {
   const blocks = "▁▂▃▄▅▆▇█";
   console.log("");
-  for (const f of fixtures) {
+  for (const f of liveFixtures) {
     const r = buildDisplayHistory(f, cfg);
     const ps = r.points.map((q) => q.p);
     const lo = Math.min(...ps);

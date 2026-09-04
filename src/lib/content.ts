@@ -3,8 +3,19 @@ import { CATEGORY_IDS } from "./categories";
 import marketsJson from "../../data/markets.json";
 import peopleJson from "../../data/people.json";
 
+/**
+ * Emoji and pictographs stay out of every string the site renders, so a
+ * generated question can't put one back on the board. Currency, dashes and
+ * math signs are deliberately not matched.
+ */
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{231A}\u{231B}\u{23E9}-\u{23FF}]/u;
+
+function noEmoji<T extends z.ZodType<string>>(schema: T) {
+  return schema.refine((v) => !EMOJI.test(v), "must not contain emoji");
+}
+
 export const SourceSchema = z.object({
-  title: z.string().min(1).max(200),
+  title: noEmoji(z.string().min(1).max(200)),
   url: z.string().url(),
 });
 
@@ -14,12 +25,12 @@ export const MarketContentSchema = z.object({
     .min(3)
     .max(80)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case ascii"),
-  title: z.string().min(10).max(180),
-  subtitle: z.string().max(240).optional(),
-  description: z.string().min(20).max(4000),
-  resolutionCriteria: z.string().min(20).max(4000),
+  title: noEmoji(z.string().min(10).max(180)),
+  subtitle: noEmoji(z.string().max(240)).optional(),
+  description: noEmoji(z.string().min(20).max(4000)),
+  resolutionCriteria: noEmoji(z.string().min(20).max(4000)),
   category: z.enum(CATEGORY_IDS),
-  tags: z.array(z.string().min(1).max(40)).max(12).default([]),
+  tags: z.array(noEmoji(z.string().min(1).max(40))).max(12).default([]),
   /** ids from data/people.json — first one supplies the card photo */
   people: z.array(z.string()).max(6).default([]),
   /** explicit image override (absolute URL or /public path) */
@@ -30,7 +41,7 @@ export const MarketContentSchema = z.object({
   featured: z.boolean().default(false),
   status: z.enum(["open", "resolved", "cancelled"]).default("open"),
   resolution: z.enum(["YES", "NO"]).optional(),
-  resolutionNote: z.string().max(2000).optional(),
+  resolutionNote: noEmoji(z.string().max(2000)).optional(),
   resolvedAt: z.string().datetime({ offset: true }).optional(),
   sources: z.array(SourceSchema).max(12).default([]),
   createdAt: z.string().datetime({ offset: true }),
@@ -50,8 +61,8 @@ export type MarketContent = z.infer<typeof MarketContentSchema>;
 export const MarketsFileSchema = z.object({
   version: z.number().int().min(1),
   updatedAt: z.string().datetime({ offset: true }),
-  /** free-text note by whoever last updated (usually the Claude routine) */
-  lastUpdateNote: z.string().max(2000).optional(),
+  /** free-text note by whoever last updated (usually the hourly editorial routine) */
+  lastUpdateNote: noEmoji(z.string().max(2000)).optional(),
   markets: z.array(MarketContentSchema),
 }).superRefine((file, ctx) => {
   const seen = new Set<string>();

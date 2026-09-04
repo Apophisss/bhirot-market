@@ -20,8 +20,10 @@ const PAD = { top: 16, right: 44, bottom: 28, left: 8 };
 // Israel time on both sides of the render: the server runs in UTC, so without an
 // explicit zone an evening tick SSRs one day and hydrates as another.
 const TZ = "Asia/Jerusalem";
-const fmtTip = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: TZ });
-const fmtAxis = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", timeZone: TZ });
+const fmtTip = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const fmtAxisDay = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short" });
+const fmtAxisTime = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+const fmtAxisBoth = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit" });
 
 export function PriceChart({
   points,
@@ -138,6 +140,10 @@ export function PriceChart({
     return Array.from({ length: nTicks + 1 }, (_, i) => t0 + ((t1 - t0) * i) / nTicks);
   }, [t0, t1, nTicks]);
 
+  // short ranges get clock labels, long ranges get dates
+  const span = t1 - t0;
+  const fmtAxis = span < 36 * 3600_000 ? fmtAxisTime : span < 10 * 86_400_000 ? fmtAxisBoth : fmtAxisDay;
+
   return (
     <div className="card p-4">
       <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
@@ -150,7 +156,7 @@ export function PriceChart({
             </span>
             {!hoverPt && change !== null && Math.abs(change) >= 0.0005 && (
               <span className={`tabular text-sm font-semibold ${change >= 0 ? "text-yes" : "text-no"}`}>
-                {change >= 0 ? "▲" : "▼"} {Math.abs(change * 100).toFixed(1)} נק׳
+                {`${change >= 0 ? "+" : "-"}${Math.abs(change * 100).toFixed(1)} נק׳`}
               </span>
             )}
             {!hoverPt && !traded && (
@@ -159,7 +165,7 @@ export function PriceChart({
             {hoverPt && (
               <span className="flex items-center gap-1.5 text-xs text-muted">
                 {/* a fabricated point must never read as "5 בספט 14:30 — 61%" */}
-                {hoverPt.synthetic ? fmtAxis.format(hoverPt.t) : fmtTip.format(hoverPt.t)}
+                {hoverPt.synthetic ? fmtAxisDay.format(hoverPt.t) : fmtTip.format(hoverPt.t)}
                 {hoverPt.synthetic && <span className="rounded bg-surface-2 px-1 py-0.5 text-[10px] text-muted-2">אומדן</span>}
               </span>
             )}
@@ -172,7 +178,7 @@ export function PriceChart({
               role="tab"
               aria-selected={range === r.id}
               onClick={() => setRange(r.id)}
-              className={`rounded-md px-2.5 py-1 text-xs font-semibold ${range === r.id ? "bg-surface-3 text-text-strong" : "text-muted hover:text-text"}`}
+              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${range === r.id ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
             >
               {r.label}
             </button>

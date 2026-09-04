@@ -63,10 +63,16 @@ export function daysUntil(d: Date | number | string, now = Date.now()): number {
   return Math.ceil((new Date(d).getTime() - now) / 86_400_000);
 }
 
+export function hoursUntil(d: Date | number | string, now = Date.now()): number {
+  return (new Date(d).getTime() - now) / 3_600_000;
+}
+
 export function closesLabel(closesAt: Date | number | string, now = Date.now()): string {
+  const hours = hoursUntil(closesAt, now);
+  if (hours <= 0) return "נסגר";
+  if (hours < 1) return `נסגר בעוד ${Math.max(1, Math.round(hours * 60))} דק׳`;
+  if (hours < 24) return `נסגר בעוד ${Math.round(hours)} שעות`;
   const days = daysUntil(closesAt, now);
-  if (days < 0) return "נסגר";
-  if (days === 0) return "נסגר היום";
   if (days === 1) return "נסגר מחר";
   if (days <= 30) return `נסגר בעוד ${days} ימים`;
   return `נסגר ב־${fmtDate(closesAt)}`;

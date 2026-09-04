@@ -1,12 +1,49 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
-import { quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
+import { maxBuyAmount, maxSellShares, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
 
 const { markets, positions, trades, priceHistory, users } = schema;
 
+/** Machine-readable reason, so callers can react without matching Hebrew strings. */
+export type TradeErrorCode =
+  | "BAD_REQUEST"
+  | "MARKET_NOT_FOUND"
+  | "MARKET_CLOSED"
+  | "USER_NOT_FOUND"
+  | "INSUFFICIENT_BALANCE"
+  | "NO_SHARES"
+  | "AMOUNT_TOO_SMALL";
+
 export class TradeError extends Error {
-  constructor(message: string, public status = 400) {
+  constructor(message: string, public status = 400, public code: TradeErrorCode = "BAD_REQUEST") {
     super(message);
+  }
+}
+
+/**
+ * libSQL hands every transaction its own connection and `BEGIN IMMEDIATE` fails
+ * instantly when another writer holds the lock. `busy_timeout` is deliberately
+ * left at 0: the driver executes statements synchronously, so a busy handler
+ * would block the event loop and stop the current holder from ever committing.
+ * Retrying in JS is both safe (a rejected transaction applied nothing) and the
+ * only thing that keeps a burst of rapid-mode answers from being dropped.
+ */
+const BUSY_RETRIES = 4;
+
+export function isBusyError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: unknown; message?: unknown };
+  return e.code === "SQLITE_BUSY" || /SQLITE_BUSY|database is locked/i.test(String(e.message ?? ""));
+}
+
+async function withBusyRetry<T>(run: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await run();
+    } catch (err) {
+      if (err instanceof TradeError || attempt >= BUSY_RETRIES || !isBusyError(err)) throw err;
+      await new Promise((r) => setTimeout(r, 25 * 2 ** attempt + Math.random() * 25));
+    }
   }
 }
 
@@ -30,15 +67,15 @@ export async function executeTrade(req: TradeRequest) {
   if (req.side !== "YES" && req.side !== "NO") throw new TradeError("צד לא תקין");
   if (req.action !== "BUY" && req.action !== "SELL") throw new TradeError("פעולה לא תקינה");
 
-  return db.transaction(async (tx) => {
+  return withBusyRetry(() => db.transaction(async (tx) => {
     const market = await tx.query.markets.findFirst({ where: eq(markets.id, req.marketId) });
-    if (!market) throw new TradeError("השוק לא נמצא", 404);
+    if (!market) throw new TradeError("השוק לא נמצא", 404, "MARKET_NOT_FOUND");
     const now = new Date();
     if (market.status !== "open" || market.closesAt.getTime() <= now.getTime()) {
-      throw new TradeError("המסחר בשוק הזה סגור");
+      throw new TradeError("המסחר בשוק הזה סגור", 400, "MARKET_CLOSED");
     }
     const user = await tx.query.users.findFirst({ where: eq(users.id, req.userId) });
-    if (!user) throw new TradeError("משתמש לא נמצא", 401);
+    if (!user) throw new TradeError("משתמש לא נמצא", 401, "USER_NOT_FOUND");
 
     let position = await tx.query.positions.findFirst({
       where: and(eq(positions.userId, req.userId), eq(positions.marketId, req.marketId)),
@@ -63,15 +100,30 @@ export async function executeTrade(req: TradeRequest) {
     let realized = 0;
 
     if (req.action === "BUY") {
-      if (req.quantity > user.balance + 1e-9) throw new TradeError("אין מספיק יתרה");
+      if (req.quantity > user.balance + 1e-9) throw new TradeError("אין מספיק יתרה", 400, "INSUFFICIENT_BALANCE");
+      const cap = maxBuyAmount(state, req.side);
+      if (cap <= 0) {
+        throw new TradeError(`המחיר של הצד הזה כבר הגיע לתקרה (${Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לקנות עוד`);
+      }
+      if (req.quantity > cap + 1e-6) {
+        throw new TradeError(`העסקה גדולה מדי ותדחוף את השוק מעבר ל-${Math.round(PRICE_BAND.max * 100)}%. המקסימום כרגע: ₪${Math.floor(cap)}`);
+      }
       quote = quoteBuy(state, req.side, req.quantity);
-      if (!(quote.shares > 0)) throw new TradeError("הסכום קטן מדי");
+      if (!(quote.shares > 0) || !Number.isFinite(quote.shares)) throw new TradeError("הסכום קטן מדי", 400, "AMOUNT_TOO_SMALL");
       newBalance = user.balance - quote.amount;
       newShares = heldShares + quote.shares;
       newCost = heldCost + quote.amount;
     } else {
       const sellShares = Math.min(req.quantity, heldShares);
-      if (sellShares <= 1e-9) throw new TradeError("אין לך מניות למכירה");
+      if (sellShares <= 1e-9) throw new TradeError("אין לך מניות למכירה", 400, "NO_SHARES");
+      const sellCap = maxSellShares(state, req.side);
+      if (sellShares > sellCap + 1e-6) {
+        throw new TradeError(
+          sellCap <= 0
+            ? `המחיר של הצד הזה כבר הגיע לרצפה (${Math.round(PRICE_BAND.min * 100)}%) ואי אפשר למכור עוד`
+            : `המכירה גדולה מדי ותדחוף את השוק מתחת ל-${Math.round(PRICE_BAND.min * 100)}%. המקסימום כרגע: ${Math.floor(sellCap)} מניות`,
+        );
+      }
       quote = quoteSell(state, req.side, sellShares);
       newBalance = user.balance + quote.amount;
       newShares = heldShares - sellShares;
@@ -87,7 +139,8 @@ export async function executeTrade(req: TradeRequest) {
     const signedShares = req.action === "BUY" ? quote.shares : -quote.shares;
     const newQYes = isYes ? market.qYes + signedShares : market.qYes;
     const newQNo = isYes ? market.qNo : market.qNo + signedShares;
-    const newProb = 1 / (1 + Math.exp(-(newQYes - newQNo) / market.liquidity));
+    const newProb = priceYes({ qYes: newQYes, qNo: newQNo, b: market.liquidity });
+    if (!Number.isFinite(newProb)) throw new TradeError("שגיאת חישוב, נסו סכום אחר");
 
     await tx
       .update(markets)
@@ -136,7 +189,7 @@ export async function executeTrade(req: TradeRequest) {
       probability: newProb,
       position: { side: req.side, shares: newShares, cost: newCost },
     };
-  });
+  }));
 }
 
 /** Settle all positions of a market. Pays 1 ₪ per winning share; refunds cost basis on cancel. */

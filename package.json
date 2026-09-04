@@ -2,7 +2,7 @@
   "name": "bhirot-market",
   "version": "0.1.0",
   "private": true,
-  "description": "שוק חיזויים (כסף וירטואלי) על בחירות 2026 לכנסת — בסגנון Polymarket, עם שאלות שמתעדכנות כל שעה על ידי Claude",
+  "description": "שוק חיזויים (כסף וירטואלי) על בחירות 2026 לכנסת — בסגנון Polymarket, עם שאלות שנכתבות ומוכרעות על ידי צוות המערכת",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,7 +17,11 @@
     "markets:generate": "tsx scripts/generate-questions.ts",
     "people:fetch": "tsx scripts/fetch-people.ts",
     "markets:merge": "tsx scripts/merge-markets.ts",
-    "history:verify": "tsx scripts/verify-synthetic-history.ts"
+    "history:verify": "tsx scripts/verify-synthetic-history.ts",
+    "markets:audit": "tsx scripts/audit-markets.ts",
+    "markets:liquidity": "tsx scripts/liquidity.ts",
+    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/validate-markets.ts",
+    "test:lmsr": "tsx scripts/test-lmsr.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
