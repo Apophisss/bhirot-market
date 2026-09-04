@@ -12,7 +12,6 @@ export function Footer() {
         <nav className="flex shrink-0 gap-4">
           <Link href="/about" className="hover:text-text-strong">איך זה עובד</Link>
           <Link href="/about#updates" className="hover:text-text-strong">העדכון השעתי</Link>
-          <a href="https://github.com/Apophisss/bhirot-market" className="hover:text-text-strong" target="_blank" rel="noreferrer">GitHub</a>
         </nav>
       </div>
     </footer>

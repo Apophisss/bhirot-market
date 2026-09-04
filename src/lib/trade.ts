@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
-import { quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
+import { maxBuyAmount, maxSellShares, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
 
 const { markets, positions, trades, priceHistory, users } = schema;
 
@@ -64,14 +64,29 @@ export async function executeTrade(req: TradeRequest) {
 
     if (req.action === "BUY") {
       if (req.quantity > user.balance + 1e-9) throw new TradeError("אין מספיק יתרה");
+      const cap = maxBuyAmount(state, req.side);
+      if (cap <= 0) {
+        throw new TradeError(`המחיר של הצד הזה כבר הגיע לתקרה (${Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לקנות עוד`);
+      }
+      if (req.quantity > cap + 1e-6) {
+        throw new TradeError(`העסקה גדולה מדי ותדחוף את השוק מעבר ל-${Math.round(PRICE_BAND.max * 100)}%. המקסימום כרגע: ₪${Math.floor(cap)}`);
+      }
       quote = quoteBuy(state, req.side, req.quantity);
-      if (!(quote.shares > 0)) throw new TradeError("הסכום קטן מדי");
+      if (!(quote.shares > 0) || !Number.isFinite(quote.shares)) throw new TradeError("הסכום קטן מדי");
       newBalance = user.balance - quote.amount;
       newShares = heldShares + quote.shares;
       newCost = heldCost + quote.amount;
     } else {
       const sellShares = Math.min(req.quantity, heldShares);
       if (sellShares <= 1e-9) throw new TradeError("אין לך מניות למכירה");
+      const sellCap = maxSellShares(state, req.side);
+      if (sellShares > sellCap + 1e-6) {
+        throw new TradeError(
+          sellCap <= 0
+            ? `המחיר של הצד הזה כבר הגיע לרצפה (${Math.round(PRICE_BAND.min * 100)}%) ואי אפשר למכור עוד`
+            : `המכירה גדולה מדי ותדחוף את השוק מתחת ל-${Math.round(PRICE_BAND.min * 100)}%. המקסימום כרגע: ${Math.floor(sellCap)} מניות`,
+        );
+      }
       quote = quoteSell(state, req.side, sellShares);
       newBalance = user.balance + quote.amount;
       newShares = heldShares - sellShares;
@@ -87,7 +102,8 @@ export async function executeTrade(req: TradeRequest) {
     const signedShares = req.action === "BUY" ? quote.shares : -quote.shares;
     const newQYes = isYes ? market.qYes + signedShares : market.qYes;
     const newQNo = isYes ? market.qNo : market.qNo + signedShares;
-    const newProb = 1 / (1 + Math.exp(-(newQYes - newQNo) / market.liquidity));
+    const newProb = priceYes({ qYes: newQYes, qNo: newQNo, b: market.liquidity });
+    if (!Number.isFinite(newProb)) throw new TradeError("שגיאת חישוב, נסו סכום אחר");
 
     await tx
       .update(markets)

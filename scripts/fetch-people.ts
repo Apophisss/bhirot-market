@@ -13,7 +13,7 @@ import { PeopleFileSchema } from "../src/lib/content";
 
 const force = process.argv.includes("--force");
 const OUT_DIR = "public/people";
-const UA = "bhirot-market/1.0 (prediction market demo; contact via GitHub Apophisss/bhirot-market)";
+const UA = "bhirot-market/1.0 (prediction market demo)";
 
 const raw = JSON.parse(fs.readFileSync("data/people.json", "utf8"));
 const file = PeopleFileSchema.parse(raw);

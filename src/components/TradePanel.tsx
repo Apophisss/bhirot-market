@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
+import { maxBuyAmount, maxSellShares, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
 
 export interface TradePanelProps {
@@ -30,12 +30,29 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   const heldCost = side === "YES" ? position?.yesCost ?? 0 : position?.noCost ?? 0;
   const qty = Number(input) || 0;
 
+  // the market maker only trades inside a 1%-99% band; cap the order so the
+  // user sees the limit instead of a rejected trade
+  const buyCap = useMemo(
+    () => Math.floor(maxBuyAmount(state, side) * 100) / 100,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [side, market.qYes, market.qNo, market.liquidity],
+  );
+  const sellCap = useMemo(
+    () => Math.min(held, Math.floor(maxSellShares(state, side) * 100) / 100),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [side, held, market.qYes, market.qNo, market.liquidity],
+  );
+  const limit = action === "BUY" ? Math.min(buyCap, balance ?? buyCap) : sellCap;
+  const overLimit = qty > limit + 1e-6;
+
   const quote = useMemo(() => {
     if (qty <= 0) return null;
-    if (action === "BUY") return quoteBuy(state, side, qty);
-    return quoteSell(state, side, Math.min(qty, held));
+    const capped = Math.min(qty, action === "BUY" ? buyCap : sellCap);
+    if (capped <= 0) return null;
+    if (action === "BUY") return quoteBuy(state, side, capped);
+    return quoteSell(state, side, capped);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [action, side, qty, market.qYes, market.qNo, market.liquidity, held]);
+  }, [action, side, qty, market.qYes, market.qNo, market.liquidity, buyCap, sellCap]);
 
   const sidePrice = side === "YES" ? market.probability : 1 - market.probability;
 
@@ -142,6 +159,13 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           <span>{action === "BUY" ? "סכום (₪ וירטואלי)" : `מניות למכירה (יש לך ${fmtShares(held)})`}</span>
           {balance != null && action === "BUY" && <span className="tabular">יתרה: {money(balance)}</span>}
         </div>
+        {overLimit && (
+          <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
+            {action === "BUY"
+              ? `הסכום המרבי לעסקה כרגע הוא ${money(limit)} — מעבר לזה השוק יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
+              : `אפשר למכור עד ${fmtShares(limit)} מניות — מעבר לזה השוק ירד מתחת ל-${Math.round(PRICE_BAND.min * 100)}%`}
+          </p>
+        )}
         <div className="relative">
           <input
             type="number"
@@ -160,8 +184,8 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
             <button
               key={q}
               onClick={() => {
-                if (action === "BUY") setInput(String(Math.min((Number(input) || 0) + q, balance ?? Infinity)));
-                else setInput((held * q).toFixed(2));
+                if (action === "BUY") setInput(String(Math.min((Number(input) || 0) + q, limit)));
+                else setInput(Math.min(held * q, sellCap).toFixed(2));
               }}
               className="flex-1 rounded-lg border border-border bg-surface-2 py-1 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
             >
@@ -170,7 +194,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           ))}
           {action === "BUY" && balance != null && (
             <button
-              onClick={() => setInput(String(Math.floor(balance)))}
+              onClick={() => setInput(String(Math.floor(limit)))}
               className="flex-1 rounded-lg border border-border bg-surface-2 py-1 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
             >
               מקס
@@ -207,7 +231,11 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
 
       <button
         onClick={submit}
-        disabled={busy || (loggedIn && (!quote || qty <= 0 || (action === "SELL" && held <= 0) || (action === "BUY" && balance != null && qty > balance)))}
+        disabled={
+          busy ||
+          (loggedIn &&
+            (!quote || qty <= 0 || overLimit || limit <= 0 || (action === "SELL" && held <= 0) || (action === "BUY" && balance != null && qty > balance)))
+        }
         className={`mt-4 w-full rounded-xl py-3 text-lg font-extrabold text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
           side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
         }`}
