@@ -10,14 +10,14 @@ const STEPS = [
 
 export function HowToPlay() {
   return (
-    <section className="card p-4 sm:p-5">
+    <section className="card p-3.5 sm:p-5">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="font-bold text-text-strong">איך מתחילים לשחק?</h2>
-        <Link href="/about" className="text-xs text-accent-2 hover:underline">
+        <Link href="/about" className="-my-2 inline-flex items-center py-2 text-xs text-accent-2 hover:underline">
           המדריך המלא
         </Link>
       </div>
-      <ol className="grid gap-3 sm:grid-cols-3">
+      <ol className="grid gap-2 sm:grid-cols-3 sm:gap-3">
         {STEPS.map((s) => (
           <li key={s.n} className="flex gap-3 rounded-xl bg-surface-2 p-3">
             <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-lg" aria-hidden>

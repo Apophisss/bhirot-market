@@ -10,10 +10,10 @@ export const metadata = { title: "איך זה עובד" };
 export default async function AboutPage() {
   const last = await getLastAgentRun();
   return (
-    <article className="mx-auto max-w-3xl space-y-8">
+    <article className="mx-auto max-w-3xl space-y-5 sm:space-y-8">
       <header>
-        <h1 className="text-3xl font-black text-text-strong">איך {SITE_NAME} עובד</h1>
-        <p className="mt-2 text-muted">
+        <h1 className="text-2xl font-black text-text-strong sm:text-3xl">איך {SITE_NAME} עובד</h1>
+        <p className="mt-2 text-[15px] text-muted">
           שוק חיזויים בסגנון Polymarket על הבחירות לכנסת ה־26 ({fmtDate(ELECTION_DATE)}) — בכסף וירטואלי בלבד, בלי הימורים ובלי כסף אמיתי.
         </p>
       </header>
@@ -90,9 +90,13 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      <div className="flex gap-3">
-        <Link href="/" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">לשווקים</Link>
-        <Link href="/login" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface">התחברות</Link>
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+        <Link href="/" className="tap pressable flex items-center justify-center rounded-xl bg-accent px-5 font-bold text-white hover:bg-accent-2">
+          לשווקים
+        </Link>
+        <Link href="/login" className="tap pressable flex items-center justify-center rounded-xl border border-border-2 px-5 font-semibold hover:bg-surface">
+          התחברות
+        </Link>
       </div>
     </article>
   );
@@ -100,7 +104,7 @@ export default async function AboutPage() {
 
 function Section({ title, id, children }: { title: string; id?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="card space-y-3 p-5 text-[15px] leading-relaxed text-text">
+    <section id={id} className="card scroll-mt-20 space-y-3 p-4 text-[15px] leading-relaxed text-text sm:p-5">
       <h2 className="text-lg font-bold text-text-strong">{title}</h2>
       {children}
     </section>

@@ -8,10 +8,10 @@ export async function AgentBadge() {
   return (
     <Link
       href="/about#updates"
-      className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs text-white/80 backdrop-blur transition hover:border-white/50 hover:bg-white/15"
+      className="inline-flex items-start gap-2 rounded-2xl border border-white/25 bg-white/10 px-3 py-1.5 text-[11px] leading-relaxed text-white/80 backdrop-blur transition hover:border-white/50 hover:bg-white/15 sm:items-center sm:rounded-full sm:text-xs"
       title={last?.summary}
     >
-      <span className="live-dot inline-block h-2 w-2 rounded-full bg-white" />
+      <span className="live-dot mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full bg-white sm:mt-0" />
       <span>
         השאלות מתעדכנות כל שעה על ידי <strong className="text-white">{SITE_TEAM}</strong>
         {last ? (

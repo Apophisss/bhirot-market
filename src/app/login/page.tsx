@@ -24,12 +24,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   }
 
   return (
-    <div className="mx-auto mt-10 max-w-md">
-      <div className="card p-8">
+    <div className="mx-auto mt-4 max-w-md sm:mt-10">
+      <div className="card p-5 sm:p-8">
         <div className="flex items-center gap-3">
           <Image src="/logo.svg" alt="" width={44} height={44} />
           <div>
-            <h1 className="text-2xl font-extrabold text-text-strong">התחברות ל{SITE_NAME}</h1>
+            <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">התחברות ל{SITE_NAME}</h1>
             <p className="text-sm text-muted">מקבלים {money(STARTING_BALANCE)} וירטואליים ומתחילים לחזות</p>
           </div>
         </div>
@@ -43,7 +43,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="mt-6 space-y-3">
           {googleEnabled ? (
             <form action={google}>
-              <button className="flex w-full items-center justify-center gap-3 rounded-xl border border-border-2 bg-white px-4 py-3 font-semibold text-gray-900 hover:bg-gray-100">
+              <button className="tap pressable flex w-full items-center justify-center gap-3 rounded-xl border border-border-2 bg-white px-4 py-3.5 font-semibold text-gray-900 hover:bg-gray-100">
                 <GoogleIcon />
                 המשך עם Google
               </button>
@@ -66,9 +66,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                   name="name"
                   required
                   placeholder="שם לתצוגה"
-                  className="flex-1 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-accent"
+                  className="tap min-w-0 flex-1 rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-base outline-none focus:border-accent sm:text-sm"
                 />
-                <button className="rounded-lg bg-surface-3 px-4 py-2 text-sm font-semibold hover:bg-border-2">כניסה</button>
+                <button className="tap pressable shrink-0 rounded-lg bg-surface-3 px-4 text-sm font-semibold hover:bg-border-2">כניסה</button>
               </div>
             </form>
           )}

@@ -13,9 +13,6 @@ const RANGES: { id: Range; label: string; ms: number }[] = [
   { id: "ALL", label: "הכל", ms: Infinity },
 ];
 
-const H = 280;
-const PAD = { top: 16, right: 44, bottom: 28, left: 8 };
-
 const fmtTip = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const fmtAxisDay = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
 const fmtAxisTime = new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit" });
@@ -38,6 +35,10 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  // a 280px-tall chart eats a whole phone screen — scale it with the width
+  const H = W < 420 ? 190 : W < 768 ? 230 : 280;
+  const PAD = { top: 16, right: W < 420 ? 34 : 44, bottom: 26, left: 8 };
 
   const data = useMemo(() => {
     const sorted = [...points].sort((a, b) => a.t - b.t);
@@ -91,12 +92,12 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
   const fmtAxis = span < 36 * 3600_000 ? fmtAxisTime : span < 10 * 86_400_000 ? fmtAxisBoth : fmtAxisDay;
 
   return (
-    <div className="card p-4">
+    <div className="card p-3.5 sm:p-4">
       <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
         <div>
           <div className="text-xs text-muted">סיכוי ל״כן״</div>
-          <div className="flex items-baseline gap-2">
-            <span className="tabular text-3xl font-extrabold text-text-strong">{pct(hoverPt ? hoverPt.p : current, 1)}</span>
+          <div className="flex flex-wrap items-baseline gap-2">
+            <span className="tabular text-2xl font-extrabold text-text-strong sm:text-3xl">{pct(hoverPt ? hoverPt.p : current, 1)}</span>
             {!hoverPt && data.length > 1 && (
               <span className={`tabular text-sm font-semibold ${change >= 0 ? "text-yes" : "text-no"}`}>
                 {change >= 0 ? "▲" : "▼"} {Math.abs(change * 100).toFixed(1)} נק׳
@@ -112,7 +113,7 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
               role="tab"
               aria-selected={range === r.id}
               onClick={() => setRange(r.id)}
-              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${range === r.id ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
+              className={`pressable rounded-md px-3 py-2 text-xs font-semibold transition ${range === r.id ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
             >
               {r.label}
             </button>
@@ -126,7 +127,13 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
         className="block w-full touch-none select-none"
         style={{ direction: "ltr", height: H }}
         preserveAspectRatio="none"
-        onPointerMove={onMove}
+        onPointerDown={onMove}
+        onPointerMove={(e) => {
+          // on touch, only scrub while the finger is down; a mouse scrubs on hover
+          if (e.pointerType === "mouse" || e.buttons > 0 || e.pressure > 0) onMove(e);
+        }}
+        onPointerUp={() => setHover(null)}
+        onPointerCancel={() => setHover(null)}
         onPointerLeave={() => setHover(null)}
         role="img"
         aria-label="גרף הסתברות לאורך זמן"
@@ -140,13 +147,13 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
         {[0, 0.25, 0.5, 0.75, 1].map((g) => (
           <g key={g}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(g)} y2={y(g)} stroke="var(--color-border)" strokeWidth={1} />
-            <text x={W - PAD.right + 8} y={y(g) + 4} fontSize={11} fill="var(--color-muted-2)" className="tabular">
+            <text x={W - PAD.right + 6} y={y(g) + 4} fontSize={11} fill="var(--color-muted-2)" className="tabular">
               {Math.round(g * 100)}%
             </text>
           </g>
         ))}
         {ticks.map((t, i) => (
-          <text key={i} x={x(t)} y={H - 8} fontSize={11} fill="var(--color-muted-2)" textAnchor={i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}>
+          <text key={i} x={x(t)} y={H - 7} fontSize={11} fill="var(--color-muted-2)" textAnchor={i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}>
             {fmtAxis.format(t)}
           </text>
         ))}
@@ -163,6 +170,9 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
           </g>
         )}
       </svg>
+      {points.length > 1 && (
+        <p className="mt-1 text-center text-[11px] text-muted-2 lg:hidden">החליקו על הגרף כדי לראות מחיר בזמן מסוים</p>
+      )}
       {points.length <= 1 && <p className="mt-2 text-center text-xs text-muted-2">עדיין אין עסקאות — הגרף יתעדכן עם המסחר הראשון</p>}
     </div>
   );

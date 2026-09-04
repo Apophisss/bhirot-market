@@ -24,9 +24,9 @@ export function TradeList({ trades, showMarket = false, showUser = true, emptyTe
         const sideLabel = t.side === "YES" ? "כן" : "לא";
         const verb = t.action === "BUY" ? "קנה/תה" : "מכר/ה";
         return (
-          <li key={t.id} className="flex items-center gap-3 py-2.5">
+          <li key={t.id} className="flex items-start gap-2.5 py-3 sm:items-center sm:gap-3">
             {showUser && <Avatar name={t.userName} image={t.userImage} size={30} />}
-            <div className="min-w-0 flex-1 text-sm">
+            <div className="min-w-0 flex-1 text-[13px] sm:text-sm">
               <div className="flex flex-wrap items-baseline gap-x-1.5">
                 {showUser && <span className="font-semibold text-text">{t.userName ?? "אנונימי"}</span>}
                 <span className="text-muted">{verb}</span>
@@ -41,7 +41,7 @@ export function TradeList({ trades, showMarket = false, showUser = true, emptyTe
                 </Link>
               )}
             </div>
-            <span className="shrink-0 text-xs text-muted-2">{timeAgo(t.createdAt)}</span>
+            <span className="shrink-0 pt-0.5 text-[11px] text-muted-2 sm:pt-0 sm:text-xs">{timeAgo(t.createdAt)}</span>
           </li>
         );
       })}

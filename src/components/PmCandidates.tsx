@@ -3,7 +3,7 @@ import { listPmCandidates, type PmCandidateView } from "@/lib/candidates";
 import { MarketImage } from "./MarketImage";
 
 const FALLBACK = "/covers/general.svg";
-const CARD = "card w-32 shrink-0 snap-start overflow-hidden sm:w-36";
+const CARD = "card w-[7.5rem] shrink-0 snap-start overflow-hidden sm:w-36";
 
 function questionsLabel(n: number) {
   return n === 1 ? "שאלה אחת" : `${n} שאלות`;
@@ -40,17 +40,17 @@ export function PmCandidates({ counts = {}, active }: { counts?: Record<string, 
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-bold text-text-strong">🏛️ המועמדים לראשות הממשלה</h2>
+        <h2 className="text-base font-bold text-text-strong sm:text-lg">🏛️ המועמדים לראשות הממשלה</h2>
         {active && (
-          <Link href="/" className="text-sm text-accent-2 hover:underline">
+          <Link href="/" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm">
             כל השאלות
           </Link>
         )}
       </div>
-      <p className="-mt-1 text-sm text-muted">
+      <p className="-mt-1 text-[13px] text-muted sm:text-sm">
         ראשי הרשימות המרכזיות שמתמודדות ב-27.10. לחצו על מועמד כדי לראות את השאלות שנוגעות אליו, וגללו לצד לשאר.
       </p>
-      <div className="scrollbar-none -mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1">
+      <div className="scrollbar-none swipe-x -mx-3 flex gap-2.5 px-3 pb-1 sm:mx-0 sm:gap-3 sm:px-0">
         {candidates.map((c) => {
           const n = counts[c.id] ?? 0;
           const on = active === c.id;

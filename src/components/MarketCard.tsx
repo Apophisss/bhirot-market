@@ -14,13 +14,13 @@ export function MarketCard({ m }: { m: MarketView }) {
   const urgent = !resolved && hours > 0 && hours <= 48;
   const soon = !resolved && hours > 48 && hours <= 24 * 7;
   return (
-    <article className="card card-hover flex flex-col gap-3 p-4">
-      <div className="flex items-start gap-3">
+    <article className="card card-hover flex flex-col gap-3 p-3.5 sm:p-4">
+      <div className="flex items-start gap-2.5 sm:gap-3">
         <Link href={href} className="shrink-0" aria-label={m.title}>
-          <PeopleStack photos={m.photos} fallback={cat.cover} size={46} max={3} />
+          <PeopleStack photos={m.photos} fallback={cat.cover} size={44} max={3} />
         </Link>
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2 text-[11px] text-muted">
+          <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
             <span className="rounded-md px-1.5 py-0.5" style={{ background: `${cat.accent}22`, color: cat.accent }}>
               {cat.emoji} {cat.label}
             </span>
@@ -32,12 +32,12 @@ export function MarketCard({ m }: { m: MarketView }) {
             {m.title}
           </Link>
         </div>
-        <ProbabilityGauge p={m.probability} />
+        <ProbabilityGauge p={m.probability} size={58} />
       </div>
 
       {resolved ? (
         <div
-          className={`rounded-lg px-3 py-2 text-center text-sm font-bold ${
+          className={`rounded-lg px-3 py-2.5 text-center text-sm font-bold ${
             m.status === "cancelled" ? "bg-surface-2 text-muted" : m.resolution === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"
           }`}
         >
@@ -47,22 +47,22 @@ export function MarketCard({ m }: { m: MarketView }) {
         <div className="grid grid-cols-2 gap-2">
           <Link
             href={`${href}?side=yes`}
-            className="rounded-lg bg-yes/15 py-2 text-center text-sm font-bold text-yes transition hover:bg-yes hover:text-white"
+            className="tap pressable flex items-center justify-center rounded-lg bg-yes/15 text-center text-sm font-bold text-yes transition active:bg-yes active:text-white hover:bg-yes hover:text-white"
           >
             כן {pct(m.probability)}
           </Link>
           <Link
             href={`${href}?side=no`}
-            className="rounded-lg bg-no/15 py-2 text-center text-sm font-bold text-no transition hover:bg-no hover:text-white"
+            className="tap pressable flex items-center justify-center rounded-lg bg-no/15 text-center text-sm font-bold text-no transition active:bg-no active:text-white hover:bg-no hover:text-white"
           >
             לא {pct(1 - m.probability)}
           </Link>
         </div>
       )}
 
-      <footer className="mt-auto flex items-center justify-between text-xs text-muted">
-        <span className="tabular">{money(m.volume, { compact: true })} נפח · {m.tradeCount} עסקאות</span>
-        <span>{resolved ? "" : closesLabel(m.closesAt)}</span>
+      <footer className="mt-auto flex items-center justify-between gap-2 text-[11px] text-muted sm:text-xs">
+        <span className="tabular truncate">{money(m.volume, { compact: true })} נפח · {m.tradeCount} עסקאות</span>
+        <span className="shrink-0">{resolved ? "" : closesLabel(m.closesAt)}</span>
       </footer>
     </article>
   );
