@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { maxBuyAmount, maxSellShares, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
+import { maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
 
 export interface TradePanelProps {
@@ -43,20 +43,18 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   const heldCost = side === "YES" ? position?.yesCost ?? 0 : position?.noCost ?? 0;
   const qty = Number(input) || 0;
 
-  // the market maker only trades inside a 1%-99% band; cap the order so the
-  // user sees the limit instead of a rejected trade
+  // buying is capped at the 99% band so the user sees the limit instead of a
+  // rejected trade. Selling is capped by the position alone — a holding can
+  // always be closed in full, whatever the price did (see PRICE_BAND in lmsr.ts).
   const buyCap = useMemo(
     () => Math.floor(maxBuyAmount(state, side) * 100) / 100,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [side, market.qYes, market.qNo, market.liquidity],
   );
-  const sellCap = useMemo(
-    () => Math.min(held, Math.floor(maxSellShares(state, side) * 100) / 100),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [side, held, market.qYes, market.qNo, market.liquidity],
-  );
+  const sellCap = held;
   const limit = action === "BUY" ? Math.min(buyCap, balance ?? buyCap) : sellCap;
   const overLimit = qty > limit + 1e-6;
+  const buyBlocked = action === "BUY" && buyCap <= 0;
 
   const quote = useMemo(() => {
     if (qty <= 0) return null;
@@ -172,12 +170,20 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           <span>{action === "BUY" ? "סכום (₪ וירטואלי)" : `מניות למכירה (יש לך ${fmtShares(held)})`}</span>
           {balance != null && action === "BUY" && <span className="tabular">יתרה: {money(balance)}</span>}
         </div>
-        {overLimit && (
+        {buyBlocked ? (
           <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
-            {action === "BUY"
-              ? `הסכום המרבי לעסקה כרגע הוא ${money(limit)} — מעבר לזה השוק יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
-              : `אפשר למכור עד ${fmtShares(limit)} מניות — מעבר לזה השוק ירד מתחת ל-${Math.round(PRICE_BAND.min * 100)}%`}
+            הצד הזה הגיע לתקרה ({Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לקנות עוד. מכירה של פוזיציה קיימת עדיין אפשרית.
           </p>
+        ) : (
+          overLimit && (
+            <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
+              {action === "BUY"
+                ? balance != null && qty > balance
+                  ? `היתרה שלך היא ${money(balance)}`
+                  : `הסכום המרבי לעסקה כרגע הוא ${money(limit)} — מעבר לזה השוק יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
+                : `יש לך ${fmtShares(limit)} מניות למכירה`}
+            </p>
+          )
         )}
         <div className="relative">
           <input
@@ -198,7 +204,9 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
               key={q}
               onClick={() => {
                 if (action === "BUY") setInput(String(Math.min((Number(input) || 0) + q, limit)));
-                else setInput(Math.min(held * q, sellCap).toFixed(2));
+                // truncate, never round up: a value above `held` would trip overLimit.
+                // "100%" leaves at most 0.0001 shares, which the engine writes off.
+                else setInput(String(Math.floor(held * q * 1e4) / 1e4));
               }}
               className="pressable min-h-9 flex-1 rounded-lg border border-border bg-surface-2 py-1.5 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
             >
