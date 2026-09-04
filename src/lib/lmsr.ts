@@ -74,6 +74,44 @@ export function initialState(p: number, b: number): MarketState {
   return { qYes: b * Math.log(clamped / (1 - clamped)), qNo: 0, b };
 }
 
+/**
+ * Trading is confined to a 1%–99% price band. LMSR itself stays well-defined
+ * outside it, but a saturated book hands out absurd share counts for pocket
+ * change (₪1 buying 100k shares), which reads as broken to players. Orders that
+ * would leave the band are rejected with the largest size that fits.
+ */
+export const PRICE_BAND = { min: 0.01, max: 0.99 } as const;
+
+/** q-difference that puts `side` exactly at probability p */
+function targetGap(b: number, p: number): number {
+  return b * Math.log(p / (1 - p));
+}
+
+/** Largest ₪ amount that can be spent on `side` without leaving the price band. 0 if already at the edge. */
+export function maxBuyAmount(state: MarketState, side: Side): number {
+  const { b } = state;
+  const qSide = side === "YES" ? state.qYes : state.qNo;
+  const qOther = side === "YES" ? state.qNo : state.qYes;
+  const shares = qOther + targetGap(b, PRICE_BAND.max) - qSide;
+  if (!(shares > 0)) return 0;
+  return costToBuy(state, side, shares);
+}
+
+/** Largest number of `side` shares that can be sold without leaving the price band. */
+export function maxSellShares(state: MarketState, side: Side): number {
+  const { b } = state;
+  const qSide = side === "YES" ? state.qYes : state.qNo;
+  const qOther = side === "YES" ? state.qNo : state.qYes;
+  const shares = qSide - qOther - targetGap(b, PRICE_BAND.min);
+  return shares > 0 ? shares : 0;
+}
+
+/** True when both outcome prices sit inside the tradable band. */
+export function withinBand(state: MarketState): boolean {
+  const p = priceYes(state);
+  return p >= PRICE_BAND.min - 1e-9 && p <= PRICE_BAND.max + 1e-9;
+}
+
 export interface Quote {
   shares: number;
   amount: number;
