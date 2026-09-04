@@ -88,17 +88,18 @@ jobs:
       - name: Install ssh tooling
         run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass rsync
 
-      # bhirot-market.com currently answers with three A records: the droplet
-      # and two addresses that are not it. Every ssh in this job used to draw
-      # one at random, so the deploy's outcome depended on which one the
-      # resolver handed back — the run that failed had `ssh-keyscan` land on an
-      # address with no sshd (exit 1, and the job stopped there) while a later
-      # `ssh` in the same job drew the droplet and connected fine.
+      # Every ssh in this job used to resolve the name for itself, so the
+      # deploy's outcome depended on which address the resolver happened to
+      # hand back. That is not hypothetical: while the domain was being pointed
+      # at the droplet, resolvers briefly answered with the new record and two
+      # stale ones, and one run had `ssh-keyscan` draw an address with no sshd
+      # (exit 1, and the job stopped there) while a later `ssh` in the same job
+      # drew the droplet and connected fine.
       #
-      # So resolve once, keep the address that answers on 22, and pin the rest
-      # of the job to it. Note this only fixes *this* job: Let's Encrypt will
-      # draw from the same three records when Caddy asks for a certificate, so
-      # the extra records still have to go.
+      # The window closes on its own once the change propagates — but it opens
+      # again on the next DNS change, and a deploy that fails half the time
+      # during one is worth the twenty lines. So resolve once, keep the address
+      # that answers on 22, and pin the rest of the job to it.
       - name: Find the server and trust its host key
         env:
           SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
