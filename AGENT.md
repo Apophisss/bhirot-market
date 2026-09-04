@@ -4,12 +4,16 @@
 פותחת סשן חדש בריפו הזה, וקוראת את הקובץ הזה כדי לדעת מה לעשות. אותם כללים עריכתיים נמצאים גם ב-
 `src/lib/agent/prompt.ts` (למחולל המובנה שרץ מתוך האתר עם Vercel Cron).
 
+**הקובץ הזה אומר מה עושים. הסקיל `.claude/skills/market-questions` אומר איך מחליטים** — איך
+מחפשים שאלה, איך מוודאים שהיא ניתנת להכרעה, איך קובעים את `initialProbability`, ואיך בוחרים
+את `liquidity`. בכל ריצה שמוסיפה או מתמחרת שאלות — קראו אותו.
+
 ## המטרה בכל ריצה
 
 1. **לחקור** את החדשות הפוליטיות בישראל מה־24–72 השעות האחרונות (WebSearch/WebFetch, בעברית ובאנגלית).
 2. **להוסיף 2–6 שאלות חדשות** — רק אם הן באמת חדשות, טקטיות, וניתנות להכרעה. אם אין חדשות מעניינות — אל תוסיף כלום. איכות מעל כמות.
 3. **להכריע שווקים** שהאירוע שלהם קרה (או שמועד היעד עבר בלי שקרה), עם ראיה ומקור.
-4. **לוודא** (`npm run markets:validate`), **לבצע commit ו-push** של `data/markets.json` (ו-`data/people.json` אם נוספו אנשים).
+4. **לוודא** (`npm run markets:validate` לסכמה, `npm run markets:audit` לבריאות הלוח), **לבצע commit ו-push** של `data/markets.json` (ו-`data/people.json` אם נוספו אנשים).
 5. אם מוגדרים `SITE_URL` ו-`ADMIN_TOKEN` בסביבה — **לדחוף מיד** את השינויים ל-API של האתר כדי שלא יחכו ל-deploy.
 
 ## סגנון השאלות (רמת החדות הרצויה)
@@ -48,7 +52,8 @@
 | `category` | אחד מ: `polls`, `coalition`, `parties`, `netanyahu`, `legal`, `media`, `security`, `haredi`, `knesset`, `election-day`, `general`. |
 | `people` | מזהים מ-`data/people.json`. הראשון ברשימה מספק את התמונה. אם צריך אדם חדש: הוסיפו אותו ל-`data/people.json` עם `wiki` (שם הערך באנגלית) והריצו `npm run people:fetch`. |
 | `closesAt` | ISO עם אזור זמן (`2026-09-15T20:59:59+03:00`) = מועד היעד של השאלה. בין שעתיים ל-120 יום מעכשיו. |
-| `initialProbability` | ההערכה הכנה שלך (0.05–0.95). לא 0.5 אוטומטית. |
+| `initialProbability` | ההערכה הכנה שלך (0.05–0.95). לא 0.5 אוטומטית. שיטת התמחור: `.claude/skills/market-questions/references/pricing.md`. |
+| `liquidity` | 2000 אלא אם `npm run markets:liquidity -- --p <ההסתברות>` אומר אחרת. נקבע פעם אחת — `sync.ts` לא מעדכן אותו בשוק קיים. |
 | `sources` | 1–4 קישורים **אמיתיים** לכתבות (ynet, הארץ, כאן, N12, ערוץ 13, ערוץ 14, מעריב, ישראל היום, וואלה, TOI, JPost, גלובס). אין להמציא URL — אם אינך בטוח שהקישור קיים, השתמש בעמוד שמצאת בחיפוש. |
 | `createdAt` | ISO של רגע היצירה. `createdBy`: `"editorial-routine"`. |
 | `status` | `open` בשוק חדש. |
@@ -89,9 +94,11 @@
 git pull --ff-only
 npm ci --no-audit --no-fund          # (אם node_modules חסר)
 cat data/markets.json                # מה קיים? מה פתוח? מה עבר את closesAt?
+npm run markets:audit                # חוב הכרעות, תמהיל מועדים, משמעת אחוזים, כיול
 # ... מחקר עם WebSearch/WebFetch ...
 # ... עריכת data/markets.json (+ data/people.json במידת הצורך, ואז npm run people:fetch) ...
-npm run markets:validate
+npm run markets:validate             # סכמה — חייב לעבור
+npm run markets:audit                # בריאות הלוח — תקנו כל ✗
 git add data/markets.json data/people.json
 git commit -m "markets: <תקציר קצר בעברית של מה נוסף/הוכרע>"
 git push
