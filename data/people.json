@@ -293,18 +293,18 @@
       "name": "בועז ביסמוט",
       "role": "ח״כ ליכוד",
       "wiki": "Boaz_Bismuth",
-      "imageCredit": "Wikimedia Commons — Boaz Bismuth",
       "image": "/people/boaz-bismuth.jpg",
-      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Boaz_Bismuth_%28cropped%29.jpeg/330px-Boaz_Bismuth_%28cropped%29.jpeg"
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Boaz_Bismuth_%28cropped%29.jpeg/330px-Boaz_Bismuth_%28cropped%29.jpeg",
+      "imageCredit": "Wikimedia Commons — Boaz Bismuth"
     },
     {
       "id": "tally-gotliv",
       "name": "טלי גוטליב",
       "role": "ח״כית ליכוד",
       "wiki": "Tally_Gotliv",
-      "imageCredit": "Wikimedia Commons — Tally Gotliv",
       "image": "/people/tally-gotliv.jpg",
-      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Tali_Gottleib_%28R_H_3795%29.jpg/330px-Tali_Gottleib_%28R_H_3795%29.jpg"
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Tali_Gottleib_%28R_H_3795%29.jpg/330px-Tali_Gottleib_%28R_H_3795%29.jpg",
+      "imageCredit": "Wikimedia Commons — Tally Gotliv"
     },
     {
       "id": "ayelet-shaked",
@@ -320,9 +320,9 @@
       "name": "יוסי כהן",
       "role": "ראש המוסד לשעבר",
       "wiki": "Yossi_Cohen",
-      "imageCredit": "Wikimedia Commons — Yossi Cohen",
       "image": "/people/yossi-cohen.jpg",
-      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Yossi_Cohen_%28cropped%29.jpg/330px-Yossi_Cohen_%28cropped%29.jpg"
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Yossi_Cohen_%28cropped%29.jpg/330px-Yossi_Cohen_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yossi Cohen"
     },
     {
       "id": "moshe-yaalon",
@@ -347,9 +347,9 @@
       "name": "שקמה ברסלר",
       "role": "מובילת מחאה",
       "wiki": "Shikma_Bressler",
-      "imageCredit": "Wikimedia Commons — Shikma Bressler",
       "image": "/people/shikma-bressler.jpg",
-      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Shikma_Bressler.jpg/330px-Shikma_Bressler.jpg"
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Shikma_Bressler.jpg/330px-Shikma_Bressler.jpg",
+      "imageCredit": "Wikimedia Commons — Shikma Bressler"
     },
     {
       "id": "amit-segal",
@@ -494,6 +494,165 @@
       "image": "/people/hili-tropper.jpg",
       "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/%D7%97%D7%99%D7%9C%D7%99_%D7%98%D7%A8%D7%95%D7%A4%D7%A8_-_%D7%97%D7%95%D7%A1%D7%9F_%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C.jpg/330px-%D7%97%D7%99%D7%9C%D7%99_%D7%98%D7%A8%D7%95%D7%A4%D7%A8_-_%D7%97%D7%95%D7%A1%D7%9F_%D7%9C%D7%99%D7%A9%D7%A8%D7%90%D7%9C.jpg",
       "imageCredit": "Wikimedia Commons — Hili Tropper"
+    },
+    {
+      "id": "yoav-segalovitz",
+      "name": "יואב סגלוביץ'",
+      "role": "ניצב בדימוס, ח״כ לשעבר",
+      "wiki": "Yoav_Segalovitz",
+      "image": "/people/yoav-segalovitz.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Yoav_Segalovich_%28R_H_4069%29.jpg/330px-Yoav_Segalovich_%28R_H_4069%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yoav Segalovitz"
+    },
+    {
+      "id": "yoram-cohen",
+      "name": "יורם כהן",
+      "role": "ראש השב״כ לשעבר",
+      "wiki": "Yoram_Cohen",
+      "image": "/people/yoram-cohen.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Yoram-Cohen-0003.jpg/330px-Yoram-Cohen-0003.jpg",
+      "imageCredit": "Wikimedia Commons — Yoram Cohen"
+    },
+    {
+      "id": "shaul-elovitch",
+      "name": "שאול אלוביץ'",
+      "role": "נאשם בתיק 4000",
+      "wiki": "Shaul_Elovitch"
+    },
+    {
+      "id": "yair-netanyahu",
+      "name": "יאיר נתניהו",
+      "role": "בנו של ראש הממשלה",
+      "wiki": "Yair_Netanyahu",
+      "image": "/people/yair-netanyahu.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Yair_Netanyahu_%28cropped%29.jpg/330px-Yair_Netanyahu_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Yair Netanyahu"
+    },
+    {
+      "id": "noam-sohlberg",
+      "name": "נעם סולברג",
+      "role": "שופט עליון, יו״ר ועדת הבחירות המרכזית",
+      "wiki": "Noam_Sohlberg",
+      "image": "/people/noam-sohlberg.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/NOAM_SOHLBERG.jpg/330px-NOAM_SOHLBERG.jpg",
+      "imageCredit": "Wikimedia Commons — Noam Sohlberg"
+    },
+    {
+      "id": "ruvik-danilovich",
+      "name": "רוביק דנילוביץ'",
+      "role": "ראש עיריית באר שבע",
+      "wiki": "Ruvik_Danilovich",
+      "image": "/people/ruvik-danilovich.png",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/%D7%A8%D7%95%D7%91%D7%99%D7%A7_%D7%93%D7%A0%D7%99%D7%9C%D7%95%D7%91%D7%99%D7%A5%27.png/330px-%D7%A8%D7%95%D7%91%D7%99%D7%A7_%D7%93%D7%A0%D7%99%D7%9C%D7%95%D7%91%D7%99%D7%A5%27.png",
+      "imageCredit": "Wikimedia Commons — Ruvik Danilovich"
+    },
+    {
+      "id": "ron-huldai",
+      "name": "רון חולדאי",
+      "role": "ראש עיריית תל אביב-יפו",
+      "wiki": "Ron_Huldai",
+      "image": "/people/ron-huldai.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Ron_Huldai_2018_%28cropped%29.JPG/330px-Ron_Huldai_2018_%28cropped%29.JPG",
+      "imageCredit": "Wikimedia Commons — Ron Huldai"
+    },
+    {
+      "id": "raviv-drucker",
+      "name": "רביב דרוקר",
+      "role": "עיתונאי, חדשות 13",
+      "wiki": "Raviv_Drucker",
+      "image": "/people/raviv-drucker.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Raviv_Drucker_1.jpg/330px-Raviv_Drucker_1.jpg",
+      "imageCredit": "Wikimedia Commons — Raviv Drucker"
+    },
+    {
+      "id": "ilana-dayan",
+      "name": "אילנה דיין",
+      "role": "עיתונאית, ״עובדה״",
+      "wiki": "Ilana_Dayan",
+      "image": "/people/ilana-dayan.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Ilana_Dayan.jpg/330px-Ilana_Dayan.jpg",
+      "imageCredit": "Wikimedia Commons — Ilana Dayan"
+    },
+    {
+      "id": "amir-yaron",
+      "name": "אמיר ירון",
+      "role": "נגיד בנק ישראל",
+      "wiki": "Amir_Yaron",
+      "image": "/people/amir-yaron.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Amir_Yaron%2C_December_2018_%28KBG_GPO070%29_%28cropped%29.JPG/330px-Amir_Yaron%2C_December_2018_%28KBG_GPO070%29_%28cropped%29.JPG",
+      "imageCredit": "Wikimedia Commons — Amir Yaron"
+    },
+    {
+      "id": "arnon-bar-david",
+      "name": "ארנון בר-דוד",
+      "role": "יו״ר ההסתדרות",
+      "wiki": "Arnon_Bar-David",
+      "image": "/people/arnon-bar-david.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Arnon_Bar-David_%28cropped%29.jpg/330px-Arnon_Bar-David_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Arnon Bar-David"
+    },
+    {
+      "id": "may-golan",
+      "name": "מאי גולן",
+      "role": "שרה, ליכוד",
+      "wiki": "May_Golan",
+      "image": "/people/may-golan.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/May_Golan_1.jpg/330px-May_Golan_1.jpg",
+      "imageCredit": "Wikimedia Commons — May Golan"
+    },
+    {
+      "id": "gilad-erdan",
+      "name": "גלעד ארדן",
+      "role": "שגריר ישראל באו״ם לשעבר",
+      "wiki": "Gilad_Erdan",
+      "image": "/people/gilad-erdan.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Michael_Regan_met_with_Gilad_Erdan_at_EPA_HQ_2021_%28cropped%29.jpg/330px-Michael_Regan_met_with_Gilad_Erdan_at_EPA_HQ_2021_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Gilad Erdan"
+    },
+    {
+      "id": "naim-qassem",
+      "name": "נעים קאסם",
+      "role": "מזכ״ל חיזבאללה",
+      "wiki": "Naim_Qassem",
+      "image": "/people/naim-qassem.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Naim_Qassem_Visits_Tasnim_Office_%283x4_cropped%29.jpg/330px-Naim_Qassem_Visits_Tasnim_Office_%283x4_cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Naim Qassem"
+    },
+    {
+      "id": "joseph-aoun",
+      "name": "ג'וזף עאון",
+      "role": "נשיא לבנון",
+      "wiki": "Joseph_Aoun",
+      "image": "/people/joseph-aoun.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Official_Portrait_of_the_President_of_the_Republic_of_Lebanon_%28cropped%29.jpg/330px-Official_Portrait_of_the_President_of_the_Republic_of_Lebanon_%28cropped%29.jpg",
+      "imageCredit": "Wikimedia Commons — Joseph Aoun"
+    },
+    {
+      "id": "abdul-malik-al-houthi",
+      "name": "עבד אל-מאלכ אל-חות'י",
+      "role": "מנהיג החות׳ים",
+      "wiki": "Abdul-Malik_al-Houthi",
+      "image": "/people/abdul-malik-al-houthi.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/%D8%B9%D8%A8%D8%AF%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%AD%D9%88%D8%AB%DB%8C.jpg/330px-%D8%B9%D8%A8%D8%AF%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%AD%D9%88%D8%AB%DB%8C.jpg",
+      "imageCredit": "Wikimedia Commons — Abdul-Malik al-Houthi"
+    },
+    {
+      "id": "ahmed-al-sharaa",
+      "name": "אחמד א-שרע",
+      "role": "נשיא סוריה",
+      "wiki": "Ahmed_al-Sharaa",
+      "image": "/people/ahmed-al-sharaa.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ahmed_al-Sharaa%2C_President_of_Syria%2C_in_March_2026.jpg/330px-Ahmed_al-Sharaa%2C_President_of_Syria%2C_in_March_2026.jpg",
+      "imageCredit": "Wikimedia Commons — Ahmed al-Sharaa"
+    },
+    {
+      "id": "avi-maoz",
+      "name": "אבי מעוז",
+      "role": "יו״ר נעם",
+      "wiki": "Avi_Maoz",
+      "image": "/people/avi-maoz.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Avi_Maoz_%28SHL_7964%29.jpg/330px-Avi_Maoz_%28SHL_7964%29.jpg",
+      "imageCredit": "Wikimedia Commons — Avi Maoz"
     }
   ]
 }
