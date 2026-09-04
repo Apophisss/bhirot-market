@@ -4,7 +4,7 @@ import marketsJson from "../../data/markets.json";
 import peopleJson from "../../data/people.json";
 
 /**
- * Emoji and pictographs are kept out of every string the site renders, so a
+ * Emoji and pictographs stay out of every string the site renders, so a
  * generated question can't put one back on the board. Currency, dashes and
  * math signs are deliberately not matched.
  */
