@@ -210,7 +210,10 @@
   @media (min-width: 1024px) {
     .deck-height {
       height: calc(100svh - 6rem);
-      min-height: 600px;
+      /* a laptop window is often barely 650px tall: a tall floor here would push
+         the answer buttons under the fold, which is worse than a shorter card
+         (the card body scrolls on its own) */
+      min-height: 460px;
     }
   }
 
