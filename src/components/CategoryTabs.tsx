@@ -5,21 +5,25 @@ export function CategoryTabs({
   active,
   params,
   counts = {},
+  basePath = "/",
+  className = "",
 }: {
   active: string;
   params: Record<string, string | undefined>;
   counts?: Record<string, number>;
+  basePath?: string;
+  className?: string;
 }) {
   const mk = (id: string) => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v && k !== "category") sp.set(k, v);
     if (id !== "all") sp.set("category", id);
     const qs = sp.toString();
-    return qs ? `/?${qs}` : "/";
+    return qs ? `${basePath}?${qs}` : basePath;
   };
   const items = [{ id: "all", label: "הכל", emoji: "🔥" }, ...CATEGORIES];
   return (
-    <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+    <div className={`scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 ${className}`}>
       {items.map((c) => {
         const isActive = active === c.id;
         const n = counts[c.id];

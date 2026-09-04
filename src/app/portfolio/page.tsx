@@ -22,7 +22,15 @@ export default async function PortfolioPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold text-text-strong">התיק של {user.name}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold text-text-strong">התיק של {user.name}</h1>
+        <Link
+          href="/rapid"
+          className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-sm font-bold text-accent-2 hover:bg-accent/20"
+        >
+          ⚡ סבב זריז
+        </Link>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="שווי כולל" value={money(netWorth)} hint={`התחלת עם ${money(STARTING_BALANCE)}`} />
         <StatTile label="רווח/הפסד כולל" value={signedMoney(totalPnl)} tone={totalPnl >= 0 ? "yes" : "no"} hint={`ממומש ${signedMoney(realized)}`} />
@@ -69,7 +77,8 @@ export default async function PortfolioPage() {
           </div>
         ) : (
           <p className="p-6 text-center text-sm text-muted">
-            אין פוזיציות פתוחות. <Link href="/" className="text-accent-2 hover:underline">בחרו שוק והתחילו</Link>.
+            אין פוזיציות פתוחות. התחילו <Link href="/rapid" className="text-accent-2 hover:underline">במצב זריז</Link> או{" "}
+            <Link href="/" className="text-accent-2 hover:underline">בחרו שוק מהרשימה</Link>.
           </p>
         )}
       </section>
