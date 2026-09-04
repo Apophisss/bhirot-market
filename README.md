@@ -163,8 +163,19 @@ src/lib/elasticity.ts    תרגום liquidity לגמישות מחיר (כמה �
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
-src/app/                 דפים: /, /rapid, /market/[slug], /portfolio, /leaderboard, /activity, /about, /login
+src/lib/seo.ts           כותרות, canonical ו-JSON-LD (schema.org)
+src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה
+src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /about, /login
 ```
+
+## SEO
+
+- **כתובת האתר**: `NEXT_PUBLIC_SITE_URL` חייבת להיות הדומיין הפומבי המלא. כל ה-canonical, ה-sitemap וה-JSON-LD נגזרים ממנה.
+- **דפי קטגוריה**: לכל קטגוריה יש דף אינדוקס משלה ב-`/category/<id>` עם `h1`, תיאור ייחודי (`description` ב-`src/lib/categories.ts`) ו-`CollectionPage` + `ItemList`. קישורים ישנים בסגנון `/?category=x` מקבלים 308 מ-`src/middleware.ts`.
+- **מה נכנס לאינדקס**: דף הבית, `/?status=resolved`, דפי הקטגוריות, דפי השווקים ו-`/about`. תוצאות חיפוש, מיון ו"הצגת עוד" מסומנים `noindex, follow`; `/portfolio` ו-`/login` חסומים.
+- **נתונים מובנים**: `Organization` + `WebSite` (עם SearchAction) בכל דף, `Article` + `BreadcrumbList` בדף שוק, `CollectionPage` בדפי רשימה ו-`FAQPage` ב-`/about` (השאלות נמצאות ב-`FAQ` ב-`src/lib/seo.ts` ומוצגות גם בדף עצמו — אין להוסיף שאלה ל-JSON-LD בלי להציג אותה).
+- **קודי סטטוס**: שלד הטעינה (`loading.tsx`) חי רק תחת קבוצת הראוט `(listing)`. אם מוסיפים `loading.tsx` מעל דפי שוק/קטגוריה, ה-404 שלהם יהפוך ל-200 רך (soft 404).
+- **אימות Search Console**: הגדירו `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` והתג ייווצר לבד.
 
 ## גילוי נאות
 

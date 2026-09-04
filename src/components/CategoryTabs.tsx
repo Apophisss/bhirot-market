@@ -17,9 +17,13 @@ export function CategoryTabs({
   const mk = (id: string) => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v && k !== "category") sp.set(k, v);
-    if (id !== "all") sp.set("category", id);
+    // on the listing every category has its own indexable landing page ("all" is the
+    // home page); on another path (e.g. /rapid) the category stays a query param
+    let base = basePath;
+    if (basePath === "/") base = id === "all" ? "/" : `/category/${id}`;
+    else if (id !== "all") sp.set("category", id);
     const qs = sp.toString();
-    return qs ? `${basePath}?${qs}` : basePath;
+    return qs ? `${base}?${qs}` : base;
   };
   const items = [{ id: "all", label: "כל השווקים", accent: "#1d4ed8" }, ...CATEGORIES];
   return (

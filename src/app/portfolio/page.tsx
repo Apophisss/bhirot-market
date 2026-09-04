@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
@@ -8,7 +9,11 @@ import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "התיק שלי" };
+export const metadata: Metadata = {
+  title: "התיק שלי",
+  // personal, login-gated page: never index it
+  robots: { index: false, follow: false, nocache: true },
+};
 
 export default async function PortfolioPage() {
   const user = await currentUser();
