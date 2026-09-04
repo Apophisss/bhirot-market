@@ -58,7 +58,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 החדות של הקמפיין, שמתעדכנות כל שעה.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/login" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white shadow-lg shadow-accent/25 hover:bg-accent-2">
+                <Link href="/rapid" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white shadow-lg shadow-accent/25 hover:bg-accent-2">
+                  ⚡ מצב זריז · {stats.open} שאלות ברצף
+                </Link>
+                <Link href="/login" className="rounded-xl border border-border-2 bg-surface/70 px-5 py-2.5 font-semibold text-text hover:bg-surface">
                   התחברות וקבלת ₪10,000 וירטואליים
                 </Link>
                 <Link href="/about" className="rounded-xl border border-border-2 bg-surface/70 px-5 py-2.5 font-semibold text-text hover:bg-surface">
@@ -97,6 +100,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             )}
           </div>
           <div className="flex items-center gap-1 text-xs">
+            <Link
+              href="/rapid"
+              className="me-2 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1 font-bold text-accent-2 hover:bg-accent/20"
+            >
+              ⚡ ענו ברצף
+            </Link>
             <span className="me-1 text-muted-2">מיון:</span>
             {SORTS.map((s) => (
               <Link key={s.id} href={link({ sort: s.id })} className={`rounded-md px-2 py-1 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
@@ -115,7 +124,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         ) : (
           <div className="card p-12 text-center text-muted">
             <div className="text-4xl">🤷</div>
-            <p className="mt-2">לא נמצאו שווקים. נסו קטגוריה אחרת או <Link href="/" className="text-accent-2 hover:underline">נקו את הסינון</Link>.</p>
+            <p className="mt-2">
+              לא נמצאו שווקים. נסו קטגוריה אחרת, <Link href="/" className="text-accent-2 hover:underline">נקו את הסינון</Link>, או עברו{" "}
+              <Link href="/rapid" className="text-accent-2 hover:underline">למצב זריז</Link>.
+            </p>
           </div>
         )}
       </section>
