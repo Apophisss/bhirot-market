@@ -25,11 +25,11 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/90 shadow-[0_1px_3px_rgba(10,16,32,0.05)] backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Image src="/logo.svg" alt="" width={36} height={36} priority />
-          <span className="text-lg font-extrabold tracking-tight text-text-strong">{SITE_NAME}</span>
-          <span className="hidden rounded-full border border-border-2 bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent md:inline">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-4 sm:px-6">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5">
+          <Image src="/logo.svg" alt="" width={36} height={36} priority className="shrink-0" />
+          <span className="truncate text-lg font-extrabold tracking-tight text-text-strong">{SITE_NAME}</span>
+          <span className="hidden shrink-0 rounded-full border border-border-2 bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent md:inline">
             בחירות 2026
           </span>
         </Link>
@@ -89,7 +89,7 @@ export async function Header() {
             </>
           ) : (
             <>
-              <Link href="/about" className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-text-strong lg:hidden">
+              <Link href="/about" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-text-strong sm:block lg:hidden">
                 איך זה עובד
               </Link>
               <Link

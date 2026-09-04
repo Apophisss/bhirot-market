@@ -160,7 +160,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Link href="/" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">לשווקים</Link>
         <Link href="/rapid" className="rounded-xl border border-accent/40 bg-accent/10 px-5 py-2.5 font-semibold text-accent-2 hover:bg-accent/20">למצב זריז</Link>
         <Link href="/login" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface">התחברות</Link>

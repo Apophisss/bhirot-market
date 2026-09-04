@@ -72,7 +72,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                   name="name"
                   required
                   placeholder="שם לתצוגה"
-                  className="flex-1 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-accent"
+                  className="w-full min-w-0 flex-1 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-accent"
                 />
                 <button className="rounded-lg bg-surface-3 px-4 py-2 text-sm font-semibold hover:bg-border-2">כניסה</button>
               </div>
