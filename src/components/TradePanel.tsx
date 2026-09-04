@@ -111,7 +111,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
               setInput("");
               setMsg(null);
             }}
-            className={`flex-1 rounded-md py-1.5 text-sm font-bold ${action === a ? "bg-surface-3 text-text-strong" : "text-muted hover:text-text"}`}
+            className={`flex-1 rounded-md py-1.5 text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
           >
             {a === "BUY" ? "קנייה" : "מכירה"}
           </button>
@@ -209,7 +209,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
         onClick={submit}
         disabled={busy || (loggedIn && (!quote || qty <= 0 || (action === "SELL" && held <= 0) || (action === "BUY" && balance != null && qty > balance)))}
         className={`mt-4 w-full rounded-xl py-3 text-lg font-extrabold text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
-          side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
+          !loggedIn ? "bg-accent hover:bg-accent-2" : side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
         }`}
       >
         {!loggedIn ? "התחברות כדי לסחור" : busy ? "מבצע…" : action === "BUY" ? `קנייה: ${side === "YES" ? "כן" : "לא"}` : `מכירה: ${side === "YES" ? "כן" : "לא"}`}
