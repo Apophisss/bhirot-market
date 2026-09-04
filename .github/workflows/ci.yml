@@ -1,0 +1,70 @@
+name: Checks
+
+# The gate in front of main.
+#
+# Merging to main deploys: deploy.yml builds the image and the server pulls it.
+# Without this workflow the first thing to notice a broken build would be the
+# deploy itself, which is both the worst place to find out and the one place
+# where finding out costs the site.
+#
+# For this to gate anything, "Checks / verify" has to be a required status
+# check on main under Settings → Branches. Without that it is a red tick beside
+# a merge button that still works.
+on:
+  pull_request:
+    branches: [main]
+  # A safety net rather than a gate: main can still receive a commit directly,
+  # and it is worth knowing within a minute rather than at the next deploy.
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A superseded run tells you about a commit nobody is going to merge.
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 22 to match the Dockerfile's node:22-alpine.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # LMSR invariants + the markets.json schema. Run before the build so a
+      # content or maths failure reports as itself rather than as "the build
+      # failed" three minutes in.
+      - name: Tests
+        run: npm test
+
+      # The real gate, and the only thing that catches a Tailwind class that
+      # silently never got generated or a route that cannot compile.
+      - name: Build
+        run: npm run build
+        env:
+          # The same values the Dockerfile's builder stage uses, for the same
+          # reason: every route is force-dynamic, so the build never opens the
+          # database and only needs a syntactically valid URL. No secret is
+          # needed to prove the site compiles, and none should be available to
+          # a workflow that runs on pull requests from anywhere.
+          DATABASE_URL: file:/tmp/build.db
+          NEXT_PUBLIC_SITE_URL: https://bhirot-market.com
+          NEXT_TELEMETRY_DISABLED: 1
