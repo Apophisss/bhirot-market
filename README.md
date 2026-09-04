@@ -28,7 +28,7 @@ npm run dev                       # http://localhost:3000
 ```
 
 - מסד הנתונים נוצר לבד ב־`data/local.db` (המיגרציות רצות אוטומטית בעלייה).
-- בלי Google OAuth אפשר להיכנס עם ״כניסה מהירה לפיתוח״ (`ALLOW_DEV_LOGIN=true`, לא פעיל בפרודקשן).
+- בלי Google OAuth אפשר להיכנס עם ״כניסה מהירה לפיתוח״ (`ALLOW_DEV_LOGIN=true`). בבילד פרודקשן היא כבויה בקוד, גם אם המשתנה מוגדר.
 - `data/markets.json` נטען למסד הנתונים בטעינה הראשונה ובכל `npm run markets:sync`.
 
 ### התחברות עם Google
