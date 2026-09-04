@@ -1,7 +1,7 @@
 # בחירות מרקט — שוק החיזויים של בחירות 2026 🗳️
 
 אתר בסגנון **Polymarket** על הבחירות לכנסת ה־26, **בכסף וירטואלי בלבד**: התחברות עם Google, מסחר במניות ״כן״/״לא״
-עם עושה שוק אוטומטי (LMSR), גרפים, תיק אישי, לוח מובילים, תגובות — והכי חשוב: **השאלות מתעדכנות פעם בשעה על ידי Claude**
+עם עושה שוק אוטומטי (LMSR), גרפים, תיק אישי, לוח מובילים, תגובות — והכי חשוב: **השאלות מתעדכנות פעם בשעה על ידי צוות המערכת**
 בהתאם לחדשות (סקרים, מהלכים פוליטיים, משפט נתניהו, חוק הגיוס, תביעות דיבה וכו׳).
 
 דוגמאות לשאלות: *״האם יאיר גולן יגיש תביעת דיבה נגד שרה נתניהו עד 31.12.2026?״*,
@@ -17,7 +17,7 @@
 | מנוע שוק | LMSR בינארי (`src/lib/lmsr.ts`) — ₪10,000 וירטואליים לכל משתמש, תשלום ₪1 למניה מנצחת |
 | תוכן | `data/markets.json` — מקור האמת לשאלות; מסונכרן למסד הנתונים אוטומטית |
 | תמונות | תמונות אישי ציבור מ־Wikimedia Commons (`data/people.json`, `npm run people:fetch`) + עטיפות SVG לפי קטגוריה |
-| עדכון אוטומטי | (א) **Claude Code Routine** שעתית שעורכת את `data/markets.json` לפי `AGENT.md`; (ב) מחולל מובנה `/api/cron/refresh` (Vercel Cron) שמפעיל את Claude API עם חיפוש באינטרנט |
+| עדכון שעתי | (א) **רוטינת העדכון** של צוות המערכת, שעורכת את `data/markets.json` לפי `AGENT.md`; (ב) מחולל השאלות המובנה `/api/cron/refresh` (Vercel Cron) עם חיפוש באינטרנט |
 
 ## הרצה מקומית
 
@@ -46,9 +46,9 @@ npm run dev                       # http://localhost:3000
 
 ## איך העדכון השעתי עובד
 
-### א. Claude Code Routine (הדרך העיקרית)
+### א. רוטינת העדכון של צוות המערכת (הדרך העיקרית)
 
-רוטינה ב־Claude Code רצה פעם בשעה, פותחת סשן חדש בריפו, וקוראת את [`AGENT.md`](AGENT.md):
+הרוטינה רצה פעם בשעה, פותחת סשן חדש בריפו, וקוראת את [`AGENT.md`](AGENT.md) — נוהל העבודה של המערכת:
 
 1. חוקרת את החדשות הפוליטיות של 24–72 השעות האחרונות (חיפוש באינטרנט).
 2. מוסיפה 2–6 שאלות חדשות, חדות וניתנות להכרעה, עם מועד יעד, קריטריוני הכרעה ומקורות.
@@ -58,7 +58,7 @@ npm run dev                       # http://localhost:3000
 
 ### ב. המחולל המובנה (`src/lib/agent/generate.ts`)
 
-`GET /api/cron/refresh` (עם `Authorization: Bearer <CRON_SECRET|ADMIN_TOKEN>`) מריץ שני שלבים עם Claude API:
+`GET /api/cron/refresh` (עם `Authorization: Bearer <CRON_SECRET|ADMIN_TOKEN>`) מריץ שני שלבים:
 מחקר עם כלי `web_search` → פלט מובנה (Zod) של שאלות חדשות והכרעות → ולידציה, סינון כפילויות, והכנסה למסד.
 אפשר להריץ ידנית: `npm run markets:generate -- --dry-run`.
 
@@ -73,7 +73,7 @@ npm run dev                       # http://localhost:3000
 | `POST /api/admin/markets` `{markets:[…], note, source}` | Upsert/הכרעה של שווקים (Bearer `ADMIN_TOKEN`) |
 | `GET /api/admin/markets` | ייצוא מלא של השווקים (Bearer `ADMIN_TOKEN`) |
 | `POST /api/sync` | סנכרון `data/markets.json` → DB (Bearer `ADMIN_TOKEN`) |
-| `GET /api/cron/refresh` | סנכרון + מחולל Claude (Bearer `CRON_SECRET`/`ADMIN_TOKEN`) |
+| `GET /api/cron/refresh` | סנכרון + מחולל השאלות (Bearer `CRON_SECRET`/`ADMIN_TOKEN`) |
 | `GET /api/health` | סטטיסטיקות ועדכון אוטומטי אחרון |
 
 ## סקריפטים
@@ -89,13 +89,13 @@ npm run db:generate        # יצירת מיגרציה אחרי שינוי בס�
 ## מבנה
 
 ```
-data/markets.json        השאלות (מקור האמת, נערך ע"י Claude)
+data/markets.json        השאלות (מקור האמת, נערך ע"י צוות המערכת)
 data/people.json         אנשים + תמונות
-AGENT.md                 הנחיות לרוטינה של Claude
+AGENT.md                 נוהל העבודה של רוטינת העדכון
 src/lib/lmsr.ts          מתמטיקת עושה השוק
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
-src/lib/agent/           המחולל המובנה (Claude API + web search)
+src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
 src/app/                 דפים: /, /market/[slug], /portfolio, /leaderboard, /activity, /about, /login
 ```
 

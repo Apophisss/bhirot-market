@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ELECTION_DATE, SITE_NAME } from "@/lib/config";
+import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { fmtDate } from "@/lib/format";
 import { getLastAgentRun } from "@/lib/markets";
 import { timeAgo } from "@/lib/format";
@@ -44,19 +44,20 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      <Section title="4. השאלות מתעדכנות כל שעה על ידי Claude" id="claude">
+      <Section title="4. השאלות מתעדכנות כל שעה על ידי צוות המערכת" id="updates">
         <p>
-          העורך של האתר הוא <strong>Claude</strong> (המודל של Anthropic). פעם בשעה רצה <strong>רוטינה</strong> שסורקת את החדשות הפוליטיות
-          בישראל — סקרים חדשים, מהלכים של המפלגות, משפט נתניהו, חוק הגיוס, עימותים ותביעות — ומנסחת שאלות חיזוי חדשות, טקטיות וניתנות להכרעה:
-          עם מועד יעד מפורש, קריטריוני הכרעה ברורים ומקורות. באותה ריצה Claude גם בודק אילו שווקים כבר הוכרעו במציאות ומסמן אותם,
+          מאחורי האתר עומד <strong>{SITE_TEAM}</strong> של {SITE_NAME}. פעם בשעה אנחנו עוברים על החדשות הפוליטיות
+          בישראל — סקרים חדשים, מהלכים של המפלגות, משפט נתניהו, חוק הגיוס, עימותים ותביעות — ומנסחים שאלות חיזוי חדשות, טקטיות וניתנות להכרעה:
+          עם מועד יעד מפורש, קריטריוני הכרעה ברורים ומקורות. באותו מעבר אנחנו גם בודקים אילו שווקים כבר הוכרעו במציאות ומסמנים אותם,
           וכל הפוזיציות משולמות אוטומטית.
         </p>
         <p>
-          כל שאלה שנוצרה אוטומטית מסומנת ב־🤖. השאלות והמקורות שמורים בקובץ פתוח בריפו (<code>data/markets.json</code>) כך שאפשר לעקוב אחרי כל שינוי.
+          כל שאלה שהוסיף {SITE_TEAM} אחרי ההשקה מסומנת ב־✍️. השאלות והמקורות שמורים בקובץ פתוח בריפו (<code>data/markets.json</code>)
+          כך שאפשר לעקוב אחרי כל שינוי.
         </p>
         {last && (
           <p className="rounded-lg border border-border bg-surface-2 p-3 text-sm">
-            <strong>העדכון האחרון</strong> ({timeAgo(last.createdAt)}, מקור: {last.source}): {last.summary}
+            <strong>העדכון האחרון</strong> ({timeAgo(last.createdAt)}): {last.summary}
             {last.added ? ` · נוספו ${last.added}` : ""}
             {last.resolved ? ` · הוכרעו ${last.resolved}` : ""}
           </p>

@@ -205,7 +205,7 @@ export const comments = sqliteTable(
   (c) => [index("comment_market_idx").on(c.marketId, c.createdAt)],
 );
 
-/** Log of automated content updates (Claude routine / cron / admin API). */
+/** Log of editorial content updates (hourly routine / cron / admin API). */
 export const agentRuns = sqliteTable("agent_run", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   source: text("source").notNull(),

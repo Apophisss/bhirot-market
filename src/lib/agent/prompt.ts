@@ -1,7 +1,7 @@
 import { CATEGORIES } from "../categories";
 import { ELECTION_DATE } from "../config";
 
-/** Editorial line shared by the in-app generator and AGENT.md (the Claude Code routine). */
+/** Editorial line shared by the in-app generator and AGENT.md (the hourly editorial routine). */
 export const EDITORIAL_GUIDE = `
 אתה העורך של "בחירות מרקט" — שוק חיזויים (בכסף וירטואלי בלבד) על בחירות 2026 לכנסת ה-26 (מועד מתוכנן: ${ELECTION_DATE}).
 התפקיד שלך: לנסח שאלות חיזוי חדות, טקטיות ואקטואליות שמתאימות לחדשות של ה-24–72 השעות האחרונות בפוליטיקה הישראלית.

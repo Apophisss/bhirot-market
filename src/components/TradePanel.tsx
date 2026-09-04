@@ -85,7 +85,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
         ) : market.status === "cancelled" ? (
           <p className="rounded-lg bg-surface-2 p-3 text-center font-bold text-muted">השוק בוטל והכסף הוחזר</p>
         ) : (
-          <p className="text-sm text-muted">מועד הסגירה עבר. השוק ממתין להכרעה על ידי Claude לפי קריטריוני ההכרעה.</p>
+          <p className="text-sm text-muted">מועד הסגירה עבר. השוק ממתין להכרעה על ידי צוות המערכת לפי קריטריוני ההכרעה.</p>
         )}
         {position && (position.yesShares > 0 || position.noShares > 0) && (
           <div className="mt-3 text-sm text-muted">

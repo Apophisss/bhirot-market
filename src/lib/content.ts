@@ -50,7 +50,7 @@ export type MarketContent = z.infer<typeof MarketContentSchema>;
 export const MarketsFileSchema = z.object({
   version: z.number().int().min(1),
   updatedAt: z.string().datetime({ offset: true }),
-  /** free-text note by whoever last updated (usually the Claude routine) */
+  /** free-text note by whoever last updated (usually the hourly editorial routine) */
   lastUpdateNote: z.string().max(2000).optional(),
   markets: z.array(MarketContentSchema),
 }).superRefine((file, ctx) => {
