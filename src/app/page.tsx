@@ -70,41 +70,41 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   return (
     <div className="space-y-6">
       {!filtered && (
-        <section className="relative overflow-hidden rounded-3xl border border-border">
+        <section className="hero-dark relative overflow-hidden rounded-3xl border border-brand-deep">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/hero.svg" alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-l from-bg/90 via-bg/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-l from-ink/90 via-brand-deep/70 to-brand-deep/20" />
           <div className="relative flex flex-col gap-5 p-6 sm:p-10 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <AgentBadge />
-              <h1 className="mt-4 text-3xl font-black leading-tight text-text-strong sm:text-5xl">{SITE_TAGLINE}</h1>
-              <p className="mt-3 max-w-xl text-base text-muted sm:text-lg">
+              <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">{SITE_TAGLINE}</h1>
+              <p className="mt-3 max-w-xl text-base text-white/75 sm:text-lg">
                 סקרים, קואליציות, משפטים, תביעות ומהלכים פוליטיים — מי צודק, השוק או הפרשנים? סחרו בכסף וירטואלי על
                 {" "}
-                <strong className="text-text">{stats.open} השאלות</strong> החדות של הקמפיין, שמתעדכנות כל שעה.
+                <strong className="text-white">{stats.open} השאלות</strong> החדות של הקמפיין, שמתעדכנות כל שעה.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 {session?.user ? (
-                  <Link href="/portfolio" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white shadow-lg shadow-accent/25 hover:bg-accent-2">
+                  <Link href="/portfolio" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
                     לתיק שלי
                   </Link>
                 ) : (
-                  <Link href="/login" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white shadow-lg shadow-accent/25 hover:bg-accent-2">
+                  <Link href="/login" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
                     התחברות וקבלת ₪10,000 וירטואליים
                   </Link>
                 )}
-                <Link href="/about" className="rounded-xl border border-border-2 bg-surface/70 px-5 py-2.5 font-semibold text-text hover:bg-surface">
+                <Link href="/about" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
                   איך זה עובד?
                 </Link>
               </div>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
               <Countdown />
-              <div className="flex flex-wrap gap-4 text-xs text-muted">
-                <span><strong className="tabular text-text-strong">{stats.open}</strong> שווקים פתוחים</span>
-                <span><strong className="tabular text-text-strong">{stats.resolved}</strong> הוכרעו</span>
-                <span><strong className="tabular text-text-strong">{money(stats.volume, { compact: true })}</strong> נפח</span>
-                <span><strong className="tabular text-text-strong">{stats.users}</strong> סוחרים</span>
+              <div className="flex flex-wrap gap-4 text-xs text-white/70">
+                <span><strong className="tabular text-white">{stats.open}</strong> שווקים פתוחים</span>
+                <span><strong className="tabular text-white">{stats.resolved}</strong> הוכרעו</span>
+                <span><strong className="tabular text-white">{money(stats.volume, { compact: true })}</strong> נפח</span>
+                <span><strong className="tabular text-white">{stats.users}</strong> סוחרים</span>
               </div>
             </div>
           </div>
