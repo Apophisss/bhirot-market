@@ -567,7 +567,7 @@ function RapidCardView({
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4 sm:p-6">
+      <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 sm:p-6">
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
           <span
             className="rounded-md px-1.5 py-0.5 font-semibold"
@@ -637,13 +637,13 @@ function RapidCardView({
           <button onClick={onSkip} className="shrink-0 rounded-md px-2 py-1 font-semibold hover:text-text-strong">
             דלג
           </button>
-          <span className="text-end">
+          <span className="line-clamp-2 text-end">
             {outOfMoney
               ? "נגמרה היתרה — אפשר למכור פוזיציות בדף השוק"
               : locked
                 ? "היתרה לא מספיקה לסכום הזה"
                 : loggedIn
-                  ? "הסכום מחייב ויורד מהיתרה מיד · מספר המניות משוער"
+                  ? "הסכום מחייב · מספר המניות משוער"
                   : "התחברו כדי שהתשובות ייספרו"}
           </span>
         </div>
@@ -731,12 +731,12 @@ function StakeBar({
         className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-3 accent-accent"
         aria-describedby="rapid-stake-range"
       />
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <div className="scrollbar-none mt-2 flex gap-1.5 overflow-x-auto">
         {RAPID_STAKE_PRESETS.map((p) => (
           <button
             key={p}
             onClick={() => writeStake(p)}
-            className={`tabular rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
+            className={`tabular shrink-0 rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
               stake === p
                 ? "border-accent bg-accent/15 text-accent-2"
                 : "border-border bg-surface-2 text-muted hover:text-text-strong"
@@ -745,16 +745,16 @@ function StakeBar({
             ₪{p}
           </button>
         ))}
-        <span id="rapid-stake-range" className="tabular ms-auto text-[11px] text-muted-2">
-          טווח ₪{RAPID_MIN_STAKE}–₪{RAPID_MAX_STAKE} · יורד מהיתרה מיד
-          {available != null && (
-            <span className={broke ? "text-no" : ""}>
-              {" · "}
-              {outOfMoney ? "נגמרה היתרה" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
-            </span>
-          )}
-        </span>
       </div>
+      <p id="rapid-stake-range" className="tabular mt-1.5 truncate text-[11px] text-muted-2">
+        טווח ₪{RAPID_MIN_STAKE}–₪{RAPID_MAX_STAKE} · יורד מהיתרה מיד
+        {available != null && (
+          <span className={broke ? "text-no" : ""}>
+            {" · "}
+            {outOfMoney ? "נגמרה היתרה" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
+          </span>
+        )}
+      </p>
       {showKeys && (
         <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-2">
           מקלדת: <Kbd>→</Kbd> כן · <Kbd>←</Kbd> לא · <Kbd>רווח</Kbd> דלג · <Kbd>+</Kbd>/<Kbd>−</Kbd> סכום ·{" "}
