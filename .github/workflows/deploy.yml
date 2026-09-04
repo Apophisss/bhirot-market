@@ -32,6 +32,10 @@ jobs:
     env:
       DOMAIN: ${{ github.event.inputs.domain || vars.DOMAIN || 'bhirot-market.com' }}
       REMOTE_DIR: /opt/bhirot-market
+      # NumberOfPasswordPrompts=1 because sshpass answers the first prompt and
+      # has nothing for the next two: without it a wrong password left the job
+      # sitting at an interactive prompt for four minutes before failing.
+      SSH_OPTS: -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o NumberOfPasswordPrompts=1
 
     steps:
       - uses: actions/checkout@v4
@@ -84,21 +88,58 @@ jobs:
       - name: Install ssh tooling
         run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass rsync
 
-      - name: Add server to known_hosts
+      # bhirot-market.com currently answers with three A records: the droplet
+      # and two addresses that are not it. Every ssh in this job used to draw
+      # one at random, so the deploy's outcome depended on which one the
+      # resolver handed back — the run that failed had `ssh-keyscan` land on an
+      # address with no sshd (exit 1, and the job stopped there) while a later
+      # `ssh` in the same job drew the droplet and connected fine.
+      #
+      # So resolve once, keep the address that answers on 22, and pin the rest
+      # of the job to it. Note this only fixes *this* job: Let's Encrypt will
+      # draw from the same three records when Caddy asks for a certificate, so
+      # the extra records still have to go.
+      - name: Find the server and trust its host key
         env:
           SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          chmod 600 ~/.ssh/known_hosts
+          mkdir -p ~/.ssh && touch ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+          addresses=$(getent ahostsv4 "$SSH_HOST" | awk '{print $1}' | sort -u)
+          if [ -z "$addresses" ]; then
+            echo "$SSH_HOST does not resolve to any IPv4 address." >&2
+            exit 1
+          fi
+          echo "$SSH_HOST resolves to:"; echo "$addresses" | sed 's/^/  /'
+          count=$(echo "$addresses" | wc -l)
+          [ "$count" -gt 1 ] && echo "WARNING: $count A records. Only one can be the server; remove the rest." >&2
+
+          target=""
+          for ip in $addresses; do
+            # stderr kept, unlike the version this replaces: discarding it is
+            # what made the original failure a bare "exit code 1".
+            if keys=$(ssh-keyscan -T 10 "$ip" 2>&1) && echo "$keys" | grep -q "ssh-"; then
+              echo "  -> $ip answers on port 22"
+              target="$ip"
+              ssh-keyscan -T 10 -H "$ip" >> ~/.ssh/known_hosts 2>/dev/null || true
+              break
+            fi
+            echo "  -> $ip does not answer on port 22, skipping"
+          done
+
+          if [ -z "$target" ]; then
+            echo "No address of $SSH_HOST accepts ssh. Check the server is up and port 22 is open." >&2
+            exit 1
+          fi
+          echo "Deploying to $target"
+          echo "SSH_TARGET=$target" >> "$GITHUB_ENV"
 
       - name: Install Docker on the server if missing
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
           set -euo pipefail
           if ! command -v docker >/dev/null 2>&1; then
             echo "Installing Docker..."
@@ -115,10 +156,10 @@ jobs:
       - name: Preflight — check ports 80/443 are free
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
           set -uo pipefail
           echo "Listening on 80/443:"
           ss -tlnp 2>/dev/null | grep -E ':(80|443)\s' || echo "  (nothing)"
@@ -133,10 +174,10 @@ jobs:
       - name: Ensure the server has swap headroom
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
           set -euo pipefail
           echo "Memory:"; free -h
           # Runtime headroom for Node and Caddy on a small droplet. The build
@@ -157,10 +198,10 @@ jobs:
       - name: Copy application to the server
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" "mkdir -p $REMOTE_DIR"
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "mkdir -p $REMOTE_DIR"
           # The server needs the compose file, the Caddyfile and the cron
           # script — the application itself arrives as the image. --delete
           # keeps the directory honest, and the excludes are what must survive
@@ -173,7 +214,7 @@ jobs:
             --exclude '*.db' \
             --exclude '.env' \
             --exclude '.secrets' \
-            -e "ssh -o StrictHostKeyChecking=accept-new" \
+            -e "ssh $SSH_OPTS" \
             ./ "$SSH_USER@$SSH_HOST:$REMOTE_DIR/"
 
       # AUTH_SECRET, ADMIN_TOKEN and CRON_SECRET have no external counterpart —
@@ -188,10 +229,10 @@ jobs:
       - name: Ensure long-lived server secrets exist
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
           set -euo pipefail
           # $1 is REMOTE_DIR: this heredoc is quoted so that nothing in it is
           # expanded by the runner, which means the path has to arrive as an
@@ -211,7 +252,7 @@ jobs:
       - name: Write server environment file
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
@@ -231,7 +272,7 @@ jobs:
           # not supplied here. Masked so a later `set -x` or an error message
           # cannot print them into a public log.
           fetch() {
-            sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" "cat $REMOTE_DIR/.secrets/$1"
+            sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "cat $REMOTE_DIR/.secrets/$1"
           }
           AUTH_SECRET="${AUTH_SECRET:-$(fetch auth_secret)}"
           ADMIN_TOKEN="${ADMIN_TOKEN:-$(fetch admin_token)}"
@@ -246,7 +287,7 @@ jobs:
           # This truncates and rewrites the whole file, so the list below is the
           # entire server environment: a value edited on the box by hand
           # survives exactly until the next deploy.
-          cat <<ENVFILE | sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+          cat <<ENVFILE | sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" \
             "cat > $REMOTE_DIR/.env && chmod 600 $REMOTE_DIR/.env"
           APP_IMAGE=$IMAGE:$GITHUB_SHA
           DOMAIN=$DOMAIN
@@ -266,10 +307,10 @@ jobs:
       - name: Reclaim disk space on the server
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
           set -uo pipefail
           echo "=== disk before ==="; df -h / | tail -1
           # A deploy a day leaves a superseded image a day. Unused images only:
@@ -288,13 +329,13 @@ jobs:
       - name: Pull the image and start
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
           REGISTRY_TOKEN: ${{ github.token }}
         run: |
           # The heredoc is piped over stdin, so the token is never an argument
           # to any process and cannot be read out of `ps`.
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<REMOTE
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s <<REMOTE
           set -euo pipefail
           cd $REMOTE_DIR
           # The package inherits the repository's visibility, so the server
@@ -318,10 +359,10 @@ jobs:
       - name: Apply the deployed Caddyfile
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
           set -euo pipefail
           cd "$1"
 
@@ -344,10 +385,10 @@ jobs:
       - name: Wait for health
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" bash -s "$REMOTE_DIR" <<'REMOTE'
           set -uo pipefail
           cd "$1"
           # First boot includes the drizzle migrations and the initial sync of
@@ -383,10 +424,10 @@ jobs:
         if: always()
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
-          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST || 'bhirot-market.com' }}
+          SSH_HOST: ${{ env.SSH_TARGET }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER || 'root' }}
         run: |
-          sshpass -e ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+          sshpass -e ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" \
             "cd $REMOTE_DIR && docker compose ps" || true
           echo "---"
           echo "Public check (may fail until DNS points at the server):"
