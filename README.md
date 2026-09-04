@@ -192,7 +192,7 @@ src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
 src/lib/seo.ts           כותרות, canonical ו-JSON-LD (schema.org)
 src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה
-src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /about, /login
+src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /about, /login
 ```
 
 ## SEO

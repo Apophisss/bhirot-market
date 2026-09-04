@@ -141,7 +141,7 @@ export default async function PortfolioPage() {
 
       <section className="card p-3.5 sm:p-4">
         <h2 className="mb-2 font-bold text-text-strong">היסטוריית עסקאות</h2>
-        <TradeList trades={trades} showMarket showUser={false} emptyText="עדיין לא ביצעת עסקאות" />
+        <TradeList trades={trades} showMarket emptyText="עדיין לא ביצעת עסקאות" />
       </section>
     </div>
   );
