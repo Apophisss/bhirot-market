@@ -92,7 +92,7 @@ for (const item of incoming) {
     featured: Boolean(m.featured),
     status: "open",
     createdAt: typeof m.createdAt === "string" ? m.createdAt : now,
-    createdBy: typeof m.createdBy === "string" ? m.createdBy : "claude-batch",
+    createdBy: typeof m.createdBy === "string" ? m.createdBy : "editorial-batch",
   });
   if (!candidate.success) {
     rejected.push({ slug, reason: candidate.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ") });

@@ -165,7 +165,7 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
       featured: false,
       status: "open",
       createdAt: now.toISOString(),
-      createdBy: `claude-${source}`,
+      createdBy: `editorial-${source}`,
     });
     if (!candidate.success) {
       result.rejected.push({ slug: p.slug, reason: candidate.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ") });
@@ -215,11 +215,11 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
   }
 
   if (!opts.dryRun) {
-    const sync = await upsertMarkets([...toInsert, ...toResolve], `claude-${source}`);
+    const sync = await upsertMarkets([...toInsert, ...toResolve], `editorial-${source}`);
     result.added = sync.added;
     result.resolved = sync.resolved;
     await logAgentRun(
-      `claude-${source}`,
+      `editorial-${source}`,
       `${out.briefingSummary}`.slice(0, 1900),
       { added: sync.added, updated: [], resolved: sync.resolved, ok: true },
     );

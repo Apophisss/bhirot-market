@@ -2,7 +2,7 @@
   "name": "bhirot-market",
   "version": "0.1.0",
   "private": true,
-  "description": "שוק חיזויים (כסף וירטואלי) על בחירות 2026 לכנסת — בסגנון Polymarket, עם שאלות שמתעדכנות כל שעה על ידי Claude",
+  "description": "שוק חיזויים (כסף וירטואלי) על בחירות 2026 לכנסת — בסגנון Polymarket, עם שאלות שמתעדכנות כל שעה על ידי צוות המערכת",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

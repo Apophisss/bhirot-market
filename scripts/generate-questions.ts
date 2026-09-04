@@ -1,5 +1,5 @@
 /**
- * Runs the in-app Claude question generator once against the configured DATABASE_URL.
+ * Runs the in-app question generator once against the configured DATABASE_URL.
  * Requires ANTHROPIC_API_KEY. Pass --dry-run to only print proposals.
  * Run: npm run markets:generate
  */
