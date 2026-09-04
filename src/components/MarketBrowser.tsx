@@ -62,25 +62,47 @@ export function MarketBrowser({
 
   return (
     <section className="space-y-3">
+      {/* the header search only appears from md up — on phones it lives here, above the board */}
+      <form action={basePath} className="md:hidden">
+        {params.sort && <input type="hidden" name="sort" value={params.sort} />}
+        {params.status && <input type="hidden" name="status" value={params.status} />}
+        <label className="relative block">
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </span>
+          <input
+            name="q"
+            type="search"
+            defaultValue={q ?? ""}
+            enterKeyHint="search"
+            placeholder="חיפוש שוק: נתניהו, סקר, בנט…"
+            className="tap w-full rounded-xl border border-border bg-surface-2 py-2.5 pr-10 pl-3 outline-none placeholder:text-muted-2 focus:border-accent focus:bg-surface"
+          />
+        </label>
+      </form>
+
       <CategoryTabs active={category} params={{ q, sort: params.sort, status: params.status, person: params.person }} counts={counts} />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1 text-sm">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="scrollbar-none swipe-x -mx-3 flex items-center gap-1 px-3 text-sm sm:mx-0 sm:px-0">
           <Link
             href={link({ status: "open", show: undefined })}
-            className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+            className={`shrink-0 rounded-lg px-3 py-2 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
           >
             פתוחים
           </Link>
           <Link
             href={link({ status: "resolved", show: undefined })}
-            className={`rounded-lg px-3 py-1.5 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+            className={`shrink-0 rounded-lg px-3 py-2 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
           >
             הוכרעו
           </Link>
           {q && (
-            <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
+            <span className="ms-1 flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs text-muted">
               חיפוש: <strong className="text-text">{q}</strong>
-              <Link href={link({ q: undefined })} className="ms-1 flex text-muted-2 hover:text-no" aria-label="נקה חיפוש">
+              <Link href={link({ q: undefined })} className="ms-1 flex px-1 py-0.5 text-muted-2 hover:text-no" aria-label="נקה חיפוש">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
                 <path d="M6 6l12 12M18 6L6 18" />
               </svg>
@@ -88,9 +110,9 @@ export function MarketBrowser({
             </span>
           )}
           {person && (
-            <span className="ms-2 flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-muted">
+            <span className="ms-1 flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs text-muted">
               מועמד: <strong className="text-text">{person.name}</strong>
-              <Link href={link({ person: undefined })} className="ms-1 flex text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">
+              <Link href={link({ person: undefined })} className="ms-1 flex px-1 py-0.5 text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
                 <path d="M6 6l12 12M18 6L6 18" />
               </svg>
@@ -98,20 +120,20 @@ export function MarketBrowser({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1 text-xs">
+        <div className="scrollbar-none swipe-x -mx-3 flex items-center gap-1 px-3 text-[13px] sm:mx-0 sm:px-0 sm:text-xs">
           <Link
             href="/rapid"
-            className="me-2 inline-flex items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1 font-bold text-accent-2 hover:bg-accent/20"
+            className="pressable me-2 inline-flex shrink-0 items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 font-bold text-accent-2 hover:bg-accent/20"
           >
             <BoltIcon />
             ענו ברצף
           </Link>
-          <span className="me-1 text-muted-2">מיון:</span>
+          <span className="me-1 shrink-0 text-muted-2">מיון:</span>
           {SORTS.map((s) => (
             <Link
               key={s.id}
               href={link({ sort: s.id })}
-              className={`rounded-md px-2 py-1 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+              className={`shrink-0 rounded-md px-2.5 py-1.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
               rel="nofollow"
             >
               {s.label}
@@ -122,7 +144,7 @@ export function MarketBrowser({
 
       {items.length ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {items.map((m) => (
               <MarketCard key={m.id} m={m} />
             ))}
@@ -131,7 +153,7 @@ export function MarketBrowser({
             <div className="flex flex-col items-center gap-1 pt-2">
               <Link
                 href={link({ show: String(shown + PAGE) })}
-                className="rounded-xl border border-border-2 bg-surface px-6 py-2.5 font-semibold text-text hover:bg-surface-2"
+                className="tap pressable flex w-full items-center justify-center rounded-xl border border-border-2 bg-surface px-6 font-semibold text-text hover:bg-surface-2 sm:w-auto"
                 scroll={false}
                 rel="nofollow"
               >
@@ -144,7 +166,7 @@ export function MarketBrowser({
           )}
         </>
       ) : (
-        <div className="card p-12 text-center text-muted">
+        <div className="card p-8 text-center text-muted sm:p-12">
           <p>
             לא נמצאו שווקים. נסו קטגוריה אחרת,{" "}
             <Link href="/" className="text-accent-2 hover:underline">

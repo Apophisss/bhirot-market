@@ -49,6 +49,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // draw under the notch/home indicator; the safe-area utilities keep content clear
+  viewportFit: "cover",
   themeColor: "#0d2a6b",
   colorScheme: "light",
 };
@@ -56,10 +60,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
-      <body className="flex min-h-dvh flex-col">
+      {/* lg:pb-0 drops the room the tab bar reserves once the header nav takes over */}
+      <body className="flex min-h-dvh flex-col lg:pb-0">
         <JsonLd data={siteGraph()} />
         <Header />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-4 sm:px-6">{children}</main>
+        <main className="mx-auto w-full max-w-7xl flex-1 px-3 pb-10 pt-3 sm:px-6 sm:pb-16 sm:pt-4">{children}</main>
         <Footer />
       </body>
     </html>

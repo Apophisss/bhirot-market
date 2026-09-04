@@ -4,7 +4,7 @@ export const SITE_NAME = "בחירות מרקט";
 export const SITE_TAGLINE = "שוק החיזויים של בחירות 2026";
 /** One-line site description, shared by <meta name="description">, the manifest and the JSON-LD graph. */
 export const SITE_DESCRIPTION =
-  "שוק חיזויים בכסף וירטואלי על בחירות 2026 לכנסת: סקרים, קואליציה, משפט נתניהו, חוק הגיוס ועוד. השאלות מתעדכנות כל שעה על ידי צוות המערכת.";
+  "שוק חיזויים בכסף וירטואלי על בחירות 2026 לכנסת: סקרים, קואליציה, משפט נתניהו, חוק הגיוס ועוד. השאלות נכתבות ומוכרעות על ידי צוות המערכת.";
 export const SITE_KEYWORDS = [
   "בחירות 2026",
   "שוק חיזויים",

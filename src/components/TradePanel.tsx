@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { maxBuyAmount, maxSellShares, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
@@ -24,6 +24,19 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   const [input, setInput] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  // the sticky mobile bar (see StickyTradeBar) picks a side and scrolls the panel into view
+  useEffect(() => {
+    const onPick = (e: Event) => {
+      const picked = (e as CustomEvent<Side>).detail;
+      if (picked === "YES" || picked === "NO") {
+        setSide(picked);
+        setAction("BUY");
+      }
+    };
+    window.addEventListener("market:pick-side", onPick);
+    return () => window.removeEventListener("market:pick-side", onPick);
+  }, []);
 
   const state: MarketState = { qYes: market.qYes, qNo: market.qNo, b: market.liquidity };
   const held = side === "YES" ? position?.yesShares ?? 0 : position?.noShares ?? 0;
@@ -93,7 +106,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
 
   if (!market.isTradable) {
     return (
-      <div className="card p-5">
+      <div className="card p-4 sm:p-5">
         <h3 className="mb-2 font-bold text-text-strong">המסחר סגור</h3>
         {market.status === "resolved" ? (
           <p className={`rounded-lg p-3 text-center text-lg font-extrabold ${market.resolution === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}>
@@ -128,7 +141,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
               setInput("");
               setMsg(null);
             }}
-            className={`flex-1 rounded-md py-1.5 text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
+            className={`pressable flex-1 rounded-md py-2 text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
           >
             {a === "BUY" ? "קנייה" : "מכירה"}
           </button>
@@ -138,7 +151,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={() => setSide("YES")}
-          className={`rounded-xl border-2 py-3 text-center font-extrabold transition ${
+          className={`pressable rounded-xl border-2 py-3.5 text-center font-extrabold transition ${
             side === "YES" ? "border-yes bg-yes text-white" : "border-border bg-surface-2 text-yes hover:border-yes/60"
           }`}
         >
@@ -146,7 +159,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
         </button>
         <button
           onClick={() => setSide("NO")}
-          className={`rounded-xl border-2 py-3 text-center font-extrabold transition ${
+          className={`pressable rounded-xl border-2 py-3.5 text-center font-extrabold transition ${
             side === "NO" ? "border-no bg-no text-white" : "border-border bg-surface-2 text-no hover:border-no/60"
           }`}
         >
@@ -175,7 +188,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="0"
-            className="tabular w-full rounded-xl border border-border bg-surface-2 py-3 pe-3 ps-10 text-2xl font-bold outline-none focus:border-accent"
+            className="tabular w-full rounded-xl border border-border bg-surface-2 py-3.5 pe-3 ps-10 text-2xl font-bold outline-none focus:border-accent"
           />
           <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-lg text-muted">{action === "BUY" ? "₪" : "#"}</span>
         </div>
@@ -187,7 +200,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
                 if (action === "BUY") setInput(String(Math.min((Number(input) || 0) + q, limit)));
                 else setInput(Math.min(held * q, sellCap).toFixed(2));
               }}
-              className="flex-1 rounded-lg border border-border bg-surface-2 py-1 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
+              className="pressable min-h-9 flex-1 rounded-lg border border-border bg-surface-2 py-1.5 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
             >
               {action === "BUY" ? `+${q}` : `${Math.round(q * 100)}%`}
             </button>
@@ -195,7 +208,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           {action === "BUY" && balance != null && (
             <button
               onClick={() => setInput(String(Math.floor(limit)))}
-              className="flex-1 rounded-lg border border-border bg-surface-2 py-1 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
+              className="pressable min-h-9 flex-1 rounded-lg border border-border bg-surface-2 py-1.5 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
             >
               מקס
             </button>
@@ -236,7 +249,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           (loggedIn &&
             (!quote || qty <= 0 || overLimit || limit <= 0 || (action === "SELL" && held <= 0) || (action === "BUY" && balance != null && qty > balance)))
         }
-        className={`mt-4 w-full rounded-xl py-3 text-lg font-extrabold text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`pressable mt-4 w-full rounded-xl py-3.5 text-lg font-extrabold text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
           !loggedIn ? "bg-accent hover:bg-accent-2" : side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
         }`}
       >

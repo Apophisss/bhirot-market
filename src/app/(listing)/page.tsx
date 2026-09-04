@@ -98,7 +98,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const rest = skip.size ? visible.filter((m) => !skip.has(m.id)) : visible;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {indexable && (
         <JsonLd
           data={collectionPage({
@@ -110,42 +110,74 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         />
       )}
 
+      {/* signed-in phone users skip the pitch and land straight on the board */}
+      {!filtered && session?.user && (
+        <section className="card flex items-center justify-between gap-3 p-3 sm:hidden">
+          <Countdown variant="card" />
+          <div className="tabular shrink-0 text-left text-[11px] leading-tight text-muted">
+            <div>
+              <strong className="text-text-strong">{stats.open}</strong> שווקים
+            </div>
+            <div>
+              <strong className="text-text-strong">{money(stats.volume, { compact: true })}</strong> נפח
+            </div>
+          </div>
+        </section>
+      )}
+
       {!filtered && (
-        <section className="hero-dark relative overflow-hidden rounded-3xl border border-brand-deep">
+        <section
+          className={`hero-dark relative overflow-hidden rounded-2xl border border-brand-deep sm:rounded-3xl ${
+            session?.user ? "hidden sm:block" : ""
+          }`}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/hero.svg" alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-l from-ink/90 via-brand-deep/70 to-brand-deep/20" />
-          <div className="relative flex flex-col gap-5 p-6 sm:p-10 lg:flex-row lg:items-end lg:justify-between">
+          <div className="relative flex flex-col gap-4 p-5 sm:gap-5 sm:p-8 lg:flex-row lg:items-end lg:justify-between lg:p-10">
             <div className="max-w-2xl">
               <AgentBadge />
-              <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">{SITE_TAGLINE}</h1>
-              <p className="mt-3 max-w-xl text-base text-white/75 sm:text-lg">
+              <h1 className="mt-3 text-[25px] font-black leading-tight text-white sm:mt-4 sm:text-4xl lg:text-5xl">{SITE_TAGLINE}</h1>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/75 sm:mt-3 sm:text-lg">
                 סקרים, קואליציות, משפטים ומהלכים פוליטיים. כרגע פתוחות
                 {" "}
                 <strong className="text-white">{stats.open} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
               </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/rapid" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+              <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-3">
+                <Link
+                  href="/rapid"
+                  className="tap pressable inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft sm:py-2.5"
+                >
                   <BoltIcon size={16} />
                   מצב זריז · {stats.open} שאלות ברצף
                 </Link>
                 {session?.user ? (
-                  <Link href="/portfolio" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
+                  <Link
+                    href="/portfolio"
+                    className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
+                  >
                     לתיק שלי
                   </Link>
                 ) : (
-                  <Link href="/login" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
-                    התחברות וקבלת ₪10,000 וירטואליים
+                  <Link
+                    href="/login"
+                    className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 text-center font-semibold text-white hover:bg-white/20"
+                  >
+                    <span className="sm:hidden">התחברות · ₪10,000 וירטואליים</span>
+                    <span className="hidden sm:inline">התחברות וקבלת ₪10,000 וירטואליים</span>
                   </Link>
                 )}
-                <Link href="/about" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
+                <Link
+                  href="/about"
+                  className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
+                >
                   איך זה עובד?
                 </Link>
               </div>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
               <Countdown />
-              <div className="flex flex-wrap gap-4 text-xs text-white/70">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-white/70 sm:flex sm:flex-wrap">
                 <span><strong className="tabular text-white">{stats.open}</strong> שווקים פתוחים</span>
                 <span><strong className="tabular text-white">{stats.resolved}</strong> הוכרעו</span>
                 <span><strong className="tabular text-white">{money(stats.volume, { compact: true })}</strong> נפח</span>
@@ -159,14 +191,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {showCandidates && <PmCandidates counts={peopleCounts} active={person?.id} />}
       {person && (
         <header className="space-y-1">
-          <h1 className="text-2xl font-extrabold text-text-strong">{person.name}</h1>
-          <p className="max-w-3xl text-sm text-muted">כל שוקי החיזוי הפתוחים שנוגעים ל{person.name}.</p>
+          <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">{person.name}</h1>
+          <p className="max-w-3xl text-[13px] text-muted sm:text-sm">כל שוקי החיזוי הפתוחים שנוגעים ל{person.name}.</p>
         </header>
       )}
       {status === "resolved" && !q && (
         <header className="space-y-1">
-          <h1 className="text-2xl font-extrabold text-text-strong">שווקים שהוכרעו</h1>
-          <p className="max-w-3xl text-sm text-muted">{RESOLVED_DESCRIPTION}</p>
+          <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">שווקים שהוכרעו</h1>
+          <p className="max-w-3xl text-[13px] text-muted sm:text-sm">{RESOLVED_DESCRIPTION}</p>
         </header>
       )}
 
@@ -174,14 +206,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {closingSoon.length > 0 && (
         <section className="space-y-3">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-bold text-text-strong">נסגר היום או מחר</h2>
-            <Link href="/?sort=closing" className="text-sm text-accent-2 hover:underline" rel="nofollow">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 className="text-base font-bold text-text-strong sm:text-lg">נסגר היום או מחר</h2>
+            <Link href="/?sort=closing" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
               כל השאלות לפי מועד סגירה
             </Link>
           </div>
-          <p className="-mt-1 text-sm text-muted">שאלות שההכרעה שלהן מגיעה בתוך יום־יומיים.</p>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <p className="-mt-1 text-[13px] text-muted sm:text-sm">שאלות שההכרעה שלהן מגיעה בתוך יום־יומיים.</p>
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {closingSoon.map((m) => (
               <MarketCard key={m.id} m={m} />
             ))}
@@ -191,8 +223,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {featured.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-text-strong">שאלות מובילות</h2>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <h2 className="text-base font-bold text-text-strong sm:text-lg">שאלות מובילות</h2>
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {featured.map((m) => (
               <MarketCard key={m.id} m={m} />
             ))}
@@ -213,11 +245,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {recentlyResolved.length > 0 && (
         <section className="space-y-3">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-bold text-text-strong">הוכרעו לאחרונה</h2>
-            <Link href="/?status=resolved" className="text-sm text-accent-2 hover:underline">כל ההכרעות</Link>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 className="text-base font-bold text-text-strong sm:text-lg">הוכרעו לאחרונה</h2>
+            <Link href="/?status=resolved" className="-my-1 inline-flex shrink-0 items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm">כל ההכרעות</Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {recentlyResolved.map((m) => (
               <MarketCard key={m.id} m={m} />
             ))}

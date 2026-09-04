@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default async function AboutPage() {
   const last = await getLastAgentRun();
   return (
-    <article className="mx-auto max-w-3xl space-y-8">
+    <article className="mx-auto max-w-3xl space-y-5 sm:space-y-8">
       <JsonLd data={faqGraph()} />
       <JsonLd
         data={breadcrumbs([
@@ -32,8 +32,8 @@ export default async function AboutPage() {
         ])}
       />
       <header>
-        <h1 className="text-3xl font-black text-text-strong">איך {SITE_NAME} עובד</h1>
-        <p className="mt-2 text-muted">
+        <h1 className="text-2xl font-black text-text-strong sm:text-3xl">איך {SITE_NAME} עובד</h1>
+        <p className="mt-2 text-[15px] text-muted">
           שוק חיזויים בסגנון Polymarket על הבחירות לכנסת ה־26 ({fmtDate(ELECTION_DATE)}) — בכסף וירטואלי בלבד, בלי הימורים ובלי כסף אמיתי.
         </p>
       </header>
@@ -123,7 +123,21 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      <Section title="8. גילוי נאות">
+      <Section title="8. הגרף ההיסטורי — אומדן, לא מסחר" id="estimate">
+        <p>
+          שוק חדש נפתח עם נקודת מחיר אחת בלבד, ולכן הגרף שלו היה שטוח לגמרי עד לעסקה הראשונה. כדי שיהיה מה לראות,
+          האתר מצייר לפני מועד הפתיחה <strong>קו מקווקו של אומדן</strong> — מגמה משוחזרת ולא מסחר שקרה באמת.
+          הקו המקווקו, הרקע המקווקו והתווית ״אומדן״ מסמנים בדיוק את הקטע הזה; כל מה שמימין לקו ״פתיחת המסחר״ הוא נתון אמיתי.
+        </p>
+        <p>
+          האומדן חסום בכוונה: הוא <strong>לעולם לא מתרחק מהמחיר הרשום ביותר מ־3 נקודות אחוז</strong> (ובשווקים
+          קרובים ל־0% או ל־100% — הרבה פחות, למשל 1 נקודה בשוק של 3%). המחיר הנוכחי, אחוז ה״כן״ שאתם קונים לפיו,
+          נפח המסחר, כל עסקה וכל הכרעה — אמיתיים תמיד ואינם מושפעים מהאומדן. הנקודות המשוערות אינן נשמרות במסד הנתונים,
+          אינן משפיעות על התיק או על לוח המובילים, והן נעלמות מאליהן ברגע שהשוק צובר מסחר אמיתי.
+        </p>
+      </Section>
+
+      <Section title="9. גילוי נאות">
         <p>
           האתר הוא פרויקט קהילתי/הדגמתי ואינו קשור לאף מפלגה, מועמד או גוף תקשורת. השאלות מבוססות על פרסומים פומביים ואינן מהוות עמדה.
           תמונות של אישי ציבור מגיעות מ־Wikimedia Commons תחת רישיונות חופשיים. אין כאן ייעוץ, הימורים או כסף אמיתי.
@@ -131,12 +145,16 @@ export default async function AboutPage() {
       </Section>
 
       <section id="faq" className="space-y-3">
-        <h2 className="text-2xl font-black text-text-strong">שאלות ותשובות</h2>
+        <h2 className="text-xl font-black text-text-strong sm:text-2xl">שאלות ותשובות</h2>
         <div className="space-y-2">
           {FAQ.map((f) => (
-            <details key={f.q} className="card group p-4">
-              <summary className="cursor-pointer list-none font-bold text-text-strong marker:content-none">
-                <span className="me-2 text-muted-2 transition group-open:text-accent">▾</span>
+            <details key={f.q} className="card group p-3.5 sm:p-4">
+              <summary className="flex cursor-pointer list-none items-start py-1 font-bold text-text-strong marker:content-none">
+                <span className="me-2 mt-1.5 inline-flex shrink-0 text-muted-2 transition group-open:rotate-180 group-open:text-accent">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
                 {f.q}
               </summary>
               <p className="mt-2 text-[15px] leading-relaxed text-text">{f.a}</p>
@@ -146,13 +164,13 @@ export default async function AboutPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-2xl font-black text-text-strong">הקטגוריות באתר</h2>
+        <h2 className="text-xl font-black text-text-strong sm:text-2xl">הקטגוריות באתר</h2>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <Link
               key={c.id}
               href={`/category/${c.id}`}
-              className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-muted hover:border-border-2 hover:text-text-strong"
+              className="pressable rounded-full border border-border bg-surface px-3.5 py-2 text-sm text-muted hover:border-border-2 hover:text-text-strong"
             >
               {c.label}
             </Link>
@@ -160,10 +178,19 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <div className="flex flex-wrap gap-3">
-        <Link href="/" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">לשווקים</Link>
-        <Link href="/rapid" className="rounded-xl border border-accent/40 bg-accent/10 px-5 py-2.5 font-semibold text-accent-2 hover:bg-accent/20">למצב זריז</Link>
-        <Link href="/login" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface">התחברות</Link>
+      <div className="grid gap-2 sm:flex sm:gap-3">
+        <Link href="/" className="tap pressable flex items-center justify-center rounded-xl bg-accent px-5 font-bold text-white hover:bg-accent-2">
+          לשווקים
+        </Link>
+        <Link
+          href="/rapid"
+          className="tap pressable flex items-center justify-center rounded-xl border border-accent/40 bg-accent/10 px-5 font-semibold text-accent-2 hover:bg-accent/20"
+        >
+          למצב זריז
+        </Link>
+        <Link href="/login" className="tap pressable flex items-center justify-center rounded-xl border border-border-2 px-5 font-semibold hover:bg-surface">
+          התחברות
+        </Link>
       </div>
     </article>
   );
@@ -171,7 +198,7 @@ export default async function AboutPage() {
 
 function Section({ title, id, children }: { title: string; id?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="card space-y-3 p-5 text-[15px] leading-relaxed text-text">
+    <section id={id} className="card scroll-mt-20 space-y-3 p-4 text-[15px] leading-relaxed text-text sm:p-5">
       <h2 className="text-lg font-bold text-text-strong">{title}</h2>
       {children}
     </section>

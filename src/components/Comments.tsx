@@ -40,7 +40,7 @@ export function Comments({ marketId, comments, loggedIn }: { marketId: string; c
   }
 
   return (
-    <section className="card p-4 sm:p-5">
+    <section className="card p-3.5 sm:p-5">
       <h2 className="mb-3 font-bold text-text-strong">תגובות ({comments.length})</h2>
       {loggedIn ? (
         <form onSubmit={submit} className="mb-4 flex gap-2">
@@ -48,10 +48,14 @@ export function Comments({ marketId, comments, loggedIn }: { marketId: string; c
             value={body}
             onChange={(e) => setBody(e.target.value)}
             maxLength={1000}
+            enterKeyHint="send"
             placeholder="מה דעתך? למה השוק טועה?"
-            className="flex-1 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-accent"
+            className="tap min-w-0 flex-1 rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-base outline-none focus:border-accent sm:text-sm"
           />
-          <button disabled={busy || !body.trim()} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-2 disabled:opacity-40">
+          <button
+            disabled={busy || !body.trim()}
+            className="tap pressable shrink-0 rounded-lg bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-2 disabled:opacity-40"
+          >
             שליחה
           </button>
         </form>

@@ -39,15 +39,15 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   };
 
   return (
-    <div className="mx-auto flex h-[calc(100svh-6rem)] min-h-[600px] w-full max-w-3xl flex-col gap-3">
-      <div className="scrollbar-none -mx-4 flex shrink-0 items-center gap-1 overflow-x-auto px-4 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
+    <div className="deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 sm:gap-3">
+      <div className="scrollbar-none swipe-x -mx-3 flex shrink-0 items-center gap-1 px-3 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
         <div className="flex shrink-0 items-center gap-1">
           <h1 className="me-1 inline-flex items-center gap-1 font-black text-text-strong"><BoltIcon /> מצב זריז</h1>
           {RAPID_SORTS.map((s) => (
             <Link
               key={s.id}
               href={link({ sort: s.id })}
-              className={`rounded-lg px-2 py-1 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+              className={`shrink-0 rounded-lg px-2.5 py-1.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
             >
               {s.label}
             </Link>
@@ -56,13 +56,13 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         <div className="flex shrink-0 items-center gap-1">
           <Link
             href={link({ all: includeAnswered ? undefined : "1" })}
-            className={`rounded-lg border px-2 py-1 font-semibold ${
+            className={`shrink-0 rounded-lg border px-2.5 py-1.5 font-semibold ${
               includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
             }`}
           >
             כולל שאלות שכבר עניתי
           </Link>
-          <Link href="/" className="rounded-lg px-2 py-1 font-semibold text-muted hover:text-text">
+          <Link href="/" className="shrink-0 rounded-lg px-2.5 py-1.5 font-semibold text-muted hover:text-text">
             לרשימה המלאה
           </Link>
         </div>
@@ -71,12 +71,13 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
       <CategoryTabs active={category} params={{ sort: sp.sort, all: sp.all }} basePath="/rapid" className="shrink-0" />
 
       {!loggedIn && (
-        <p className="shrink-0 rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-text">
+        <p className="shrink-0 rounded-xl border border-warn/40 bg-warn/10 px-3 py-1.5 text-[13px] leading-snug text-text sm:py-2 sm:text-sm">
           אתם בתצוגה בלבד.{" "}
           <Link href="/login?callbackUrl=%2Frapid" className="font-bold text-accent-2 hover:underline">
             התחברו
           </Link>{" "}
-          כדי שכל תשובה תהפוך לפוזיציה אמיתית בכסף הווירטואלי שלכם.
+          <span className="hidden sm:inline">כדי שכל תשובה תהפוך לפוזיציה אמיתית בכסף הווירטואלי שלכם.</span>
+          <span className="sm:hidden">כדי שכל תשובה תהפוך לפוזיציה אמיתית.</span>
         </p>
       )}
 
@@ -94,28 +95,28 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
 
 function EmptyFeed({ category, includeAnswered }: { category: string; includeAnswered: boolean }) {
   return (
-    <div className="card flex flex-col items-center gap-3 p-12 text-center">
+    <div className="card flex flex-col items-center gap-3 p-8 text-center sm:p-12">
       <h2 className="text-xl font-extrabold text-text-strong">
         {includeAnswered ? "אין כרגע שאלות פתוחות" : "ענית על כל השאלות הפתוחות"}
       </h2>
       <p className="max-w-md text-sm text-muted">
-        {SITE_TEAM} מוסיף שאלות חדשות כל שעה לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השווקים.
+        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השווקים.
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {!includeAnswered && (
           <Link
             href={category === "all" ? "/rapid?all=1" : `/rapid?category=${category}&all=1`}
-            className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2"
+            className="tap pressable flex items-center justify-center rounded-xl bg-accent px-5 font-bold text-white hover:bg-accent-2"
           >
             הצג גם שאלות שעניתי
           </Link>
         )}
         {category !== "all" && (
-          <Link href="/rapid" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
+          <Link href="/rapid" className="tap pressable flex items-center justify-center rounded-xl border border-border-2 px-5 font-semibold hover:bg-surface-2">
             כל הקטגוריות
           </Link>
         )}
-        <Link href="/" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
+        <Link href="/" className="tap pressable flex items-center justify-center rounded-xl border border-border-2 px-5 font-semibold hover:bg-surface-2">
           לרשימת השווקים
         </Link>
       </div>
