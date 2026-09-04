@@ -20,6 +20,9 @@ export const PM_CANDIDATES: PmCandidate[] = [
   { id: "yair-lapid", list: "ביחד", note: "יו״ר האופוזיציה" },
   { id: "yair-golan", list: "הדמוקרטים", note: "אלוף במיל׳" },
   { id: "avigdor-lieberman", list: "ישראל ביתנו", note: "שר הביטחון לשעבר" },
+  { id: "itamar-ben-gvir", list: "עוצמה יהודית", note: "השר לביטחון לאומי" },
+  { id: "aryeh-deri", list: "ש״ס", note: "יו״ר ש״ס" },
+  { id: "bezalel-smotrich", list: "הציונות הדתית-זהות", note: "שר האוצר" },
   { id: "benny-gantz", list: "כחול לבן", note: "רמטכ״ל לשעבר" },
 ];
 
