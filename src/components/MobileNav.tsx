@@ -10,12 +10,15 @@ const ICONS = {
   trophy: "M7 3h10v5a5 5 0 0 1-10 0V3Zm-2 1v3a2 2 0 0 0 2 2v2a4 4 0 0 1-4-4V4h2Zm14 0h2v3a4 4 0 0 1-4 4v-2a2 2 0 0 0 2-2V4ZM11 14h2v4h3v2H8v-2h3v-4Z",
   wallet: "M3 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1h-4a3 3 0 0 0 0 6h4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Zm14 3h4v2h-4a1 1 0 1 1 0-2Z",
   login: "M10 17v-2H5V9h5V7l5 5-5 5Zm3-14a6 6 0 0 1 6 6v6a6 6 0 0 1-6 6h-1v-2h1a4 4 0 0 0 4-4V9a4 4 0 0 0-4-4h-1V3h1Z",
+  // same glyph as BoltIcon, so rapid mode is marked identically everywhere
+  bolt: "M13.5 2 4 13.5h6L9.5 22 20 10.5h-6.5L13.5 2Z",
 } as const;
 
 type Item = { href: string; label: string; icon: keyof typeof ICONS; stroke?: boolean };
 
 const BASE: Item[] = [
   { href: "/", label: "שווקים", icon: "markets" },
+  { href: "/rapid", label: "מצב זריז", icon: "bolt" },
   { href: "/activity", label: "פעילות", icon: "activity", stroke: true },
   { href: "/leaderboard", label: "מובילים", icon: "trophy" },
 ];
@@ -26,6 +29,9 @@ const BASE: Item[] = [
  */
 export function MobileNav({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname();
+  // rapid mode is a full-screen deck sized against the viewport — a bar over it would
+  // eat the answer buttons on a short phone (the page keeps its own way back out)
+  if (pathname.startsWith("/rapid")) return null;
   const items: Item[] = [
     ...BASE,
     loggedIn ? { href: "/portfolio", label: "התיק שלי", icon: "wallet" } : { href: "/login", label: "התחברות", icon: "login" },
@@ -33,11 +39,12 @@ export function MobileNav({ loggedIn }: { loggedIn: boolean }) {
 
   return (
     <nav
+      data-mobile-nav
       aria-label="ניווט ראשי"
       className="pb-safe px-safe fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 backdrop-blur lg:hidden"
       style={{ boxShadow: "0 -1px 12px rgba(10,16,32,0.06)" }}
     >
-      <ul className="mx-auto flex max-w-lg">
+      <ul className="mx-auto flex max-w-xl">
         {items.map((it) => {
           const active = it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);
           return (
@@ -45,7 +52,7 @@ export function MobileNav({ loggedIn }: { loggedIn: boolean }) {
               <Link
                 href={it.href}
                 aria-current={active ? "page" : undefined}
-                className={`pressable flex h-[60px] flex-col items-center justify-center gap-1 text-[11px] font-semibold ${
+                className={`pressable flex h-[60px] flex-col items-center justify-center gap-1 text-[10px] font-semibold sm:text-[11px] ${
                   active ? "text-accent" : "text-muted"
                 }`}
               >

@@ -193,19 +193,29 @@
   .px-safe {
     padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
   }
-  .pb-nav {
+  /* the tab bar is not on every route (rapid mode hides it), so the page reserves
+     room for it only when it is actually rendered */
+  body:has(nav[data-mobile-nav]) {
     padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   }
   .bottom-nav {
     bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   }
 
-  .tabular {
-    font-variant-numeric: tabular-nums;
+  /* rapid mode owns the screen: the deck fills what is left under the header */
+  .deck-height {
+    height: calc(100svh - 7rem);
+    min-height: 420px;
+  }
+  @media (min-width: 1024px) {
+    .deck-height {
+      height: calc(100svh - 6rem);
+      min-height: 600px;
+    }
   }
 
-  .live-dot {
-    animation: pulse-dot 1.6s ease-in-out infinite;
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 
   .slide-up {
@@ -215,11 +225,6 @@
   .prose-he p + p {
     margin-top: 0.75rem;
   }
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
 }
 
 @keyframes slide-up {

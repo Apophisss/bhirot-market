@@ -40,7 +40,7 @@ export function PmCandidates({ counts = {}, active }: { counts?: Record<string, 
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-base font-bold text-text-strong sm:text-lg">🏛️ המועמדים לראשות הממשלה</h2>
+        <h2 className="text-base font-bold text-text-strong sm:text-lg">המועמדים לראשות הממשלה</h2>
         {active && (
           <Link href="/" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm">
             כל השאלות

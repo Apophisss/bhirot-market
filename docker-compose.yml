@@ -1,0 +1,55 @@
+services:
+  app:
+    # Prebuilt image: CI builds and pushes it, the server only ever pulls.
+    # `next build` on a small droplet exhausts V8's heap, and a build there
+    # would also make every deploy as slow as a cold npm install.
+    image: ${APP_IMAGE:-bhirot-market:local}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # The SQLite file lives on the named volume, never in the image — an
+      # image is replaced on every deploy and the balances are not.
+      DATABASE_URL: file:/data/bhirot.db
+    volumes:
+      - bhirot-data:/data
+    expose:
+      - '3000'
+
+  # The hourly clock that vercel.json used to provide. One HTTP request an
+  # hour, so it is a curl image rather than a second copy of the app.
+  cron:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      # This one variable and no more. `env_file: .env` here would hand the
+      # auth secret and the Anthropic key to a container that needs a single
+      # bearer token.
+      CRON_SECRET: ${CRON_SECRET:-}
+    volumes:
+      - ./scripts/cron-refresh.sh:/cron-refresh.sh:ro
+    entrypoint: ['/bin/sh', '/cron-refresh.sh']
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      # Set DOMAIN in .env; Caddy then issues and renews the Let's Encrypt
+      # certificate on its own.
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  bhirot-data:
+  caddy-data:
+  caddy-config:

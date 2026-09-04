@@ -110,7 +110,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
         <h3 className="mb-2 font-bold text-text-strong">המסחר סגור</h3>
         {market.status === "resolved" ? (
           <p className={`rounded-lg p-3 text-center text-lg font-extrabold ${market.resolution === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}>
-            התוצאה: {market.resolution === "YES" ? "כן ✓" : "לא ✗"}
+            התוצאה: {market.resolution === "YES" ? "כן" : "לא"}
           </p>
         ) : market.status === "cancelled" ? (
           <p className="rounded-lg bg-surface-2 p-3 text-center font-bold text-muted">השוק בוטל והכסף הוחזר</p>

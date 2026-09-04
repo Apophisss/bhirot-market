@@ -6,7 +6,9 @@ import { getMarket, getPriceHistory, getRecentTrades, getComments, getRelatedMar
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
-import { SITE_TEAM, isTeamAuthored } from "@/lib/config";
+import { SITE_NAME, SITE_TEAM, isTeamAuthored } from "@/lib/config";
+import { absUrl, clamp, marketGraph } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 import { getPerson } from "@/lib/content";
 import { money, fmtDateTime, closesLabel, timeAgo } from "@/lib/format";
 import { PriceChart } from "@/components/PriceChart";
@@ -24,16 +26,43 @@ type Params = Promise<{ slug: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const m = await getMarket(slug);
-  if (!m) return { title: "לא נמצא" };
+  // metadata resolves before the streaming shell is flushed, so notFound() here
+  // still yields a real 404 status instead of a soft 404
+  if (!m) notFound();
+
+  const cat = getCategory(m.category);
+  const url = `/market/${m.id}`;
+  const odds = `${Math.round(m.probability * 100)}% כן`;
+  const state =
+    m.status === "resolved"
+      ? `הוכרע: ${m.resolution === "YES" ? "כן" : "לא"}.`
+      : m.status === "cancelled"
+        ? "השוק בוטל."
+        : `${odds} · נסגר ${fmtDateTime(m.closesAt)}.`;
+  const description = clamp(`${state} ${m.subtitle ?? m.description}`, 165);
+  // person photos are portraits — the wide site card reads better when they are shared
+  const ogImage = m.image.startsWith("/people/") ? "/og.png" : m.image;
+
   return {
     title: m.title,
-    description: m.subtitle ?? m.description.slice(0, 160),
+    description,
+    keywords: [...m.tags, cat.label, "שוק חיזויים", "בחירות 2026"],
+    alternates: { canonical: url },
+    // a cancelled question keeps its page for anyone holding a link, but adds nothing to the index
+    ...(m.status === "cancelled" ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
-      title: m.title,
-      description: m.subtitle ?? undefined,
-      images: [m.image.startsWith("/people/") ? "/og.png" : m.image],
+      type: "article",
+      url,
+      title: `${m.title} | ${SITE_NAME}`,
+      description,
+      publishedTime: new Date(m.createdAt).toISOString(),
+      modifiedTime: new Date(m.updatedAt).toISOString(),
+      section: cat.label,
+      tags: m.tags,
+      authors: [absUrl("/about")],
+      images: [{ url: ogImage, alt: m.title }],
     },
-    twitter: { card: "summary_large_image", images: ["/og.png"] },
+    twitter: { card: "summary_large_image", title: m.title, description, images: [ogImage] },
   };
 }
 
@@ -58,10 +87,11 @@ export default async function MarketPage({ params, searchParams }: { params: Par
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6">
+      <JsonLd data={marketGraph(market)} />
       <div className="space-y-4 sm:space-y-5">
-        <nav className="-my-1 text-xs text-muted">
+        <nav className="-my-1 text-xs text-muted" aria-label="פירורי לחם">
           <Link href="/" className="inline-block py-1 hover:text-text">שווקים</Link> ‹{" "}
-          <Link href={`/?category=${cat.id}`} className="inline-block py-1 hover:text-text">{cat.label}</Link>
+          <Link href={`/category/${cat.id}`} className="inline-block py-1 hover:text-text">{cat.label}</Link>
         </nav>
 
         <header className="flex gap-3 sm:gap-4">
@@ -69,12 +99,12 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
               <span className="rounded-md px-1.5 py-0.5 font-semibold" style={{ background: `${cat.accent}22`, color: cat.accent }}>
-                {cat.emoji} {cat.label}
+                {cat.label}
               </span>
               <span className="tabular">{money(market.volume, { compact: true })} נפח</span>
               <span>·</span>
               <span>{market.status === "open" ? closesLabel(market.closesAt) : market.status === "resolved" ? `הוכרע ${market.resolvedAt ? timeAgo(market.resolvedAt) : ""}` : "בוטל"}</span>
-              {isTeamAuthored(market.createdBy) && <span title={`נוסף על ידי ${SITE_TEAM}`}>· ✍️ {SITE_TEAM}</span>}
+              {isTeamAuthored(market.createdBy) && <span>· נוסף על ידי {SITE_TEAM}</span>}
             </div>
             <h1 className="text-lg font-extrabold leading-tight text-text-strong sm:text-2xl">{market.title}</h1>
             {market.subtitle && <p className="mt-1 text-sm text-muted">{market.subtitle}</p>}
@@ -139,7 +169,8 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           {market.tags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {market.tags.map((t) => (
-                <Link key={t} href={`/?q=${encodeURIComponent(t)}`} className="rounded-full bg-surface-2 px-2.5 py-1.5 text-xs text-muted hover:text-text">
+                <Link key={t} href={`/?q=${encodeURIComponent(t)}`}
+                  rel="nofollow" className="rounded-full bg-surface-2 px-2.5 py-1.5 text-xs text-muted hover:text-text">
                   #{t}
                 </Link>
               ))}

@@ -100,7 +100,7 @@ export function PriceChart({ points, current, isOpen }: { points: Point[]; curre
             <span className="tabular text-2xl font-extrabold text-text-strong sm:text-3xl">{pct(hoverPt ? hoverPt.p : current, 1)}</span>
             {!hoverPt && data.length > 1 && (
               <span className={`tabular text-sm font-semibold ${change >= 0 ? "text-yes" : "text-no"}`}>
-                {change >= 0 ? "▲" : "▼"} {Math.abs(change * 100).toFixed(1)} נק׳
+                {`${change >= 0 ? "+" : "-"}${Math.abs(change * 100).toFixed(1)} נק׳`}
               </span>
             )}
             {hoverPt && <span className="text-xs text-muted">{fmtTip.format(hoverPt.t)}</span>}

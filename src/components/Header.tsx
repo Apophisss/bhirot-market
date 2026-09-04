@@ -9,6 +9,7 @@ import { MobileNav } from "./MobileNav";
 
 const NAV = [
   { href: "/", label: "שווקים" },
+  { href: "/rapid", label: "מצב זריז" },
   { href: "/activity", label: "פעילות" },
   { href: "/leaderboard", label: "מובילים" },
   { href: "/about", label: "איך זה עובד" },
@@ -35,9 +36,15 @@ export async function Header() {
             </span>
           </Link>
 
+          {/* below md the search lives above the board itself (see MarketBrowser) */}
           <form action="/" className="hidden flex-1 md:block">
             <label className="relative block max-w-md">
-              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-2">🔎</span>
+              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+              </span>
               <input
                 name="q"
                 type="search"
@@ -55,6 +62,7 @@ export async function Header() {
             ))}
           </nav>
 
+          {/* on phones and tablets the tab bar at the bottom carries the navigation */}
           <div className="ms-auto flex shrink-0 items-center gap-2 lg:ms-0">
             {user ? (
               <>

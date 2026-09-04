@@ -1,0 +1,31 @@
+# No global `email` directive: an empty value makes Caddy fail to parse this
+# file at all, which would take the site down over an optional setting.
+# Certificates issue and renew without an ACME account; the only thing lost is
+# expiry notification mail. To opt in, add a global block above with:
+#   { email you@example.com }
+
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	# Cache policy is deliberately not here. Next already marks the hashed
+	# /_next/static assets immutable, and a `header` line beside a
+	# reverse_proxy either appends a second Cache-Control to what the app sent
+	# or, with a delete in front of it, removes both — neither of which is
+	# worth having Caddy disagree with the app about. Anything to change lives
+	# in next.config.ts, the one file that sees every request.
+}
+
+# Needs its own A record. Until that exists Caddy logs a certificate error for
+# this block and keeps serving the apex domain normally.
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
+
+# Catch-all on plain HTTP for any host that is not the domain above — mainly
+# the bare IP, so a deploy can be verified before DNS has propagated.
+:80 {
+	reverse_proxy app:3000
+}

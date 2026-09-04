@@ -3,28 +3,49 @@ import { Heebo } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/config";
+import { JsonLd } from "@/components/JsonLd";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "@/lib/config";
+import { siteGraph } from "@/lib/seo";
 
 const heebo = Heebo({ subsets: ["hebrew", "latin"], variable: "--font-heebo", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: `${SITE_NAME} — ${SITE_TAGLINE}`, template: `%s | ${SITE_NAME}` },
-  description:
-    "שוק חיזויים בכסף וירטואלי על בחירות 2026 לכנסת: סקרים, קואליציה, משפט נתניהו, חוק הגיוס ועוד. השאלות מתעדכנות כל שעה על ידי צוות המערכת.",
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
   applicationName: SITE_NAME,
+  authors: [{ name: `${SITE_TEAM}, ${SITE_NAME}`, url: `${SITE_URL}/about` }],
+  creator: SITE_TEAM,
+  publisher: SITE_NAME,
+  category: "politics",
+  manifest: "/manifest.webmanifest",
+  formatDetection: { telephone: false, email: false, address: false },
+  // canonicals are set per page — a canonical here would be inherited by every route
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
   openGraph: {
     siteName: SITE_NAME,
     locale: "he_IL",
     type: "website",
+    url: "/",
     title: `${SITE_NAME} — ${SITE_TAGLINE}`,
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: SITE_TAGLINE }],
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: `${SITE_NAME} — ${SITE_TAGLINE}` }],
   },
-  twitter: { card: "summary_large_image", images: ["/og.png"] },
-  icons: { icon: "/logo.svg", apple: "/logo.svg" },
-  // the site is full of numbers and dates; Safari otherwise turns them into phone links
-  formatDetection: { telephone: false, date: false, address: false },
-  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    images: ["/og.png"],
+  },
+  icons: { icon: [{ url: "/logo.svg", type: "image/svg+xml" }], shortcut: "/logo.svg" },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 export const viewport: Viewport = {
@@ -32,15 +53,16 @@ export const viewport: Viewport = {
   initialScale: 1,
   // draw under the notch/home indicator; the safe-area utilities keep content clear
   viewportFit: "cover",
+  themeColor: "#0d2a6b",
   colorScheme: "light",
-  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
-      {/* pb-nav keeps the page clear of the fixed mobile tab bar */}
-      <body className="pb-nav flex min-h-dvh flex-col lg:pb-0">
+      {/* lg:pb-0 drops the room the tab bar reserves once the header nav takes over */}
+      <body className="flex min-h-dvh flex-col lg:pb-0">
+        <JsonLd data={siteGraph()} />
         <Header />
         <main className="mx-auto w-full max-w-7xl flex-1 px-3 pb-10 pt-3 sm:px-6 sm:pb-16 sm:pt-4">{children}</main>
         <Footer />

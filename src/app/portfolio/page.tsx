@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
@@ -6,9 +7,14 @@ import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money, signedMoney, pct, shares as fmtShares, agora } from "@/lib/format";
 import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
+import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "התיק שלי" };
+export const metadata: Metadata = {
+  title: "התיק שלי",
+  // personal, login-gated page: never index it
+  robots: { index: false, follow: false, nocache: true },
+};
 
 export default async function PortfolioPage() {
   const user = await currentUser();
@@ -22,7 +28,16 @@ export default async function PortfolioPage() {
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <h1 className="truncate text-xl font-extrabold text-text-strong sm:text-2xl">התיק של {user.name}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="min-w-0 truncate text-xl font-extrabold text-text-strong sm:text-2xl">התיק של {user.name}</h1>
+        <Link
+          href="/rapid"
+          className="pressable inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-bold text-accent-2 hover:bg-accent/20"
+        >
+          <BoltIcon />
+          סבב זריז
+        </Link>
+      </div>
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <StatTile label="שווי כולל" value={money(netWorth)} hint={`התחלת עם ${money(STARTING_BALANCE)}`} />
         <StatTile label="רווח/הפסד כולל" value={signedMoney(totalPnl)} tone={totalPnl >= 0 ? "yes" : "no"} hint={`ממומש ${signedMoney(realized)}`} />
@@ -34,7 +49,6 @@ export default async function PortfolioPage() {
         <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">פוזיציות פתוחות ({openHoldings.length})</h2>
         {openHoldings.length ? (
           <>
-            {/* phones get a card per position — a seven-column table is unreadable at 360px */}
             <ul className="divide-y divide-border sm:hidden">
               {openHoldings.map((h) => (
                 <li key={`${h.market.id}-${h.side}-m`} className="p-3.5">
@@ -63,43 +77,44 @@ export default async function PortfolioPage() {
             </ul>
 
             <div className="hidden overflow-x-auto sm:block">
-              <table className="w-full text-sm">
-                <thead className="bg-surface-2 text-xs text-muted">
-                  <tr>
-                    <th className="px-4 py-2 text-right font-medium">שוק</th>
-                    <th className="px-3 py-2 text-right font-medium">צד</th>
-                    <th className="px-3 py-2 text-right font-medium">מניות</th>
-                    <th className="px-3 py-2 text-right font-medium">מחיר ממוצע</th>
-                    <th className="px-3 py-2 text-right font-medium">מחיר נוכחי</th>
-                    <th className="px-3 py-2 text-right font-medium">שווי</th>
-                    <th className="px-3 py-2 text-right font-medium">רווח/הפסד</th>
-                    <th className="px-3 py-2"></th>
+            <table className="w-full text-sm">
+              <thead className="bg-surface-2 text-xs text-muted">
+                <tr>
+                  <th className="px-4 py-2 text-right font-medium">שוק</th>
+                  <th className="px-3 py-2 text-right font-medium">צד</th>
+                  <th className="px-3 py-2 text-right font-medium">מניות</th>
+                  <th className="px-3 py-2 text-right font-medium">מחיר ממוצע</th>
+                  <th className="px-3 py-2 text-right font-medium">מחיר נוכחי</th>
+                  <th className="px-3 py-2 text-right font-medium">שווי</th>
+                  <th className="px-3 py-2 text-right font-medium">רווח/הפסד</th>
+                  <th className="px-3 py-2"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {openHoldings.map((h) => (
+                  <tr key={`${h.market.id}-${h.side}`} className="hover:bg-surface-2/60">
+                    <td className="max-w-md px-4 py-2.5">
+                      <Link href={`/market/${h.market.id}`} className="line-clamp-2 font-medium text-text hover:text-accent-2">{h.market.title}</Link>
+                    </td>
+                    <td className={`px-3 py-2.5 font-bold ${h.side === "YES" ? "text-yes" : "text-no"}`}>{h.side === "YES" ? "כן" : "לא"}</td>
+                    <td className="tabular px-3 py-2.5">{fmtShares(h.shares)}</td>
+                    <td className="tabular px-3 py-2.5">{agora(h.avgPrice)}</td>
+                    <td className="tabular px-3 py-2.5">{pct(h.currentPrice, 1)}</td>
+                    <td className="tabular px-3 py-2.5 font-semibold">{money(h.value, { decimals: true })}</td>
+                    <td className={`tabular px-3 py-2.5 font-semibold ${h.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.pnl)}</td>
+                    <td className="px-3 py-2.5">
+                      <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">סחר</Link>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {openHoldings.map((h) => (
-                    <tr key={`${h.market.id}-${h.side}`} className="hover:bg-surface-2/60">
-                      <td className="max-w-md px-4 py-2.5">
-                        <Link href={`/market/${h.market.id}`} className="line-clamp-2 font-medium text-text hover:text-accent-2">{h.market.title}</Link>
-                      </td>
-                      <td className={`px-3 py-2.5 font-bold ${h.side === "YES" ? "text-yes" : "text-no"}`}>{h.side === "YES" ? "כן" : "לא"}</td>
-                      <td className="tabular px-3 py-2.5">{fmtShares(h.shares)}</td>
-                      <td className="tabular px-3 py-2.5">{agora(h.avgPrice)}</td>
-                      <td className="tabular px-3 py-2.5">{pct(h.currentPrice, 1)}</td>
-                      <td className="tabular px-3 py-2.5 font-semibold">{money(h.value, { decimals: true })}</td>
-                      <td className={`tabular px-3 py-2.5 font-semibold ${h.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.pnl)}</td>
-                      <td className="px-3 py-2.5">
-                        <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">סחר</Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
             </div>
           </>
         ) : (
           <p className="p-6 text-center text-sm text-muted">
-            אין פוזיציות פתוחות. <Link href="/" className="text-accent-2 hover:underline">בחרו שוק והתחילו</Link>.
+            אין פוזיציות פתוחות. התחילו <Link href="/rapid" className="text-accent-2 hover:underline">במצב זריז</Link> או{" "}
+            <Link href="/" className="text-accent-2 hover:underline">בחרו שוק מהרשימה</Link>.
           </p>
         )}
       </section>
