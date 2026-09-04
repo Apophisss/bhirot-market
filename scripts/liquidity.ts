@@ -69,6 +69,9 @@ function auditFile() {
   if (off) console.log("the rest are only worth re-pricing if they have no trades yet — liquidity is frozen once a market is live.");
 }
 
+// piping into `head` closes stdout early; that is not an error worth a stack trace
+process.stdout.on("error", () => {});
+
 const args = process.argv.slice(2);
 const flag = (name: string) => {
   const i = args.indexOf(`--${name}`);
