@@ -150,7 +150,11 @@ export default async function AboutPage() {
           {FAQ.map((f) => (
             <details key={f.q} className="card group p-4">
               <summary className="cursor-pointer list-none font-bold text-text-strong marker:content-none">
-                <span className="me-2 text-muted-2 transition group-open:text-accent">▾</span>
+                <span className="me-2 inline-flex text-muted-2 transition group-open:rotate-180 group-open:text-accent">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
                 {f.q}
               </summary>
               <p className="mt-2 text-[15px] leading-relaxed text-text">{f.a}</p>

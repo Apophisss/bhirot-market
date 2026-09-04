@@ -99,7 +99,7 @@ function EmptyFeed({ category, includeAnswered }: { category: string; includeAns
         {includeAnswered ? "אין כרגע שאלות פתוחות" : "ענית על כל השאלות הפתוחות"}
       </h2>
       <p className="max-w-md text-sm text-muted">
-        {SITE_TEAM} מוסיף שאלות חדשות כל שעה לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השווקים.
+        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השווקים.
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {!includeAnswered && (

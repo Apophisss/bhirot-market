@@ -48,7 +48,7 @@ let worstRatio = 0;
 let worstCase = "";
 
 function fail(invariant: string, label: string, detail: unknown): never {
-  console.error(`\n✗ ${invariant} — ${label}`);
+  console.error(`\nFAIL ${invariant} — ${label}`);
   console.error(JSON.stringify(detail, null, 2));
   process.exit(1);
 }
