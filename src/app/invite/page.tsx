@@ -39,7 +39,7 @@ export default async function InvitePage() {
         <img src="/hero.svg" alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-l from-ink/90 via-brand-deep/70 to-brand-deep/20" />
         <div className="relative">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/85">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[13px] font-semibold text-white/85">
             🎁 תוכנית ההזמנות
           </span>
           <h1 className="mt-3 text-[25px] font-black leading-tight text-white sm:text-4xl">

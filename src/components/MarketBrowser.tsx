@@ -90,7 +90,7 @@ export function MarketBrowser({
             type="search"
             defaultValue={q ?? ""}
             enterKeyHint="search"
-            placeholder="חיפוש שוק: נתניהו, סקר, בנט…"
+            placeholder="חיפוש שאלה: נתניהו, סקר, בנט…"
             className="tap w-full rounded-xl border border-border bg-surface-2 py-2.5 pr-10 pl-3 outline-none placeholder:text-muted-2 focus:border-accent focus:bg-surface"
           />
         </label>

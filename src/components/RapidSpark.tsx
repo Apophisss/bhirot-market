@@ -117,7 +117,7 @@ export function RapidSpark({ spark, tradeCount }: { spark: Spark; tradeCount: nu
           />
         </div>
       </div>
-      <figcaption className="flex items-center justify-between gap-2 text-[10px] leading-none text-muted-2">
+      <figcaption className="flex items-center justify-between gap-2 text-[13px] leading-none text-muted-2">
         <span className="truncate">מאז {fmtDay.format(pts[0].t)}</span>
         {hasEstimate ? (
           <span className="shrink-0 rounded bg-surface-2 px-1 py-0.5 font-semibold">

@@ -98,7 +98,7 @@ function StatusButtons({
           type="button"
           disabled={disabled}
           onClick={() => onPick(s.id)}
-          className={`pressable rounded-lg border px-2.5 py-1 text-[12px] font-semibold disabled:opacity-50 ${
+          className={`pressable rounded-lg border px-2.5 py-1 text-[13px] font-semibold disabled:opacity-50 ${
             current === s.id ? "border-accent bg-accent text-white" : "border-border text-muted hover:bg-surface-2"
           }`}
         >
@@ -161,13 +161,13 @@ export function MessagesPanel({ items }: { items: MessageItem[] }) {
                 <Avatar name={m.userName ?? m.name} image={m.userImage} seed={`msg-${m.id}`} size={28} />
                 <span className="font-semibold text-text-strong">{m.name || m.userName || "אנונימי"}</span>
                 {m.email && (
-                  <a href={`mailto:${m.email}?subject=${encodeURIComponent(m.subject ? `בחירות מרקט — ${m.subject}` : "בחירות מרקט — תשובה לפנייתך")}`} className="text-[12px] text-accent-2 hover:underline" dir="ltr">
+                  <a href={`mailto:${m.email}?subject=${encodeURIComponent(m.subject ? `בחירות מרקט — ${m.subject}` : "בחירות מרקט — תשובה לפנייתך")}`} className="text-[13px] text-accent-2 hover:underline" dir="ltr">
                     {m.email}
                   </a>
                 )}
-                <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-muted">{contactTopicLabel(m.topic)}</span>
-                <span className="text-[11px] text-muted-2">{timeAgo(m.createdAt)}</span>
-                {m.userName === null && !m.email && <span className="text-[11px] text-muted-2">(ללא פרטי קשר)</span>}
+                <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[13px] font-medium text-muted">{contactTopicLabel(m.topic)}</span>
+                <span className="text-[13px] text-muted-2">{timeAgo(m.createdAt)}</span>
+                {m.userName === null && !m.email && <span className="text-[13px] text-muted-2">(ללא פרטי קשר)</span>}
               </div>
               {m.subject && <p className="font-semibold text-text-strong">{m.subject}</p>}
               <p className="whitespace-pre-wrap break-words text-sm text-text">{m.body}</p>
@@ -205,7 +205,7 @@ export function SuggestionsPanel({ items }: { items: SuggestionItem[] }) {
         <ul className="space-y-3">
           {shown.map((s) => (
             <li key={s.id} className="card space-y-2.5 p-3.5 sm:p-4">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-2">
+              <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-2">
                 <Avatar name={s.userName ?? s.name} image={s.userImage} seed={`sug-${s.id}`} size={24} />
                 <span className="text-[13px] font-semibold text-text">{s.name || s.userName || "אנונימי"}</span>
                 {s.email && <span dir="ltr">{s.email}</span>}
@@ -218,12 +218,12 @@ export function SuggestionsPanel({ items }: { items: SuggestionItem[] }) {
               <p className="text-[15px] font-semibold leading-snug text-text-strong">{s.title}</p>
               {s.description && <p className="whitespace-pre-wrap text-[13px] text-text">{s.description}</p>}
               {s.resolutionCriteria && (
-                <p className="whitespace-pre-wrap rounded-lg bg-surface-2 p-2 text-[12px] text-muted">
+                <p className="whitespace-pre-wrap rounded-lg bg-surface-2 p-2 text-[13px] text-muted">
                   <strong className="text-text">הכרעה: </strong>
                   {s.resolutionCriteria}
                 </p>
               )}
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[13px]">
                 {s.sourceUrl && (
                   <a href={s.sourceUrl} target="_blank" rel="noreferrer nofollow" className="text-accent-2 hover:underline" dir="ltr">
                     מקור ↗
@@ -246,7 +246,7 @@ export function SuggestionsPanel({ items }: { items: SuggestionItem[] }) {
                 {!s.publishedSlug && (
                   <Link
                     href={`/admin/questions?suggestion=${s.id}`}
-                    className="pressable rounded-lg bg-yes px-3 py-1 text-[12px] font-semibold text-white hover:bg-yes-2"
+                    className="pressable rounded-lg bg-yes px-3 py-1 text-[13px] font-semibold text-white hover:bg-yes-2"
                   >
                     פרסום כשאלה
                   </Link>

@@ -136,11 +136,11 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
         </p>
         <div>
           <p className="mb-1 text-[13px] font-semibold text-text-strong">להוסיף גם ל-data/markets.json</p>
-          <p className="mb-2 text-[12px] leading-relaxed text-muted">
+          <p className="mb-2 text-[13px] leading-relaxed text-muted">
             השאלה נשמרה במסד הנתונים בלבד. כדי שהיא תשרוד גם הקמה מחדש של המסד, העתיקו את האובייקט הזה אל מערך
             <code className="mx-1 rounded bg-surface-2 px-1">markets</code> בקובץ, ובצעו commit.
           </p>
-          <textarea readOnly value={done.json} rows={12} className="inp font-mono text-[12px]" dir="ltr" />
+          <textarea readOnly value={done.json} rows={12} className="inp font-mono text-[13px]" dir="ltr" />
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -183,7 +183,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
 
         <Field label="השאלה" required hint="עברית, מתחילה ב״האם״, נגמרת בסימן שאלה, וכוללת מועד יעד. עד 180 תווים.">
           <input value={title} onChange={(e) => setTitle(e.target.value)} required minLength={10} maxLength={180} className="inp" placeholder="האם …?" />
-          <p className="mt-1 text-left text-[11px] text-muted-2">{title.length}/180</p>
+          <p className="mt-1 text-left text-[13px] text-muted-2">{title.length}/180</p>
         </Field>
 
         <Field label="שורת הסבר (לא חובה)" hint="משפט אחד שמסביר את ההקשר. לא מוצג במצב זריז.">
@@ -277,7 +277,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
               </button>
             ))}
           </div>
-          <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{appealLevel(appeal).hint}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{appealLevel(appeal).hint}</p>
         </Field>
 
         <Field
@@ -301,7 +301,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
               </button>
             ))}
           </div>
-          <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{topicalityLevel(topicality).hint}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{topicalityLevel(topicality).hint}</p>
         </Field>
 
         <Field label="אנשים בשאלה" hint="הראשון שנבחר מספק את תמונת הכרטיס. עד 6.">
@@ -320,7 +320,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
                   key={p.id}
                   onClick={() => togglePerson(p.id)}
                   title={p.role}
-                  className={`pressable flex items-center gap-1.5 rounded-full border px-2 py-1 text-[12px] ${
+                  className={`pressable flex items-center gap-1.5 rounded-full border px-2 py-1 text-[13px] ${
                     on ? "border-accent bg-accent text-white" : "border-border bg-surface text-muted hover:border-border-2"
                   }`}
                 >
@@ -329,10 +329,10 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
                 </button>
               );
             })}
-            {!filteredPeople.length && <span className="p-1 text-[12px] text-muted-2">לא נמצא אף אחד בשם הזה.</span>}
+            {!filteredPeople.length && <span className="p-1 text-[13px] text-muted-2">לא נמצא אף אחד בשם הזה.</span>}
           </div>
           {selectedPeople.length > 0 && (
-            <p className="mt-1 text-[11px] text-muted">נבחרו: {selectedPeople.join(", ")}</p>
+            <p className="mt-1 text-[13px] text-muted">נבחרו: {selectedPeople.join(", ")}</p>
           )}
         </Field>
 
@@ -400,11 +400,11 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
             <div className="flex items-start gap-2.5">
               <MarketImage src={previewImage} fallback={cat.cover} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
-                <span className="cat-chip rounded-md px-1.5 py-0.5 text-[11px]" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
+                <span className="cat-chip rounded-md px-1.5 py-0.5 text-[13px]" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
                   {cat.label}
                 </span>
                 <p className="mt-1 line-clamp-3 text-[14px] font-semibold leading-snug text-text-strong">{title.trim() || "האם …?"}</p>
-                {subtitle.trim() && <p className="mt-0.5 line-clamp-2 text-[12px] text-muted">{subtitle}</p>}
+                {subtitle.trim() && <p className="mt-0.5 line-clamp-2 text-[13px] text-muted">{subtitle}</p>}
               </div>
               <ProbabilityGauge p={probabilityPct / 100} size={54} />
             </div>
@@ -413,7 +413,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
               <span className="rounded-lg bg-no/15 py-2 text-center text-no">לא {pct(1 - probabilityPct / 100)}</span>
             </div>
           </article>
-          <dl className="mt-3 space-y-1 text-[11px] text-muted">
+          <dl className="mt-3 space-y-1 text-[13px] text-muted">
             <div className="flex justify-between gap-2">
               <dt>כתובת</dt>
               <dd className="truncate font-mono text-text" dir="ltr">/market/{effectiveSlug}</dd>
@@ -440,7 +440,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
             </div>
           </dl>
         </div>
-        <p className="px-1 text-[11px] leading-relaxed text-muted-2">
+        <p className="px-1 text-[13px] leading-relaxed text-muted-2">
           הפרסום נכנס למסד הנתונים מיד ופותח מסחר. אחרי הפרסום תקבלו את אובייקט ה-JSON להוספה ל-<code>data/markets.json</code>,
           שהוא מקור האמת של הלוח.
         </p>

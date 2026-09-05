@@ -116,6 +116,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         cards={cards}
         loggedIn={loggedIn}
         balance={user?.balance ?? null}
+        includeAnswered={includeAnswered}
       >
         <EmptyFeed category={category} includeAnswered={includeAnswered} />
       </RapidDeck>

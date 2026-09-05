@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { otherSide, sellPrefill, sellSide, sharesOn } from "@/lib/sell";
 import { MAX_BET } from "@/lib/limits";
-import { money, pct, shares as fmtShares, sharePrice, signedMoney, POINTS_SHORT } from "@/lib/format";
+import { money, pct, shares as fmtShares, units, sharePrice, signedMoney, POINTS_SHORT, UNITS_LABEL } from "@/lib/format";
 import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
 import { gaEvent } from "@/lib/gtag";
@@ -32,6 +32,19 @@ export interface TradePanelProps {
 }
 
 type Action = "BUY" | "SELL";
+
+/**
+ * How much of the bottom of the screen the fixed tab bar (and the home indicator
+ * under it) covers.
+ *
+ * Without it the sticky confirm bar never appeared where it was most needed. A
+ * plain observer calls a button "visible" the moment one pixel of it is inside
+ * the viewport — including the 61px strip the tab bar is painted over — so on a
+ * 375x812 phone the confirm button sat at 1,285px, half of it behind the tab bar,
+ * counted as on screen, and no bar came to fetch it. The root is shrunk by this
+ * much and full visibility is required, so "reachable" means what it says.
+ */
+const NAV_CLEARANCE = 76;
 
 /** why there is a ceiling at all — a bare number reads as an arbitrary restriction */
 const CAP_REASON = `עד ${MAX_BET} נקודות לתשובה, כדי שתשובה בודדת לא תזיז את המד ותשאיר אותו הוגן לכולם`;
@@ -87,11 +100,17 @@ export function TradePanel({
     return () => window.removeEventListener("market:pick-side", onPick);
   }, []);
 
-  // the sticky confirm bar exists only while the real button is out of sight
+  // the sticky confirm bar exists while any part of the real button is out of reach
   useEffect(() => {
     const el = confirmRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([entry]) => setConfirmOffScreen(!entry.isIntersecting));
+    // `isIntersecting` is true at a single visible pixel whatever the threshold, so
+    // the ratio is what is read here: anything short of the whole button, clear of
+    // the tab bar, means the decision cannot be confirmed without scrolling.
+    const io = new IntersectionObserver(([entry]) => setConfirmOffScreen(entry.intersectionRatio < 0.999), {
+      rootMargin: `0px 0px -${NAV_CLEARANCE}px 0px`,
+      threshold: [0, 1],
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -236,8 +255,8 @@ export function TradePanel({
           kind: "ok",
           text:
             action === "BUY"
-              ? `ענית ${fmtShares(data.quote.shares)} פעמים ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount, { decimals: true })}`
-              : `החזרת ${fmtShares(data.quote.shares)} תשובות תמורת ${money(data.quote.amount, { decimals: true })}`,
+              ? `ענית ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount)} · ${money(data.quote.payout)} אם צדקת`
+              : `החזרת ${units(data.quote.shares)} תמורת ${money(data.quote.amount)}`,
           // a prediction is worth sharing the moment it is made, and not after
           shareSide: action === "BUY" ? side : undefined,
         });
@@ -280,9 +299,9 @@ export function TradePanel({
         )}
         {position && (position.yesShares > 0 || position.noShares > 0) && (
           <div className="mt-3 text-sm text-muted">
-            התשובות שלך: {position.yesShares > 0 && <span className="text-yes">{fmtShares(position.yesShares)} כן</span>}
+            האחיזה שלך: {position.yesShares > 0 && <span className="text-yes">{units(position.yesShares)} כן</span>}
             {position.yesShares > 0 && position.noShares > 0 && " · "}
-            {position.noShares > 0 && <span className="text-no">{fmtShares(position.noShares)} לא</span>}
+            {position.noShares > 0 && <span className="text-no">{units(position.noShares)} לא</span>}
           </div>
         )}
       </div>
@@ -302,11 +321,14 @@ export function TradePanel({
         ? `תשובה: ${side === "YES" ? "כן" : "לא"}`
         : `החזרה: ${side === "YES" ? "כן" : "לא"}`;
   const confirmTone = !loggedIn ? "bg-accent hover:bg-accent-2" : side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2";
-  // what the button is about to do, in one line: side, points, answers
+  // What the button is about to do, in one line: what it costs and what it pays.
+  // The share count that used to sit here IS the payout — a winning unit pays one
+  // point — so the button said the same number twice, once under a name that made
+  // a single answer read as "27.9 תשובות".
   const confirmSummary = quote
     ? action === "BUY"
-      ? `${money(Math.min(qty, buyLimit))} · ${fmtShares(quote.shares)} תשובות`
-      : `${fmtShares(Math.min(qty, held))} תשובות · ${money(quote.amount, { decimals: true })}`
+      ? `${money(Math.min(qty, buyLimit))} ← ${money(quote.payout)} אם צדקת`
+      : `${units(Math.min(qty, held))} · ${money(quote.amount)}`
     : null;
 
   return (
@@ -325,7 +347,7 @@ export function TradePanel({
             }}
             className={`tap pressable flex-1 rounded-md text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
           >
-            {a === "BUY" ? "קנייה" : "מכירה"}
+            {a === "BUY" ? "תשובה" : "החזרה"}
           </button>
         ))}
       </div>
@@ -351,10 +373,13 @@ export function TradePanel({
               }`}
             >
               {s === "YES" ? "כן" : "לא"}{" "}
-              <span className="tabular text-sm font-semibold opacity-90">{sharePrice(s === "YES" ? market.probability : 1 - market.probability)}</span>
+              {/* the meter, in the site's own price language — a second unit ("0.21 נק׳")
+                  on the same button said the same thing twice, in a language the rest of
+                  the card does not speak */}
+              <span className="tabular text-[15px] font-semibold opacity-90">{pct(s === "YES" ? market.probability : 1 - market.probability)}</span>
               {action === "SELL" && (
-                <span className="tabular block text-[11px] font-semibold opacity-80">
-                  {heldHere > 0 ? `${fmtShares(heldHere)} תשובות` : "אין תשובות"}
+                <span className="tabular block text-[13px] font-semibold opacity-80">
+                  {heldHere > 0 ? units(heldHere) : `אין ${UNITS_LABEL}`}
                 </span>
               )}
             </button>
@@ -365,7 +390,7 @@ export function TradePanel({
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between text-xs text-muted">
           <span title={action === "BUY" ? CAP_REASON : undefined}>
-            {action === "BUY" ? `נקודות (עד ${money(MAX_BET)} לתשובה)` : `תשובות להחזרה (יש לך ${fmtShares(held)})`}
+            {action === "BUY" ? `נקודות (עד ${money(MAX_BET)} לתשובה)` : `${UNITS_LABEL} להחזרה (יש לך ${fmtShares(held)})`}
           </span>
           {balance != null && action === "BUY" && <span className="tabular">ניקוד: {money(balance)}</span>}
         </div>
@@ -380,20 +405,20 @@ export function TradePanel({
           <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
             {heldOther > 0 ? (
               <>
-                אין לך תשובות {side === "YES" ? "כן" : "לא"} בשאלה הזו. יש לך {fmtShares(heldOther)} תשובות{" "}
+                אין לך {UNITS_LABEL} של {side === "YES" ? "כן" : "לא"} בשאלה הזו. יש לך {units(heldOther)} של{" "}
                 {flip === "YES" ? "כן" : "לא"} —{" "}
                 <button onClick={() => pickSide(flip)} className="font-bold underline hover:text-text-strong">
                   להחזרה שלהן
                 </button>
               </>
             ) : (
-              "אין לך תשובות בשאלה הזו, אז אין מה להחזיר. אפשר לענות בלשונית ״תשובה״."
+              "אין לך אחיזה בשאלה הזו, אז אין מה להחזיר. אפשר לענות בלשונית ״תשובה״."
             )}
           </p>
         ) : (
           overLimit && (
             <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
-              {action === "BUY" ? buyLimitNote : `יש לך ${fmtShares(limit)} תשובות להחזרה`}
+              {action === "BUY" ? buyLimitNote : `יש לך ${units(limit)} להחזרה`}
             </p>
           )
         )}
@@ -436,31 +461,56 @@ export function TradePanel({
         </div>
       </div>
 
-      <dl className="mt-4 space-y-1.5 text-sm">
-        {action === "BUY" ? (
-          <>
-            <Row label="מחיר ממוצע לתשובה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
-            <Row label="תשובות שתקבל/י" value={quote ? fmtShares(quote.shares) : "—"} />
-            <Row label="המד אחרי התשובה" value={quote ? pct(quote.priceAfter, 1) : pct(sidePrice, 1)} muted />
-            <Row
-              label="תשלום אם צדקת"
-              value={quote ? `${money(quote.payout, { decimals: true })}` : "—"}
-              hint={quote && qty > 0 ? `(${((quote.payout / qty - 1) * 100).toFixed(0)}%+)` : undefined}
-              strong
-            />
-          </>
-        ) : (
-          <>
-            <Row label="מחיר ממוצע במכירה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
-            <Row label="תקבל/י" value={quote ? money(quote.amount, { decimals: true }) : "—"} strong />
-            <Row
-              label="רווח/הפסד על החלק הנמכר"
-              value={quote && held > 0 ? signedMoney(quote.amount - heldCost * (Math.min(qty, held) / held)) : "—"}
-              muted
-            />
-          </>
-        )}
-      </dl>
+      {/*
+        One line, and the mechanics behind a tap.
+
+        These four rows (average price, units received, the meter afterwards, the
+        payout) pushed the confirm button from 1,043px to 1,285px on an 812px
+        phone — the panel grew by exactly the height of the explanation, and the
+        thing being explained went off the bottom of the screen. Only one of the
+        four is the decision: what this costs and what it pays. The rest is how
+        the market maker got there, and it is one tap away for anyone who wants it.
+      */}
+      <details className="group mt-3 rounded-xl border border-border bg-surface-2 px-3 py-2">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-1 text-[15px] marker:content-none">
+          <span className="text-muted">
+            {action === "BUY" ? "תשלום אם צדקת" : "תקבל/י"}
+            <span className="ms-1.5 text-[13px] text-muted-2">
+              פירוט <span className="inline-block transition group-open:rotate-180">▾</span>
+            </span>
+          </span>
+          <span className="tabular font-extrabold text-yes">
+            {action === "BUY"
+              ? quote
+                ? money(quote.payout)
+                : "—"
+              : quote
+                ? money(quote.amount)
+                : "—"}
+            {action === "BUY" && quote && qty > 0 && (
+              <span className="ms-1 text-[13px] font-normal text-muted">({((quote.payout / qty - 1) * 100).toFixed(0)}%+)</span>
+            )}
+          </span>
+        </summary>
+        <dl className="mt-2 space-y-1.5 border-t border-border pt-2 text-[13px]">
+          {action === "BUY" ? (
+            <>
+              <Row label="מחיר ממוצע ליחידה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
+              <Row label={`${UNITS_LABEL} שתקבל/י`} value={quote ? fmtShares(quote.shares) : "—"} />
+              <Row label="המד אחרי התשובה" value={quote ? pct(quote.priceAfter, 1) : pct(sidePrice, 1)} muted />
+            </>
+          ) : (
+            <>
+              <Row label="מחיר ממוצע בהחזרה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
+              <Row
+                label="רווח/הפסד על החלק שהוחזר"
+                value={quote && held > 0 ? signedMoney(quote.amount - heldCost * (Math.min(qty, held) / held)) : "—"}
+                muted
+              />
+            </>
+          )}
+        </dl>
+      </details>
 
       <button
         ref={confirmRef}
@@ -521,14 +571,14 @@ export function TradePanel({
           </div>
           {position.yesShares > 0 && (
             <div className="flex justify-between">
-              <span className="text-yes">כן · {fmtShares(position.yesShares)} תשובות</span>
-              <span className="tabular">שווי במכירה {money(worth.yes)} · עלות {money(position.yesCost)}</span>
+              <span className="text-yes">כן · {units(position.yesShares)}</span>
+              <span className="tabular">שווי בהחזרה {money(worth.yes)} · עלות {money(position.yesCost)}</span>
             </div>
           )}
           {position.noShares > 0 && (
             <div className="flex justify-between">
-              <span className="text-no">לא · {fmtShares(position.noShares)} תשובות</span>
-              <span className="tabular">שווי במכירה {money(worth.no)} · עלות {money(position.noCost)}</span>
+              <span className="text-no">לא · {units(position.noShares)}</span>
+              <span className="tabular">שווי בהחזרה {money(worth.no)} · עלות {money(position.noCost)}</span>
             </div>
           )}
         </div>

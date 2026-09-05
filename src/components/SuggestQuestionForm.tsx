@@ -111,7 +111,7 @@ export function SuggestQuestionForm({
             placeholder="האם …?"
             className="inp"
           />
-          <p className="mt-1 text-left text-[11px] text-muted-2">{title.length}/180</p>
+          <p className="mt-1 text-left text-[13px] text-muted-2">{title.length}/180</p>
         </Field>
 
         <Field label="קטגוריה">
@@ -190,18 +190,18 @@ export function SuggestQuestionForm({
         >
           {busy ? "שולח…" : "שליחת ההצעה"}
         </button>
-        {!ready && <p className="text-[12px] text-muted-2">כתבו שאלה באורך 10 תווים לפחות כדי לשלוח.</p>}
+        {!ready && <p className="text-[13px] text-muted-2">כתבו שאלה באורך 10 תווים לפחות כדי לשלוח.</p>}
       </div>
 
       <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start">
         <div className="card p-3.5 sm:p-4">
           <h2 className="mb-2 text-[13px] font-bold text-muted">כך זה ייראה בלוח</h2>
           <SuggestionPreview title={title} category={category} imageUrl={imageUrl} probability={probability} />
-          <p className="mt-3 text-[11px] leading-relaxed text-muted-2">
+          <p className="mt-3 text-[13px] leading-relaxed text-muted-2">
             תצוגה מקדימה בלבד. מחיר הפתיחה בפועל, הנזילות והניסוח הסופי נקבעים על ידי צוות המערכת בזמן הפרסום.
           </p>
         </div>
-        <div className="card p-3.5 text-[12px] leading-relaxed text-muted sm:p-4">
+        <div className="card p-3.5 text-[13px] leading-relaxed text-muted sm:p-4">
           <h2 className="mb-1.5 text-[13px] font-bold text-text-strong">מה מתקבל ומה נפסל</h2>
           <ul className="list-inside list-disc space-y-1">
             <li>אירוע ספציפי, עם מועד יעד ומקור פומבי שמכריע אותו.</li>
@@ -239,7 +239,7 @@ export function SuggestionPreview({
           className="h-11 w-11 shrink-0 rounded-lg object-cover"
         />
         <div className="min-w-0 flex-1">
-          <span className="cat-chip rounded-md px-1.5 py-0.5 text-[11px]" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
+          <span className="cat-chip rounded-md px-1.5 py-0.5 text-[13px]" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
             {cat.label}
           </span>
           <p className="mt-1 line-clamp-3 text-[14px] font-semibold leading-snug text-text-strong">

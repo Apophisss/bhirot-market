@@ -8,6 +8,7 @@ import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
 import { AD_CHECK_PARAM, AD_LANDING_COOKIE } from "@/lib/ad-attribution";
 import { shareCard } from "@/lib/seo";
+import { GuestAnswersRecap } from "@/components/GuestAnswersRecap";
 
 const LOGIN_DESCRIPTION = "התחברו וקבלו 10,000 נקודות למשחק הניחושים של בחירות 2026.";
 
@@ -69,6 +70,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <p className="text-sm text-muted">מקבלים {money(STARTING_BALANCE)} ומתחילים לנחש</p>
           </div>
         </div>
+
+        {/* whoever arrives here mid-run is told what they are about to claim, by name */}
+        <GuestAnswersRecap />
 
         {error && (
           <p className="mt-4 rounded-lg border border-no/40 bg-no/10 px-3 py-2 text-sm text-no">

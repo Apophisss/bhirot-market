@@ -14,7 +14,7 @@ export function Countdown({ variant = "hero" }: { variant?: "hero" | "card" | "l
   const days = daysUntil(`${ELECTION_DATE}T00:00:00+03:00`);
   if (variant === "line") {
     return (
-      <div className="tabular text-[11px] text-white/70">
+      <div className="tabular text-[13px] text-white/70">
         הבחירות לכנסת ה־26 <strong className="font-extrabold text-white">{label(days)}</strong>
       </div>
     );
@@ -22,7 +22,7 @@ export function Countdown({ variant = "hero" }: { variant?: "hero" | "card" | "l
   if (variant === "card") {
     return (
       <div className="min-w-0">
-        <div className="text-[11px] leading-tight text-muted">הבחירות לכנסת ה־26</div>
+        <div className="text-[13px] leading-tight text-muted">הבחירות לכנסת ה־26</div>
         <div className="tabular text-sm font-extrabold leading-tight text-text-strong">
           {label(days)} <span className="font-medium text-muted">({fmtDate(ELECTION_DATE)})</span>
         </div>
