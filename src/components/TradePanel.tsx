@@ -8,6 +8,7 @@ import { MAX_BET } from "@/lib/limits";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
 import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
+import { gaEvent } from "@/lib/gtag";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
@@ -102,6 +103,13 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       if (!res.ok || !data.ok) {
         setMsg({ kind: "err", text: data.error ?? "שגיאה" });
       } else {
+        gaEvent("trade", {
+          market_id: market.id,
+          side,
+          trade_action: action,
+          // virtual shekels, reported as a plain number — see gaEvent()
+          amount: Math.round(data.quote.amount * 100) / 100,
+        });
         setMsg({
           kind: "ok",
           text:
