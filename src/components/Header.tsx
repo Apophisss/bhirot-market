@@ -7,12 +7,13 @@ import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
 
+// The leaderboard is deliberately absent: it hangs off the profile (the user menu
+// below and /portfolio), not off the main navigation.
 const NAV = [
   { href: "/", label: "שווקים" },
   { href: "/for-you", label: "מומלץ בשבילי" },
   { href: "/rapid", label: "מצב זריז" },
   { href: "/activity", label: "פעילות" },
-  { href: "/leaderboard", label: "מובילים" },
   { href: "/about", label: "איך זה עובד" },
 ];
 
@@ -78,6 +79,7 @@ export async function Header() {
                   }
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
+                  <Link href="/leaderboard" className="block px-4 py-3 text-sm hover:bg-surface-2">לוח המובילים</Link>
                   <Link href="/for-you" className="block px-4 py-3 text-sm hover:bg-surface-2">מומלץ בשבילי</Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
                   <form action={doSignOut}>
