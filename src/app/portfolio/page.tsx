@@ -62,6 +62,14 @@ export default async function PortfolioPage() {
           >
             לוח המובילים{myRank ? ` · מקום ${myRank}` : ""}
           </Link>
+          {/* הלוח הכללי אנונימי; הדירוג שמעניין באמת הוא מול אנשים שמכירים */}
+          <Link
+            href="/leagues"
+            data-evt="portfolio-friends"
+            className="pressable inline-flex items-center rounded-xl border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-accent hover:text-accent-2"
+          >
+            הליגות שלי
+          </Link>
           <Link
             href="/rapid"
             className="pressable inline-flex items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-bold text-accent-2 hover:bg-accent/20"

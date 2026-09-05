@@ -14,6 +14,8 @@ import { LoginLink } from "./LoginLink";
 import { RapidGuestSync } from "./RapidGuestSync";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { needsSurvey } from "@/lib/preferences-store";
+import { countIncomingRequests } from "@/lib/friends";
+import { countLeagueInvites } from "@/lib/leagues";
 
 // The leaderboard is deliberately absent: it hangs off the profile (the user menu
 // below and /portfolio), not off the main navigation.
@@ -32,7 +34,13 @@ export async function Header() {
   const user = session?.user;
   // תג קטן ליד "ההעדפות שלי" למי שעדיין לא ענה על השאלון — הדרך הקבועה להגיע אליו,
   // גם אחרי ש"לא עכשיו" הסתיר את ההצעה שעל גבי הדפים
-  const askSurvey = await needsSurvey(user?.id);
+  // ובאותה נשימה: בקשות חברות והזמנות לליגה שממתינות לתשובה. בקשה שאיש לא רואה היא
+  // בקשה שלא נענית, ואין באתר שום ערוץ אחר שמודיע עליה
+  const [askSurvey, friendRequests, leagueInvites] = await Promise.all([
+    needsSurvey(user?.id),
+    countIncomingRequests(user?.id),
+    countLeagueInvites(user?.id),
+  ]);
 
   async function doSignOut() {
     "use server";
@@ -92,7 +100,17 @@ export async function Header() {
                 <UserMenu
                   trigger={
                     <>
-                      <Avatar name={user.name} image={user.image} size={30} />
+                      {/* the badges themselves live inside the closed menu, so the avatar
+                          carries a dot — otherwise a waiting request is invisible */}
+                      <span className="relative flex">
+                        <Avatar name={user.name} image={user.image} size={30} />
+                        {friendRequests + leagueInvites > 0 && (
+                          <span
+                            aria-label={`${friendRequests + leagueInvites} בקשות שממתינות`}
+                            className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-surface bg-accent"
+                          />
+                        )}
+                      </span>
                       <span className="hidden max-w-28 truncate text-sm font-medium sm:inline">{user.name}</span>
                       <span aria-hidden className="text-[13px] text-muted-2">▾</span>
                     </>
@@ -100,6 +118,22 @@ export async function Header() {
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">הניקוד שלי</Link>
                   <Link href="/leaderboard" data-evt="menu-leaderboard" className="block px-4 py-3 text-sm hover:bg-surface-2">לוח המובילים</Link>
+                  <Link href="/friends" data-evt="menu-friends" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
+                    החברים שלי
+                    {friendRequests > 0 && (
+                      <span className="tabular shrink-0 rounded-full bg-accent px-2 py-0.5 text-[13px] font-bold text-white">
+                        {friendRequests}
+                      </span>
+                    )}
+                  </Link>
+                  <Link href="/leagues" data-evt="menu-leagues" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
+                    הליגות שלי
+                    {leagueInvites > 0 && (
+                      <span className="tabular shrink-0 rounded-full bg-accent px-2 py-0.5 text-[13px] font-bold text-white">
+                        {leagueInvites}
+                      </span>
+                    )}
+                  </Link>
                   <Link href="/invite" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
                     הזמינו חברים
                     <span className="tabular shrink-0 rounded-full bg-yes/15 px-2 py-0.5 text-[13px] font-bold text-yes">{money(REFERRAL_BONUS)}</span>

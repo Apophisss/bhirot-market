@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { STARTING_BALANCE } from "./db/schema";
 import { holdingValue, type MarketState } from "./lmsr";
@@ -121,6 +121,12 @@ export interface LeaderRow {
   /** points earned from invites; part of net worth, deliberately not part of P&L */
   referralBonus: number;
   tradeCount: number;
+  /**
+   * How many open questions the user is holding an answer on — a count, never the
+   * questions themselves. This is the number friends and league members are shown
+   * (see `social.ts`): how busy someone is, without handing over their book.
+   */
+  openPositions: number;
 }
 
 /**
@@ -137,16 +143,41 @@ export async function getTopTradersForAdmin(limit = 15): Promise<(LeaderRow & { 
   return rows.map((r) => ({ ...r, name: byId.get(r.userId) ?? null }));
 }
 
-/** Every ranked trader, best first. The board is small enough to rank whole. */
-export async function getLeaderboard(limit = 5_000): Promise<LeaderRow[]> {
+/**
+ * Where a set of accounts stands, unsorted and unfiltered.
+ *
+ * The public board (`getLeaderboard`) and a league board (`src/lib/leagues.ts`) are
+ * the same arithmetic over different populations, and they must never drift apart:
+ * a player who reads 12,400 points on their league board and 12,380 on the public one
+ * has caught the site lying about one of them. So the valuation lives here once, and
+ * both callers rank what it returns.
+ *
+ * `userIds` limits the population — a league of twenty asks for twenty rows, not for
+ * every account on the site.
+ */
+export async function getStandings(userIds?: string[]): Promise<LeaderRow[]> {
+  const ids = userIds ? [...new Set(userIds)] : null;
+  if (ids && ids.length === 0) return [];
   const db = await getDb();
-  const allUsers = await db.select({ id: users.id, balance: users.balance }).from(users);
+  const forUser = ids ? inArray(users.id, ids) : undefined;
+
+  const allUsers = await db.select({ id: users.id, balance: users.balance }).from(users).where(forUser);
   const openPositions = await db
     .select({ p: positions, qYes: markets.qYes, qNo: markets.qNo, b: markets.liquidity })
     .from(positions)
     .innerJoin(markets, eq(positions.marketId, markets.id))
-    .where(and(eq(positions.settled, false), inArray(markets.status, ["open"])));
-  const tradeCounts = await db.select({ userId: trades.userId, id: trades.id }).from(trades);
+    .where(
+      and(
+        eq(positions.settled, false),
+        inArray(markets.status, ["open"]),
+        ids ? inArray(positions.userId, ids) : undefined,
+      ),
+    );
+  const tradeCounts = await db
+    .select({ userId: trades.userId, n: sql<number>`count(*)` })
+    .from(trades)
+    .where(ids ? inArray(trades.userId, ids) : undefined)
+    .groupBy(trades.userId);
   const referralBonus = await getReferralEarningsByUser();
 
   // every standing is marked the same way the portfolio page marks it: at what the
@@ -154,28 +185,36 @@ export async function getLeaderboard(limit = 5_000): Promise<LeaderRow[]> {
   // Each holder is valued against the market as it stands now, as if they were the
   // only one selling — the usual mark-to-liquidation convention.
   const value = new Map<string, number>();
+  const held = new Map<string, number>();
   for (const { p, qYes, qNo, b } of openPositions) {
     const worth = holdingValue({ qYes, qNo, b }, p.yesShares, p.noShares).total;
     value.set(p.userId, (value.get(p.userId) ?? 0) + worth);
+    // a position emptied by a sale keeps its row; it is not an open answer any more
+    if (p.yesShares > 1e-6 || p.noShares > 1e-6) held.set(p.userId, (held.get(p.userId) ?? 0) + 1);
   }
-  const counts = new Map<string, number>();
-  for (const t of tradeCounts) counts.set(t.userId, (counts.get(t.userId) ?? 0) + 1);
+  const counts = new Map(tradeCounts.map((t) => [t.userId, Number(t.n)]));
 
-  return allUsers
-    .map((u) => {
-      const pv = value.get(u.id) ?? 0;
-      const net = u.balance + pv;
-      const bonus = referralBonus.get(u.id) ?? 0;
-      return {
-        userId: u.id,
-        balance: u.balance,
-        positionsValue: pv,
-        netWorth: net,
-        pnl: net - STARTING_BALANCE - bonus,
-        referralBonus: bonus,
-        tradeCount: counts.get(u.id) ?? 0,
-      };
-    })
+  return allUsers.map((u) => {
+    const pv = value.get(u.id) ?? 0;
+    const net = u.balance + pv;
+    const bonus = referralBonus.get(u.id) ?? 0;
+    return {
+      userId: u.id,
+      balance: u.balance,
+      positionsValue: pv,
+      netWorth: net,
+      pnl: net - STARTING_BALANCE - bonus,
+      referralBonus: bonus,
+      tradeCount: counts.get(u.id) ?? 0,
+      openPositions: held.get(u.id) ?? 0,
+    };
+  });
+}
+
+/** Every ranked trader, best first. The board is small enough to rank whole. */
+export async function getLeaderboard(limit = 5_000): Promise<LeaderRow[]> {
+  const rows = await getStandings();
+  return rows
     .filter((r) => r.tradeCount > 0 || r.pnl !== 0)
     .sort((a, b) => b.netWorth - a.netWorth)
     .slice(0, limit);
