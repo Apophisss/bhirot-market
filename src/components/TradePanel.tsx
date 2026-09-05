@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
+import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { MAX_BET } from "@/lib/limits";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
 import { track } from "@/lib/track";
@@ -15,16 +15,26 @@ export interface TradePanelProps {
   balance: number | null;
   loggedIn: boolean;
   initialSide?: Side;
+  /** the portfolio links straight to "מכירה", so the sale can be checked against the value it showed */
+  initialAction?: Action;
 }
 
 type Action = "BUY" | "SELL";
 
-export function TradePanel({ market, position, balance, loggedIn, initialSide = "YES" }: TradePanelProps) {
+export function TradePanel({ market, position, balance, loggedIn, initialSide = "YES", initialAction = "BUY" }: TradePanelProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [action, setAction] = useState<Action>("BUY");
+  const [action, setAction] = useState<Action>(initialAction);
   const [side, setSide] = useState<Side>(initialSide);
-  const [input, setInput] = useState<string>("");
+  // arriving on the sell tab from the portfolio means "I want to sell this holding":
+  // pre-filling the whole position makes the panel quote exactly the value the
+  // portfolio just showed, instead of an empty form and a dash.
+  const [input, setInput] = useState<string>(() => {
+    if (initialAction !== "SELL") return "";
+    const heldNow = initialSide === "YES" ? position?.yesShares ?? 0 : position?.noShares ?? 0;
+    // truncate, never round up: a value above the holding would trip overLimit
+    return heldNow > 0 ? String(Math.floor(heldNow * 1e4) / 1e4) : "";
+  });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
@@ -78,6 +88,16 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   }, [action, side, qty, market.qYes, market.qNo, market.liquidity, buyLimit, sellCap]);
 
   const sidePrice = side === "YES" ? market.probability : 1 - market.probability;
+
+  // what the holding is worth is what selling it would pay — the same figure the
+  // portfolio marks it at, and the one the "תקבל/י" row above quotes. Never
+  // shares × price: that is the marginal price, and it overstates the position
+  // (see the valuation note in lmsr.ts).
+  const worth = useMemo(
+    () => holdingValue(state, position?.yesShares ?? 0, position?.noShares ?? 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [position?.yesShares, position?.noShares, market.qYes, market.qNo, market.liquidity],
+  );
 
   async function submit() {
     track(EVENTS.tradeAttempt, {
@@ -284,17 +304,19 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
 
       {position && (position.yesShares > 0 || position.noShares > 0) && (
         <div className="mt-4 rounded-lg border border-border bg-surface-2 p-3 text-xs text-muted">
-          <div className="mb-1 font-semibold text-text">הפוזיציה שלך</div>
+          <div className="mb-1 font-semibold text-text" title="השווי הוא מה שתקבלו בפועל אם תמכרו את הפוזיציה עכשיו, אחרי ההשפעה של המכירה עצמה על המחיר">
+            הפוזיציה שלך
+          </div>
           {position.yesShares > 0 && (
             <div className="flex justify-between">
               <span className="text-yes">כן · {fmtShares(position.yesShares)} מניות</span>
-              <span className="tabular">שווי {money(position.yesShares * market.probability)} · עלות {money(position.yesCost)}</span>
+              <span className="tabular">שווי במכירה {money(worth.yes)} · עלות {money(position.yesCost)}</span>
             </div>
           )}
           {position.noShares > 0 && (
             <div className="flex justify-between">
               <span className="text-no">לא · {fmtShares(position.noShares)} מניות</span>
-              <span className="tabular">שווי {money(position.noShares * (1 - market.probability))} · עלות {money(position.noCost)}</span>
+              <span className="tabular">שווי במכירה {money(worth.no)} · עלות {money(position.noCost)}</span>
             </div>
           )}
         </div>

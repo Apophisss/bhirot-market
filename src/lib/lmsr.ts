@@ -145,3 +145,51 @@ export function quoteSell(state: MarketState, side: Side, shares: number): Quote
     payout: 0,
   };
 }
+
+/* ---------------------------------------------------------------------------
+ * Valuing a position that is still open.
+ *
+ * The price an LMSR quotes is a MARGINAL price: what the *next* infinitesimal
+ * share costs, not what a whole holding fetches. `shares × price` is therefore
+ * not a valuation — it is an upper bound the market maker never pays, and it is
+ * worst exactly where a trader looks first: your own buy pushes the price up, so
+ * marking the new shares at the price that buy just created invents a profit that
+ * was never there and that evaporates the moment anyone trades. On a thin market
+ * (b = 500) a ₪100 order can look like ₪120 the second it fills.
+ *
+ * The honest number is the one the sell button would actually pay — the proceeds
+ * of liquidating the holding right now, walking back down the cost curve. That is
+ * what these helpers return, and it is bit-for-bit the `quoteSell` amount the
+ * trade panel shows for the same size.
+ * ------------------------------------------------------------------------- */
+
+/** ₪ a holding of `shares` on `side` fetches if it is all sold right now. Never negative. */
+export function positionValue(state: MarketState, side: Side, shares: number): number {
+  if (!Number.isFinite(shares) || shares <= 0) return 0;
+  const v = proceedsFromSell(state, side, shares);
+  return Number.isFinite(v) && v > 0 ? v : 0;
+}
+
+/**
+ * Both sides of one position, valued together.
+ *
+ * Selling the YES leg moves the price down, which makes the NO leg worth more, so
+ * the two legs cannot be valued independently and added up without understating a
+ * hedged holding. They are liquidated in sequence instead — YES first, then NO out
+ * of the state that leaves — so `total` is exactly what "sell everything here"
+ * pays. LMSR's cost function is path-independent, so the total does not depend on
+ * that order; only the split between the two legs does.
+ *
+ * The common case is a single leg, and there `yes`/`no` is precisely the proceeds
+ * of selling it alone — the number the trade panel quotes.
+ */
+export function holdingValue(
+  state: MarketState,
+  yesShares: number,
+  noShares: number,
+): { yes: number; no: number; total: number } {
+  const yes = positionValue(state, "YES", yesShares);
+  const rest = yes > 0 ? apply(state, "YES", -yesShares) : state;
+  const no = positionValue(rest, "NO", noShares);
+  return { yes, no, total: yes + no };
+}
