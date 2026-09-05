@@ -157,7 +157,7 @@ npm run markets:validate             # סכמה — חייב לעבור
 npm run markets:audit                # בריאות הלוח — תקנו כל ✗
 npm run history:verify               # רק אם נגעתם ב-src/lib/synthetic-history.ts
 npm run test:display                 # רק אם נגעתם ב-src/lib/display-stats.ts
-npm run test:fakes                   # רק אם נגעתם ב-src/lib/fake-market-stats.ts או fake-comments.ts
+npm run test:fakes                   # רק אם נגעתם ב-src/lib/fake-market-stats.ts
 git add data/markets.json data/people.json
 git commit -m "markets: <תקציר קצר בעברית של מה נוסף/הוכרע>"
 git push

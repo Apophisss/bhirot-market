@@ -7,8 +7,7 @@ import { timeAgo } from "@/lib/format";
 import { gaEvent } from "@/lib/gtag";
 
 export interface CommentItem {
-  /** a number for a recorded comment, `f:<market>:<n>` for a display-only one */
-  id: number | string;
+  id: number;
   body: string;
   createdAt: string | Date;
   userName: string | null;
@@ -79,8 +78,11 @@ export function Comments({ marketId, comments, loggedIn }: { marketId: string; c
             </div>
           </li>
         ))}
-        {/* the page always merges a thread in (src/lib/fake-comments.ts), so this is
-            the fallback for a caller that passes none rather than a normal state */}
+        {/* Every comment here is written by a real account — nothing on this thread is
+            fabricated, unlike the activity numbers around it (fake-market-stats.ts).
+            So an empty thread is a real empty thread; it just does not need to be
+            announced as one ("עדיין אין תגובות. היו הראשונים.") on a board whose
+            questions are read far more often than they are discussed. */}
         {!comments.length && <li className="text-sm text-muted-2">הדיון על השאלה הזאת עוד נפתח.</li>}
       </ul>
     </section>

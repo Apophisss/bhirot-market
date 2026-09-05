@@ -1,6 +1,5 @@
 /**
- * Property-checks the per-question fabrications (src/lib/fake-market-stats.ts and
- * src/lib/fake-comments.ts).
+ * Property-checks the per-question fabricated activity (src/lib/fake-market-stats.ts).
  *
  * Four promises, and each of them is the kind that only breaks in production:
  *
@@ -9,9 +8,9 @@
  *      second ago as much as for one created a year ago.
  *   2. **Monotone.** Trades and volume only ever grow as the clock advances. A number
  *      that walks backwards between two page loads reads as a bug.
- *   3. **Deterministic.** The same market at the same moment yields the same numbers,
- *      the same trade list and the same thread — otherwise two visitors, or a server
- *      render and its own hydration, disagree.
+ *   3. **Deterministic.** The same market at the same moment yields the same numbers
+ *      and the same trade list — otherwise two visitors, or a server render and its
+ *      own hydration, disagree.
  *   4. **Never undersells reality.** The displayed pair is always at least the recorded
  *      pair, so a genuinely busy question never reads quieter than it is.
  *
@@ -32,7 +31,6 @@ import {
   mergeTrades,
   type ActivityInput,
 } from "../src/lib/fake-market-stats";
-import { FAKE_COMMENTS_MAX, FAKE_COMMENTS_MIN, FAKE_COMMENT_MIN_AGE_MS, fakeComments } from "../src/lib/fake-comments";
 import { epochAt, fabricatedTraders } from "../src/lib/fake-leaderboard";
 import { MAX_BET, MIN_BET, THIN_MARKET_TRADES } from "../src/lib/limits";
 
@@ -142,33 +140,6 @@ for (let i = 0; i < Math.min(CASES, 4000); i++) {
     const ts = new Date(t.createdAt).getTime();
     check("the merge is newest first", ts <= mprev, { m, ts, mprev });
     mprev = ts;
-  }
-}
-
-/* ------------------------------- the thread -------------------------------- */
-
-for (let i = 0; i < Math.min(CASES, 4000); i++) {
-  const m = randomMarket(i);
-  const thread = fakeComments(m, NOW);
-
-  check("every question has a thread", thread.length >= FAKE_COMMENTS_MIN, { m, n: thread.length });
-  check("and not an implausibly long one", thread.length <= FAKE_COMMENTS_MAX, { m, n: thread.length });
-  check("ids are unique", new Set(thread.map((c) => c.id)).size === thread.length, { m });
-  check("no line is used twice under one question", new Set(thread.map((c) => c.body)).size === thread.length, { m });
-  check("is deterministic", JSON.stringify(fakeComments(m, NOW)) === JSON.stringify(thread), { m });
-
-  const active = m.status === "open" ? NOW : Math.min(NOW, Number(m.closesAt));
-  const oldEnough = active - Number(m.createdAt) >= 2 * FAKE_COMMENT_MIN_AGE_MS;
-  let prev = Infinity;
-  for (const c of thread) {
-    const ts = c.createdAt.getTime();
-    check("newest first", ts <= prev, { m, ts, prev });
-    prev = ts;
-    check("never in the future", ts <= NOW, { m, ts });
-    check("never predates the question", ts >= Math.min(Number(m.createdAt), active), { m, ts });
-    // the minimum age yields to a question too young to have a thread that old
-    if (oldEnough) check("never fresher than the minimum age", ts <= active - FAKE_COMMENT_MIN_AGE_MS, { m, ts });
-    check("wears a pseudonym, never a photo", c.userImage === null && c.userName.length > 0, { m, c });
   }
 }
 

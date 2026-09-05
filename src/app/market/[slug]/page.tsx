@@ -5,7 +5,6 @@ import { auth, currentUser } from "@/lib/auth";
 import { getMarket, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
 import { getChartHistory } from "@/lib/display-history";
 import { fakeMarketTrades, mergeTrades } from "@/lib/fake-market-stats";
-import { fakeComments, mergeComments } from "@/lib/fake-comments";
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
@@ -99,11 +98,10 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   const prefill = amount && /^\d+(\.\d{1,2})?$/.test(amount) && Number(amount) > 0 ? amount : undefined;
   const cat = getCategory(market.category);
   const people = market.people.map((id) => getPerson(id)).filter(Boolean);
-  // The two lists under the chart are display-only merges (see fake-market-stats.ts
-  // and fake-comments.ts): the real rows are shown verbatim and in the same order
-  // they would be in on their own, with fabricated ones interleaved by timestamp.
+  // The trade list is a display-only merge (see fake-market-stats.ts): the real rows
+  // are shown verbatim, with fabricated ones interleaved by timestamp. The comment
+  // thread below is NOT — every comment on this page was written by a real account.
   const recentShown = mergeTrades(recent, fakeMarketTrades({ ...market, probability: market.probability }, 12), 25);
-  const commentsShown = mergeComments(comments, fakeComments(market));
 
   // The single column is capped explicitly: an implicit `auto` track grows to its widest
   // item's min-content (the comment input), which scrolls the whole document on a phone.
@@ -240,7 +238,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           <TradeList trades={recentShown} />
         </section>
 
-        <Comments marketId={market.id} comments={commentsShown} loggedIn={Boolean(session?.user)} />
+        <Comments marketId={market.id} comments={comments} loggedIn={Boolean(session?.user)} />
 
         {related.length > 0 && (
           <section className="space-y-3">
