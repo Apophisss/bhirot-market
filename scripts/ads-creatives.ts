@@ -121,6 +121,8 @@ interface Creative {
   sample: boolean;
   /** Seed for the price curve, so a creative redraws identically every run. */
   seed: string;
+  /** Category chip on the card — id and colour come from src/lib/categories.ts. */
+  category: string;
 }
 
 /**
@@ -139,6 +141,7 @@ const SAMPLE_CREATIVES: Creative[] = [
     probability: 0.41,
     sample: true,
     seed: "coalition",
+    category: "coalition",
   },
   {
     id: "pitch-free-market",
@@ -147,6 +150,7 @@ const SAMPLE_CREATIVES: Creative[] = [
     probability: 0.78,
     sample: true,
     seed: "newparty",
+    category: "parties",
   },
   {
     id: "pitch-virtual-money",
@@ -155,6 +159,7 @@ const SAMPLE_CREATIVES: Creative[] = [
     probability: 0.27,
     sample: true,
     seed: "debate",
+    category: "media",
   },
   {
     id: "pitch-what-happens",
@@ -163,6 +168,7 @@ const SAMPLE_CREATIVES: Creative[] = [
     probability: 0.55,
     sample: true,
     seed: "budget",
+    category: "knesset",
   },
   {
     id: "pitch-beat-the-market",
@@ -171,6 +177,7 @@ const SAMPLE_CREATIVES: Creative[] = [
     probability: 0.63,
     sample: true,
     seed: "sworn",
+    category: "knesset",
   },
 ];
 
@@ -182,6 +189,7 @@ function marketCreative(m: Market): Creative {
     probability: m.initialProbability,
     sample: false,
     seed: m.slug,
+    category: m.category,
   };
 }
 
@@ -250,79 +258,136 @@ const CHART_POINTS = 26;
 /** Quantised clock, so two runs in the same hour produce byte-identical images. */
 const CLOCK = Math.floor(Date.now() / 3_600_000) * 3_600_000;
 
+/** Category chips, straight out of src/lib/categories.ts, so the ad matches the board. */
+const CATEGORIES: Record<string, { label: string; accent: string }> = {
+  polls: { label: "סקרים", accent: "#1d4ed8" },
+  coalition: { label: "קואליציה וגושים", accent: "#5b21b6" },
+  parties: { label: "מפלגות ופריימריז", accent: "#b45309" },
+  legal: { label: "משפט ותביעות", accent: "#7e22ce" },
+  media: { label: "תקשורת", accent: "#be185d" },
+  security: { label: "ביטחון ומדיניות", accent: "#047857" },
+  haredi: { label: "חרדים וגיוס", accent: "#a16207" },
+  knesset: { label: "כנסת וחקיקה", accent: "#0e7490" },
+  general: { label: "כללי", accent: "#576b8b" },
+};
+
+/**
+ * The site's half-circle probability gauge (`src/components/ProbabilityGauge.tsx`),
+ * at ad scale. Same geometry, same 6px stroke, same rule that the arc turns red
+ * below 50%.
+ */
+function gauge(p: number, size: number): string {
+  const r = size / 2 - size * 0.086;
+  const cx = size / 2;
+  const cy = size / 2 + size * 0.034;
+  const circ = Math.PI * r;
+  const fill = Math.max(0.02, Math.min(1, p)) * circ;
+  const stroke = size * 0.103;
+  const arc = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  return `<svg width="${size}" height="${size / 2 + size * 0.1}" viewBox="0 0 ${size} ${size / 2 + size * 0.1}" aria-hidden="true">
+      <path d="${arc}" fill="none" stroke="#dfe8f8" stroke-width="${stroke}" stroke-linecap="round"/>
+      <path d="${arc}" fill="none" stroke="${p >= 0.5 ? YES : NO}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${fill} ${circ}"/>
+    </svg>`;
+}
+
+/** The site's logo mark, read from public/ so the ad and the header never drift apart. */
+const LOGO = readFileSync(path.join(ROOT, "public", "logo.svg"), "utf8").trim();
+
+/* The site's own tokens (src/app/globals.css). */
+const YES = "#15803d";
+const NO = "#dc2626";
+const TEXT_STRONG = "#0a1020";
+const SURFACE_2 = "#f1f5fc";
+const ACCENT_2 = "#1a3fae";
+const MUTED = "#576b8b";
+const BORDER = "#e3e9f4";
+
 function html(c: Creative, w: number, h: number): string {
   // Scale everything off the short edge so one template serves all three ratios.
   const unit = Math.min(w, h) / 100;
   const yes = Math.round(c.probability * 100);
-  const no = 100 - yes;
+  const cat = CATEGORIES[c.category] ?? CATEGORIES.general;
   const chartW = 100;
-  const chartH = 22;
+  const chartH = 24;
   const d = chartPath(c, chartW, chartH);
-  // portrait has room for a taller chart and bigger type; landscape is cramped
   const wide = w / h > 1.5;
-  const qSize = c.question.length > 46 ? 4.4 : c.question.length > 32 ? 5.0 : 5.6;
+  const qSize = c.question.length > 46 ? 4.3 : c.question.length > 32 ? 4.9 : 5.5;
+  const gaugeSize = unit * 15;
+  const arcColor = c.probability >= 0.5 ? YES : NO;
 
   return `<!doctype html>
 <html lang="he" dir="rtl"><head><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:${w}px;height:${h}px;overflow:hidden}
   body{
     font-family:"Heebo","Noto Sans Hebrew","DejaVu Sans",system-ui,sans-serif;
-    background:linear-gradient(135deg,#0a1020 0%,#0d2a6b 45%,#1d4ed8 100%);
-    color:#fff;display:flex;flex-direction:column;justify-content:space-between;
-    padding:${unit * 6.5}px ${unit * 7}px;
+    /* --color-surface-2: the site's own faint blue-cast surface. A white card on
+       pure white would vanish into a Discover or Gmail feed, which is also white. */
+    background:${SURFACE_2};
+    color:${TEXT_STRONG};display:flex;flex-direction:column;justify-content:space-between;
+    padding:${unit * 6}px ${unit * 6.5}px;
   }
-  header{display:flex;align-items:baseline;gap:${unit * 2}px;flex-wrap:wrap}
-  .brand{font-size:${unit * 4.6}px;font-weight:900;letter-spacing:-.01em}
-  .kicker{font-size:${unit * 3.1}px;font-weight:700;color:rgba(255,255,255,.78)}
+
+  header{display:flex;align-items:center;gap:${unit * 2}px}
+  header svg{width:${unit * 7}px;height:${unit * 7}px;border-radius:${unit * 1.8}px;flex:0 0 auto}
+  .brand{font-size:${unit * 4.4}px;font-weight:900;letter-spacing:-.01em;color:${TEXT_STRONG}}
+  .kicker{font-size:${unit * 2.9}px;font-weight:600;color:${MUTED}}
 
   .pitch{
-    font-size:${unit * (c.headline.length > 34 ? 6.2 : 7.4)}px;font-weight:900;
-    line-height:1.16;white-space:pre-line;letter-spacing:-.01em;
+    font-size:${unit * (c.headline.length > 34 ? 5.8 : 6.9)}px;font-weight:900;
+    line-height:1.16;white-space:pre-line;letter-spacing:-.01em;color:${TEXT_STRONG};
   }
 
+  /* --- .card, as the site draws it: white, hairline border, 14px radius --- */
   .card{
-    background:#fff;color:#0a1020;border-radius:${unit * 3.2}px;
-    padding:${unit * 3.4}px ${unit * 3.8}px ${unit * 3.2}px;
-    display:flex;flex-direction:column;gap:${unit * 2.2}px;
-    box-shadow:0 ${unit * 2}px ${unit * 5}px rgba(0,0,0,.28);
+    background:#fff;color:${TEXT_STRONG};
+    border:1px solid ${BORDER};border-radius:${unit * 2.6}px;
+    padding:${unit * 3.4}px;
+    display:flex;flex-direction:column;gap:${unit * 2.6}px;
+    /* .card's own shadow, from globals.css */
+    box-shadow:0 1px 2px rgba(10,16,32,.04), 0 ${unit * 1.2}px ${unit * 3}px -${unit * 1.4}px rgba(13,42,107,.18);
   }
-  .qrow{display:flex;align-items:flex-start;gap:${unit * 2.5}px}
-  .q{font-size:${unit * qSize}px;font-weight:900;line-height:1.22;flex:1;color:#0a1020}
-  .sample{
-    flex:0 0 auto;background:#f1f5fc;color:#576b8b;border:1px solid #e3e9f4;
-    border-radius:999px;padding:${unit * 0.9}px ${unit * 2.2}px;
-    font-size:${unit * 2.5}px;font-weight:800;white-space:nowrap;
+  .top{display:flex;align-items:flex-start;gap:${unit * 2.4}px}
+  .qcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:${unit * 1.2}px}
+  .chips{display:flex;align-items:center;gap:${unit * 1.4}px;flex-wrap:wrap}
+  .chip{
+    border-radius:${unit * 1}px;padding:${unit * 0.5}px ${unit * 1.3}px;
+    font-size:${unit * 2.4}px;font-weight:600;
+    background:${cat.accent}22;color:${cat.accent};
   }
+  .team{font-size:${unit * 2.4}px;color:#8494ae;font-weight:500}
+  .q{font-size:${unit * qSize}px;font-weight:700;line-height:1.24;color:${TEXT_STRONG}}
+  .gauge{display:flex;flex-direction:column;align-items:center;flex:0 0 auto;width:${gaugeSize}px}
+  .gnum{font-size:${unit * 4.2}px;font-weight:800;line-height:1;margin-top:${unit * 0.2}px;color:${TEXT_STRONG}}
+  .glabel{font-size:${unit * 2.1}px;color:${MUTED}}
 
-  .chart{display:block;width:100%;height:${unit * (wide ? 13 : 18)}px}
+  .chart{display:block;width:100%;height:${unit * (wide ? 11 : 15)}px}
 
-  .split{display:flex;align-items:baseline;justify-content:space-between;font-size:${unit * 3}px;font-weight:800}
-  .split .y{color:#15803d}
-  .split .n{color:#dc2626}
-
-  .btns{display:flex;gap:${unit * 2.2}px}
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:${unit * 1.6}px}
   .btn{
-    flex:1;border-radius:${unit * 2}px;padding:${unit * 2.6}px 0;text-align:center;
-    font-size:${unit * 4.4}px;font-weight:900;color:#fff;
+    border-radius:${unit * 1.5}px;padding:${unit * 2}px 0;text-align:center;
+    font-size:${unit * 3.4}px;font-weight:700;
   }
-  .yes{background:#15803d}
-  .no{background:#dc2626}
+  /* bg-yes/15 and bg-no/15, exactly as the market card renders them */
+  .yes{background:rgba(21,128,61,.15);color:${YES}}
+  .no{background:rgba(220,38,38,.15);color:${NO}}
+
+  .meta{font-size:${unit * 2.4}px;color:${MUTED}}
 
   footer{
     display:flex;gap:${unit * 1.2}px;
-    /* the two lines only fit side by side on the wide ratio */
     ${wide ? "align-items:center;justify-content:space-between;" : "flex-direction:column;align-items:flex-start;"}
   }
-  .tag{font-size:${unit * 3.2}px;font-weight:800}
-  .disclosure{font-size:${unit * 2.8}px;font-weight:500;color:rgba(255,255,255,.72)}
+  .tag{font-size:${unit * 3}px;font-weight:800;color:${ACCENT_2}}
+  .disclosure{font-size:${unit * 2.7}px;font-weight:500;color:${MUTED}}
 </style></head>
 <body>
   <header>
+    ${LOGO}
     <span class="brand">בחירות מרקט</span>
     <span class="kicker">הבחירות והפוליטיקה הישראלית</span>
   </header>
@@ -330,30 +395,39 @@ function html(c: Creative, w: number, h: number): string {
   <h1 class="pitch">${esc(c.headline)}</h1>
 
   <div class="card">
-    <div class="qrow">
-      <span class="q">${esc(c.question)}</span>
-      ${c.sample ? `<span class="sample">דוגמה</span>` : ""}
+    <div class="top">
+      <div class="qcol">
+        <div class="chips">
+          <span class="chip">${esc(cat.label)}</span>
+          <span class="team">${c.sample ? "דוגמה" : "צוות המערכת"}</span>
+        </div>
+        <span class="q">${esc(c.question)}</span>
+      </div>
+      <div class="gauge">
+        ${gauge(c.probability, gaugeSize)}
+        <div class="gnum">${yes}%</div>
+        <div class="glabel">סיכוי</div>
+      </div>
     </div>
 
     <svg class="chart" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#15803d" stop-opacity=".22"/>
-          <stop offset="100%" stop-color="#15803d" stop-opacity="0"/>
+          <stop offset="0%" stop-color="${arcColor}" stop-opacity=".16"/>
+          <stop offset="100%" stop-color="${arcColor}" stop-opacity="0"/>
         </linearGradient>
       </defs>
       <path d="${d} L${chartW},${chartH} L0,${chartH} Z" fill="url(#fade)"/>
-      <path d="${d}" fill="none" stroke="#15803d" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${d}" fill="none" stroke="${arcColor}" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
     </svg>
 
-    <div class="split">
-      <span class="y">כן ${yes}%</span>
-      <span class="n">לא ${no}%</span>
+    <div class="btns">
+      <span class="btn yes">כן ${yes}%</span>
+      <span class="btn no">לא ${100 - yes}%</span>
     </div>
 
-    <div class="btns">
-      <span class="btn yes">כן</span>
-      <span class="btn no">לא</span>
+    <div class="meta">
+      <span>נסגר בעוד 45 ימים</span>
     </div>
   </div>
 
