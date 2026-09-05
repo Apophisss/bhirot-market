@@ -22,7 +22,7 @@ import { getRecommendations } from "@/lib/recommendations";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
 import { needsSurvey } from "@/lib/preferences-store";
 import { BoltIcon } from "@/components/BoltIcon";
-import { displayOpenCount } from "@/lib/display-stats";
+import { displayOpenCount, displayResolvedCount, displayUserCount, displayVolume } from "@/lib/display-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +100,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
   const openCount = displayOpenCount(stats.open);
+  const resolvedCount = displayResolvedCount(stats.resolved);
+  const volume = displayVolume(stats.volume);
+  const traderCount = displayUserCount(stats.users);
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
   // a question already surfaced by "closing today" is not worth a second slot in the recommendations
@@ -131,7 +134,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <strong className="text-text-strong">{openCount}</strong> שווקים
             </div>
             <div>
-              <strong className="text-text-strong">{money(stats.volume, { compact: true })}</strong> נפח
+              <strong className="text-text-strong">{money(volume, { compact: true })}</strong> נפח
             </div>
           </div>
         </section>
@@ -195,9 +198,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <Countdown />
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-white/70 sm:flex sm:flex-wrap">
                 <span><strong className="tabular text-white">{openCount}</strong> שווקים פתוחים</span>
-                <span><strong className="tabular text-white">{stats.resolved}</strong> הוכרעו</span>
-                <span><strong className="tabular text-white">{money(stats.volume, { compact: true })}</strong> נפח</span>
-                <span><strong className="tabular text-white">{stats.users}</strong> סוחרים</span>
+                <span><strong className="tabular text-white">{resolvedCount}</strong> הוכרעו</span>
+                <span><strong className="tabular text-white">{money(volume, { compact: true })}</strong> נפח</span>
+                <span><strong className="tabular text-white">{traderCount}</strong> סוחרים</span>
               </div>
             </div>
           </div>

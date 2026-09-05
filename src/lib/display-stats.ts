@@ -2,17 +2,29 @@
  * Fabricated headline numbers for the homepage hero.
  *
  * Everything here is DISPLAY ONLY. Nothing writes to the database, changes a
- * price, a portfolio, the leaderboard or the market list: both values are pure
- * functions of the clock (plus the real number they inflate), so the site's real
+ * price, a portfolio, the leaderboard or the market list: every value is a pure
+ * function of the clock and of the real number it inflates, so the site's real
  * numbers cannot be contaminated by them even in principle. The board itself,
- * `/api/health` and the market browser keep reporting the true counts.
+ * `/api/health`, the market browser, every market card and every portfolio keep
+ * reporting the true numbers.
  *
  * Determinism is on an absolute time axis — the value for a given slot is a
  * function of that slot alone — so every visitor sees the same number at the same
  * moment, and a reload does not reshuffle it.
+ *
+ * Two shapes live here, and the difference matters:
+ *
+ *   - the **open question count** rises and falls in reality (questions open,
+ *     questions close), so it carries an hourly drift that makes the board look
+ *     alive;
+ *   - the **cumulative** headlines — traders, volume, resolved questions — only
+ *     ever grow in reality. A wobble on those would show a visitor a number
+ *     going *backwards* between two page loads, which reads as a bug, so they
+ *     are plain multiples of the real number and move only when it moves.
  */
 
 import { hash32, unit } from "./hash";
+import { FAKE_TRADER_COUNT } from "./fake-leaderboard";
 
 const MINUTE = 60_000;
 
@@ -39,6 +51,51 @@ export function displayOpenCount(realOpen: number, now = Date.now()): number {
   const hour = Math.floor(now / 3_600_000);
   const drift = Math.round(unit(hash32(hour, 0x11)) * DISPLAY_OPEN_DRIFT);
   return Math.round(realOpen * DISPLAY_OPEN_MULTIPLIER) + drift;
+}
+
+/** the hero counts every registered trader this many times over... */
+export const DISPLAY_USERS_MULTIPLIER = 3;
+/** ...on top of the fabricated crowd that /leaderboard already lists row by row */
+export const DISPLAY_USERS_FLOOR = FAKE_TRADER_COUNT;
+
+/** the hero counts the traded volume this many times over */
+export const DISPLAY_VOLUME_MULTIPLIER = 3.4;
+
+/** the hero counts the resolved questions this many times over */
+export const DISPLAY_RESOLVED_MULTIPLIER = 2.5;
+
+/** a real number as the inflators are willing to read it: finite and non-negative */
+function positive(n: number): number {
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/**
+ * The number of traders the hero advertises: the real signups inflated by a
+ * fixed multiplier, plus the fabricated crowd of `fake-leaderboard.ts`.
+ *
+ * The floor is not decoration — those traders are rows a visitor can literally
+ * count on /leaderboard, so a headline below `DISPLAY_USERS_FLOOR` would be
+ * contradicted by the site's own page one click away.
+ */
+export function displayUserCount(realUsers: number): number {
+  return DISPLAY_USERS_FLOOR + Math.round(positive(realUsers) * DISPLAY_USERS_MULTIPLIER);
+}
+
+/**
+ * The traded volume the hero advertises: the real volume, inflated. A board with
+ * no trades yet stays at zero rather than growing money out of nothing.
+ */
+export function displayVolume(realVolume: number): number {
+  return Math.round(positive(realVolume) * DISPLAY_VOLUME_MULTIPLIER);
+}
+
+/**
+ * The number of resolved questions the hero advertises: the real count, inflated.
+ * Zero resolutions stay zero — the site claims a track record only once it has
+ * one.
+ */
+export function displayResolvedCount(realResolved: number): number {
+  return Math.round(positive(realResolved) * DISPLAY_RESOLVED_MULTIPLIER);
 }
 
 /** The fabricated update moment of one half-hour slot. */
