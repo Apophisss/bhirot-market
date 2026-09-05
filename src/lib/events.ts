@@ -35,6 +35,8 @@ export const EVENTS = {
   clientError: "client_error",
   /** the analysis bundle was downloaded from the admin area */
   bundleDownload: "bundle_download",
+  /** the add-to-home-screen offer (props.action = shown/prompted/accepted/dismissed/instructions/installed, props.platform) */
+  installApp: "install_app",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
@@ -56,6 +58,7 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.webVital]: "מדד ביצועים",
   [EVENTS.clientError]: "שגיאת דפדפן",
   [EVENTS.bundleDownload]: "הורדת באנדל נתונים",
+  [EVENTS.installApp]: "הוספה למסך הבית",
 };
 
 /** Click ids used by `data-evt` attributes around the site (documented for the analyst). */
@@ -94,6 +97,10 @@ export const CLICK_IDS: Record<string, string> = {
   "related-market": "שוק קשור",
   "footer-link": "קישור בפוטר",
   "footer-category": "קטגוריה בפוטר",
+  "footer-install": "הוספה למסך הבית מהפוטר",
+  "install-prompt-add": "הוספה למסך הבית מהכרטיס",
+  "install-prompt-later": "דחיית ההצעה להוסיף למסך הבית",
+  "install-sheet-add": "התקנה בלחיצה אחת מתוך החלון",
   "bundle-json": "הורדת באנדל JSON",
   "bundle-md": "הורדת דוח Markdown",
 };

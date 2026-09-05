@@ -12,6 +12,7 @@ import { TradeList } from "@/components/TradeList";
 import { InviteCard } from "@/components/InviteCard";
 import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { InstallPrompt } from "@/components/InstallApp";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
@@ -106,6 +107,9 @@ export default async function PortfolioPage() {
       </div>
 
       <InviteCard code={referrals.code} invited={referrals.invited} earned={referrals.earned} remaining={referrals.remaining} />
+
+      {/* מי שהגיע לעמוד הניקוד הוא בדיוק מי ששווה לו קיצור במסך הבית — הוא כבר חוזר */}
+      <InstallPrompt />
 
       <section className="card overflow-hidden">
         <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">תשובות פתוחות ({openHoldings.length})</h2>
