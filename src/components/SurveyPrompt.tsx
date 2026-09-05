@@ -8,13 +8,17 @@ import { snoozeSurvey } from "@/app/onboarding/actions";
  *
  * "לא עכשיו" דוחה לשבוע ולא נחשב תשובה (src/lib/survey-offer.ts), כדי שהקשה אחת לא
  * תסתיר את השאלון לתמיד. `next` מחזיר אותם לדף שממנו יצאו.
+ *
+ * `compact` היא השורה הצרה של מצב הזריז. במסך נמוך וצר (`short:`) היא יורדת יחד עם
+ * שאר הכרום שם: החפיסה שם נמדדת בכך שהכרטיס נכנס במלואו, וההצעה תמיד תמתין בדף
+ * הבית, בתיק ובתפריט המשתמש.
  */
 export function SurveyPrompt({ next = "/", compact = false }: { next?: string; compact?: boolean }) {
   const href = next === "/" ? "/onboarding" : `/onboarding?next=${encodeURIComponent(next)}`;
 
   if (compact) {
     return (
-      <section className="flex shrink-0 items-center gap-2 rounded-xl border border-accent/40 bg-accent-soft px-3 py-1.5 text-[13px] leading-snug sm:py-2 sm:text-sm">
+      <section className="flex shrink-0 items-center gap-2 rounded-xl border border-accent/40 bg-accent-soft px-3 py-1.5 text-[13px] leading-snug short:hidden sm:py-2 sm:text-sm">
         <p className="min-w-0 flex-1 text-text">
           <span className="font-bold text-text-strong">שאלון קצר</span>{" "}
           <span className="hidden sm:inline">— שלוש שאלות, ונדע אילו שאלות להביא לכם ראשונות.</span>
