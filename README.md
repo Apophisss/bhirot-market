@@ -95,6 +95,7 @@ npm run dev                       # http://localhost:3000
    אם רוצים לקבוע אותם ידנית — אחרת השרת מגריל אותם בפריסה הראשונה ושומר אותם ב־`/opt/bhirot-market/.secrets/`,
    כדי שפריסה לא תנתק כל מי שמחובר.
 3. **משתנים** (`vars`, ניתנים לקריאה בממשק): `DOMAIN` (ברירת מחדל `bhirot-market.com`), `CLAUDE_MODEL`,
+   `GA_MEASUREMENT_ID` (מזהה GA4 בפורמט `G-XXXXXXXXXX`; בלעדיו האתר עולה בלי אנליטיקס),
    ו־`ALLOW_DEV_LOGIN` — כניסה מהירה ללא סיסמה, כבויה כברירת מחדל ולא כדאי להדליק באתר ציבורי.
 4. **DNS**: רשומת `A` של הדומיין (ו־`www`) אל ה־IP של השרת — אחת, לא כמה: Let's Encrypt מגריל רשומה
    מבין כל מה שקיים, וכך גם הדפדפן של כל גולש. בזמן החלפת DNS יש חלון שבו resolverים עדיין מחזיקים גם
@@ -123,7 +124,8 @@ npm run dev                       # http://localhost:3000
 
 1. צרו מסד Turso: `turso db create bhirot-market` → `turso db show --url` ו־`turso db tokens create`.
 2. ב־Vercel הגדירו משתני סביבה: `DATABASE_URL` (libsql://…), `DATABASE_AUTH_TOKEN`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`,
-   `AUTH_GOOGLE_SECRET`, `ADMIN_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, ואופציונלית `ANTHROPIC_API_KEY` (+`CLAUDE_MODEL`).
+   `AUTH_GOOGLE_SECRET`, `ADMIN_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, ואופציונלית `ANTHROPIC_API_KEY` (+`CLAUDE_MODEL`)
+   ו־`NEXT_PUBLIC_GA_MEASUREMENT_ID`.
 3. `vercel.json` כבר מגדיר Cron שעתי ל־`/api/cron/refresh`, שמסנכרן את `data/markets.json` ומריץ את המחולל המובנה אם יש מפתח API.
 
 ## שאלות קצרות טווח
@@ -239,6 +241,7 @@ src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקצי�
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
 src/lib/seo.ts           כותרות, canonical ו-JSON-LD (schema.org)
+src/lib/analytics.ts     Google Analytics: הפעלה לפי מזהה המדידה, צפיות בעמוד ואירועים
 src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה
 src/app/                 דפים: /, /rapid, /for-you, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /about, /login
 ```
@@ -251,6 +254,24 @@ src/app/                 דפים: /, /rapid, /for-you, /category/[id], /market/
 - **נתונים מובנים**: `Organization` + `WebSite` (עם SearchAction) בכל דף, `Article` + `BreadcrumbList` בדף שוק, `CollectionPage` בדפי רשימה ו-`FAQPage` ב-`/about` (השאלות נמצאות ב-`FAQ` ב-`src/lib/seo.ts` ומוצגות גם בדף עצמו — אין להוסיף שאלה ל-JSON-LD בלי להציג אותה).
 - **קודי סטטוס**: שלד הטעינה (`loading.tsx`) חי רק תחת קבוצת הראוט `(listing)`. אם מוסיפים `loading.tsx` מעל דפי שוק/קטגוריה, ה-404 שלהם יהפוך ל-200 רך (soft 404).
 - **אימות Search Console**: הגדירו `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` והתג ייווצר לבד.
+
+## Google Analytics
+
+מדידה של כל האתר יושבת ב־`src/components/Analytics.tsx`, שנטען פעם אחת מה־layout הראשי — כך שכל
+דף מכוסה ואי אפשר לשכוח דף חדש.
+
+- **הפעלה**: `NEXT_PUBLIC_GA_MEASUREMENT_ID` = מזהה המדידה של זרם הנתונים ב־GA4
+  (`Admin → Data streams → Measurement ID`), בפורמט `G-XXXXXXXXXX`. בלי הערך הזה **לא נטען שום
+  סקריפט של גוגל** — זה המצב הרגיל בפיתוח וב־CI.
+- **בזמן בילד, לא בזמן ריצה**: Next צורב משתני `NEXT_PUBLIC_*` לתוך הבאנדל. בפריסה לשרת הערך מגיע
+  מהמשתנה `GA_MEASUREMENT_ID` כ־build arg (‏`Dockerfile` + `.github/workflows/deploy.yml`); הוספה שלו
+  ל־`.env` של השרת בלבד לא תעשה כלום. שינוי הערך מחייב בילד מחדש.
+- **צפיות בעמוד**: פקודת ה־`config` מדווחת על העמוד שנחתו בו, ו־`AnalyticsPageViews` מדווחת על כל ניווט
+  צד־לקוח אחריו (כולל שינוי בשאילתה — מיון, חיפוש ו"הצגת עוד"). בלי החלק השני היה נרשם רק העמוד הראשון,
+  כי ב־App Router כל השאר הוא ניווט רך שלא טוען מחדש את הדף.
+- **אירועים** (`trackEvent` ב־`src/lib/analytics.ts`): `trade` (קנייה/מכירה בדף שוק), `rapid_answer`
+  (תשובה במצב זריז) ו־`comment_post`. הסכום נשלח כפרמטר `amount` ולא כ־`value` עם `currency`: הכסף כאן
+  וירטואלי, ו־`value` היה מכניס אותו לדוחות ההכנסות של GA כאילו אינו.
 
 ## גילוי נאות
 

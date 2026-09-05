@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "./Avatar";
 import { timeAgo } from "@/lib/format";
+import { trackEvent } from "@/lib/analytics";
 
 export interface CommentItem {
   id: number;
@@ -35,6 +36,7 @@ export function Comments({ marketId, comments, loggedIn }: { marketId: string; c
       setErr(data.error ?? "שגיאה");
       return;
     }
+    trackEvent("comment_post", { market_id: marketId });
     setBody("");
     router.refresh();
   }

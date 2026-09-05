@@ -16,6 +16,7 @@ import {
   type RapidCard,
 } from "@/lib/rapid";
 import { MarketImage } from "./MarketImage";
+import { trackEvent } from "@/lib/analytics";
 
 type AnswerStatus = "pending" | "ok" | "error";
 
@@ -227,6 +228,8 @@ export function RapidDeck({
         } catch {
           patch = { ...job, status: "error", error: "שגיאת רשת" };
         }
+        // reported before the unmount check below: the trade happened either way
+        if (patch.status === "ok") trackEvent("rapid_answer", { market_id: job.marketId, side: job.side, stake: job.stake });
         // out of money: every queued answer after this one would fail the same way,
         // so stop the run instead of firing a burst of doomed requests
         const stranded = data?.code === "INSUFFICIENT_BALANCE" ? queue.current.splice(0) : [];

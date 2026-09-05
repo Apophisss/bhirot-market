@@ -72,6 +72,11 @@ jobs:
       # NEXT_PUBLIC_SITE_URL is inlined into the client bundle at build time, so
       # it is passed here as well as written to the server's .env below. Only
       # one of the two halves is enough to ship links pointing at localhost.
+      #
+      # GA_MEASUREMENT_ID is a var and not a secret: it is public by design (it
+      # is in the page source of every site that uses it), and a write-only
+      # secret would mean nobody can check which stream the site reports to.
+      # Unset simply builds an image with no analytics in it.
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -82,6 +87,7 @@ jobs:
             ${{ env.IMAGE }}:latest
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://${{ env.DOMAIN }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.GA_MEASUREMENT_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -268,6 +274,9 @@ jobs:
           # secret is write-only in the UI, and for a switch like this not
           # being able to read its current state is the wrong trade.
           ALLOW_DEV_LOGIN: ${{ vars.ALLOW_DEV_LOGIN }}
+          # Written to .env for the record only — the value that counts was
+          # baked into the bundle by the build step above.
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
         run: |
           # Read back whatever the server generated, for the three that were
           # not supplied here. Masked so a later `set -x` or an error message
@@ -298,6 +307,7 @@ jobs:
           AUTH_GOOGLE_SECRET=$AUTH_GOOGLE_SECRET
           AUTH_URL=https://$DOMAIN
           NEXT_PUBLIC_SITE_URL=https://$DOMAIN
+          NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
           ADMIN_TOKEN=$ADMIN_TOKEN
           CRON_SECRET=$CRON_SECRET
           ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
