@@ -24,6 +24,7 @@ import {
   type SynthInput,
 } from "../src/lib/synthetic-history";
 import { MarketsFileSchema } from "../src/lib/content";
+import { RAPID_SPARK_SAMPLES, buildRapidSpark, rapidSparkPoints } from "../src/lib/rapid";
 
 const MIN = 60_000;
 const HOUR = 3_600_000;
@@ -377,6 +378,86 @@ for (let c = 0; c < CASES; c++) {
   }
   checkSeries(input.marketId, input, caseCfg, r);
   check(sameSeries(r.points, buildDisplayHistory(input, caseCfg).points), "V7 DETERMINISM", input.marketId, {});
+}
+
+/* ------------- V20: the copy the rapid deck draws on every card ------------ */
+/**
+ * The deck cannot ship this series as it stands — sixty cards would carry twenty
+ * thousand points — so `buildRapidSpark` cuts each one down to 32 samples. The
+ * bound above is worth nothing if the cut loses it on the way to the card, so the
+ * down-sampled copy is held to the same promises: no invented value, no fabricated
+ * stretch drawn as real trading, and a last point that is the real current price.
+ *
+ * Times survive the trip as whole minutes, so every comparison here allows the
+ * anchor to be read a minute either side.
+ */
+{
+  const bp = 1e-4 + EPS; // the copy carries probabilities in basis points
+  const sparkCases: SynthInput[] = [
+    ...liveFixtures.slice(0, 60),
+    // and a mixed-provenance series: real trades with fabricated stretches between them
+    ...liveFixtures.slice(0, 12).map((f) => {
+      const opened = f.real[0].t;
+      return {
+        ...f,
+        tradeCount: 3,
+        real: [
+          f.real[0],
+          { t: opened + Math.floor((f.now - opened) / 3), p: Math.min(0.95, f.probability + 0.07) },
+          { t: f.now - 6 * HOUR, p: f.probability },
+        ],
+      };
+    }),
+  ];
+
+  for (const f of sparkCases) {
+    const r = buildDisplayHistory(f, cfg);
+    const anchors = refAnchors(f, cfg);
+    /** the widest cap that can apply to a sample whose instant is only known to the minute */
+    const capNear = (t: number) => Math.max(...[-MIN, 0, MIN].map((d) => effectiveDeviation(refAnchor(anchors, t + d), cfg)));
+    const nearAnchor = (t: number, p: number) => Math.min(...[-MIN, 0, MIN].map((d) => Math.abs(p - refAnchor(anchors, t + d))));
+
+    const spark = buildRapidSpark(r.points, {
+      now: r.now,
+      current: f.probability,
+      isOpen: f.status === "open",
+      band: r.synthetic ? r.maxDeviation : null,
+    });
+    check(spark !== null, "V20 SPARK EXISTS", f.marketId, { points: r.points.length });
+    const pts = rapidSparkPoints(spark!);
+    check(pts.length >= 2 && pts.length <= RAPID_SPARK_SAMPLES, "V20 SPARK SIZE", f.marketId, { n: pts.length });
+
+    let prev = -Infinity;
+    for (const q of pts) {
+      check(Number.isFinite(q.t) && q.t >= prev, "V20 ORDERED", f.marketId, { q, prev });
+      check(q.p >= 0 && q.p <= 1, "V20 IN RANGE", f.marketId, { q });
+      // no invented value: an estimate stays inside the bound, a recorded price is the price
+      check(nearAnchor(q.t, q.p) <= capNear(q.t) + bp, "V20 BOUND SURVIVES THE CUT", f.marketId, {
+        q,
+        cap: capNear(q.t),
+        off: nearAnchor(q.t, q.p),
+      });
+      prev = q.t;
+    }
+    check(pts[pts.length - 1].t > pts[0].t, "V20 SPAN", f.marketId, { first: pts[0], last: pts[pts.length - 1] });
+
+    // the card's headline number is this last point: it must be the real current price
+    check(Math.abs(pts[pts.length - 1].p - f.probability) <= bp, "V20 TERMINAL TRUTH", f.marketId, {
+      last: pts[pts.length - 1],
+      probability: f.probability,
+    });
+
+    // and a stretch drawn as real trading must not span a single fabricated point
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i - 1].synthetic || pts[i].synthetic) continue;
+      const fabricated = r.points.filter((q) => q.synthetic && q.t > pts[i - 1].t - MIN && q.t < pts[i].t + MIN);
+      check(fabricated.length === 0, "V20 PROVENANCE SURVIVES THE CUT", f.marketId, {
+        from: pts[i - 1],
+        to: pts[i],
+        fabricated: fabricated.slice(0, 3),
+      });
+    }
+  }
 }
 
 /* ------------------------- V18: no write path at all ---------------------- */

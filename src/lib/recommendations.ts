@@ -4,19 +4,29 @@
  * Two signals, blended: what a user has shown they like (the categories, people
  * and tags they actually traded on) and what the board as a whole is doing right
  * now (recent money, recent traders, comments, lifetime volume). A signed-out
- * visitor — or one who has not traded yet — gets pure popularity; the personal
- * half fades in as the taste profile fills up, so the section is never empty and
- * never stale.
+ * visitor gets pure popularity; the personal half fades in as the taste profile
+ * fills up, so the list is never empty and never stale.
+ *
+ * A signed-in user who has not traded yet used to be in the same boat as a visitor.
+ * The short survey (`preferences.ts`) is what fills that gap: its answers are folded
+ * into the profile by `withSurvey` as a standing statement of interest — no recency
+ * decay, capped well under a real trading history — so the very first board is
+ * already theirs, and dilutes on its own as real trades accumulate.
+ *
+ * One ranking feeds both places the picks surface: the block on the home page
+ * (`RecommendationSection`) and the default deck of rapid mode (`rapid-feed.ts`).
  *
  * The scoring itself is pure: `buildTaste`, `popularityScores`, `scoreCandidate`
  * and `diversify` take plain data and are covered by scripts/test-recommendations.ts.
  * Only the `get*` functions at the bottom touch the database.
  */
-import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { getCategory } from "./categories";
 import { getPerson } from "./content";
 import { toView, type MarketView } from "./markets";
+import { hasSignal, type Horizon, type UserPreferences } from "./preferences";
+import { getPreferences } from "./preferences-store";
 
 const { markets, trades, comments, positions } = schema;
 
@@ -28,6 +38,17 @@ export const MATURITY_EVENTS = 6;
 export const TRENDING_WINDOW_HOURS = 72;
 /** Above this affinity a dimension is strong enough to be worth telling the user about. */
 const REASON_THRESHOLD = 0.34;
+
+/**
+ * What one survey answer is worth. The affinities sit just below 1 so a category the
+ * user actually trades still outranks one they only ticked a box for, and the strength
+ * is capped at half of `MATURITY_EVENTS`: a fresh survey buys about half the personal
+ * weight that a fully-formed trading history does, and no more.
+ */
+export const SURVEY_CATEGORY_AFFINITY = 0.85;
+export const SURVEY_PERSON_AFFINITY = 0.8;
+export const SURVEY_STRENGTH_PER_PICK = 0.6;
+export const SURVEY_MAX_STRENGTH = MATURITY_EVENTS / 2;
 
 /* ---------------------------------- taste ---------------------------------- */
 
@@ -43,6 +64,13 @@ export interface TasteEvent {
   weight: number;
 }
 
+/** The survey answers, kept alongside the affinities so the reasons can name their source. */
+export interface SurveySignal {
+  topics: string[];
+  people: string[];
+  horizon: Horizon;
+}
+
 export interface TasteProfile {
   /** 0..1 affinity per category id, normalized against the user's own top category */
   categories: Record<string, number>;
@@ -52,6 +80,8 @@ export interface TasteProfile {
   strength: number;
   /** number of distinct markets the user acted on */
   markets: number;
+  /** present once the short survey has been folded in (see `withSurvey`) */
+  survey?: SurveySignal;
 }
 
 export const EMPTY_TASTE: TasteProfile = { categories: {}, people: {}, tags: {}, strength: 0, markets: 0 };
@@ -97,6 +127,31 @@ export function buildTaste(events: TasteEvent[], now = Date.now()): TasteProfile
 /** The weight of one trade: a bigger stake is a stronger statement, but only logarithmically. */
 export function tradeWeight(amount: number): number {
   return Math.min(2, Math.log10(1 + Math.max(0, amount)) / Math.log10(101));
+}
+
+/**
+ * Folds the short survey into a profile built from real actions.
+ *
+ * Unlike a trade, an answer is a standing statement rather than an event, so it does
+ * not decay: it is re-applied on every request at full value, and loses its hold only
+ * because real trades push the profile's own maximum up around it. The affinities go
+ * in with `max`, so an answer can only ever raise a dimension — a user who both ticked
+ * "סקרים" and trades it heavily keeps the higher, earned number.
+ */
+export function withSurvey(profile: TasteProfile, prefs: UserPreferences | null | undefined): TasteProfile {
+  if (!hasSignal(prefs)) return profile;
+  const categories = { ...profile.categories };
+  const people = { ...profile.people };
+  for (const id of prefs.topics) categories[id] = Math.max(categories[id] ?? 0, SURVEY_CATEGORY_AFFINITY);
+  for (const id of prefs.people) people[id] = Math.max(people[id] ?? 0, SURVEY_PERSON_AFFINITY);
+  const picks = prefs.topics.length + prefs.people.length;
+  return {
+    ...profile,
+    categories,
+    people,
+    strength: profile.strength + Math.min(SURVEY_MAX_STRENGTH, picks * SURVEY_STRENGTH_PER_PICK),
+    survey: { topics: prefs.topics, people: prefs.people, horizon: prefs.horizon },
+  };
 }
 
 /** How often each person and tag appears across the board, as a share of it. */
@@ -262,6 +317,22 @@ function uncertainty(probability: number): number {
   return 1 - Math.abs(probability - 0.5) * 2;
 }
 
+const FAST_HOURS = 72;
+const WEEK_HOURS = 24 * 7;
+const FORTNIGHT_HOURS = 24 * 14;
+
+/**
+ * The pace the user asked for in the survey, as a nudge on top of `urgency`. Kept well
+ * under it (±0.4 against 0.9) so it shades the order without ever hiding the board:
+ * somebody who asked for long-range questions is still shown the one closing tonight.
+ */
+export function horizonFit(closesAt: number, now: number, horizon: Horizon | undefined): number {
+  if (!horizon || horizon === "mixed") return 0;
+  const hours = (closesAt - now) / 3_600_000;
+  if (horizon === "fast") return hours <= FAST_HOURS ? 0.4 : hours <= WEEK_HOURS ? 0.1 : -0.25;
+  return hours >= FORTNIGHT_HOURS ? 0.3 : hours >= WEEK_HOURS ? 0.1 : -0.2;
+}
+
 export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now = Date.now()): ScoredCandidate {
   const w = blendWeights(profile.strength);
   const taste = tasteAffinity(profile, c);
@@ -273,11 +344,19 @@ export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now =
     0.9 * urge +
     0.5 * uncertainty(c.probability) +
     0.35 * fresh +
+    horizonFit(c.closesAt, now, profile.survey?.horizon) +
     (c.featured ? 0.25 : 0);
 
+  // a pick the user only ticked in the survey must not be explained as something they
+  // "are active in" — a brand new account has never traded anything
+  const surveyTopics = new Set(profile.survey?.topics ?? []);
+  const surveyPeople = new Set(profile.survey?.people ?? []);
   const reasons: RecReason[] = [];
   const cat = profile.categories[c.category] ?? 0;
-  if (cat >= REASON_THRESHOLD) reasons.push({ kind: "category", label: `אתם פעילים ב${getCategory(c.category).label}` });
+  if (cat >= REASON_THRESHOLD) {
+    const label = getCategory(c.category).label;
+    reasons.push({ kind: "category", label: surveyTopics.has(c.category) ? `בחרתם ${label} בשאלון` : `אתם פעילים ב${label}` });
+  }
   let bestPerson = "";
   let bestPersonScore = 0;
   for (const p of c.people) {
@@ -286,7 +365,10 @@ export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now =
   }
   if (bestPersonScore >= REASON_THRESHOLD) {
     const name = getPerson(bestPerson)?.name ?? bestPerson;
-    reasons.push({ kind: "person", label: `שאלות על ${name} מעניינות אתכם` });
+    reasons.push({
+      kind: "person",
+      label: surveyPeople.has(bestPerson) ? `בחרתם את ${name} בשאלון` : `שאלות על ${name} מעניינות אתכם`,
+    });
   }
   if (c.popularity >= 0.5) reasons.push({ kind: "trending", label: "נסחר הרבה עכשיו" });
   if (urge >= 0.7) reasons.push({ kind: "closing", label: "ההכרעה קרובה" });
@@ -334,11 +416,14 @@ function parseJson<T>(s: string, fallback: T): T {
   }
 }
 
-/** What a user's own trades and comments say about the questions they like. */
+/**
+ * What a user's own trades and comments say about the questions they like, with the
+ * short survey folded in on top — that is what makes the profile non-empty on day one.
+ */
 export async function getTasteProfile(userId: string | null | undefined, now = Date.now()): Promise<TasteProfile> {
   if (!userId) return EMPTY_TASTE;
   const db = await getDb();
-  const [tradeRows, commentRows] = await Promise.all([
+  const [tradeRows, commentRows, prefs] = await Promise.all([
     db
       .select({
         marketId: trades.marketId,
@@ -366,6 +451,7 @@ export async function getTasteProfile(userId: string | null | undefined, now = D
       .where(eq(comments.userId, userId))
       .orderBy(desc(comments.createdAt))
       .limit(100),
+    getPreferences(userId),
   ]);
 
   const events: TasteEvent[] = [
@@ -387,7 +473,7 @@ export async function getTasteProfile(userId: string | null | undefined, now = D
       weight: 0.35,
     })),
   ];
-  return buildTaste(events, now);
+  return withSurvey(buildTaste(events, now), prefs);
 }
 
 /** Trading and commenting on every market inside the trending window. */
@@ -543,21 +629,10 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
   };
 }
 
-/** The user's own top categories, for the "why these" line on /for-you. */
+/** The user's own top categories, reported by GET /api/recommendations. */
 export function topCategories(profile: TasteProfile, limit = 3): { id: string; label: string; weight: number }[] {
   return Object.entries(profile.categories)
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
     .map(([id, weight]) => ({ id, label: getCategory(id).label, weight }));
-}
-
-/** Markets the user holds, used by /for-you to explain what the profile was built from. */
-export async function getTradedCategories(userId: string): Promise<string[]> {
-  const db = await getDb();
-  const rows = await db
-    .select({ category: markets.category })
-    .from(positions)
-    .innerJoin(markets, eq(positions.marketId, markets.id))
-    .where(and(eq(positions.userId, userId), inArray(markets.status, ["open", "resolved", "cancelled"])));
-  return [...new Set(rows.map((r) => r.category))];
 }

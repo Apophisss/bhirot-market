@@ -10,17 +10,24 @@ import {
   commonnessDamp,
   diversify,
   focusProfile,
+  horizonFit,
   EMPTY_TASTE,
   HALF_LIFE_DAYS,
   MATURITY_EVENTS,
   popularityScores,
   scoreCandidate,
+  SURVEY_CATEGORY_AFFINITY,
+  SURVEY_MAX_STRENGTH,
+  SURVEY_PERSON_AFFINITY,
+  SURVEY_STRENGTH_PER_PICK,
   tasteAffinity,
   tradeWeight,
+  withSurvey,
   type ActivityRow,
   type CandidateSignals,
   type TasteEvent,
 } from "../src/lib/recommendations";
+import type { UserPreferences } from "../src/lib/preferences";
 
 let passed = 0;
 function test(name: string, fn: () => void) {
@@ -40,6 +47,10 @@ const DAY = 86_400_000;
 
 function ev(over: Partial<TasteEvent> = {}): TasteEvent {
   return { marketId: "m", category: "polls", people: [], tags: [], at: NOW, weight: 1, ...over };
+}
+
+function prefs(over: Partial<UserPreferences> = {}): UserPreferences {
+  return { topics: [], people: [], horizon: "mixed", status: "completed", version: 1, ...over };
 }
 
 function candidate(over: Partial<CandidateSignals> = {}): CandidateSignals {
@@ -305,6 +316,97 @@ test("diversify never invents or drops items", () => {
   const out = diversify(items, (i) => i.cat, 20);
   assert.equal(out.length, items.length);
   assert.equal(new Set(out.map((i) => i.id)).size, items.length);
+});
+
+/* --------------------------------- survey ---------------------------------- */
+
+test("an empty or skipped survey leaves the profile untouched", () => {
+  const base = buildTaste([ev({ category: "legal" })], NOW);
+  assert.deepEqual(withSurvey(base, null), base);
+  assert.deepEqual(withSurvey(base, prefs({ status: "skipped" })), base);
+  assert.deepEqual(withSurvey(base, prefs()), base, "picking nothing at all is not a signal");
+});
+
+test("survey answers give a brand new account a profile to rank by", () => {
+  const p = withSurvey(EMPTY_TASTE, prefs({ topics: ["polls"], people: ["yair-golan"], horizon: "fast" }));
+  close(p.categories.polls, SURVEY_CATEGORY_AFFINITY, 1e-9, "category affinity");
+  close(p.people["yair-golan"], SURVEY_PERSON_AFFINITY, 1e-9, "person affinity");
+  close(p.strength, 2 * SURVEY_STRENGTH_PER_PICK, 1e-9, "strength");
+  assert.equal(p.markets, 0, "a survey answer is not a market the user acted on");
+  assert.deepEqual(p.survey?.topics, ["polls"]);
+  assert.equal(p.survey?.horizon, "fast");
+  assert.ok(EMPTY_TASTE.strength === 0 && !EMPTY_TASTE.survey, "EMPTY_TASTE is not mutated");
+});
+
+test("the survey can only raise a dimension, never lower an earned one", () => {
+  const traded = buildTaste([ev({ category: "polls", people: ["yair-golan"], weight: 1 })], NOW);
+  close(traded.categories.polls, 1, 1e-9, "a lone traded category is the profile's own top");
+  const p = withSurvey(traded, prefs({ topics: ["polls", "legal"] }));
+  close(p.categories.polls, 1, 1e-9, "trading outranks ticking a box");
+  close(p.categories.legal, SURVEY_CATEGORY_AFFINITY, 1e-9, "the untraded pick still enters");
+});
+
+test("survey strength is capped below a full trading history", () => {
+  const many = prefs({ topics: ["polls", "legal", "media", "knesset", "haredi", "security"], people: ["a", "b", "c", "d"] });
+  const p = withSurvey(EMPTY_TASTE, many);
+  close(p.strength, SURVEY_MAX_STRENGTH, 1e-9, "capped");
+  assert.ok(SURVEY_MAX_STRENGTH < MATURITY_EVENTS, "a survey is never worth as much as real trading");
+  const w = blendWeights(p.strength);
+  assert.ok(w.taste > 0, "a survey buys real personal weight");
+  assert.ok(w.taste < blendWeights(MATURITY_EVENTS).taste, "but less than a mature profile");
+});
+
+test("survey affinities survive the inverse-frequency correction and the recency decay", () => {
+  const p = focusProfile(withSurvey(EMPTY_TASTE, prefs({ topics: ["polls"], people: ["yair-golan"] })), {
+    people: { "yair-golan": 0.1 },
+    tags: {},
+    size: 100,
+  });
+  assert.ok(p.people["yair-golan"] > 0, "a survey pick is still there after damping");
+  // re-applied at full value however much later: an answer is a standing statement
+  const later = withSurvey(buildTaste([], NOW + 400 * DAY), prefs({ topics: ["polls"] }));
+  close(later.categories.polls, SURVEY_CATEGORY_AFFINITY, 1e-9, "no decay");
+});
+
+test("horizonFit nudges by the pace the user asked for, and never more than urgency", () => {
+  const soon = NOW + 12 * 3_600_000;
+  const far = NOW + 60 * DAY;
+  assert.ok(horizonFit(soon, NOW, "fast") > 0, "fast likes a question closing tonight");
+  assert.ok(horizonFit(far, NOW, "fast") < 0, "and dislikes one closing in two months");
+  assert.ok(horizonFit(far, NOW, "long") > 0, "long is the mirror image");
+  assert.ok(horizonFit(soon, NOW, "long") < 0);
+  for (const h of ["fast", "long"] as const) {
+    for (const t of [soon, NOW + 5 * DAY, far]) {
+      assert.ok(Math.abs(horizonFit(t, NOW, h)) <= 0.4, "the nudge stays well under the 0.9 urgency term");
+    }
+  }
+  assert.equal(horizonFit(soon, NOW, "mixed"), 0);
+  assert.equal(horizonFit(soon, NOW, undefined), 0, "no survey means no horizon term");
+});
+
+test("a survey-driven pick is explained as an answer, not as activity", () => {
+  const p = withSurvey(EMPTY_TASTE, prefs({ topics: ["polls"], people: ["yair-golan"] }));
+  const reasons = scoreCandidate(candidate({ category: "polls", people: ["yair-golan"] }), p, NOW).reasons;
+  const labels = reasons.map((r) => r.label).join(" | ");
+  assert.ok(labels.includes("בשאלון"), `expected a survey wording, got: ${labels}`);
+  assert.ok(!labels.includes("אתם פעילים"), "nobody who never traded is 'active' in a category");
+
+  const traded = buildTaste([ev({ category: "polls", weight: 1 })], NOW);
+  const tradedLabels = scoreCandidate(candidate({ category: "polls" }), traded, NOW).reasons.map((r) => r.label);
+  assert.ok(tradedLabels.some((l) => l.includes("אתם פעילים")), "a traded category keeps its own wording");
+});
+
+test("a survey answer actually moves a question up the ranking", () => {
+  const p = withSurvey(EMPTY_TASTE, prefs({ topics: ["haredi"] }));
+  const mine = candidate({ id: "mine", category: "haredi" });
+  const other = candidate({ id: "other", category: "media" });
+  assert.ok(
+    scoreCandidate(mine, p, NOW).score > scoreCandidate(other, p, NOW).score,
+    "the chosen topic wins when everything else is equal",
+  );
+  // ...but popularity and urgency still count for something
+  const hot = candidate({ id: "hot", category: "media", popularity: 1, closesAt: NOW + 6 * 3_600_000 });
+  assert.ok(scoreCandidate(hot, p, NOW).score > scoreCandidate(mine, p, NOW).score, "the survey is a nudge, not a filter");
 });
 
 console.log(`recommendations: ${passed} tests passed`);

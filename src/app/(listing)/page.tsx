@@ -18,6 +18,8 @@ import { findCategory } from "@/lib/categories";
 import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
 import { getRecommendations } from "@/lib/recommendations";
+import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { needsSurvey } from "@/lib/preferences-store";
 import { BoltIcon } from "@/components/BoltIcon";
 import { displayOpenCount } from "@/lib/display-stats";
 
@@ -84,14 +86,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // only the two canonical listings (/ and /?status=resolved) carry the ItemList
   const indexable = !q && !person && !sp.sort && !sp.show;
 
-  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended] = await Promise.all([
+  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended, askSurvey] = await Promise.all([
     listMarkets({ category: "all", q, sort, status, person: person?.id, limit: 600 }),
     getMarketStats(),
     getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
     getPeopleCounts("open"),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
-    !filtered ? getRecommendations({ userId: session?.user?.id, limit: 6 }) : Promise.resolve(null),
+    !filtered ? getRecommendations({ userId: session?.user?.id, limit: 12 }) : Promise.resolve(null),
+    !filtered ? needsSurvey(session?.user?.id) : Promise.resolve(false),
   ]);
 
   // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
@@ -99,7 +102,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
   // a question already surfaced by "closing today" is not worth a second slot in the recommendations
-  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 3);
+  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 6);
   const recIds = new Set(recommendations.map((r) => r.market.id));
   const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recIds.has(m.id)).slice(0, 3) : [];
   const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recIds]);
@@ -113,7 +116,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             path: status === "resolved" ? "/?status=resolved" : "/",
             name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
-            markets: [...closingSoon, ...recommendations.map((r) => r.market), ...featured, ...rest].slice(0, 30),
+            markets: [...recommendations.map((r) => r.market), ...closingSoon, ...featured, ...rest].slice(0, 30),
           })}
         />
       )}
@@ -154,6 +157,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-3">
                 <Link
                   href="/rapid"
+                  data-evt="hero-rapid"
                   className="tap pressable inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft sm:py-2.5"
                 >
                   <BoltIcon size={16} />
@@ -162,6 +166,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {session?.user ? (
                   <Link
                     href="/portfolio"
+                    data-evt="hero-portfolio"
                     className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
                   >
                     לתיק שלי
@@ -169,6 +174,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 ) : (
                   <Link
                     href="/login"
+                    data-evt="hero-login"
                     className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 text-center font-semibold text-white hover:bg-white/20"
                   >
                     <span className="sm:hidden">התחברות · ₪10,000 וירטואליים</span>
@@ -177,6 +183,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 )}
                 <Link
                   href="/about"
+                  data-evt="hero-about"
                   className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
                 >
                   איך זה עובד?
@@ -212,6 +219,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {!filtered && !session?.user && <HowToPlay />}
 
+      {/* the survey is what the recommendations right below have to go on until this user trades */}
+      {askSurvey && <SurveyPrompt />}
+
+      {recommendations.length > 0 && (
+        <RecommendationSection
+          items={recommendations}
+          personalized={Boolean(recommended?.personalized)}
+          loggedIn={Boolean(session?.user)}
+          surveyOnly={Boolean(recommended?.profile.survey) && (recommended?.profile.markets ?? 0) === 0}
+        />
+      )}
+
       {closingSoon.length > 0 && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -227,10 +246,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ))}
           </div>
         </section>
-      )}
-
-      {recommendations.length > 0 && (
-        <RecommendationSection items={recommendations} personalized={Boolean(recommended?.personalized)} loggedIn={Boolean(session?.user)} />
       )}
 
       {featured.length > 0 && (

@@ -6,7 +6,9 @@ import { useRouter, usePathname } from "next/navigation";
 import { maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { MAX_BET } from "@/lib/limits";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
-import { trackEvent } from "@/lib/analytics";
+import { track } from "@/lib/track";
+import { EVENTS } from "@/lib/events";
+import { gaEvent } from "@/lib/gtag";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
@@ -79,6 +81,11 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   const sidePrice = side === "YES" ? market.probability : 1 - market.probability;
 
   async function submit() {
+    track(EVENTS.tradeAttempt, {
+      marketId: market.id,
+      value: qty,
+      props: { side, action, loggedIn: loggedIn ? 1 : 0 },
+    });
     if (!loggedIn) {
       router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
@@ -96,11 +103,11 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       if (!res.ok || !data.ok) {
         setMsg({ kind: "err", text: data.error ?? "שגיאה" });
       } else {
-        trackEvent("trade", {
+        gaEvent("trade", {
           market_id: market.id,
           side,
           trade_action: action,
-          // virtual shekels, reported as a plain number — see trackEvent()
+          // virtual shekels, reported as a plain number — see gaEvent()
           amount: Math.round(data.quote.amount * 100) / 100,
         });
         setMsg({

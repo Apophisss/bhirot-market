@@ -268,6 +268,13 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+          # Who may open /admin by signing in with Google. A var rather than a
+          # secret for the same reason as ALLOW_DEV_LOGIN below: it decides who
+          # gets in, so its current value has to be readable. The default keeps
+          # the owner's access working with nothing to configure; set the
+          # ADMIN_EMAILS var (comma-separated) to replace the list. Entry with
+          # ADMIN_TOKEN through /admin/login works either way.
+          ADMIN_EMAILS: ${{ vars.ADMIN_EMAILS || 'ofirzlot@gmail.com' }}
           # A var rather than a secret, and off unless someone deliberately
           # turns it on: ALLOW_DEV_LOGIN is the passwordless "quick login",
           # which on a public site means anyone can sign in as any name. A
@@ -309,6 +316,7 @@ jobs:
           NEXT_PUBLIC_SITE_URL=https://$DOMAIN
           NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
           ADMIN_TOKEN=$ADMIN_TOKEN
+          ADMIN_EMAILS=$ADMIN_EMAILS
           CRON_SECRET=$CRON_SECRET
           ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
           CLAUDE_MODEL=$CLAUDE_MODEL
