@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RapidCta } from "@/components/RapidCta";
 import { currentUser } from "@/lib/auth";
 import { getReferralSummary } from "@/lib/referral-program";
 import { MAX_REFERRALS, REFERRAL_BONUS } from "@/lib/referral";
@@ -106,6 +107,15 @@ export default async function InvitePage() {
           </Link>
         </section>
       )}
+
+      {/* the invite page is the one place a signed-in player is doing something other
+          than playing — the deck is what the friends are being invited to */}
+      <RapidCta
+        evt="invite-rapid"
+        title="ובינתיים — ענו על כמה שאלות"
+        body="מצב זריז מגיש שאלה אחרי שאלה, כן או לא. חבר שנכנס לקישור שלכם רואה לוח חי, אז שווה שיהיו עליו גם התשובות שלכם."
+        label="לענות ברצף"
+      />
 
       <section className="card p-3.5 sm:p-5">
         <h2 className="mb-3 font-bold text-text-strong">איך זה עובד</h2>

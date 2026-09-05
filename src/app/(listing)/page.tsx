@@ -23,6 +23,7 @@ import { getRecommendations } from "@/lib/recommendations";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 import { BoltIcon } from "@/components/BoltIcon";
+import { RapidCta } from "@/components/RapidCta";
 import { displayOpenCount, displayResolvedCount, displayUserCount, displayVolume } from "@/lib/display-stats";
 
 export const dynamic = "force-dynamic";
@@ -318,6 +319,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         total={markets.length}
         counts={counts}
         person={person}
+      />
+
+      {/* The board ends here, and a visitor who scrolled all of it is looking for the
+          next question — including one who filtered or searched and found little. */}
+      <RapidCta
+        evt="home-rapid-end"
+        label={filtered ? "למצב זריז" : `לענות ברצף · ${openCount} שאלות`}
       />
 
       {resolvedRecently.length > 0 && (

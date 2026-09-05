@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CATEGORIES, findCategory } from "@/lib/categories";
 import { listMarkets, getCategoryCounts } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
+import { RapidCta } from "@/components/RapidCta";
 import { MarketBrowser, PAGE, parseSort } from "@/components/MarketBrowser";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_NAME } from "@/lib/config";
@@ -96,6 +97,14 @@ export default async function CategoryPage({ params, searchParams }: { params: P
             איך זה עובד
           </Link>
         </p>
+        {/* the fastest way through a category is the deck filtered to it, not the grid */}
+        <RapidCta
+          variant="line"
+          evt="category-rapid"
+          href={`/rapid?category=${cat.id}`}
+          label={`לענות על ${cat.label} ברצף`}
+          className="mt-3 bg-surface"
+        />
       </header>
 
       <MarketBrowser
@@ -106,6 +115,13 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         shown={visible.length}
         total={markets.length}
         counts={counts}
+      />
+
+      <RapidCta
+        evt="category-rapid-end"
+        href={`/rapid?category=${cat.id}`}
+        title={`מצב זריז — ${cat.label}, שאלה אחרי שאלה`}
+        label="לענות ברצף"
       />
 
       <section className="card p-5">

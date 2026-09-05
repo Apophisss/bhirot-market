@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RapidCta } from "@/components/RapidCta";
 import { getLeaderboard } from "@/lib/portfolio";
 import { getMarketStats } from "@/lib/markets";
 import { STARTING_BALANCE } from "@/lib/limits";
@@ -141,6 +142,15 @@ export default async function LeaderboardPage() {
       <p className="text-[13px] text-muted">
         מוצגים {rows.length} המקומות הראשונים מתוך {board.length} שחקנים בלוח. הדירוג מתעדכן בכל טעינה של הדף.
       </p>
+
+      {/* the table says who is ahead and nothing about how to catch up — answering more
+          questions is how, and the deck is the fastest way to answer more of them */}
+      <RapidCta
+        evt="leaderboard-rapid"
+        title="הדרך לעלות בטבלה — לענות על עוד שאלות"
+        body="במצב זריז השאלות עולות אחת אחרי השנייה, כן או לא. כל תשובה שצדקה מוסיפה לניקוד שהטבלה הזאת מדרגת לפיו."
+        label="לענות ברצף"
+      />
     </div>
   );
 }
