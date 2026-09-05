@@ -205,6 +205,37 @@ export const comments = sqliteTable(
   (c) => [index("comment_market_idx").on(c.marketId, c.createdAt)],
 );
 
+/* ---------- Onboarding survey / personalization ---------- */
+
+export type SurveyStatus = "completed" | "skipped";
+/** How far out a user likes their questions to close. */
+export type Horizon = "fast" | "mixed" | "long";
+
+/**
+ * What the short political survey learned about a user, and the fact that they
+ * were already asked. One row per user: its existence (whatever its `status`) is
+ * what stops the site from asking again.
+ */
+export const userPreferences = sqliteTable("user_preference", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** JSON string[] of category ids (see src/lib/categories.ts) */
+  topics: text("topics").notNull().default("[]"),
+  /** JSON string[] of people ids (see data/people.json) */
+  people: text("people").notNull().default("[]"),
+  horizon: text("horizon").$type<Horizon>().notNull().default("mixed"),
+  status: text("status").$type<SurveyStatus>().notNull().default("completed"),
+  /** which revision of the survey they answered, so a future one can re-ask */
+  version: integer("version").notNull().default(1),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 /** Log of editorial content updates (hourly routine / cron / admin API). */
 export const agentRuns = sqliteTable("agent_run", {
   id: integer("id").primaryKey({ autoIncrement: true }),

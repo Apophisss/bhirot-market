@@ -17,6 +17,9 @@ import { findCategory } from "@/lib/categories";
 import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
 import { BoltIcon } from "@/components/BoltIcon";
+import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { getPreferences } from "@/lib/preferences-store";
+import { hasSignal, rankByPreferences, SURVEY_VERSION } from "@/lib/preferences";
 
 export const dynamic = "force-dynamic";
 
@@ -91,10 +94,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
   ]);
 
+  // the survey is what stands in for a trading history on a brand new account: until
+  // there is one, it is the only thing that makes the first board personal
+  const prefs = session?.user?.id ? await getPreferences(session.user.id) : null;
+  const askSurvey = Boolean(session?.user?.id) && !filtered && (!prefs || prefs.version < SURVEY_VERSION);
+  const recommended = !filtered && hasSignal(prefs) ? rankByPreferences(markets, prefs, 6) : [];
+
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
-  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id)).slice(0, 3) : [];
-  const skip = new Set([...featured.map((m) => m.id), ...soonIds]);
+  const recommendedIds = new Set(recommended.map((m) => m.id));
+  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recommendedIds.has(m.id)).slice(0, 3) : [];
+  const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recommendedIds]);
   const rest = skip.size ? visible.filter((m) => !skip.has(m.id)) : visible;
 
   return (
@@ -105,7 +115,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             path: status === "resolved" ? "/?status=resolved" : "/",
             name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
-            markets: [...closingSoon, ...featured, ...rest].slice(0, 30),
+            markets: [...recommended, ...closingSoon, ...featured, ...rest].slice(0, 30),
           })}
         />
       )}
@@ -203,6 +213,25 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       {!filtered && !session?.user && <HowToPlay />}
+
+      {askSurvey && <SurveyPrompt />}
+
+      {recommended.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 className="text-base font-bold text-text-strong sm:text-lg">מומלץ בשבילכם</h2>
+            <Link href="/onboarding?edit=1" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
+              עדכון ההעדפות
+            </Link>
+          </div>
+          <p className="-mt-1 text-[13px] text-muted sm:text-sm">לפי הנושאים והמתמודדים שבחרתם בשאלון.</p>
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+            {recommended.map((m) => (
+              <MarketCard key={m.id} m={m} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {closingSoon.length > 0 && (
         <section className="space-y-3">

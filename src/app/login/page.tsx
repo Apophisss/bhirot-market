@@ -16,17 +16,20 @@ export const metadata: Metadata = {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string; error?: string }> }) {
   const { callbackUrl, error } = await searchParams;
+  const redirectTo = callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
   const session = await auth();
-  if (session?.user) redirect(callbackUrl || "/");
-  const redirectTo = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
+  if (session?.user) redirect(redirectTo);
+  // everyone lands on the short survey first; it forwards to `redirectTo` immediately
+  // for anyone who already answered it, so a returning user never sees it twice
+  const afterLogin = redirectTo.startsWith("/onboarding") ? redirectTo : `/onboarding?next=${encodeURIComponent(redirectTo)}`;
 
   async function google() {
     "use server";
-    await signIn("google", { redirectTo });
+    await signIn("google", { redirectTo: afterLogin });
   }
   async function dev(formData: FormData) {
     "use server";
-    await signIn("dev", { name: String(formData.get("name") ?? ""), redirectTo });
+    await signIn("dev", { name: String(formData.get("name") ?? ""), redirectTo: afterLogin });
   }
 
   return (
