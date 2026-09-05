@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { SITE_NAME } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
+import { AD_CHECK_PARAM } from "@/components/AdConversions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -21,7 +22,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (session?.user) redirect(redirectTo);
   // everyone lands on the short survey first; it forwards to `redirectTo` immediately
   // for anyone who already answered it, so a returning user never sees it twice
-  const afterLogin = redirectTo.startsWith("/onboarding") ? redirectTo : `/onboarding?next=${encodeURIComponent(redirectTo)}`;
+  const onboarding = redirectTo.startsWith("/onboarding") ? redirectTo : `/onboarding?next=${encodeURIComponent(redirectTo)}`;
+  // the marker tells <AdConversions> to ask for the sign_up conversion on the way back
+  const afterLogin = `${onboarding}${onboarding.includes("?") ? "&" : "?"}${AD_CHECK_PARAM}=1`;
 
   async function google() {
     "use server";

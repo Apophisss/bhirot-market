@@ -7,6 +7,8 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { REFERRAL_COOKIE } from "./referral";
 import { claimReferral } from "./referral-program";
+import { AD_COOKIE } from "./ad-attribution";
+import { claimAdAttribution } from "./ad-conversions";
 import { track } from "./analytics";
 import { EVENTS } from "./events";
 
@@ -84,6 +86,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
     // sign-ups and logins are recorded server-side, so no ad-blocker can hide them
     async createUser({ user }) {
       if (user.id) await claimPendingReferral(user.id);
+      if (user.id) await claimAdAttribution(user.id, (await cookies()).get(AD_COOKIE)?.value);
       await track(EVENTS.signup, { userId: user.id, path: "/login" });
     },
     async signIn({ user, isNewUser }) {

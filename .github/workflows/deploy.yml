@@ -88,6 +88,9 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://${{ env.DOMAIN }}
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_ADS_ID=${{ vars.ADS_ID }}
+            NEXT_PUBLIC_ADS_LABEL_SIGNUP=${{ vars.ADS_LABEL_SIGNUP }}
+            NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE=${{ vars.ADS_LABEL_FIRST_TRADE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -284,6 +287,9 @@ jobs:
           # Written to .env for the record only — the value that counts was
           # baked into the bundle by the build step above.
           NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
+          NEXT_PUBLIC_ADS_ID: ${{ vars.ADS_ID }}
+          NEXT_PUBLIC_ADS_LABEL_SIGNUP: ${{ vars.ADS_LABEL_SIGNUP }}
+          NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE: ${{ vars.ADS_LABEL_FIRST_TRADE }}
         run: |
           # Read back whatever the server generated, for the three that were
           # not supplied here. Masked so a later `set -x` or an error message
@@ -315,6 +321,9 @@ jobs:
           AUTH_URL=https://$DOMAIN
           NEXT_PUBLIC_SITE_URL=https://$DOMAIN
           NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
+          NEXT_PUBLIC_ADS_ID=$NEXT_PUBLIC_ADS_ID
+          NEXT_PUBLIC_ADS_LABEL_SIGNUP=$NEXT_PUBLIC_ADS_LABEL_SIGNUP
+          NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE=$NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE
           ADMIN_TOKEN=$ADMIN_TOKEN
           ADMIN_EMAILS=$ADMIN_EMAILS
           CRON_SECRET=$CRON_SECRET

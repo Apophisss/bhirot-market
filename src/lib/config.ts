@@ -20,6 +20,14 @@ export const SITE_KEYWORDS = [
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 /** Byline for everything the site's editorial team publishes (questions, resolutions, updates). */
 export const SITE_TEAM = "צוות המערכת";
+/**
+ * Address published on the privacy and terms pages. Google's ad review looks for a
+ * way to reach the site owner, so set this before running ads; the sections that
+ * quote it are hidden while it is empty rather than shipping a dead placeholder.
+ */
+export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
+/** Last substantive edit to the privacy policy / terms, shown to the reader. */
+export const LEGAL_UPDATED = "2026-09-05";
 /** Markets shipped with the repo are "seed"; anything else was added by the editorial team. */
 export function isTeamAuthored(createdBy: string): boolean {
   return createdBy !== "seed";
