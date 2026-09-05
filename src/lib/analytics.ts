@@ -165,4 +165,26 @@ export async function analyticsSize(): Promise<{ events: number; oldest: Date | 
   return { events: row?.n ?? 0, oldest: row?.oldest ? new Date(row.oldest) : null };
 }
 
+/**
+ * Is the tracking pipeline alive? Counts only — the same class of aggregate
+ * /api/health already publishes, and enough to notice from outside that events
+ * stopped landing (a broken collector, a blocked beacon, an empty table).
+ */
+export async function analyticsHealth(): Promise<{ events: number; last24h: number; lastEventAt: string | null }> {
+  const db = await getDb();
+  const since = new Date(Date.now() - 86_400_000);
+  const [row] = await db
+    .select({
+      n: sql<number>`count(*)`,
+      recent: sql<number>`sum(case when ${analyticsEvents.ts} >= ${since.getTime()} then 1 else 0 end)`,
+      last: sql<number | null>`max(${analyticsEvents.ts})`,
+    })
+    .from(analyticsEvents);
+  return {
+    events: row?.n ?? 0,
+    last24h: row?.recent ?? 0,
+    lastEventAt: row?.last ? new Date(row.last).toISOString() : null,
+  };
+}
+
 export { EVENTS };
