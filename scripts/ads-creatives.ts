@@ -1,13 +1,17 @@
 /**
- * Generates the image and text assets a Google Ads Demand Gen campaign needs,
- * from the questions actually on the board.
+ * Generates the image and text assets a Google Ads Demand Gen campaign needs.
+ *
+ * Each image is a picture of the product: the question, its trend line drawn by
+ * the site's own chart generator, and the green "כן" / red "לא" buttons — under
+ * a headline saying what the site is and above the virtual-money disclosure.
  *
  * Two sets, because Google treats them differently:
  *
- *   --set=generic (default)  Brand creatives plus any question that names no
- *                            politician and no party. These do not read as
- *                            election ads, so they can run without Google's
- *                            Israel election-advertiser verification.
+ *   --set=generic (default)  The pitch, on a card carrying a written sample
+ *                            question, plus any real market whose title names
+ *                            no politician and no party. Nothing here reads as
+ *                            an election ad, so it runs without Google's Israel
+ *                            election-advertiser verification.
  *   --set=named              The real headline questions, names and all. Higher
  *                            click-through, but the account must be verified for
  *                            election ads first, and every ad carries a paid-for
@@ -23,6 +27,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node
 import { execFileSync } from "node:child_process";
 import { deflateSync, inflateSync } from "node:zlib";
 import path from "node:path";
+import { DEFAULT_SYNTH_CONFIG, SYNTH_HARD_MAX_DEVIATION, buildDisplayHistory } from "../src/lib/synthetic-history";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "ads", "creatives");
@@ -57,11 +62,16 @@ const NAME_WORDS = [
   ...PARTIES,
 ];
 
-/** True when nothing in the text could make Google read the ad as election advertising. */
+/**
+ * True when nothing that will appear in the image could make Google read the ad
+ * as election advertising.
+ *
+ * The title only: `people[]` is board metadata used for filtering and avatars,
+ * and never reaches the creative. Judging by the tags instead would reject 326
+ * of 327 open markets over names the viewer never sees.
+ */
 function isNameFree(m: Market): boolean {
-  if (m.people?.length) return false;
-  const text = `${m.title} ${m.subtitle ?? ""}`;
-  return !NAME_WORDS.some((w) => text.includes(w));
+  return !NAME_WORDS.some((w) => m.title.includes(w));
 }
 
 /* ---------------- selection ---------------- */
@@ -96,49 +106,82 @@ function pickMarkets(nameFreeOnly: boolean, limit: number): Market[] {
 
 interface Creative {
   id: string;
-  /** Small line above the headline. */
-  eyebrow: string;
+  /** The pitch, in the visitor's language, above the product card. */
   headline: string;
-  /** Big number shown as a probability dial, when the creative is built on a real market. */
-  probability?: number;
-  footer: string;
+  /** The question on the card. */
+  question: string;
+  /** YES probability, 0-1. Drives the chart, the split and the two buttons. */
+  probability: number;
+  /**
+   * True when the question is written for the ad rather than taken off the board.
+   * These cards carry a "דוגמה" chip: an invented percentage beside a real
+   * political event would otherwise read as a poll result rather than as a
+   * picture of the product.
+   */
+  sample: boolean;
+  /** Seed for the price curve, so a creative redraws identically every run. */
+  seed: string;
 }
 
-const BRAND_CREATIVES: Creative[] = [
+/**
+ * The `generic` set: the pitch, with a sample question standing in for the board.
+ *
+ * Every line here is deliberately name-free — no politician, no party — so the
+ * ad does not fall under Israel's election-advertising rules. It also names no
+ * competitor: a rival's trademark in ad text is a routine disapproval under
+ * Google's trademark policy, so the category is described instead.
+ */
+const SAMPLE_CREATIVES: Creative[] = [
   {
-    id: "brand-10k",
-    eyebrow: "משחק חיזויים חינם",
-    headline: "₪10,000 וירטואליים.\nכמה טוב אתם קוראים את הפוליטיקה?",
-    footer: "כסף וירטואלי בלבד · ללא הימורים",
+    id: "pitch-know-your-people",
+    headline: "אתם מכירים את העם שלכם?",
+    question: "האם תוקם ממשלה תוך 45 יום מהבחירות?",
+    probability: 0.41,
+    sample: true,
+    seed: "coalition",
   },
   {
-    id: "brand-hourly",
-    eyebrow: "שאלות חדשות כל שעה",
-    headline: "החדשות של הבוקר\nהופכות לשאלה עד הצהריים.",
-    footer: "כסף וירטואלי בלבד · ללא הימורים",
+    id: "pitch-free-market",
+    headline: "שוק חיזויים על הבחירות בישראל.\nהשתתפות חינם.",
+    question: "האם מפלגה חדשה תעבור את אחוז החסימה?",
+    probability: 0.78,
+    sample: true,
+    seed: "newparty",
   },
   {
-    id: "brand-vs",
-    eyebrow: "אתם מול השוק",
-    headline: "השוק נותן לזה 63%.\nאתם חושבים אחרת?",
+    id: "pitch-virtual-money",
+    headline: "חוזים את הבחירות —\nבכסף וירטואלי בלבד.",
+    question: "האם יתקיים עימות טלוויזיוני בין המועמדים?",
+    probability: 0.27,
+    sample: true,
+    seed: "debate",
+  },
+  {
+    id: "pitch-what-happens",
+    headline: "מה באמת יקרה בבחירות?",
+    question: "האם תקציב 2027 יאושר לפני סוף השנה?",
+    probability: 0.55,
+    sample: true,
+    seed: "budget",
+  },
+  {
+    id: "pitch-beat-the-market",
+    headline: "השוק אומר 63%.\nואתם?",
+    question: "האם הכנסת ה-26 תושבע לפני סוף נובמבר?",
     probability: 0.63,
-    footer: "כסף וירטואלי בלבד · ללא הימורים",
-  },
-  {
-    id: "brand-rapid",
-    eyebrow: "מצב זריז",
-    headline: "כן או לא.\n30 שאלות בשלוש דקות.",
-    footer: "כסף וירטואלי בלבד · ללא הימורים",
+    sample: true,
+    seed: "sworn",
   },
 ];
 
 function marketCreative(m: Market): Creative {
   return {
     id: m.slug.slice(0, 40),
-    eyebrow: "מה דעתכם?",
-    headline: m.title,
+    headline: "מה דעתכם?",
+    question: m.title,
     probability: m.initialProbability,
-    footer: "כסף וירטואלי בלבד · ללא הימורים",
+    sample: false,
+    seed: m.slug,
   };
 }
 
@@ -154,16 +197,76 @@ function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/**
+ * The trend line on the card, drawn by the same generator the site's own chart
+ * uses (`src/lib/synthetic-history.ts`). Reusing it rather than inventing a
+ * squiggle means the curve moves the way a real LMSR market moves, and the same
+ * creative redraws identically on every run.
+ */
+function chartPath(c: Creative, w: number, h: number): string {
+  const history = buildDisplayHistory(
+    {
+      marketId: `ad-${c.seed}`,
+      // the generator refuses to draw without a real price to pin to, by design.
+      // The current probability is that anchor, exactly as on an untraded market.
+      real: [{ t: CLOCK, p: c.probability }],
+      probability: c.probability,
+      closesAt: CLOCK + 45 * 86_400_000,
+      status: "open",
+      tradeCount: 0,
+      now: CLOCK,
+    },
+    // A sample card quotes no real price, so it takes the module's widest legal
+    // band — at the default ±3pt the line reads as flat at ad size. A card built
+    // on a real market keeps the site's own settings, so the curve matches what
+    // the site would draw for it.
+    c.sample ? { ...DEFAULT_SYNTH_CONFIG, maxDeviation: SYNTH_HARD_MAX_DEVIATION } : DEFAULT_SYNTH_CONFIG,
+  );
+  // The site draws ~300 points across a scrollable chart. At ad size that reads
+  // as noise, so thin it to a readable number of turns while keeping the ends.
+  const all = history.points;
+  if (all.length < 2) return "";
+  const step = Math.max(1, Math.floor(all.length / CHART_POINTS));
+  const pts = all.filter((_, i) => i % step === 0);
+  if (pts[pts.length - 1] !== all[all.length - 1]) pts.push(all[all.length - 1]);
+  const t0 = pts[0].t;
+  const span = pts[pts.length - 1].t - t0 || 1;
+  // a little headroom so the peak and trough are not flush with the box edges
+  const lo = Math.min(...pts.map((p) => p.p)) - 0.012;
+  const hi = Math.max(...pts.map((p) => p.p)) + 0.012;
+  const range = hi - lo || 1;
+  return pts
+    .map((p, i) => {
+      const x = ((p.t - t0) / span) * w;
+      const y = h - ((p.p - lo) / range) * h;
+      return `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+/** How many turns the trend line is allowed to show. */
+const CHART_POINTS = 26;
+
+/** Quantised clock, so two runs in the same hour produce byte-identical images. */
+const CLOCK = Math.floor(Date.now() / 3_600_000) * 3_600_000;
+
 function html(c: Creative, w: number, h: number): string {
   // Scale everything off the short edge so one template serves all three ratios.
   const unit = Math.min(w, h) / 100;
-  const dial = c.probability !== undefined;
-  const pct = dial ? Math.round(c.probability! * 100) : 0;
+  const yes = Math.round(c.probability * 100);
+  const no = 100 - yes;
+  const chartW = 100;
+  const chartH = 22;
+  const d = chartPath(c, chartW, chartH);
+  // portrait has room for a taller chart and bigger type; landscape is cramped
+  const wide = w / h > 1.5;
+  const qSize = c.question.length > 46 ? 4.4 : c.question.length > 32 ? 5.0 : 5.6;
+
   return `<!doctype html>
 <html lang="he" dir="rtl"><head><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:${w}px;height:${h}px;overflow:hidden}
@@ -171,41 +274,92 @@ function html(c: Creative, w: number, h: number): string {
     font-family:"Heebo","Noto Sans Hebrew","DejaVu Sans",system-ui,sans-serif;
     background:linear-gradient(135deg,#0a1020 0%,#0d2a6b 45%,#1d4ed8 100%);
     color:#fff;display:flex;flex-direction:column;justify-content:space-between;
-    padding:${unit * 8}px ${unit * 8}px;
+    padding:${unit * 6.5}px ${unit * 7}px;
   }
-  .eyebrow{
-    display:inline-block;align-self:flex-start;background:rgba(255,255,255,.16);
-    border-radius:999px;padding:${unit * 1.6}px ${unit * 3.4}px;
-    font-size:${unit * 3.4}px;font-weight:800;letter-spacing:.01em;
+  header{display:flex;align-items:baseline;gap:${unit * 2}px;flex-wrap:wrap}
+  .brand{font-size:${unit * 4.6}px;font-weight:900;letter-spacing:-.01em}
+  .kicker{font-size:${unit * 3.1}px;font-weight:700;color:rgba(255,255,255,.78)}
+
+  .pitch{
+    font-size:${unit * (c.headline.length > 34 ? 6.2 : 7.4)}px;font-weight:900;
+    line-height:1.16;white-space:pre-line;letter-spacing:-.01em;
   }
-  main{display:flex;align-items:center;gap:${unit * 5}px;flex:1;padding:${unit * 4}px 0}
-  h1{
-    font-size:${unit * (c.headline.length > 70 ? 6.4 : c.headline.length > 45 ? 7.6 : 9)}px;
-    font-weight:900;line-height:1.18;white-space:pre-line;flex:1;
-    text-wrap:balance;
+
+  .card{
+    background:#fff;color:#0a1020;border-radius:${unit * 3.2}px;
+    padding:${unit * 3.4}px ${unit * 3.8}px ${unit * 3.2}px;
+    display:flex;flex-direction:column;gap:${unit * 2.2}px;
+    box-shadow:0 ${unit * 2}px ${unit * 5}px rgba(0,0,0,.28);
   }
-  .dial{
-    flex:0 0 auto;width:${unit * 26}px;height:${unit * 26}px;border-radius:50%;
-    background:conic-gradient(#4ade80 0 ${pct}%,rgba(255,255,255,.18) ${pct}% 100%);
-    display:grid;place-items:center;
+  .qrow{display:flex;align-items:flex-start;gap:${unit * 2.5}px}
+  .q{font-size:${unit * qSize}px;font-weight:900;line-height:1.22;flex:1;color:#0a1020}
+  .sample{
+    flex:0 0 auto;background:#f1f5fc;color:#576b8b;border:1px solid #e3e9f4;
+    border-radius:999px;padding:${unit * 0.9}px ${unit * 2.2}px;
+    font-size:${unit * 2.5}px;font-weight:800;white-space:nowrap;
   }
-  .dial > div{
-    width:78%;height:78%;border-radius:50%;background:#0a1020;
-    display:grid;place-items:center;font-size:${unit * 7}px;font-weight:900;
+
+  .chart{display:block;width:100%;height:${unit * (wide ? 13 : 18)}px}
+
+  .split{display:flex;align-items:baseline;justify-content:space-between;font-size:${unit * 3}px;font-weight:800}
+  .split .y{color:#15803d}
+  .split .n{color:#dc2626}
+
+  .btns{display:flex;gap:${unit * 2.2}px}
+  .btn{
+    flex:1;border-radius:${unit * 2}px;padding:${unit * 2.6}px 0;text-align:center;
+    font-size:${unit * 4.4}px;font-weight:900;color:#fff;
   }
-  footer{display:flex;align-items:center;justify-content:space-between;gap:${unit * 3}px}
-  .brand{font-size:${unit * 4.4}px;font-weight:900}
-  .disclosure{font-size:${unit * 3}px;font-weight:500;color:rgba(255,255,255,.72);text-align:left}
+  .yes{background:#15803d}
+  .no{background:#dc2626}
+
+  footer{
+    display:flex;gap:${unit * 1.2}px;
+    /* the two lines only fit side by side on the wide ratio */
+    ${wide ? "align-items:center;justify-content:space-between;" : "flex-direction:column;align-items:flex-start;"}
+  }
+  .tag{font-size:${unit * 3.2}px;font-weight:800}
+  .disclosure{font-size:${unit * 2.8}px;font-weight:500;color:rgba(255,255,255,.72)}
 </style></head>
 <body>
-  <span class="eyebrow">${esc(c.eyebrow)}</span>
-  <main>
-    <h1>${esc(c.headline)}</h1>
-    ${dial ? `<div class="dial"><div>${pct}%</div></div>` : ""}
-  </main>
-  <footer>
+  <header>
     <span class="brand">בחירות מרקט</span>
-    <span class="disclosure">${esc(c.footer)}</span>
+    <span class="kicker">הבחירות והפוליטיקה הישראלית</span>
+  </header>
+
+  <h1 class="pitch">${esc(c.headline)}</h1>
+
+  <div class="card">
+    <div class="qrow">
+      <span class="q">${esc(c.question)}</span>
+      ${c.sample ? `<span class="sample">דוגמה</span>` : ""}
+    </div>
+
+    <svg class="chart" viewBox="0 0 ${chartW} ${chartH}" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#15803d" stop-opacity=".22"/>
+          <stop offset="100%" stop-color="#15803d" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${d} L${chartW},${chartH} L0,${chartH} Z" fill="url(#fade)"/>
+      <path d="${d}" fill="none" stroke="#15803d" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+
+    <div class="split">
+      <span class="y">כן ${yes}%</span>
+      <span class="n">לא ${no}%</span>
+    </div>
+
+    <div class="btns">
+      <span class="btn yes">כן</span>
+      <span class="btn no">לא</span>
+    </div>
+  </div>
+
+  <footer>
+    <span class="tag">לקראת הבחירות לכנסת ה-26</span>
+    <span class="disclosure">כסף וירטואלי בלבד · ללא הימורים</span>
   </footer>
 </body></html>`;
 }
@@ -218,18 +372,18 @@ const LIMITS = { headline: 40, longHeadline: 90, description: 90, businessName: 
 const TEXT = {
   generic: {
     headlines: [
-      "משחק חיזויים על הפוליטיקה",
+      "אתם מכירים את העם שלכם?",
+      "שוק חיזויים על הבחירות",
+      "מה באמת יקרה בבחירות?",
+      "השתתפות חינם. בלי אשראי.",
       "₪10,000 וירטואליים במתנה",
-      "אתם קוראים את המפה נכון?",
-      "כן או לא. 30 שאלות, 3 דקות",
-      "שאלות חדשות כל שעה",
     ],
-    longHeadline: "משחק חיזויים חינמי על הפוליטיקה הישראלית — בכסף וירטואלי בלבד",
+    longHeadline: "שוק חיזויים על הבחירות והפוליטיקה הישראלית — בכסף וירטואלי בלבד",
     descriptions: [
-      "מקבלים ₪10,000 וירטואליים, עונים כן או לא, ורואים אם צדקתם.",
+      "עונים כן או לא על מה שיקרה בבחירות, ורואים אם קראתם את המפה נכון.",
       "כסף וירטואלי בלבד. בלי הימורים, בלי תשלום, בלי אשראי.",
-      "השאלות מתעדכנות כל שעה לפי החדשות. ההרשמה בלחיצה אחת.",
-      "כמה טוב אתם קוראים את הפוליטיקה הישראלית? בואו נגלה.",
+      "מקבלים ₪10,000 וירטואליים ומתחילים לחזות. השתתפות חינם.",
+      "השאלות מתעדכנות כל שעה לפי החדשות, לקראת הבחירות לכנסת ה-26.",
       "לוח מובילים, תיק אישי וגרפים. הכל בכסף וירטואלי.",
     ],
   },
@@ -293,7 +447,7 @@ https://<הדומיין>/welcome?utm_source=google&utm_medium=demandgen&utm_camp
 
 ## התמונות בתיקייה
 
-${used.map((c) => `- \`${c.id}\` — ${c.headline.replace(/\n/g, " ")}`).join("\n")}
+${used.map((c) => `- \`${c.id}\` — ${c.question}${c.sample ? " *(שאלת דוגמה)*" : ""}`).join("\n")}
 `;
 }
 
@@ -304,10 +458,12 @@ const set = (args.find((a) => a.startsWith("--set="))?.split("=")[1] ?? "generic
 const wantPng = args.includes("--png");
 if (set !== "generic" && set !== "named") throw new Error(`--set must be generic or named, got ${set}`);
 
+// `generic` runs on written sample questions plus any real market whose *title*
+// names nobody — the people[] tags are metadata and never reach the image.
 const creatives: Creative[] =
   set === "named"
     ? pickMarkets(false, 6).map(marketCreative)
-    : [...BRAND_CREATIVES, ...pickMarkets(true, 3).map(marketCreative)];
+    : [...SAMPLE_CREATIVES, ...pickMarkets(true, 2).map(marketCreative)];
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
