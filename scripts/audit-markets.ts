@@ -21,7 +21,7 @@ import {
 } from "../src/lib/topicality";
 import { MarketsFileSchema, type MarketContent } from "../src/lib/content";
 import { verdict } from "../src/lib/elasticity";
-import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
+import { duplicateRisk, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -145,23 +145,34 @@ for (const m of boldShort) {
 if (!boldShort.length && open.some(isShort)) ok("short-horizon markets are priced below 50%, as the base rate suggests");
 
 // ── duplicate risk ─────────────────────────────────────────────────────────
-section(`duplicate risk (merge-markets.ts rejects a new title at ${DUPLICATE_THRESHOLD}; titles only — read the criteria)`);
-const pairs: { a: string; b: string; s: number }[] = [];
+section("duplicate risk (npm run markets:duplicates for the pairs side by side)");
+const pairs: { a: string; b: string; risk: ReturnType<typeof duplicateRisk> }[] = [];
 for (let i = 0; i < open.length; i++) {
   for (let j = i + 1; j < open.length; j++) {
-    const s = similar(open[i].title, open[j].title);
-    if (s >= 0.65) pairs.push({ a: open[i].slug, b: open[j].slug, s });
+    const risk = duplicateRisk(open[i], open[j]);
+    if (risk.level !== "clear") pairs.push({ a: open[i].slug, b: open[j].slug, risk });
   }
 }
-pairs.sort((x, y) => y.s - x.s);
-const blocking = pairs.filter((p) => p.s >= DUPLICATE_THRESHOLD);
+pairs.sort((x, y) => y.risk.title - x.risk.title);
+const blocking = pairs.filter((p) => p.risk.level === "block");
 for (const p of blocking.slice(0, 15)) {
-  warn(`${p.s.toFixed(2)} title overlap: ${p.a} ↔ ${p.b} — check they really ask different things, and expect merge to reject anything close to them`);
+  warn(
+    `${p.risk.title.toFixed(2)} title overlap: ${p.a} ↔ ${p.b} — check they really ask different things, and expect merge to reject anything close to them`,
+  );
 }
 if (blocking.length > 15) info(`...and ${blocking.length - 15} more pairs above ${DUPLICATE_THRESHOLD}`);
-const watch = pairs.length - blocking.length;
-if (watch) info(`${watch} further pair(s) between 0.65 and ${DUPLICATE_THRESHOLD} — near the rejection line`);
-if (!pairs.length) ok("no open pair overlaps by half its words");
+// the pairs merge would let through only with a written reason: same closing
+// window, same criteria vocabulary, same cited articles, or the same words reversed
+const review = pairs.filter((p) => p.risk.level === "review");
+if (review.length) {
+  const byReason = new Map<string, number>();
+  for (const p of review) for (const r of p.risk.reasons) byReason.set(r, (byReason.get(r) ?? 0) + 1);
+  info(
+    `${review.length} further pair(s) to read before the next batch — ` +
+      [...byReason.entries()].map(([r, n]) => `${r}:${n}`).join("  "),
+  );
+}
+if (!pairs.length) ok("no open pair looks like another");
 
 // ── sources ────────────────────────────────────────────────────────────────
 section("sources");
@@ -185,17 +196,8 @@ for (const m of open) {
     urlOwners.set(s.url, [...(urlOwners.get(s.url) ?? []), m.slug]);
   }
 }
-// Several questions off one big story is fine; two questions off the *same set*
-// of articles usually means one of them has nothing new to say.
-const bySourceSet = new Map<string, string[]>();
-for (const m of open) {
-  if (m.sources.length < 2) continue;
-  const key = [...m.sources.map((s) => s.url)].sort().join("|");
-  bySourceSet.set(key, [...(bySourceSet.get(key) ?? []), m.slug]);
-}
-for (const [, slugs] of bySourceSet) {
-  if (slugs.length > 1) warn(`${slugs.join(" and ")} cite an identical set of articles — one of them is probably not a new question`);
-}
+// Two questions off the *same set* of articles usually means one of them has
+// nothing new to say — reported above, as one of the duplicate-risk reasons.
 const shared = [...urlOwners.values()].filter((v) => v.length > 1).length;
 info(`${urlOwners.size} distinct source URLs across ${open.length} open markets (${shared} URL(s) cited by more than one market)`);
 

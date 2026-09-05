@@ -35,6 +35,8 @@ export const EVENTS = {
   clientError: "client_error",
   /** the analysis bundle was downloaded from the admin area */
   bundleDownload: "bundle_download",
+  /** the add-to-home-screen offer (props.action = shown/prompted/accepted/dismissed/instructions/installed, props.platform) */
+  installApp: "install_app",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
@@ -56,6 +58,7 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.webVital]: "מדד ביצועים",
   [EVENTS.clientError]: "שגיאת דפדפן",
   [EVENTS.bundleDownload]: "הורדת באנדל נתונים",
+  [EVENTS.installApp]: "הוספה למסך הבית",
 };
 
 /** Click ids used by `data-evt` attributes around the site (documented for the analyst). */
@@ -79,6 +82,19 @@ export const CLICK_IDS: Record<string, string> = {
   "hero-portfolio": "CTA לתיק שלי בהירו",
   "hero-about": "CTA איך זה עובד בהירו",
   "browser-rapid": "מעבר למצב זריז מרשימת השווקים",
+  "home-rapid-end": "CTA מצב זריז בתחתית דף הבית",
+  "market-rapid": "מעבר למצב זריז מדף השאלה",
+  "market-rapid-side": "מעבר למצב זריז מהצד בדף השאלה",
+  "trade-done-rapid": "מעבר למצב זריז אחרי תשובה בדף השאלה",
+  "category-rapid": "מעבר למצב זריז מכותרת הקטגוריה",
+  "category-rapid-end": "מעבר למצב זריז מסוף דף הקטגוריה",
+  "leaderboard-rapid": "מעבר למצב זריז מלוח המובילים",
+  "activity-rapid": "מעבר למצב זריז מדף הפעילות",
+  "suggest-rapid": "מעבר למצב זריז מדף הצעת שאלה",
+  "howtoplay-rapid": "מעבר למצב זריז מ״איך מתחילים לשחק״",
+  "footer-rapid": "מצב זריז בפוטר",
+  "404-rapid": "מעבר למצב זריז מדף 404",
+  "invite-rapid": "מעבר למצב זריז מדף ההזמנות",
   "rapid-skip": "דילוג על שאלה במצב זריז",
   "rapid-undo": "ביטול תשובה במצב זריז",
   "rapid-guest-gate": "חסימת אורח במצב זריז",
@@ -94,6 +110,10 @@ export const CLICK_IDS: Record<string, string> = {
   "related-market": "שוק קשור",
   "footer-link": "קישור בפוטר",
   "footer-category": "קטגוריה בפוטר",
+  "footer-install": "הוספה למסך הבית מהפוטר",
+  "install-prompt-add": "הוספה למסך הבית מהכרטיס",
+  "install-prompt-later": "דחיית ההצעה להוסיף למסך הבית",
+  "install-sheet-add": "התקנה בלחיצה אחת מתוך החלון",
   "bundle-json": "הורדת באנדל JSON",
   "bundle-md": "הורדת דוח Markdown",
 };
