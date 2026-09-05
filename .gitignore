@@ -16,3 +16,6 @@ screenshots/
 # הנוהל שלנו נמצא ב-AGENT.md וב-.claude/skills.
 AGENTS.md
 CLAUDE.md
+
+# קריאייטיב למודעות — נוצר מחדש מ-data/markets.json בכל `npm run ads:creatives`
+ads/creatives/

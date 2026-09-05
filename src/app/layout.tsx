@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
+import { Analytics } from "@/components/Analytics";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "@/lib/config";
 import { siteGraph } from "@/lib/seo";
 
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* lg:pb-0 drops the room the tab bar reserves once the header nav takes over */}
       <body className="flex min-h-dvh flex-col lg:pb-0">
         <JsonLd data={siteGraph()} />
+        <Analytics />
         <Header />
         <main className="mx-auto w-full max-w-7xl flex-1 px-3 pb-10 pt-3 sm:px-6 sm:pb-16 sm:pt-4">{children}</main>
         <Footer />

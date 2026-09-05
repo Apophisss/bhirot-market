@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { SITE_NAME } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
+import { CHECK_PARAM } from "@/components/Analytics";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { callbackUrl, error } = await searchParams;
   const session = await auth();
   if (session?.user) redirect(callbackUrl || "/");
-  const redirectTo = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
+  const target = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
+  // the marker tells <Analytics> to ask for the sign_up conversion on the way back
+  const redirectTo = `${target}${target.includes("?") ? "&" : "?"}${CHECK_PARAM}=1`;
 
   async function google() {
     "use server";

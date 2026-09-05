@@ -16,6 +16,7 @@ import {
   type RapidCard,
 } from "@/lib/rapid";
 import { MarketImage } from "./MarketImage";
+import { checkConversions } from "@/components/Analytics";
 
 type AnswerStatus = "pending" | "ok" | "error";
 
@@ -231,6 +232,7 @@ export function RapidDeck({
         // so stop the run instead of firing a burst of doomed requests
         const stranded = data?.code === "INSUFFICIENT_BALANCE" ? queue.current.splice(0) : [];
         if (!alive.current) continue; // unmounted mid-run: keep sending, stop painting
+        if (patch.status === "ok") checkConversions();
         if (patch.status === "ok" && typeof data?.balance === "number") setLiveBalance(data.balance);
         if (stranded.length || data?.code === "INSUFFICIENT_BALANCE") setHalted(true);
         setAnswers((prev) => {

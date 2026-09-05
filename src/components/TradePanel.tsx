@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { MAX_BET } from "@/lib/limits";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
+import { checkConversions } from "@/components/Analytics";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
@@ -103,6 +104,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
               : `מכרת ${fmtShares(data.quote.shares)} מניות תמורת ${money(data.quote.amount, { decimals: true })}`,
         });
         setInput("");
+        checkConversions();
         router.refresh();
       }
     } catch {

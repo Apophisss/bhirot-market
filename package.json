@@ -20,10 +20,12 @@
     "history:verify": "tsx scripts/verify-synthetic-history.ts",
     "markets:audit": "tsx scripts/audit-markets.ts",
     "markets:liquidity": "tsx scripts/liquidity.ts",
-    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-display-stats.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/validate-markets.ts",
+    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-conversions.ts && tsx scripts/test-display-stats.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/validate-markets.ts",
     "test:lmsr": "tsx scripts/test-lmsr.ts",
     "test:trade": "tsx scripts/test-trade.ts",
-    "test:display": "tsx scripts/test-display-stats.ts"
+    "test:display": "tsx scripts/test-display-stats.ts",
+    "ads:creatives": "tsx scripts/ads-creatives.ts",
+    "test:conversions": "tsx scripts/test-conversions.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

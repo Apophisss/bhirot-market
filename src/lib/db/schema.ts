@@ -26,6 +26,15 @@ export const users = sqliteTable("user", {
   createdAt: integer("createdAt", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
+  /* --- ad attribution: stamped once, from the first visit that carried campaign params --- */
+  /** Google click id, so a signup can later be tied back to the click that paid for it. */
+  gclid: text("gclid"),
+  utmSource: text("utmSource"),
+  utmCampaign: text("utmCampaign"),
+  /** Set the moment the sign_up conversion is handed to gtag, so it is reported exactly once. */
+  signupReportedAt: integer("signupReportedAt", { mode: "timestamp_ms" }),
+  /** Same, for the first trade — the conversion the campaign actually bids on. */
+  firstTradeReportedAt: integer("firstTradeReportedAt", { mode: "timestamp_ms" }),
 });
 
 export const accounts = sqliteTable(

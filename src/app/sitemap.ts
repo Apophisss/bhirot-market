@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { listMarkets } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { CATEGORIES } from "@/lib/categories";
-import { SITE_URL } from "@/lib/config";
+import { LEGAL_UPDATED, SITE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +28,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/leaderboard`, changeFrequency: "hourly", priority: 0.4 },
     { url: `${SITE_URL}/activity`, changeFrequency: "hourly", priority: 0.4 },
+    { url: `${SITE_URL}/privacy`, lastModified: new Date(LEGAL_UPDATED), changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE_URL}/terms`, lastModified: new Date(LEGAL_UPDATED), changeFrequency: "yearly", priority: 0.2 },
   ];
 
   return [
