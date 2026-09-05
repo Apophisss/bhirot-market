@@ -258,6 +258,22 @@ async function main() {
     await expectError("NO_SHARES", () => executeTrade({ userId: u, marketId: m, side: "NO", action: "SELL", quantity: 10 }));
   });
 
+  await test("the rejection says which side the position is actually on", async () => {
+    const u = await makeUser();
+    const m = await makeMarket();
+    // nothing held anywhere: no side to point at
+    const none = await expectError("NO_SHARES", () =>
+      executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: 10 }),
+    );
+    assert.ok(!none.message.includes("בצד"), `expected no side in "${none.message}"`);
+    // held on the other side: the message must not read as "you never bought anything"
+    await executeTrade({ userId: u, marketId: m, side: "NO", action: "BUY", quantity: 100 });
+    const wrongSide = await expectError("NO_SHARES", () =>
+      executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: 10 }),
+    );
+    assert.ok(wrongSide.message.includes("בצד לא"), `expected the NO side named in "${wrongSide.message}"`);
+  });
+
   await test("an oversized sell request is capped at what you actually hold", async () => {
     const u = await makeUser();
     const m = await makeMarket({ p: 0.5 });

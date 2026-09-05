@@ -84,6 +84,11 @@ export default async function MarketPage({ params, searchParams }: { params: Par
     getRelatedMarkets(market, 3),
   ]);
   const position = user ? await getPosition(user.id, slug) : null;
+  // The panel keeps the trade in local state, and the portfolio's "סחר" link carries
+  // the side and the action in the URL. A second such link to the SAME market is a
+  // soft navigation, which would otherwise leave a mounted panel sitting on the
+  // previous leg — the key makes the URL the thing that decides what is being traded.
+  const tradeKey = `${side ?? ""}-${action ?? ""}`;
   const cat = getCategory(market.category);
   const people = market.people.map((id) => getPerson(id)).filter(Boolean);
 
@@ -148,6 +153,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
 
         <div id="trade" className="scroll-mt-20 lg:hidden">
           <TradePanel
+            key={tradeKey}
             market={{ id: market.id, qYes: market.qYes, qNo: market.qNo, liquidity: market.liquidity, probability: market.probability, isTradable: market.isTradable, status: market.status, resolution: market.resolution }}
             position={position}
             balance={user?.balance ?? null}
@@ -219,6 +225,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
       <aside className="hidden lg:block">
         <div className="sticky top-20 space-y-4">
           <TradePanel
+            key={tradeKey}
             market={{ id: market.id, qYes: market.qYes, qNo: market.qNo, liquidity: market.liquidity, probability: market.probability, isTradable: market.isTradable, status: market.status, resolution: market.resolution }}
             position={position}
             balance={user?.balance ?? null}
