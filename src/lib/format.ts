@@ -28,9 +28,9 @@ export function shares(v: number): string {
   return nf1.format(v);
 }
 
-export function agora(price: number): string {
-  // price per share, in "agorot" (0.42 -> 42¢) like Polymarket's cents
-  return `${nf0.format(price * 100)}¢`;
+/** price of one share, in virtual shekels (0.42 -> ₪0.42) — the same currency as every other amount on the site */
+export function sharePrice(price: number): string {
+  return `₪${nf2.format(price)}`;
 }
 
 const dtf = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", year: "numeric" });

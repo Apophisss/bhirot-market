@@ -6,7 +6,7 @@ import { getPortfolio, getUserTrades, getLeaderboard } from "@/lib/portfolio";
 import { getReferralSummary } from "@/lib/referral-program";
 import { buildBoard } from "@/lib/fake-leaderboard";
 import { STARTING_BALANCE } from "@/lib/db/schema";
-import { money, signedMoney, pct, shares as fmtShares, agora } from "@/lib/format";
+import { money, signedMoney, pct, shares as fmtShares, sharePrice } from "@/lib/format";
 import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
 import { InviteCard } from "@/components/InviteCard";
@@ -92,7 +92,7 @@ export default async function PortfolioPage() {
                   </div>
                   <div className="tabular mt-2 flex items-center justify-between gap-2 text-xs text-muted">
                     <span>
-                      ממוצע {agora(h.avgPrice)} · נוכחי {pct(h.currentPrice, 1)} · שווי {money(h.value, { decimals: true })}
+                      ממוצע {sharePrice(h.avgPrice)} · נוכחי {pct(h.currentPrice, 1)} · שווי {money(h.value, { decimals: true })}
                     </span>
                     <Link
                       href={`/market/${h.market.id}?side=${h.side.toLowerCase()}`}
@@ -127,7 +127,7 @@ export default async function PortfolioPage() {
                     </td>
                     <td className={`px-3 py-2.5 font-bold ${h.side === "YES" ? "text-yes" : "text-no"}`}>{h.side === "YES" ? "כן" : "לא"}</td>
                     <td className="tabular px-3 py-2.5">{fmtShares(h.shares)}</td>
-                    <td className="tabular px-3 py-2.5">{agora(h.avgPrice)}</td>
+                    <td className="tabular px-3 py-2.5">{sharePrice(h.avgPrice)}</td>
                     <td className="tabular px-3 py-2.5">{pct(h.currentPrice, 1)}</td>
                     <td className="tabular px-3 py-2.5 font-semibold">{money(h.value, { decimals: true })}</td>
                     <td className={`tabular px-3 py-2.5 font-semibold ${h.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.pnl)}</td>
