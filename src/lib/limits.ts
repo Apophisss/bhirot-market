@@ -6,6 +6,17 @@
  * the database client into the browser bundle.
  */
 
+/**
+ * Virtual shekels every new account starts with.
+ *
+ * It lives in this leaf module rather than in `db/schema.ts`, where it used to be
+ * declared, because the browser needs it too — the rapid deck's sign-in gate says
+ * what a visitor gets for signing up — and importing the schema into a client
+ * component would drag drizzle's table builders into the browser bundle. The
+ * schema re-exports it, so every existing import keeps working.
+ */
+export const STARTING_BALANCE = 10_000;
+
 /** Smallest bet the market maker will price, in ₪. */
 export const MIN_BET = 1;
 

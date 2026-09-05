@@ -296,6 +296,58 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /*
+    A range input a thumb can actually hit.
+
+    The native control is 8px of track with a ~16px thumb — measured at 8px on the
+    live site, which is a fifth of the 44px a touch target is supposed to be. The
+    element is given the full 44px of height while the track stays a thin 10px
+    line, so the hit area is honest without the control looking like a scrollbar.
+    Both vendor pseudo-elements are needed: they do not cascade from each other,
+    and a browser that matches neither still gets a 44px-tall native slider.
+  */
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 44px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .slider::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 9999px;
+    background: var(--color-surface-3);
+  }
+  .slider::-moz-range-track {
+    height: 10px;
+    border-radius: 9999px;
+    background: var(--color-surface-3);
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 28px;
+    width: 28px;
+    /* centre the thumb on the track: (track 10 - thumb 28) / 2 */
+    margin-top: -9px;
+    border-radius: 9999px;
+    border: 2px solid var(--color-surface);
+    background: var(--color-accent);
+    box-shadow: 0 1px 4px rgba(10, 16, 32, 0.3);
+  }
+  .slider::-moz-range-thumb {
+    height: 28px;
+    width: 28px;
+    border-radius: 9999px;
+    border: 2px solid var(--color-surface);
+    background: var(--color-accent);
+    box-shadow: 0 1px 4px rgba(10, 16, 32, 0.3);
+  }
+  .slider:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--color-accent-2);
+    outline-offset: 2px;
+  }
+
   .slide-up {
     animation: slide-up 0.18s ease-out;
   }

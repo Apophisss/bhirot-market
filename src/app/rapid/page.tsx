@@ -10,6 +10,7 @@ import { CategoryTabs } from "@/components/CategoryTabs";
 import { RapidDeck } from "@/components/RapidDeck";
 import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { GUEST_LIMIT } from "@/lib/rapid-guest";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +68,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
             <Link
               key={s.id}
               href={link({ sort: s.id })}
-              className={`shrink-0 rounded-lg px-2.5 py-1.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+              className={`tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
             >
               {s.label}
             </Link>
@@ -76,13 +77,13 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         <div className="flex shrink-0 items-center gap-1">
           <Link
             href={link({ all: includeAnswered ? undefined : "1" })}
-            className={`shrink-0 rounded-lg border px-2.5 py-1.5 font-semibold ${
+            className={`tap inline-flex shrink-0 items-center rounded-lg border px-2.5 font-semibold ${
               includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
             }`}
           >
             כולל שאלות שכבר עניתי
           </Link>
-          <Link href="/" className="shrink-0 rounded-lg px-2.5 py-1.5 font-semibold text-muted hover:text-text">
+          <Link href="/" className="tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold text-muted hover:text-text">
             לרשימה המלאה
           </Link>
         </div>
@@ -99,13 +100,12 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
       />
 
       {!loggedIn && (
-        <p className="shrink-0 rounded-xl border border-warn/40 bg-warn/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
-          אתם בתצוגה בלבד.{" "}
+        <p className="shrink-0 rounded-xl border border-accent/40 bg-accent/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
+          {GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות, ו
           <Link href="/login?callbackUrl=%2Frapid" className="font-bold text-accent-2 hover:underline">
-            התחברו
+            התחברות
           </Link>{" "}
-          <span className="hidden sm:inline">כדי שכל תשובה תהפוך לפוזיציה אמיתית בכסף הווירטואלי שלכם.</span>
-          <span className="sm:hidden">כדי שכל תשובה תהפוך לפוזיציה אמיתית.</span>
+          הופכת אותן לפוזיציות אמיתיות.
         </p>
       )}
 

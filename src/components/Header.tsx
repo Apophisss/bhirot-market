@@ -11,6 +11,8 @@ import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
 import { MobileSearch } from "./MobileSearch";
 import { LoginLink } from "./LoginLink";
+import { RapidGuestSync } from "./RapidGuestSync";
+import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { needsSurvey } from "@/lib/preferences-store";
 
 // The leaderboard is deliberately absent: it hangs off the profile (the user menu
@@ -140,6 +142,9 @@ export async function Header() {
         </div>
       </header>
       <MobileNav loggedIn={Boolean(user)} />
+      {/* the rapid answers a visitor gave before signing in become positions here —
+          in the header, because the sign-in flow lands on /onboarding, not on /rapid */}
+      <RapidGuestSync loggedIn={Boolean(user)} stake={RAPID_DEFAULT_STAKE} />
     </>
   );
 }

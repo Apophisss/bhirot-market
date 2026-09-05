@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
 import { money, pct, sharePrice, shares as fmtShares, closesLabel } from "@/lib/format";
 import { SITE_TEAM } from "@/lib/config";
+import { STARTING_BALANCE } from "@/lib/limits";
 import {
   RAPID_DEFAULT_STAKE,
   RAPID_MAX_STAKE,
@@ -15,12 +16,25 @@ import {
   clampStake,
   type RapidCard,
 } from "@/lib/rapid";
+import {
+  GUEST_LIMIT,
+  addGuestAnswer,
+  readGuestAnswers,
+  serverGuestAnswers,
+  subscribeGuestAnswers,
+  type GuestAnswer,
+} from "@/lib/rapid-guest";
 import { MarketImage } from "./MarketImage";
 import { RapidSpark } from "./RapidSpark";
 import { gaEvent } from "@/lib/gtag";
 import { checkAdConversions } from "@/components/AdConversions";
 
-type AnswerStatus = "pending" | "ok" | "error";
+/**
+ * `held` is an answer that has been made but not yet sent: it exists only while the
+ * undo window below is open. Everything downstream treats it as committed money
+ * (see `pendingSpend`), because it is about to be.
+ */
+type AnswerStatus = "held" | "pending" | "ok" | "error" | "guest";
 
 interface Answer {
   marketId: string;
@@ -41,6 +55,18 @@ interface AnswerResult {
 
 /** how long the answered card stays on screen before the feed scrolls on */
 const ADVANCE_MS = 420;
+/**
+ * How long an answer can be taken back.
+ *
+ * Rapid mode is a single tap that spends real (virtual) money and opens a
+ * position, one card every couple of seconds — the one interaction on the site
+ * with no confirmation step and, until now, no way back from a mis-tap. Rather
+ * than reversing a trade after the fact (which would sell back at a different
+ * price and cost the user the spread for the site's own missing safety net), the
+ * answer simply waits here before it is sent. Leaving the deck flushes it: the
+ * answer stands, it was only ever the *sending* that was deferred.
+ */
+const UNDO_MS = 5000;
 /** horizontal drag distance (px) that commits an answer */
 const DRAG_COMMIT = 96;
 /** wheel distance (px) that counts as one deliberate "next card" gesture */
@@ -108,6 +134,11 @@ function useStake() {
   return useSyncExternalStore(subscribeStake, readStake, () => RAPID_DEFAULT_STAKE);
 }
 
+/** The answers this browser gave before signing in (see src/lib/rapid-guest.ts). */
+function useGuestAnswers() {
+  return useSyncExternalStore(subscribeGuestAnswers, readGuestAnswers, serverGuestAnswers);
+}
+
 function useMediaQuery(query: string, serverValue = false) {
   const subscribe = useCallback(
     (cb: () => void) => {
@@ -152,8 +183,15 @@ export function RapidDeck({
   const target = useRef<number | null>(null);
   const targetTimer = useRef(0);
   const advanceTimer = useRef(0);
+  /** marketId -> the timer that will release that answer to the queue */
+  const holdTimers = useRef(new Map<string, number>());
+  /** the answers still inside their undo window, outside React state on purpose:
+   *  releasing one has to enqueue a network job, and a state updater must stay pure
+   *  (React runs it twice in development, which would send the answer twice) */
+  const holdJobs = useRef(new Map<string, Answer>());
 
   const stake = useStake();
+  const guestAnswers = useGuestAnswers();
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const showKeys = useMediaQuery("(min-width: 1024px)");
 
@@ -161,25 +199,31 @@ export function RapidDeck({
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [liveBalance, setLiveBalance] = useState<number | null>(balance);
   const [halted, setHalted] = useState(false);
+  /** the answer currently inside its undo window, and when the window closes */
+  const [held, setHeld] = useState<{ card: RapidCard; side: Side; until: number } | null>(null);
 
   useEffect(() => {
     alive.current = true;
+    const timers = holdTimers.current;
     return () => {
       alive.current = false;
       window.clearTimeout(targetTimer.current);
       window.clearTimeout(advanceTimer.current);
+      for (const t of timers.values()) window.clearTimeout(t);
     };
   }, []);
 
   const answered = useMemo(() => Object.values(answers), [answers]);
-  const pendingCount = answered.filter((a) => a.status === "pending").length;
-  /** money committed by answers the server has not confirmed yet */
-  const pendingSpend = answered.reduce((s, a) => s + (a.status === "pending" ? a.stake : 0), 0);
+  const pendingCount = answered.filter((a) => a.status === "pending" || a.status === "held").length;
+  /** money committed by answers the server has not confirmed yet — held ones included */
+  const pendingSpend = answered.reduce((s, a) => s + (a.status === "pending" || a.status === "held" ? a.stake : 0), 0);
   const available = liveBalance == null ? null : liveBalance - pendingSpend;
   const broke = halted || (available != null && available < stake);
   const outOfMoney = halted || (available != null && available < RAPID_MIN_STAKE);
 
-  const okCount = answered.filter((a) => a.status === "ok").length;
+  const okCount = answered.filter((a) => a.status === "ok" || a.status === "guest").length;
+  /** a signed-out visitor has used up the free run and the next tap is the sign-in gate */
+  const guestGate = !loggedIn && guestAnswers.length >= GUEST_LIMIT;
   const failedCount = answered.filter((a) => a.status === "error").length;
 
   const goTo = useCallback(
@@ -250,22 +294,117 @@ export function RapidDeck({
     }
   }, []);
 
+  /**
+   * Sends a held answer for real. Idempotent: a job already released (by its own
+   * timer, by the next answer, or by leaving the deck) has no timer left to clear
+   * and is not queued twice.
+   */
+  const release = useCallback(
+    (marketId: string) => {
+      const job = holdJobs.current.get(marketId);
+      if (!job) return;
+      const timer = holdTimers.current.get(marketId);
+      if (timer != null) window.clearTimeout(timer);
+      holdTimers.current.delete(marketId);
+      holdJobs.current.delete(marketId);
+      const sent: Answer = { ...job, status: "pending" };
+      queue.current.push(sent);
+      void drain();
+      setAnswers((prev) => (prev[marketId]?.status === "held" ? { ...prev, [marketId]: sent } : prev));
+      setHeld((h) => (h?.card.id === marketId ? null : h));
+    },
+    [drain],
+  );
+
+  /**
+   * Sends every answer still inside its window. `drain` never changes identity, so
+   * this does not either — which is what lets the unmount effect below depend on it
+   * and still run exactly once, at unmount.
+   */
+  const flushHeld = useCallback(() => {
+    const jobs = [...holdJobs.current.values()];
+    if (!jobs.length) return;
+    holdJobs.current.clear();
+    for (const t of holdTimers.current.values()) window.clearTimeout(t);
+    holdTimers.current.clear();
+    const sent = jobs.map((j) => ({ ...j, status: "pending" as const }));
+    queue.current.push(...sent);
+    void drain();
+    setAnswers((prev) => {
+      const next = { ...prev };
+      for (const j of sent) next[j.marketId] = j;
+      return next;
+    });
+    setHeld(null);
+  }, [drain]);
+
+  // Leaving the deck closes the undo window rather than cancelling the answer:
+  // every held job is released here, and `drain` keeps sending after the unmount
+  // (it checks `alive` only before painting, never before posting).
+  useEffect(() => flushHeld, [flushHeld]);
+
+  /** Takes an answer back while its window is still open, and scrolls back to the card. */
+  const undo = useCallback(
+    (marketId: string) => {
+      if (!holdJobs.current.has(marketId)) return; // already sent — nothing left to undo
+      const timer = holdTimers.current.get(marketId);
+      if (timer != null) window.clearTimeout(timer);
+      holdTimers.current.delete(marketId);
+      holdJobs.current.delete(marketId);
+      claimed.current.delete(marketId);
+      setAnswers((prev) => {
+        if (prev[marketId]?.status !== "held") return prev;
+        const next = { ...prev };
+        delete next[marketId];
+        return next;
+      });
+      setHeld(null);
+      const back = feed.findIndex((c) => c.id === marketId);
+      if (back >= 0) goTo(back);
+    },
+    [feed, goTo],
+  );
+
   const answer = useCallback(
     (card: RapidCard, side: Side) => {
       if (!loggedIn) {
-        router.push("/login?callbackUrl=%2Frapid");
+        // the free run: the answer is kept in the browser and becomes a real
+        // position on the way back from Google. Past the limit the gate below is
+        // already up, and the only thing left to do is sign in.
+        if (guestAnswers.length >= GUEST_LIMIT) {
+          router.push("/login?callbackUrl=%2Frapid");
+          return;
+        }
+        if (answers[card.id]) return;
+        addGuestAnswer({
+          marketSlug: card.id,
+          side,
+          priceAtAnswer: side === "YES" ? card.probability : 1 - card.probability,
+          title: card.title,
+          ts: Date.now(),
+        });
+        setAnswers((prev) => ({ ...prev, [card.id]: { marketId: card.id, side, stake, status: "guest" } }));
+        if (typeof navigator.vibrate === "function") navigator.vibrate(12);
+        goTo(feed.indexOf(card) + 1, ADVANCE_MS);
         return;
       }
       if (answers[card.id] || claimed.current.has(card.id) || broke) return; // answered already, or nothing left to bet
       claimed.current.add(card.id);
-      const job: Answer = { marketId: card.id, side, stake, status: "pending" };
+      // one window at a time: answering the next card commits the previous answer,
+      // which is what a user who has already moved on means by moving on
+      for (const id of [...holdTimers.current.keys()]) release(id);
+      const job: Answer = { marketId: card.id, side, stake, status: "held" };
+      holdJobs.current.set(card.id, job);
       setAnswers((prev) => ({ ...prev, [card.id]: job }));
-      queue.current.push(job);
-      void drain();
+      setHeld({ card, side, until: Date.now() + UNDO_MS });
+      holdTimers.current.set(
+        card.id,
+        window.setTimeout(() => release(card.id), UNDO_MS),
+      );
       if (typeof navigator.vibrate === "function") navigator.vibrate(12);
       goTo(feed.indexOf(card) + 1, ADVANCE_MS);
     },
-    [answers, broke, feed, drain, goTo, loggedIn, router, stake],
+    [answers, broke, feed, goTo, guestAnswers.length, loggedIn, release, router, stake],
   );
 
   /* the active card follows the scroll position — every panel is exactly one viewport tall */
@@ -415,7 +554,7 @@ export function RapidDeck({
     // On a phone everything stacks. From lg the stake panel moves into a column of
     // its own: a laptop window is wide and short, so the height it gives back is
     // exactly what the card was missing.
-    <section className="flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5 lg:flex-row lg:items-stretch lg:gap-4">
+    <section className="relative flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5 lg:flex-row lg:items-stretch lg:gap-4">
       <div className="flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5">
         {/* On a short phone this row is the first thing to go: the tape below it already
             shows where the run stands, and the balance moves into the stake strip. */}
@@ -484,6 +623,16 @@ export function RapidDeck({
         </p>
       </div>
 
+      {/*
+        The undo window, over the deck rather than on the card: by the time it opens
+        the answered card has already scrolled away, so an affordance drawn on the
+        card would be off screen for the whole five seconds it exists.
+      */}
+      {held && <UndoBar key={held.card.id} held={held} onUndo={() => undo(held.card.id)} />}
+
+      {/* the free run is over, and the four answers behind this are the argument */}
+      {guestGate && <GuestGate answers={guestAnswers} />}
+
       <aside className="scrollbar-none shrink-0 lg:w-72 lg:overflow-y-auto xl:w-80">
         <StakeBar
           stake={stake}
@@ -495,6 +644,92 @@ export function RapidDeck({
         />
       </aside>
     </section>
+  );
+}
+
+/* -------------------------------------------------------------- guest gate -- */
+
+/**
+ * The wall a signed-out visitor meets after `GUEST_LIMIT` answers.
+ *
+ * It is deliberately built out of what they just did rather than out of what the
+ * site wants: the four questions are listed with the side they picked, because
+ * "you have already answered four questions — sign in and they become positions"
+ * is an entirely different proposition from "sign in to continue".
+ */
+function GuestGate({ answers }: { answers: GuestAnswer[] }) {
+  return (
+    <div className="absolute inset-0 z-40 flex items-center justify-center bg-bg/92 p-3 backdrop-blur-sm">
+      <div className="card max-h-full w-full max-w-md overflow-y-auto p-4 text-center sm:p-6">
+        <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענית על {answers.length} שאלות</h2>
+        <p className="mt-1.5 text-sm text-muted">
+          התחברו והן יהפכו לפוזיציות אמיתיות בתיק שלכם, יחד עם {money(STARTING_BALANCE)} וירטואליים להמשך.
+        </p>
+
+        <ul className="mt-4 space-y-1.5 text-right">
+          {answers.map((a) => (
+            <li key={a.marketSlug} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-2">
+              <span className={`shrink-0 text-sm font-black ${a.side === "YES" ? "text-yes" : "text-no"}`}>
+                {a.side === "YES" ? "כן" : "לא"}
+              </span>
+              <span className="line-clamp-2 min-w-0 flex-1 text-[13px] leading-snug text-text">{a.title}</span>
+              <span className="tabular shrink-0 text-[11px] text-muted-2">{pct(a.priceAtAnswer)}</span>
+            </li>
+          ))}
+        </ul>
+
+        <Link
+          href="/login?callbackUrl=%2Frapid"
+          data-evt="rapid-guest-gate"
+          className="tap pressable mt-4 flex w-full items-center justify-center rounded-xl bg-accent px-5 text-base font-extrabold text-white shadow-md shadow-accent/25 hover:bg-accent-2"
+        >
+          התחברות · והתשובות נשמרות
+        </Link>
+        <p className="mt-2 text-[11px] text-muted-2">
+          התשובות שמורות בדפדפן שלכם עד ההתחברות. כסף וירטואלי בלבד.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------- undo bar -- */
+
+/**
+ * "Answered — undo", with the seconds left on it.
+ *
+ * The countdown is derived from a deadline rather than counted down in state, so a
+ * backgrounded tab (where timers are throttled) shows the true remaining time when
+ * it comes back instead of a stale one.
+ */
+function UndoBar({ held, onUndo }: { held: { card: RapidCard; side: Side; until: number }; onUndo: () => void }) {
+  // keyed on the answered card, so a new answer remounts this with a fresh deadline
+  // rather than needing an effect to reset the clock
+  const [left, setLeft] = useState(() => Math.max(0, held.until - Date.now()));
+
+  useEffect(() => {
+    const tick = window.setInterval(() => setLeft(Math.max(0, held.until - Date.now())), 200);
+    return () => window.clearInterval(tick);
+  }, [held.until]);
+
+  const seconds = Math.ceil(left / 1000);
+  return (
+    <div className="pb-safe pointer-events-none absolute inset-x-0 bottom-2 z-30 flex justify-center px-3 lg:bottom-3">
+      <div className="slide-up pointer-events-auto flex max-w-md items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 shadow-lg shadow-ink/15">
+        <span className={`shrink-0 text-sm font-black ${held.side === "YES" ? "text-yes" : "text-no"}`}>
+          {held.side === "YES" ? "כן" : "לא"}
+        </span>
+        <span className="line-clamp-1 min-w-0 flex-1 text-xs text-muted">{held.card.title}</span>
+        <button
+          onClick={onUndo}
+          data-evt="rapid-undo"
+          className="tap pressable inline-flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 text-xs font-bold text-text-strong hover:bg-surface-3"
+        >
+          בטל
+          <span className="tabular text-muted-2">{seconds}</span>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -672,7 +907,14 @@ function RapidCardView({
             <p className="max-w-xs text-sm text-no">{answer.error}</p>
           ) : (
             <p className="tabular text-sm text-muted">
-              {money(answer.stake)} · {answer.status === "ok" ? `${fmtShares(answer.shares ?? 0)} מניות` : "נשלח…"}
+              {money(answer.stake)} ·{" "}
+              {answer.status === "ok"
+                ? `${fmtShares(answer.shares ?? 0)} מניות`
+                : answer.status === "held"
+                  ? "אפשר עוד לבטל"
+                  : answer.status === "guest"
+                    ? "נשמר · יהפוך לפוזיציה אחרי התחברות"
+                    : "נשלח…"}
             </p>
           )}
         </div>
@@ -767,7 +1009,7 @@ function RapidCardView({
             onClick={onSkip}
             data-evt="rapid-skip"
             data-evt-market={card.id}
-            className="shrink-0 cursor-pointer rounded-md px-2 py-1 font-semibold hover:text-text-strong"
+            className="tap inline-flex shrink-0 cursor-pointer items-center rounded-md px-3 font-semibold hover:text-text-strong"
           >
             דלג
           </button>
@@ -778,7 +1020,7 @@ function RapidCardView({
                 ? "היתרה לא מספיקה לסכום הזה"
                 : loggedIn
                   ? "הסכום מחייב · מספר המניות משוער"
-                  : "התחברו כדי שהתשובות ייספרו"}
+                  : "התשובות נשמרות · ההתחברות הופכת אותן לפוזיציות"}
           </span>
         </div>
       </div>
@@ -866,7 +1108,7 @@ function StakeBar({
           step={1}
           value={stake}
           onChange={(e) => writeStake(Number(e.target.value))}
-          className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-surface-3 accent-accent lg:mt-2 lg:w-full"
+          className="slider min-w-0 flex-1 lg:mt-1 lg:w-full"
           aria-describedby="rapid-stake-range"
         />
       </div>
@@ -879,7 +1121,7 @@ function StakeBar({
             <button
               key={p}
               onClick={() => writeStake(p)}
-              className={`tabular shrink-0 rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
+              className={`tabular tap shrink-0 rounded-lg border px-3 text-xs font-bold transition ${
                 stake === p
                   ? "border-accent bg-accent/15 text-accent-2"
                   : "border-border bg-surface-2 text-muted hover:text-text-strong"

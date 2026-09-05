@@ -80,6 +80,8 @@ export const CLICK_IDS: Record<string, string> = {
   "hero-about": "CTA איך זה עובד בהירו",
   "browser-rapid": "מעבר למצב זריז מרשימת השווקים",
   "rapid-skip": "דילוג על שאלה במצב זריז",
+  "rapid-undo": "ביטול תשובה במצב זריז",
+  "rapid-guest-gate": "חסימת אורח במצב זריז",
   "market-card": "כרטיס שוק ברשימה",
   "market-card-yes": "כפתור כן בכרטיס",
   "market-card-no": "כפתור לא בכרטיס",
