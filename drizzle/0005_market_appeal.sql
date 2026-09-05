@@ -1,0 +1,1 @@
+ALTER TABLE `market` ADD `appeal` integer DEFAULT 3 NOT NULL;

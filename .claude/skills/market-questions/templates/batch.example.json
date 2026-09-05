@@ -18,6 +18,8 @@
       "initialProbability": 0.22,
       "_comment_liquidity": "npm run markets:liquidity -- --p 0.22 → 2000 (ברירת המחדל בריאה כאן)",
       "liquidity": 2000,
+      "_comment_appeal": "הדירוג שלכם לשאלה: 1 טכנית, 3 רגילה (ברירת מחדל), 5 השאלה של היום. 4 כאן — יש סיפור (נתניהו נמנע מהאולפנים), אבל זו לא השאלה שיפתחו עליה את הערב. מנוע ההמלצות מרים 4–5 ומוריד 1–2",
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [

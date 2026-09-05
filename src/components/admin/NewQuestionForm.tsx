@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { APPEAL_DEFAULT, APPEAL_LEVELS, appealLevel } from "@/lib/appeal";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { Field } from "@/components/ContactForm";
 import { MarketImage } from "@/components/MarketImage";
@@ -48,6 +49,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
   const [closesAt, setClosesAt] = useState(draft?.closesAt ?? defaultCloses());
   const [probabilityPct, setProbabilityPct] = useState(draft?.probabilityPct ?? 30);
   const [liquidity, setLiquidity] = useState(2000);
+  const [appeal, setAppeal] = useState(APPEAL_DEFAULT);
   const [featured, setFeatured] = useState(false);
   const [tags, setTags] = useState("");
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
@@ -93,6 +95,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
       closesAt,
       probabilityPct,
       liquidity,
+      appeal,
       featured,
       sources: sources.filter((s) => s.url.trim()).map((s) => ({ title: s.title.trim() || "מקור", url: s.url.trim() })),
       ...(draft?.suggestionId ? { fromSuggestion: draft.suggestionId } : {}),
@@ -141,6 +144,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
               setSlug("");
               setSelectedPeople([]);
               setImageUrl("");
+              setAppeal(APPEAL_DEFAULT);
               setSources([{ title: "", url: "" }]);
             }}
             className="tap pressable rounded-lg bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-2"
@@ -242,6 +246,30 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
             />
           </Field>
         </div>
+
+        <Field
+          label={`כמה השאלה הזאת מגניבה? ${appealLevel(appeal).label}`}
+          required
+          hint="הדירוג שלכם כיוצרי השאלה. מנוע ההמלצות מרים שאלה מגניבה ומוריד שאלה טכנית — אז דרגו בכנות, לא הכול 5."
+        >
+          <div className="flex flex-wrap gap-2">
+            {APPEAL_LEVELS.map((level) => (
+              <button
+                type="button"
+                key={level.value}
+                onClick={() => setAppeal(level.value)}
+                title={level.hint}
+                aria-pressed={appeal === level.value}
+                className={`pressable rounded-lg border px-3 py-1.5 text-[13px] font-medium ${
+                  appeal === level.value ? "border-accent bg-accent-soft text-accent" : "border-border text-muted hover:bg-surface-2"
+                }`}
+              >
+                {level.value} · {level.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{appealLevel(appeal).hint}</p>
+        </Field>
 
         <Field label="אנשים בשאלה" hint="הראשון שנבחר מספק את תמונת הכרטיס. עד 6.">
           <input
@@ -360,6 +388,12 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
             <div className="flex justify-between gap-2">
               <dt>נזילות</dt>
               <dd className="tabular text-text">{liquidity}</dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt>דירוג היוצר</dt>
+              <dd className="text-text">
+                <span className="tabular">{appeal}</span> · {appealLevel(appeal).label}
+              </dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt>מקורות</dt>

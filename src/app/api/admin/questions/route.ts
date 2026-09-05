@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { isAdminRequest } from "@/lib/admin";
+import { APPEAL_DEFAULT, APPEAL_MAX, APPEAL_MIN } from "@/lib/appeal";
 import { unauthorized } from "@/lib/api-auth";
 import { CATEGORY_IDS } from "@/lib/categories";
 import { MarketContentSchema, type MarketContent } from "@/lib/content";
@@ -33,6 +34,8 @@ const Body = z.object({
   /** the opening YES price, in percent */
   probabilityPct: z.number().min(2).max(98),
   liquidity: z.number().min(200).max(100_000).default(2000),
+  /** how good a question the editor filling in the form thinks it is, 1..5 */
+  appeal: z.number().int().min(APPEAL_MIN).max(APPEAL_MAX).default(APPEAL_DEFAULT),
   featured: z.boolean().default(false),
   sources: z.array(z.object({ title: z.string().trim().min(1).max(200), url: z.string().trim().url() })).max(12).default([]),
   /** the suggestion this question came from, if it was published out of the inbox */
@@ -70,6 +73,7 @@ export async function POST(req: Request) {
     closesAt,
     initialProbability: Math.round(input.probabilityPct) / 100,
     liquidity: input.liquidity,
+    appeal: input.appeal,
     featured: input.featured,
     status: "open" as const,
     sources: input.sources,

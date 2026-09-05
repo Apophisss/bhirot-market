@@ -27,6 +27,15 @@ import {
   type CandidateSignals,
   type TasteEvent,
 } from "../src/lib/recommendations";
+import {
+  APPEAL_DEFAULT,
+  APPEAL_MAX,
+  APPEAL_MIN,
+  APPEAL_WEIGHT,
+  appealBoost,
+  appealLevel,
+  clampAppeal,
+} from "../src/lib/appeal";
 import type { UserPreferences } from "../src/lib/preferences";
 
 let passed = 0;
@@ -316,6 +325,80 @@ test("diversify never invents or drops items", () => {
   const out = diversify(items, (i) => i.cat, 20);
   assert.equal(out.length, items.length);
   assert.equal(new Set(out.map((i) => i.id)).size, items.length);
+});
+
+/* --------------------------------- appeal ---------------------------------- */
+
+test("the scale folds anything onto 1..5, and an unrated question is neutral", () => {
+  close(appealBoost(APPEAL_DEFAULT), 0, 1e-12, "the default contributes nothing");
+  close(appealBoost(undefined), 0, 1e-12, "neither does a missing rating");
+  close(appealBoost(null), 0, 1e-12);
+  close(appealBoost(NaN), 0, 1e-12, "and neither does a broken one");
+  close(appealBoost(APPEAL_MAX), APPEAL_WEIGHT, 1e-12, "the top of the scale is the full weight");
+  close(appealBoost(APPEAL_MIN), -APPEAL_WEIGHT, 1e-12, "the bottom is the full weight, downwards");
+  close(appealBoost(99), APPEAL_WEIGHT, 1e-12, "off-scale is clamped, not extrapolated");
+  assert.equal(clampAppeal(4.4), 4, "a rating is an integer step on the scale");
+  assert.equal(clampAppeal("5" as unknown as number), APPEAL_DEFAULT, "a non-number is unrated, not a 5");
+  for (const v of [APPEAL_MIN, 2, APPEAL_DEFAULT, 4, APPEAL_MAX]) assert.ok(appealLevel(v).label.length > 0);
+});
+
+test("the boost rises with the rating, in equal steps", () => {
+  const boosts = [1, 2, 3, 4, 5].map(appealBoost);
+  for (let i = 1; i < boosts.length; i++) assert.ok(boosts[i] > boosts[i - 1], "monotonic");
+  for (let i = 2; i < boosts.length; i++) {
+    close(boosts[i] - boosts[i - 1], boosts[1] - boosts[0], 1e-12, "no step is worth more than another");
+  }
+});
+
+test("a question the creator rated highly outranks an equal one they did not", () => {
+  const great = scoreCandidate(candidate({ id: "great", appeal: 5 }), EMPTY_TASTE, NOW);
+  const plain = scoreCandidate(candidate({ id: "plain" }), EMPTY_TASTE, NOW);
+  const filler = scoreCandidate(candidate({ id: "filler", appeal: 1 }), EMPTY_TASTE, NOW);
+  assert.ok(great.score > plain.score && plain.score > filler.score);
+  close(great.score - plain.score, APPEAL_WEIGHT, 1e-12, "the full weight separates them");
+  assert.equal(plain.appeal, APPEAL_DEFAULT, "an unrated candidate reports the neutral value");
+});
+
+test("the rating is significant: it outweighs a real popularity gap, but not taste", () => {
+  // a brand new question nobody has traded still beats a moderately busy plain one
+  const fresh = scoreCandidate(candidate({ id: "fresh", appeal: 5, popularity: 0 }), EMPTY_TASTE, NOW);
+  const busy = scoreCandidate(candidate({ id: "busy", popularity: 0.7 }), EMPTY_TASTE, NOW);
+  assert.ok(fresh.score > busy.score, `${fresh.score} should beat ${busy.score}`);
+  // ...but the board's runaway hit still wins, and so does what the user actually trades
+  const hottest = scoreCandidate(candidate({ id: "hottest", popularity: 1 }), EMPTY_TASTE, NOW);
+  assert.ok(hottest.score > scoreCandidate(candidate({ id: "good", appeal: 4 }), EMPTY_TASTE, NOW).score);
+  const profile = buildTaste(
+    Array.from({ length: 8 }, (_, i) => ev({ marketId: `m${i}`, category: "legal", people: ["netanyahu"] })),
+    NOW,
+  );
+  const mine = scoreCandidate(candidate({ id: "mine", category: "legal", people: ["netanyahu"] }), profile, NOW);
+  const theirs = scoreCandidate(candidate({ id: "theirs", category: "media", appeal: 5 }), profile, NOW);
+  assert.ok(mine.score > theirs.score, "a great question in a topic they never touch is still not their question");
+});
+
+test("a highly rated question says so, and only from 4 up", () => {
+  const labels = (appeal: number) => scoreCandidate(candidate({ appeal }), EMPTY_TASTE, NOW).reasons.map((r) => r.label);
+  assert.ok(scoreCandidate(candidate({ appeal: 5 }), EMPTY_TASTE, NOW).reasons.some((r) => r.kind === "appeal"));
+  assert.ok(scoreCandidate(candidate({ appeal: 4 }), EMPTY_TASTE, NOW).reasons.some((r) => r.kind === "appeal"));
+  for (const dull of [1, 2, 3]) {
+    assert.ok(!scoreCandidate(candidate({ appeal: dull }), EMPTY_TASTE, NOW).reasons.some((r) => r.kind === "appeal"));
+  }
+  assert.notDeepEqual(labels(5), labels(4), "the top of the scale is worded more strongly than the step below");
+});
+
+test("the rating never rewrites the board on its own: order without it is still order", () => {
+  // every candidate rated the same ranks exactly as an unrated board would
+  const rank = (appeal: number) =>
+    [
+      candidate({ id: "a", popularity: 0.9, appeal }),
+      candidate({ id: "b", popularity: 0.5, appeal, closesAt: NOW + 6 * 3_600_000 }),
+      candidate({ id: "c", popularity: 0.1, appeal }),
+    ]
+      .map((c) => scoreCandidate(c, EMPTY_TASTE, NOW))
+      .sort((x, y) => y.score - x.score)
+      .map((s) => s.id);
+  assert.deepEqual(rank(1), rank(APPEAL_DEFAULT));
+  assert.deepEqual(rank(5), rank(APPEAL_DEFAULT));
 });
 
 /* --------------------------------- survey ---------------------------------- */
