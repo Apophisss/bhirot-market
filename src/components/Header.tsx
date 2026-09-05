@@ -12,7 +12,6 @@ import { MobileNav } from "./MobileNav";
 import { MobileSearch } from "./MobileSearch";
 import { LoginLink } from "./LoginLink";
 import { RapidGuestSync } from "./RapidGuestSync";
-import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { needsSurvey } from "@/lib/preferences-store";
 import { countIncomingRequests } from "@/lib/friends";
 import { countLeagueInvites } from "@/lib/leagues";
@@ -177,8 +176,10 @@ export async function Header() {
       </header>
       <MobileNav loggedIn={Boolean(user)} />
       {/* the rapid answers a visitor gave before signing in become positions here —
-          in the header, because the sign-in flow lands on /onboarding, not on /rapid */}
-      <RapidGuestSync loggedIn={Boolean(user)} stake={RAPID_DEFAULT_STAKE} />
+          in the header, because the sign-in flow lands on /onboarding, not on /rapid.
+          Each answer redeems at the amount it was given at, and the amount itself is
+          adopted by the new account (src/components/RapidGuestSync.tsx) */}
+      <RapidGuestSync loggedIn={Boolean(user)} />
     </>
   );
 }

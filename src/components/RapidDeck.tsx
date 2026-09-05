@@ -10,14 +10,13 @@ import { money, pct, closesLabel } from "@/lib/format";
 import { SITE_TEAM } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/limits";
 import {
-  RAPID_DEFAULT_STAKE,
   RAPID_MAX_STAKE,
   RAPID_MIN_STAKE,
   RAPID_STAKE_PRESETS,
   RAPID_STAKE_STEP,
-  clampStake,
   type RapidCard,
 } from "@/lib/rapid";
+import { setRapidStake, useRapidStake } from "@/lib/settings-client";
 import { addSkips, openSkipSnapshot, serverSkipSnapshot, skipSnapshot, subscribeSkipSnapshot } from "@/lib/rapid-skips";
 import {
   GUEST_LIMIT,
@@ -108,47 +107,13 @@ function scrollableUnder(from: EventTarget | null, stopAt: HTMLElement, dy: numb
 }
 
 /* ------------------------------------------------- the stake, as a store --
- * The chosen stake survives reloads. Reading localStorage during render would
- * break hydration, so it is exposed as an external store: the server snapshot
- * is the default and the stored value arrives on the first client render.
+ * The chosen stake used to live in `localStorage` alone, which meant it lived in
+ * one browser: the same account picked ₪50 on a phone and was handed ₪20 again on
+ * a laptop. It is a choice the user made, like every other choice on the site, so
+ * it belongs to the account — `savedStake` arrives already rendered from the
+ * server, and `setRapidStake` writes it back (src/lib/settings-client.ts).
+ * A guest, with no account to write to, keeps the browser store as before.
  */
-
-const STAKE_KEY = "bhirot:rapid:stake";
-let stakeCache: number | null = null;
-const stakeListeners = new Set<() => void>();
-
-function readStake(): number {
-  if (stakeCache == null) {
-    try {
-      const saved = window.localStorage.getItem(STAKE_KEY);
-      stakeCache = saved ? clampStake(Number(saved)) : RAPID_DEFAULT_STAKE;
-    } catch {
-      stakeCache = RAPID_DEFAULT_STAKE;
-    }
-  }
-  return stakeCache;
-}
-
-function writeStake(v: number) {
-  stakeCache = clampStake(v);
-  try {
-    window.localStorage.setItem(STAKE_KEY, String(stakeCache));
-  } catch {
-    /* private mode — keep it in memory for this run */
-  }
-  for (const l of stakeListeners) l();
-}
-
-function subscribeStake(cb: () => void) {
-  stakeListeners.add(cb);
-  return () => {
-    stakeListeners.delete(cb);
-  };
-}
-
-function useStake() {
-  return useSyncExternalStore(subscribeStake, readStake, () => RAPID_DEFAULT_STAKE);
-}
 
 /** The answers this browser gave before signing in (see src/lib/rapid-guest.ts). */
 function useGuestAnswers() {
@@ -174,12 +139,15 @@ export function RapidDeck({
   cards,
   loggedIn,
   balance,
+  savedStake = null,
   includeAnswered = false,
   children,
 }: {
   cards: RapidCard[];
   loggedIn: boolean;
   balance: number | null;
+  /** the stake this account chose, whatever device it chose it on — null for a guest */
+  savedStake?: number | null;
   /** the "כולל שאלות שכבר ראיתי" switch — it puts back both what was answered and what
    *  was skipped, and for a guest it is the only thing that keeps an already-answered
    *  question in the queue, since the server cannot filter for them */
@@ -216,7 +184,9 @@ export function RapidDeck({
   /** the furthest card the run has already judged — everything before it was answered or skipped */
   const judged = useRef(0);
 
-  const stake = useStake();
+  const stake = useRapidStake(savedStake);
+  /** the account gets the choice written back to it; a guest gets the browser store */
+  const setStake = useCallback((v: number) => setRapidStake(v, loggedIn), [loggedIn]);
   const guestAnswers = useGuestAnswers();
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const showKeys = useMediaQuery("(min-width: 1024px)");
@@ -566,6 +536,9 @@ export function RapidDeck({
           side,
           priceAtAnswer: side === "YES" ? card.probability : 1 - card.probability,
           title: card.title,
+          // the amount the card was showing while it was answered — redemption binds
+          // this, not the default (see GuestAnswer.stake)
+          stake,
           ts: Date.now(),
         });
         setAnswers((prev) => ({ ...prev, [card.id]: { marketId: card.id, side, stake, status: "guest" } }));
@@ -696,26 +669,26 @@ export function RapidDeck({
         case "+":
         case "=":
           e.preventDefault();
-          writeStake(stake + RAPID_STAKE_STEP);
+          setStake(stake + RAPID_STAKE_STEP);
           break;
         case "-":
         case "_":
           e.preventDefault();
-          writeStake(stake - RAPID_STAKE_STEP);
+          setStake(stake - RAPID_STAKE_STEP);
           break;
         default: {
           // 1…5 jump straight to a preset stake
           const preset = RAPID_STAKE_PRESETS[Number(e.key) - 1];
           if (preset != null) {
             e.preventDefault();
-            writeStake(preset);
+            setStake(preset);
           }
         }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [answer, feed, goTo, index, stake]);
+  }, [answer, feed, goTo, index, setStake, stake]);
 
   /* answers are binding — never let the tab close on money still in flight */
   useEffect(() => {
@@ -828,6 +801,7 @@ export function RapidDeck({
       <aside className="scrollbar-none shrink-0 lg:w-72 lg:overflow-y-auto xl:w-80">
         <StakeBar
           stake={stake}
+          onStake={setStake}
           available={available}
           broke={broke}
           outOfMoney={outOfMoney}
@@ -1297,6 +1271,7 @@ function AnswerButton({
 
 function StakeBar({
   stake,
+  onStake,
   available,
   broke,
   outOfMoney,
@@ -1304,6 +1279,8 @@ function StakeBar({
   dimmed,
 }: {
   stake: number;
+  /** the deck's own setter — it knows whether the choice goes to the account or to the browser */
+  onStake: (v: number) => void;
   available: number | null;
   broke: boolean;
   outOfMoney: boolean;
@@ -1329,7 +1306,7 @@ function StakeBar({
           max={RAPID_MAX_STAKE}
           step={1}
           value={stake}
-          onChange={(e) => writeStake(Number(e.target.value))}
+          onChange={(e) => onStake(Number(e.target.value))}
           className="slider min-w-0 flex-1 lg:mt-1 lg:w-full"
           aria-describedby="rapid-stake-range"
         />
@@ -1342,7 +1319,7 @@ function StakeBar({
           {RAPID_STAKE_PRESETS.map((p) => (
             <button
               key={p}
-              onClick={() => writeStake(p)}
+              onClick={() => onStake(p)}
               className={`tabular tap shrink-0 rounded-lg border px-3 text-xs font-bold transition ${
                 stake === p
                   ? "border-accent bg-accent/15 text-accent-2"

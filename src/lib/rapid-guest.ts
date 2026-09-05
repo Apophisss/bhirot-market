@@ -50,6 +50,17 @@ export interface GuestAnswer {
   priceAtAnswer: number;
   /** what the card was asking, so the sign-in gate can show the answers back */
   title: string;
+  /**
+   * How many points the visitor had on the slider when he answered.
+   *
+   * Redemption used to spend the deck's default (₪20) on every answer, whatever the
+   * card had said while it was being answered: a visitor who moved the slider to ₪50,
+   * answered four questions and signed in got four ₪20 positions — the site quoting
+   * one number back and binding another. Optional because answers written by an
+   * earlier version of the deck are still in browsers; those redeem at the default,
+   * which is what they were shown.
+   */
+  stake?: number;
   ts: number;
 }
 
@@ -60,6 +71,7 @@ function isAnswer(v: unknown): v is GuestAnswer {
       typeof a.marketSlug === "string" &&
       (a.side === "YES" || a.side === "NO") &&
       typeof a.priceAtAnswer === "number" &&
+      (a.stake === undefined || typeof a.stake === "number") &&
       typeof a.ts === "number",
   );
 }
