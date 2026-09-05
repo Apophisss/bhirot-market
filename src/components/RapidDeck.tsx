@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import { BoltIcon } from "./BoltIcon";
 import { useRouter } from "next/navigation";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
 import { money, pct, closesLabel } from "@/lib/format";
@@ -1313,14 +1314,22 @@ function RunSummary({
       ) : (
         <p className="max-w-sm text-muted">גללו למעלה כדי לחזור לשאלות, או עברו לרשימת השאלות המלאה.</p>
       )}
+      {/*
+        The end of a run is the cheapest place on the site to get another one: the
+        deck has just been refreshed with the questions this run did not cover (see
+        the router.refresh() above), so "עוד סבב" is a full deck and not a replay.
+        It is therefore the primary button — the score can wait until the player
+        stops answering, not the other way round.
+      */}
       {showActions && (
         <div className="flex flex-wrap justify-center gap-2">
-          <Link href="/portfolio" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">
+          <button onClick={onRestart} className="pressable inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">
+            <BoltIcon size={16} />
+            עוד סבב זריז
+          </button>
+          <Link href="/portfolio" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
             לניקוד שלי
           </Link>
-          <button onClick={onRestart} className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
-            חזרה לשאלות
-          </button>
           <Link href="/" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
             לכל השאלות
           </Link>
