@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
-import { getPortfolio, getUserTrades } from "@/lib/portfolio";
+import { getPortfolio, getUserTrades, getLeaderboard } from "@/lib/portfolio";
+import { buildBoard } from "@/lib/fake-leaderboard";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money, signedMoney, pct, shares as fmtShares, agora } from "@/lib/format";
 import { StatTile } from "@/components/StatTile";
@@ -19,10 +20,15 @@ export const metadata: Metadata = {
 export default async function PortfolioPage() {
   const user = await currentUser();
   if (!user) redirect("/login?callbackUrl=/portfolio");
-  const [{ holdings, openHoldings, positionsValue, unrealized, realized }, trades] = await Promise.all([
+  const [{ holdings, openHoldings, positionsValue, unrealized, realized }, trades, ranked] = await Promise.all([
     getPortfolio(user.id),
     getUserTrades(user.id),
+    getLeaderboard(),
   ]);
+  // the leaderboard is not in the site navigation — the profile is the way in,
+  // so the link carries the one number that makes it worth following
+  const board = buildBoard(ranked, { meId: user.id });
+  const myRank = board.find((r) => r.isMe)?.rank ?? null;
   const netWorth = user.balance + positionsValue;
   const totalPnl = netWorth - STARTING_BALANCE;
 
@@ -31,6 +37,13 @@ export default async function PortfolioPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="min-w-0 truncate text-xl font-extrabold text-text-strong sm:text-2xl">התיק של {user.name}</h1>
         <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/leaderboard"
+            data-evt="portfolio-leaderboard"
+            className="pressable inline-flex items-center rounded-xl border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-accent hover:text-accent-2"
+          >
+            לוח המובילים{myRank ? ` · מקום ${myRank}` : ""}
+          </Link>
           <Link
             href="/rapid"
             className="pressable inline-flex items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-bold text-accent-2 hover:bg-accent/20"
