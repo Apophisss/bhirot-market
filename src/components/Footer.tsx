@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CATEGORIES } from "@/lib/categories";
 import { SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { isAdmin } from "@/lib/admin";
+import { InstallLink } from "@/components/InstallApp";
 
 export async function Footer() {
   // the admin link only exists for admins; everyone else sees the usual footer
@@ -37,6 +38,9 @@ export async function Footer() {
             <Link href="/contact" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">יצירת קשר</Link>
             <Link href="/privacy" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">פרטיות</Link>
             <Link href="/terms" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">תנאי שימוש</Link>
+            {/* האפשרות הקבועה שמאחורי כרטיס ההמלצה בלוח, בכל עמוד ובכל פלטפורמה.
+                נעלמת מעצמה רק כשהאתר באמת מותקן */}
+            <InstallLink />
             {admin && (
               <Link href="/admin" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">ניהול</Link>
             )}

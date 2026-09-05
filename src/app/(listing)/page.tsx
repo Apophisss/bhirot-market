@@ -9,6 +9,7 @@ import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
 import { InvitePromo } from "@/components/InvitePromo";
+import { InstallPrompt } from "@/components/InstallApp";
 import { PmCandidates } from "@/components/PmCandidates";
 import { RecommendationSection } from "@/components/Recommendations";
 import { JsonLd } from "@/components/JsonLd";
@@ -291,6 +292,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {!filtered && !session?.user && <HowToPlay />}
 
       {!filtered && <InvitePromo loggedIn={Boolean(session?.user)} />}
+
+      {/* ההצעה להוסיף למסך הבית, אחרי שכבר היה מה לענות עליו: היא נכנסת לאותה שכבה
+          של הדברים שמדברים *על* הלוח, ולא לפני השאלה הראשונה. מרנדרת את עצמה רק
+          בטלפון, רק מחוץ לאפליקציה המותקנת ורק אם לא נדחתה בחודש האחרון */}
+      {!filtered && <InstallPrompt />}
 
       {featured.length > 0 && (
         <section className="space-y-3">
