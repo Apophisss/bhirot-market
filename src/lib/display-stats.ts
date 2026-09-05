@@ -82,16 +82,22 @@ export function displayUserCount(realUsers: number): number {
 }
 
 /**
- * The traded volume the hero advertises: the real volume, inflated. A board with
- * no trades yet stays at zero rather than growing money out of nothing.
+ * The traded volume the hero advertises: the real volume, inflated, and never below
+ * `boardFloor`.
  *
  * The `ceil` floor is what keeps the promise honest below a shekel: rounding
  * alone turns a real ₪0.02 into ₪0, and a headline that *undersells* the board is
  * the one thing these numbers must never do.
+ *
+ * `boardFloor` is the same rule applied one level up. Every card on the page prints
+ * its own volume (`MarketView.displayVolume`, see `fake-market-stats.ts`), so a
+ * visitor can add the board up by hand; the caller passes that sum, and the headline
+ * covers it. Without it the hero would claim a smaller market than the one listed
+ * directly underneath it.
  */
-export function displayVolume(realVolume: number): number {
+export function displayVolume(realVolume: number, boardFloor = 0): number {
   const real = positive(realVolume);
-  return Math.max(Math.round(real * DISPLAY_VOLUME_MULTIPLIER), Math.ceil(real));
+  return Math.max(Math.round(real * DISPLAY_VOLUME_MULTIPLIER), Math.ceil(real), Math.round(positive(boardFloor)));
 }
 
 /**

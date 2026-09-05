@@ -116,8 +116,9 @@ export function toRapidCard(m: MarketView, history?: DisplayHistory | null): Rap
     qNo: m.qNo,
     liquidity: m.liquidity,
     closesAt: m.closesAt.getTime(),
-    volume: m.volume,
-    tradeCount: m.tradeCount,
+    // the deck is a public surface, so it carries the display pair like every card
+    volume: m.displayVolume,
+    tradeCount: m.displayTradeCount,
     byTeam: isTeamAuthored(m.createdBy),
     spark: history
       ? buildRapidSpark(history.points, {

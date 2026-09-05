@@ -34,8 +34,9 @@ export async function GET(req: Request) {
         category: r.market.category,
         probability: r.market.probability,
         closesAt: r.market.closesAt,
-        volume: r.market.volume,
-        tradeCount: r.market.tradeCount,
+        // the display pair, as on every public surface (src/lib/fake-market-stats.ts)
+        volume: r.market.displayVolume,
+        tradeCount: r.market.displayTradeCount,
         image: r.market.image,
         score: Number(r.score.toFixed(4)),
         taste: Number(r.taste.toFixed(4)),

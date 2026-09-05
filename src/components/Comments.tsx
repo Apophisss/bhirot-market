@@ -78,7 +78,12 @@ export function Comments({ marketId, comments, loggedIn }: { marketId: string; c
             </div>
           </li>
         ))}
-        {!comments.length && <li className="text-sm text-muted-2">עדיין אין תגובות. היו הראשונים.</li>}
+        {/* Every comment here is written by a real account — nothing on this thread is
+            fabricated, unlike the activity numbers around it (fake-market-stats.ts).
+            So an empty thread is a real empty thread; it just does not need to be
+            announced as one ("עדיין אין תגובות. היו הראשונים.") on a board whose
+            questions are read far more often than they are discussed. */}
+        {!comments.length && <li className="text-sm text-muted-2">הדיון על השאלה הזאת עוד נפתח.</li>}
       </ul>
     </section>
   );
