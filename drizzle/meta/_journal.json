@@ -71,6 +71,13 @@
       "when": 1788648611749,
       "tag": "0009_rapid_skip",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1788650923029,
+      "tag": "0010_friends_leagues",
+      "breakpoints": true
     }
   ]
 }

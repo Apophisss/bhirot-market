@@ -285,6 +285,101 @@ export const referrals = sqliteTable(
   ],
 );
 
+/* ---------- Friends ---------- */
+
+/**
+ * `pending` — asked and not yet answered · `accepted` — mutual friends ·
+ * `declined` — the request was turned down, and the row stays so the same person
+ * cannot ask again and again.
+ */
+export type FriendshipStatus = "pending" | "accepted" | "declined";
+
+/**
+ * One row per direction of a friend request: who asked whom, and where it stands.
+ *
+ * The pair is stored as it was asked rather than sorted, because the two sides are
+ * not interchangeable — only the addressee may accept. A friendship is therefore a
+ * single `accepted` row that both users read from either end, and "unfriend" deletes
+ * the row so either of them may ask again later.
+ */
+export const friendships = sqliteTable(
+  "friendship",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    requesterId: text("requesterId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    addresseeId: text("addresseeId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").$type<FriendshipStatus>().notNull().default("pending"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    respondedAt: integer("respondedAt", { mode: "timestamp_ms" }),
+  },
+  (f) => [
+    // one live request per direction; the reverse direction is a different row, which
+    // is what lets someone who declined by mistake ask the other person themselves
+    uniqueIndex("friendship_pair_idx").on(f.requesterId, f.addresseeId),
+    index("friendship_addressee_idx").on(f.addresseeId, f.status),
+    index("friendship_requester_idx").on(f.requesterId, f.status),
+  ],
+);
+
+/* ---------- Leagues: a private board among people who know each other ---------- */
+
+/** `invited` — asked by a member and not yet answered · `member` — in the league. */
+export type LeagueMemberStatus = "invited" | "member";
+export type LeagueRole = "owner" | "member";
+
+/**
+ * A private ranking anyone can open and fill with people they know. The public
+ * leaderboard is anonymous on purpose; a league is the opposite by consent — you
+ * only see the names of people who joined the same league as you.
+ */
+export const leagues = sqliteTable(
+  "league",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** the code in the invite link, `/l/<code>`; unique, so a collision fails the write */
+    code: text("code").notNull().unique(),
+    name: text("name").notNull(),
+    ownerId: text("ownerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (l) => [index("league_owner_idx").on(l.ownerId)],
+);
+
+export const leagueMembers = sqliteTable(
+  "league_member",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    leagueId: integer("leagueId")
+      .notNull()
+      .references(() => leagues.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").$type<LeagueRole>().notNull().default("member"),
+    status: text("status").$type<LeagueMemberStatus>().notNull().default("member"),
+    /** who sent the invite; null when the person walked in through the link */
+    invitedBy: text("invitedBy"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    joinedAt: integer("joinedAt", { mode: "timestamp_ms" }),
+  },
+  (m) => [
+    uniqueIndex("league_member_idx").on(m.leagueId, m.userId),
+    index("league_member_user_idx").on(m.userId, m.status),
+  ],
+);
+
 /* ---------- Onboarding survey / personalization ---------- */
 
 export type SurveyStatus = "completed" | "skipped";

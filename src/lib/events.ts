@@ -25,6 +25,14 @@ export const EVENTS = {
   tradeError: "trade_error",
   /** a comment was posted — recorded server-side */
   comment: "comment",
+  /** a friend request was sent — recorded server-side, without who was asked */
+  friendRequest: "friend_request",
+  /** a friend request was accepted — recorded server-side, without who accepted whom */
+  friendAccept: "friend_accept",
+  /** a league was opened — recorded server-side */
+  leagueCreate: "league_create",
+  /** someone joined a league, through the link or through an invitation */
+  leagueJoin: "league_join",
   /** a new account was created — recorded server-side on first sign-in */
   signup: "signup",
   /** an existing user signed in — recorded server-side */
@@ -63,6 +71,10 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.trade]: "עסקה שבוצעה",
   [EVENTS.tradeError]: "עסקה שנדחתה",
   [EVENTS.comment]: "תגובה",
+  [EVENTS.friendRequest]: "בקשת חברות",
+  [EVENTS.friendAccept]: "אישור חברות",
+  [EVENTS.leagueCreate]: "פתיחת ליגה",
+  [EVENTS.leagueJoin]: "הצטרפות לליגה",
   [EVENTS.signup]: "הרשמה",
   [EVENTS.login]: "התחברות",
   [EVENTS.webVital]: "מדד ביצועים",
@@ -91,6 +103,12 @@ export const CLICK_IDS: Record<string, string> = {
   "share-market": "שיתוף שאלה",
   "browser-suggest": "הצעת שאלה מסוף הרשימה",
   "menu-leaderboard": "תפריט המשתמש: לוח המובילים",
+  "menu-friends": "תפריט המשתמש: חברים",
+  "menu-leagues": "תפריט המשתמש: ליגות",
+  "friends-search": "חיפוש אנשים בדף החברים",
+  "league-copy-link": "העתקת קישור הזמנה לליגה",
+  "league-share": "שיתוף קישור הליגה",
+  "portfolio-friends": "חברים מדף התיק",
   "portfolio-leaderboard": "לוח המובילים מדף התיק",
   "hero-rapid": "CTA מצב זריז בהירו",
   "hero-login": "CTA התחברות בהירו",
