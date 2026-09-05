@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getLeaderboard } from "@/lib/portfolio";
+import { getMarketStats } from "@/lib/markets";
+import { STARTING_BALANCE } from "@/lib/limits";
 import { buildBoard, type BoardRow } from "@/lib/fake-leaderboard";
 import { Avatar } from "@/components/Avatar";
-import { money, signedMoney } from "@/lib/format";
+import { money, signedMoney, pnlTone } from "@/lib/format";
 import { auth } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
 import { shareCard } from "@/lib/seo";
@@ -33,20 +36,28 @@ function Row({ r, muteRank = false }: { r: BoardRow; muteRank?: boolean }) {
         </div>
       </td>
       <td className="tabular px-2 py-2.5 font-semibold sm:px-3">{money(r.netWorth)}</td>
-      <td className={`tabular px-2 py-2.5 font-semibold sm:px-3 ${r.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(r.pnl)}</td>
+      <td className={`tabular px-2 py-2.5 font-semibold sm:px-3 ${pnlTone(r.pnl)}`}>{signedMoney(r.pnl)}</td>
       <td className="tabular hidden px-3 py-2.5 text-muted sm:table-cell">{r.tradeCount}</td>
     </tr>
   );
 }
 
 export default async function LeaderboardPage() {
-  const [real, session] = await Promise.all([getLeaderboard(), auth()]);
+  const [real, session, stats] = await Promise.all([getLeaderboard(), auth(), getMarketStats()]);
+  // Nothing on the board has been decided yet, so every gain in it is the
+  // revaluation of an open position — and in a market a single trade can move by
+  // tens of points, that is a measure of who traded a thin question, not of who
+  // was right. Saying so is the difference between a ranking and a scoreboard.
+  const provisional = stats.resolved === 0;
   // identities stop here: buildBoard turns each trader into a pseudonym, and only
   // the pseudonymous rows are handed to the markup
   const board = buildBoard(real, { meId: session?.user?.id });
   const rows = board.slice(0, VISIBLE);
   const me = board.find((r) => r.isMe);
   const mePinned = me && me.rank > VISIBLE ? me : null;
+  // where a brand-new account would land: everyone still on their starting balance
+  // ranks alongside it, so this is the first place a fresh trader could hold
+  const newcomerRank = board.filter((r) => r.netWorth > STARTING_BALANCE).length + 1;
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -58,6 +69,25 @@ export default async function LeaderboardPage() {
           <span className="text-text">הלוח אנונימי</span> — כל סוחר/ת מופיע/ה בכינוי אקראי וקבוע, בלי שם ובלי תמונה.
         </p>
       </div>
+
+      {provisional && (
+        <p className="rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-[13px] leading-relaxed text-text">
+          <strong>טרם הוכרעו שווקים · הדירוג זמני.</strong> כל רווח בלוח הוא כרגע שערוך של פוזיציות פתוחות ולא רווח ממומש, ובשוק דק
+          עסקה בודדת מזיזה את השערוך בעשרות נקודות. ברגע שיוכרעו שאלות ראשונות יופיע כאן גם דיוק ההכרעות — אחוז הפעמים שבהן צדקתם.
+        </p>
+      )}
+
+      {/* a signed-out visitor has no row, so the board says nothing about them —
+          this is the one line that makes it worth reading before signing up */}
+      {!session?.user && (
+        <p className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-[13px] leading-relaxed text-text">
+          אילו נרשמתם עכשיו הייתם נכנסים למקום <strong className="tabular">{newcomerRank}</strong> מתוך {board.length}, עם{" "}
+          {money(STARTING_BALANCE)} וירטואליים.{" "}
+          <Link href="/login?callbackUrl=%2Fleaderboard" className="inline-flex min-h-11 min-w-11 items-center justify-center font-bold text-accent-2 hover:underline">
+            להתחיל
+          </Link>
+        </p>
+      )}
       <div className="card overflow-hidden">
         {rows.length ? (
           <table className="w-full table-fixed text-sm sm:table-auto">
@@ -66,7 +96,9 @@ export default async function LeaderboardPage() {
                 <th className="w-10 px-3 py-2 text-right font-medium sm:w-auto sm:px-4">#</th>
                 <th className="px-2 py-2 text-right font-medium sm:px-3">סוחר/ת</th>
                 <th className="px-2 py-2 text-right font-medium sm:px-3">שווי כולל</th>
-                <th className="px-2 py-2 text-right font-medium sm:px-3">רווח/הפסד</th>
+                <th className="px-2 py-2 text-right font-medium sm:px-3" title={provisional ? "שערוך פוזיציות פתוחות — אף שוק לא הוכרע עדיין" : undefined}>
+                  {provisional ? "שערוך" : "רווח/הפסד"}
+                </th>
                 <th className="hidden px-3 py-2 text-right font-medium sm:table-cell">עסקאות</th>
               </tr>
             </thead>

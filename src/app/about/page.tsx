@@ -208,7 +208,7 @@ export default async function AboutPage() {
             <Link
               key={c.id}
               href={`/category/${c.id}`}
-              className="pressable rounded-full border border-border bg-surface px-3.5 py-2 text-sm text-muted hover:border-border-2 hover:text-text-strong"
+              className="tap pressable inline-flex min-w-11 items-center justify-center rounded-full border border-border bg-surface px-3.5 text-sm text-muted hover:border-border-2 hover:text-text-strong"
             >
               {c.label}
             </Link>

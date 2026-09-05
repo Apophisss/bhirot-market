@@ -8,6 +8,7 @@ import { MarketBrowser, PAGE, parseSort } from "@/components/MarketBrowser";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_NAME } from "@/lib/config";
 import { breadcrumbs, categoryTitle, clamp, collectionPage, shareCard } from "@/lib/seo";
+import type { CSSProperties } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         <Link href="/" className="hover:text-text">שווקים</Link> ‹ <span className="text-text">{cat.label}</span>
       </nav>
 
-      <header className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: `${cat.accent}33`, background: `${cat.accent}0d` }}>
+      <header className="cat-band rounded-2xl border p-5 sm:p-6" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
         <h1 className="text-2xl font-black text-text-strong sm:text-3xl">
           {cat.label} — שוקי חיזוי לבחירות 2026
         </h1>

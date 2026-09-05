@@ -66,6 +66,7 @@ export default async function WelcomePage() {
       personName: m.personName ?? null,
       categoryLabel: m.categoryLabel,
       categoryAccent: cat.accent,
+      categoryAccentDark: cat.accentDark,
     };
   });
   const openCount = counts.all ?? 0;
@@ -128,8 +129,8 @@ export default async function WelcomePage() {
             )}
           </div>
           <p className="text-sm leading-relaxed text-muted">
-            שאלות אמיתיות מהלוח, במחיר שלהן ברגע זה. תשובה אחת ב-{money(RAPID_DEFAULT_STAKE)} וירטואליים —
-            נשמור אותה, ונהפוך אותה לפוזיציה אמיתית ברגע שתתחברו.
+            שאלות אמיתיות מהלוח, במחיר שלהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
+            ונהפוך אותה לפוזיציה אמיתית ב-{money(RAPID_DEFAULT_STAKE)} וירטואליים ברגע שתתחברו.
           </p>
           {/* Real, current markets that answer back — a static card is a screenshot,
               a card that responds is a demonstration. */}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { auth, signOut } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
 import { REFERRAL_BONUS } from "@/lib/referral";
@@ -8,6 +9,10 @@ import { PortfolioValue } from "./PortfolioValue";
 import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
+import { MobileSearch } from "./MobileSearch";
+import { LoginLink } from "./LoginLink";
+import { RapidGuestSync } from "./RapidGuestSync";
+import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { needsSurvey } from "@/lib/preferences-store";
 
 // The leaderboard is deliberately absent: it hangs off the profile (the user menu
@@ -18,6 +23,9 @@ const NAV = [
   { href: "/activity", label: "פעילות", evt: "nav-activity" },
   { href: "/about", label: "איך זה עובד", evt: "nav-about" },
 ];
+
+const LOGIN_BUTTON =
+  "tap pressable inline-flex items-center rounded-lg bg-accent px-4 text-sm font-semibold text-white shadow-md shadow-accent/25 hover:bg-accent-2";
 
 export async function Header() {
   const session = await auth();
@@ -35,7 +43,7 @@ export async function Header() {
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-bg/90 shadow-[0_1px_3px_rgba(10,16,32,0.05)] backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          <Link href="/" className="tap flex shrink-0 items-center gap-2 sm:gap-2.5">
             <Image src="/logo.svg" alt="" width={32} height={32} priority className="h-8 w-8 sm:h-9 sm:w-9" />
             <span className="text-base font-extrabold tracking-tight text-text-strong sm:text-lg">{SITE_NAME}</span>
             <span className="hidden rounded-full border border-border-2 bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent md:inline">
@@ -43,7 +51,9 @@ export async function Header() {
             </span>
           </Link>
 
-          {/* below md the search lives above the board itself (see MarketBrowser) */}
+          {/* below md the field is replaced by an icon that opens a full-screen sheet */}
+          <MobileSearch />
+
           <form action="/" className="hidden flex-1 md:block">
             <label className="relative block max-w-md">
               <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-2">
@@ -113,19 +123,28 @@ export async function Header() {
                 <Link href="/about" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-text-strong sm:inline lg:hidden">
                   איך זה עובד
                 </Link>
-                <Link
-                  href="/login"
-                  data-evt="header-login"
-                  className="pressable rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-md shadow-accent/25 hover:bg-accent-2"
+                {/* useSearchParams needs a boundary; the fallback is the same button
+                    pointing at a bare /login, which is what it used to be everywhere */}
+                <Suspense
+                  fallback={
+                    <Link href="/login" data-evt="header-login" className={LOGIN_BUTTON}>
+                      התחברות
+                    </Link>
+                  }
                 >
-                  התחברות
-                </Link>
+                  <LoginLink evt="header-login" className={LOGIN_BUTTON}>
+                    התחברות
+                  </LoginLink>
+                </Suspense>
               </>
             )}
           </div>
         </div>
       </header>
       <MobileNav loggedIn={Boolean(user)} />
+      {/* the rapid answers a visitor gave before signing in become positions here —
+          in the header, because the sign-in flow lands on /onboarding, not on /rapid */}
+      <RapidGuestSync loggedIn={Boolean(user)} stake={RAPID_DEFAULT_STAKE} />
     </>
   );
 }

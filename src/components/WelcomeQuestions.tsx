@@ -1,11 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { CSSProperties } from "react";
 import { money, pct } from "@/lib/format";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
-import { savePendingAnswer } from "@/lib/pending-answer";
+import {
+  GUEST_LIMIT,
+  addGuestAnswer,
+  readGuestAnswers,
+  serverGuestAnswers,
+  subscribeGuestAnswers,
+} from "@/lib/rapid-guest";
 import { gaEvent } from "@/lib/gtag";
 import { MarketImage } from "./MarketImage";
 
@@ -22,6 +29,7 @@ export interface WelcomeQuestion {
   personName: string | null;
   categoryLabel: string;
   categoryAccent: string;
+  categoryAccentDark: string;
 }
 
 /** long enough to read what just happened, short enough that it does not feel like a wait */
@@ -32,31 +40,44 @@ const HANDOFF_MS = 900;
  *
  * They used to be a screenshot: real markets, real prices, and no way to touch them —
  * the only button on the page asked a stranger to connect a Google account before a
- * single price had moved for them. Now the first thing a visitor does is answer, and
- * the sign-in that follows is asked in order to *keep* that answer: `savePendingAnswer`
- * puts it in sessionStorage and `<RapidDeck>` executes it on the way back (see
- * `src/lib/pending-answer.ts`). Same click, very different request.
+ * single price had moved for them. The deck already lets a visitor answer without one
+ * (`src/lib/rapid-guest.ts`), and this is the same mechanic one screen earlier: the
+ * answer goes into the same store, and `<RapidGuestSync>` turns it into a real position
+ * on the way back from Google. The sign-in that follows is asked in order to *keep*
+ * that answer — the same click, for a very different reason.
  *
  * The stake is the deck's default rather than a choice: a stranger has no opinion yet
  * about how much of the play money to commit, and being asked would be one more screen.
  */
 export function WelcomeQuestions({ questions }: { questions: WelcomeQuestion[] }) {
   const router = useRouter();
+  const saved = useSyncExternalStore(subscribeGuestAnswers, readGuestAnswers, serverGuestAnswers);
   const [chosen, setChosen] = useState<{ id: string; side: Side } | null>(null);
   const timer = useRef(0);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  function choose(q: WelcomeQuestion, side: Side) {
-    if (chosen) return; // the trip to login is already under way
-    setChosen({ id: q.id, side });
-    savePendingAnswer({ marketId: q.id, side, stake: RAPID_DEFAULT_STAKE, title: q.title });
-    gaEvent("welcome_answer", { market_id: q.id, side, stake: RAPID_DEFAULT_STAKE });
-    if (typeof navigator.vibrate === "function") navigator.vibrate(12);
-    // the confirmation is the point of the pause: it is the first time the visitor sees
-    // that answering does something, and it is what the login is now asking to preserve
-    timer.current = window.setTimeout(() => router.push("/login?callbackUrl=%2Frapid"), HANDOFF_MS);
-  }
+  const choose = useCallback(
+    (q: WelcomeQuestion, side: Side) => {
+      if (chosen) return; // the trip to login is already under way
+      setChosen({ id: q.id, side });
+      if (saved.length < GUEST_LIMIT) {
+        addGuestAnswer({
+          marketSlug: q.id,
+          side,
+          priceAtAnswer: side === "YES" ? q.probability : 1 - q.probability,
+          title: q.title,
+          ts: Date.now(),
+        });
+      }
+      gaEvent("welcome_answer", { market_id: q.id, side });
+      if (typeof navigator.vibrate === "function") navigator.vibrate(12);
+      // the confirmation is the point of the pause: it is the first time the visitor sees
+      // that answering does something, and it is what the login is now asking to preserve
+      timer.current = window.setTimeout(() => router.push("/login?callbackUrl=%2Frapid"), HANDOFF_MS);
+    },
+    [chosen, router, saved.length],
+  );
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -99,8 +120,8 @@ function QuestionCard({
         />
         <div className="min-w-0 flex-1">
           <span
-            className="inline-block rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
-            style={{ background: `${q.categoryAccent}22`, color: q.categoryAccent }}
+            className="cat-chip inline-block rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
+            style={{ "--cat": q.categoryAccent, "--cat-dark": q.categoryAccentDark } as CSSProperties}
           >
             {q.categoryLabel}
           </span>
@@ -124,7 +145,7 @@ function QuestionCard({
             onClick={() => onAnswer("YES")}
             data-evt="welcome-answer-yes"
             data-evt-market={q.id}
-            className="tap pressable flex cursor-pointer items-center justify-center rounded-lg bg-yes/15 text-sm font-bold text-yes transition hover:bg-yes hover:text-white"
+            className="tap pressable flex cursor-pointer items-center justify-center rounded-lg bg-yes/15 text-sm font-bold text-yes transition hover:bg-yes hover:text-white active:bg-yes active:text-white"
           >
             כן {pct(q.probability)}
           </button>
@@ -132,7 +153,7 @@ function QuestionCard({
             onClick={() => onAnswer("NO")}
             data-evt="welcome-answer-no"
             data-evt-market={q.id}
-            className="tap pressable flex cursor-pointer items-center justify-center rounded-lg bg-no/15 text-sm font-bold text-no transition hover:bg-no hover:text-white"
+            className="tap pressable flex cursor-pointer items-center justify-center rounded-lg bg-no/15 text-sm font-bold text-no transition hover:bg-no hover:text-white active:bg-no active:text-white"
           >
             לא {pct(1 - q.probability)}
           </button>

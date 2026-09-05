@@ -142,6 +142,8 @@ export interface RapidCard {
   subtitle: string | null;
   categoryLabel: string;
   categoryAccent: string;
+  /** the same colour, readable on the dark theme (see Category.accentDark) */
+  categoryAccentDark: string;
   image: string;
   fallbackImage: string;
   personName: string | null;

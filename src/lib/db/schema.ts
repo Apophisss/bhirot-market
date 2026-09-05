@@ -10,7 +10,10 @@ import {
 } from "drizzle-orm/sqlite-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
-export const STARTING_BALANCE = 10_000;
+// the value itself lives in the dependency-free `limits.ts` so the browser can read
+// it without importing the schema; re-exported here because everything already does
+import { STARTING_BALANCE } from "../limits";
+export { STARTING_BALANCE };
 
 /* ---------- Auth.js tables (shape required by @auth/drizzle-adapter) ---------- */
 

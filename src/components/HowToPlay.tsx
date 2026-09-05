@@ -13,7 +13,7 @@ export function HowToPlay() {
     <section className="card p-3.5 sm:p-5">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="font-bold text-text-strong">איך מתחילים לשחק?</h2>
-        <Link href="/about" className="-my-2 inline-flex items-center py-2 text-xs text-accent-2 hover:underline">
+        <Link href="/about" className="tap -my-2 inline-flex items-center text-xs text-accent-2 hover:underline">
           המדריך המלא
         </Link>
       </div>

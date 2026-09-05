@@ -10,6 +10,7 @@ import { CategoryTabs } from "@/components/CategoryTabs";
 import { RapidDeck } from "@/components/RapidDeck";
 import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { GUEST_LIMIT } from "@/lib/rapid-guest";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +68,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
             <Link
               key={s.id}
               href={link({ sort: s.id })}
-              className={`shrink-0 rounded-lg px-2.5 py-1.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+              className={`tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
             >
               {s.label}
             </Link>
@@ -76,13 +77,13 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         <div className="flex shrink-0 items-center gap-1">
           <Link
             href={link({ all: includeAnswered ? undefined : "1" })}
-            className={`shrink-0 rounded-lg border px-2.5 py-1.5 font-semibold ${
+            className={`tap inline-flex shrink-0 items-center rounded-lg border px-2.5 font-semibold ${
               includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
             }`}
           >
             כולל שאלות שכבר עניתי
           </Link>
-          <Link href="/" className="shrink-0 rounded-lg px-2.5 py-1.5 font-semibold text-muted hover:text-text">
+          <Link href="/" className="tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold text-muted hover:text-text">
             לרשימה המלאה
           </Link>
         </div>
@@ -98,20 +99,13 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         className={`shrink-0 ${category === "all" ? "short:hidden" : ""}`}
       />
 
-      {/* A logged-out visitor answers first and connects an account afterwards, to keep
-          what they answered — the deck stores it and executes it on the way back
-          (src/lib/pending-answer.ts). Asking for the account first was asking a stranger
-          to pay before they had seen a single price move. */}
       {!loggedIn && (
-        <p className="shrink-0 rounded-xl border border-accent/40 bg-accent-soft px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
-          <span className="font-bold text-text-strong">ענו על השאלה הראשונה.</span>{" "}
-          <span className="hidden sm:inline">
-            נשמור לכם אותה, ונהפוך אותה לפוזיציה אמיתית בכסף הווירטואלי ברגע שתתחברו.
-          </span>
-          <span className="sm:hidden">נשמור אותה ונבצע אותה כשתתחברו.</span>{" "}
-          <Link href="/login?callbackUrl=%2Frapid" className="font-bold text-accent-2 hover:underline">
-            להתחברות
-          </Link>
+        <p className="shrink-0 rounded-xl border border-accent/40 bg-accent/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
+          {GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות, ו
+          <Link href="/login?callbackUrl=%2Frapid" className="inline-flex min-h-11 items-center font-bold text-accent-2 hover:underline">
+            התחברות
+          </Link>{" "}
+          הופכת אותן לפוזיציות אמיתיות.
         </p>
       )}
 

@@ -19,6 +19,9 @@ import { Comments } from "@/components/Comments";
 import { PeopleStack } from "@/components/PeopleStack";
 import { MarketCard } from "@/components/MarketCard";
 import { StickyTradeBar } from "@/components/StickyTradeBar";
+import { ShareButton } from "@/components/ShareButton";
+import { THIN_MARKET_TRADES } from "@/lib/limits";
+import type { CSSProperties } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -68,10 +71,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function MarketPage({ params, searchParams }: { params: Params; searchParams: Promise<{ side?: string; action?: string }> }) {
+export default async function MarketPage({ params, searchParams }: { params: Params; searchParams: Promise<{ side?: string; action?: string; amount?: string }> }) {
   await ensureSynced();
   const { slug } = await params;
-  const { side, action } = await searchParams;
+  const { side, action, amount } = await searchParams;
   const market = await getMarket(slug);
   if (!market) notFound();
 
@@ -88,7 +91,10 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   // the side and the action in the URL. A second such link to the SAME market is a
   // soft navigation, which would otherwise leave a mounted panel sitting on the
   // previous leg — the key makes the URL the thing that decides what is being traded.
-  const tradeKey = `${side ?? ""}-${action ?? ""}`;
+  const tradeKey = `${side ?? ""}-${action ?? ""}-${amount ?? ""}`;
+  // the amount survives the trip to Google and back (see LoginLink / TradePanel);
+  // anything that is not a plain positive number is simply dropped
+  const prefill = amount && /^\d+(\.\d{1,2})?$/.test(amount) && Number(amount) > 0 ? amount : undefined;
   const cat = getCategory(market.category);
   const people = market.people.map((id) => getPerson(id)).filter(Boolean);
 
@@ -99,33 +105,49 @@ export default async function MarketPage({ params, searchParams }: { params: Par
       <JsonLd data={marketGraph(market)} />
       <div className="space-y-4 sm:space-y-5">
         <nav className="-my-1 text-xs text-muted" aria-label="פירורי לחם">
-          <Link href="/" className="inline-block py-1 hover:text-text">שווקים</Link> ‹{" "}
-          <Link href={`/category/${cat.id}`} className="inline-block py-1 hover:text-text">{cat.label}</Link>
+          <Link href="/" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-text">שווקים</Link> ‹{" "}
+          <Link href={`/category/${cat.id}`} className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-text">{cat.label}</Link>
         </nav>
 
         <header className="flex gap-3 sm:gap-4">
           <PeopleStack photos={market.photos} fallback={cat.cover} size={60} max={3} />
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className="rounded-md px-1.5 py-0.5 font-semibold" style={{ background: `${cat.accent}22`, color: cat.accent }}>
+              <span className="cat-chip rounded-md px-1.5 py-0.5 font-semibold" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
                 {cat.label}
               </span>
-              <span className="tabular">{money(market.volume, { compact: true })} נפח</span>
+              <span className="tabular">
+                {market.tradeCount === 0 ? "עדיין אין עסקאות" : `${money(market.volume, { compact: true })} נפח · ${market.tradeCount} עסקאות`}
+              </span>
               <span>·</span>
               <span>{market.status === "open" ? closesLabel(market.closesAt) : market.status === "resolved" ? `הוכרע ${market.resolvedAt ? timeAgo(market.resolvedAt) : ""}` : "בוטל"}</span>
               {isTeamAuthored(market.createdBy) && <span>· נוסף על ידי {SITE_TEAM}</span>}
             </div>
             <h1 className="text-lg font-extrabold leading-tight text-text-strong sm:text-2xl">{market.title}</h1>
-            {market.subtitle && <p className="mt-1 text-sm text-muted">{market.subtitle}</p>}
-            {people.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {people.map((p) => (
-                  <span key={p!.id} className="rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] text-muted" title={p!.role}>
-                    {p!.name}
-                  </span>
-                ))}
-              </div>
+            {/*
+              A price that one or two trades put there is an opening estimate, not a
+              crowd's answer, and presenting it as the latter is what let a single
+              ₪7,110 order read as "the market says 1%".
+            */}
+            {market.status === "open" && market.tradeCount < THIN_MARKET_TRADES && (
+              <p className="mt-1.5 inline-flex rounded-md bg-warn/10 px-2 py-1 text-[11px] font-semibold text-warn">
+                מחיר ראשוני · מעט מסחר — התשובות הראשונות הן שיקבעו אותו
+              </p>
             )}
+            {market.subtitle && <p className="mt-1 text-sm text-muted">{market.subtitle}</p>}
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {people.map((p) => (
+                <span key={p!.id} className="rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] text-muted" title={p!.role}>
+                  {p!.name}
+                </span>
+              ))}
+              <ShareButton
+                title={market.title}
+                path={`/market/${market.id}`}
+                text={`${market.title} — ${Math.round(market.probability * 100)}% כן ב${SITE_NAME}`}
+                className="py-1.5"
+              />
+            </div>
           </div>
         </header>
 
@@ -158,8 +180,10 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             position={position}
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
+            marketTitle={market.title}
             initialSide={side === "no" ? "NO" : "YES"}
             initialAction={action === "sell" ? "SELL" : "BUY"}
+            initialAmount={prefill}
           />
         </div>
 
@@ -181,7 +205,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
                       data-evt-market={market.id}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="inline-block py-1 text-accent-2 hover:underline"
+                      className="inline-flex min-h-11 items-center text-accent-2 hover:underline"
                     >
                       {s.title}
                     </a>
@@ -195,7 +219,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             <div className="mt-4 flex flex-wrap gap-1.5">
               {market.tags.map((t) => (
                 <Link key={t} href={`/?q=${encodeURIComponent(t)}`}
-                  rel="nofollow" className="rounded-full bg-surface-2 px-2.5 py-1.5 text-xs text-muted hover:text-text">
+                  rel="nofollow" className="tap inline-flex min-w-11 items-center justify-center rounded-full bg-surface-2 px-2.5 text-xs text-muted hover:text-text">
                   #{t}
                 </Link>
               ))}
@@ -230,8 +254,10 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             position={position}
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
+            marketTitle={market.title}
             initialSide={side === "no" ? "NO" : "YES"}
             initialAction={action === "sell" ? "SELL" : "BUY"}
+            initialAmount={prefill}
           />
           <div className="card p-4 text-xs leading-relaxed text-muted">
             <strong className="text-text">איך זה עובד?</strong> כל מניית ״כן״ משלמת ₪1 וירטואלי אם התשובה היא כן, ו־₪0 אחרת (ולהפך למניית ״לא״).

@@ -31,9 +31,53 @@ export function money(v: number, opts: { compact?: boolean; decimals?: boolean }
   return `₪${opts.decimals || agorot % 100 !== 0 ? nf2.format(value) : nf0.format(value)}`;
 }
 
+/**
+ * A P&L amount with its sign — and only when it has one.
+ *
+ * The rounding happens BEFORE the sign is chosen, which is the whole point: a
+ * buy-and-sell round trip that cost a fraction of an agora is displayed as
+ * ₪0.00, and "-₪0.00" is a number wearing a sign it does not have. Below half an
+ * agora in either direction the amount is simply zero, and zero is unsigned.
+ */
 export function signedMoney(v: number): string {
-  const s = money(Math.abs(v), { decimals: true });
-  return v >= 0 ? `+${s}` : `-${s}`;
+  const s = money(Math.abs(pnlAgorot(v)) / 100, { decimals: true });
+  const sign = pnlSign(v);
+  return sign > 0 ? `+${s}` : sign < 0 ? `-${s}` : s;
+}
+
+/** A P&L rounded to whole agorot. `|| 0` folds -0 (a negative sliver) back to 0. */
+function pnlAgorot(v: number): number {
+  return (Number.isFinite(v) ? Math.round(v * 100) : 0) || 0;
+}
+
+/**
+ * The direction a P&L should be *shown* in, after rounding to agorot: 1, -1 or 0.
+ *
+ * Every green/red decision goes through this rather than `v >= 0`, so a value
+ * the formatter prints as ₪0.00 is never painted as a win or as a loss — the two
+ * would otherwise disagree on the same line.
+ */
+export function pnlSign(v: number): -1 | 0 | 1 {
+  const agorot = pnlAgorot(v);
+  return agorot > 0 ? 1 : agorot < 0 ? -1 : 0;
+}
+
+/** Tailwind text colour for a P&L: muted at a displayed zero, never green or red. */
+export function pnlTone(v: number): "text-yes" | "text-no" | "text-muted" {
+  const sign = pnlSign(v);
+  return sign > 0 ? "text-yes" : sign < 0 ? "text-no" : "text-muted";
+}
+
+/**
+ * A P&L as a signed percentage of the capital behind it (0.0123 -> "+1.2%").
+ *
+ * Rounds before choosing the sign, exactly as `signedMoney` does — a return the
+ * page prints as 0.0% must not be shown as a gain or a loss.
+ */
+export function signedPct(ratio: number): string {
+  const tenths = (Number.isFinite(ratio) ? Math.round(ratio * 1000) : 0) || 0;
+  const body = `${nf1.format(Math.abs(tenths) / 10)}%`;
+  return tenths > 0 ? `+${body}` : tenths < 0 ? `-${body}` : body;
 }
 
 export function shares(v: number): string {

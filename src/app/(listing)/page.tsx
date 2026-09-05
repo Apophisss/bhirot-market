@@ -92,8 +92,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     getMarketStats(),
     getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
     getPeopleCounts("open"),
-    status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
-    !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
+    status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 18 }) : Promise.resolve([]),
+    !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 4 }) : Promise.resolve([]),
     !filtered ? getRecommendations({ userId: session?.user?.id, limit: 12 }) : Promise.resolve(null),
     !filtered ? shouldOfferSurvey(session?.user?.id) : Promise.resolve(false),
   ]);
@@ -103,10 +103,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const resolvedCount = displayResolvedCount(stats.resolved);
   const volume = displayVolume(stats.volume);
   const traderCount = displayUserCount(stats.users);
+  // "הוכרעו לאחרונה" exists to show that questions really do get decided, and a
+  // cancellation decides nothing — a strip of six of them says the opposite of what
+  // the section is for. Cancelled questions keep their own pages and are still
+  // listed under /?status=resolved; they just do not get to stand in for a verdict.
+  const resolvedRecently = recentlyResolved.filter((m) => m.status === "resolved").slice(0, 6);
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
   // a question already surfaced by "closing today" is not worth a second slot in the recommendations
-  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 6);
+  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 4);
   const recIds = new Set(recommendations.map((r) => r.market.id));
   const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recIds.has(m.id)).slice(0, 3) : [];
   const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recIds]);
@@ -120,7 +125,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             path: status === "resolved" ? "/?status=resolved" : "/",
             name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
-            markets: [...recommendations.map((r) => r.market), ...closingSoon, ...featured, ...rest].slice(0, 30),
+            // the ItemList is a pointer for crawlers, not a copy of the board: twelve
+            // entries name the page's own content, and each extra one is ~400 bytes of
+            // HTML plus the same again in the RSC payload beside it
+            markets: [...recommendations.map((r) => r.market), ...closingSoon, ...featured, ...rest].slice(0, 12),
           })}
         />
       )}
@@ -149,16 +157,30 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/hero.svg" alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-l from-ink/90 via-brand-deep/70 to-brand-deep/20" />
-          <div className="relative flex flex-col gap-4 p-5 sm:gap-5 sm:p-8 lg:flex-row lg:items-end lg:justify-between lg:p-10">
+          {/*
+            The phone hero is deliberately shorter than the desktop one. Measured on
+            production, the pitch pushed the first live question card to 1,377px on a
+            375x812 screen — a visitor arriving from a campaign saw a headline, a
+            candidate carousel and a three-step explainer before a single thing to
+            answer. The heavier pieces (the countdown block, the four-figure stat row,
+            the second and third buttons) now start at `sm`, and the phone gets one
+            headline, one sentence, one primary CTA and a single line of numbers.
+          */}
+          <div className="relative flex flex-col gap-3 p-4 sm:gap-5 sm:p-8 lg:flex-row lg:items-end lg:justify-between lg:p-10">
             <div className="max-w-2xl">
-              <AgentBadge />
-              <h1 className="mt-3 text-[25px] font-black leading-tight text-white sm:mt-4 sm:text-4xl lg:text-5xl">{SITE_TAGLINE}</h1>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/75 sm:mt-3 sm:text-lg">
-                סקרים, קואליציות, משפטים ומהלכים פוליטיים. כרגע פתוחות
-                {" "}
-                <strong className="text-white">{openCount} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
+              <AgentBadge resolvedOnBoard={stats.resolved} />
+              <h1 className="mt-2.5 text-[22px] font-black leading-tight text-white sm:mt-4 sm:text-4xl lg:text-5xl">{SITE_TAGLINE}</h1>
+              <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-white/80 sm:mt-3 sm:text-lg">
+                <strong className="text-white">{openCount} שאלות</strong> פתוחות על הקמפיין
+                <span className="hidden sm:inline"> — סקרים, קואליציות, משפטים ומהלכים פוליטיים</span>, בכסף וירטואלי בלבד.
               </p>
-              <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-3">
+              {/*
+                One primary CTA, and it goes where a visitor can actually do something.
+                "התחברות" is a full-width blue button in the header on every page — a
+                second copy of it here (and a third in the tab bar) competed with the
+                one action worth taking, and none of the three won.
+              */}
+              <div className="mt-3.5 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-3">
                 <Link
                   href="/rapid"
                   data-evt="hero-rapid"
@@ -167,47 +189,52 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   <BoltIcon size={16} />
                   מצב זריז · {openCount} שאלות ברצף
                 </Link>
-                {session?.user ? (
+                {session?.user && (
                   <Link
                     href="/portfolio"
                     data-evt="hero-portfolio"
-                    className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
+                    className="tap pressable hidden items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20 sm:flex"
                   >
                     לתיק שלי
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    data-evt="hero-login"
-                    className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 text-center font-semibold text-white hover:bg-white/20"
-                  >
-                    <span className="sm:hidden">התחברות · ₪10,000 וירטואליים</span>
-                    <span className="hidden sm:inline">התחברות וקבלת ₪10,000 וירטואליים</span>
                   </Link>
                 )}
                 <Link
                   href="/about"
                   data-evt="hero-about"
-                  className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
+                  className="tap pressable hidden items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20 sm:flex"
                 >
                   איך זה עובד?
                 </Link>
               </div>
+              {/* on a phone the explainer is a link, not a button competing with the CTA */}
+              <Link
+                href="/about"
+                data-evt="hero-about"
+                className="tap mt-1 inline-flex items-center text-[13px] font-semibold text-white/75 underline underline-offset-4 hover:text-white sm:hidden"
+              >
+                איך זה עובד?
+              </Link>
             </div>
             <div className="flex flex-col gap-3 lg:items-end">
-              <Countdown />
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-white/70 sm:flex sm:flex-wrap">
-                <span><strong className="tabular text-white">{openCount}</strong> שווקים פתוחים</span>
-                <span><strong className="tabular text-white">{resolvedCount}</strong> הוכרעו</span>
-                <span><strong className="tabular text-white">{money(volume, { compact: true })}</strong> נפח</span>
-                <span><strong className="tabular text-white">{traderCount}</strong> סוחרים</span>
+              <div className="hidden sm:block">
+                <Countdown />
+              </div>
+              {/* one thin line on a phone; the full grid from `sm` up */}
+              <div className="tabular flex flex-wrap gap-x-3 text-[11px] text-white/70 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-1.5 sm:text-xs lg:flex lg:flex-wrap">
+                <span><strong className="text-white">{openCount}</strong> שווקים</span>
+                <span><strong className="text-white">{money(volume, { compact: true })}</strong> נפח</span>
+                <span><strong className="text-white">{traderCount}</strong> סוחרים</span>
+                {resolvedCount > 0 && <span><strong className="text-white">{resolvedCount}</strong> הוכרעו</span>}
+              </div>
+              {/* the election countdown is the one piece of the sidebar a phone still gets */}
+              <div className="sm:hidden">
+                <Countdown variant="line" />
               </div>
             </div>
           </div>
         </section>
       )}
 
-      {showCandidates && <PmCandidates counts={peopleCounts} active={person?.id} />}
       {person && (
         <header className="space-y-1">
           <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">{person.name}</h1>
@@ -221,11 +248,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </header>
       )}
 
-      {!filtered && !session?.user && <HowToPlay />}
-
       {/* the survey is what the recommendations right below have to go on until this user trades */}
       {askSurvey && <SurveyPrompt />}
 
+      {/*
+        Live questions come before anything that talks *about* the questions. The
+        candidate strip, the three-step explainer and the invite promo were all above
+        the first card; they now follow it, which is the order a visitor who has
+        already seen something to answer will actually read them in.
+      */}
       {recommendations.length > 0 && (
         <RecommendationSection
           items={recommendations}
@@ -235,13 +266,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         />
       )}
 
-      {!filtered && <InvitePromo loggedIn={Boolean(session?.user)} />}
-
       {closingSoon.length > 0 && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="text-base font-bold text-text-strong sm:text-lg">נסגר היום או מחר</h2>
-            <Link href="/?sort=closing" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
+            <Link href="/?sort=closing" className="tap -my-1 inline-flex items-center text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
               כל השאלות לפי מועד סגירה
             </Link>
           </div>
@@ -253,6 +282,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
         </section>
       )}
+
+      {showCandidates && <PmCandidates counts={peopleCounts} active={person?.id} />}
+
+      {!filtered && !session?.user && <HowToPlay />}
+
+      {!filtered && <InvitePromo loggedIn={Boolean(session?.user)} />}
 
       {featured.length > 0 && (
         <section className="space-y-3">
@@ -276,14 +311,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         person={person}
       />
 
-      {recentlyResolved.length > 0 && (
+      {resolvedRecently.length > 0 && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="text-base font-bold text-text-strong sm:text-lg">הוכרעו לאחרונה</h2>
-            <Link href="/?status=resolved" className="-my-1 inline-flex shrink-0 items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm">כל ההכרעות</Link>
+            <Link href="/?status=resolved" className="tap -my-1 inline-flex shrink-0 items-center text-[13px] text-accent-2 hover:underline sm:text-sm">כל ההכרעות</Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
-            {recentlyResolved.map((m) => (
+            {resolvedRecently.map((m) => (
               <MarketCard key={m.id} m={m} />
             ))}
           </div>

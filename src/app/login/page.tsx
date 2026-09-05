@@ -14,10 +14,9 @@ const LOGIN_DESCRIPTION = "התחברו וקבלו ₪10,000 וירטואליי�
 export const dynamic = "force-dynamic";
 
 /**
- * Tells `<AdConversions>` to ask for the sign_up conversion on the way back from
- * Google. Wherever the post-login destination moves to, this marker moves with
- * it: without it on the landing URL the signup is never reported, and there is
- * no error to notice — the count simply stays at zero.
+ * Tells `<AdConversions>` to ask for the sign_up conversion on the way back from the
+ * login provider. Wherever the post-login destination moves to, the marker moves with
+ * it — a destination that loses it reports no signup, and says nothing about it.
  */
 function withAdCheck(path: string): string {
   return `${path}${path.includes("?") ? "&" : "?"}${AD_CHECK_PARAM}=1`;
