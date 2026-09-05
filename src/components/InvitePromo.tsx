@@ -20,7 +20,7 @@ export function InvitePromo({ loggedIn }: { loggedIn: boolean }) {
             שתפו את האתר וקבלו {money(REFERRAL_BONUS)} על כל חבר/ה
           </h2>
           <p className="mt-0.5 text-[13px] leading-relaxed text-muted sm:text-sm">
-            לכל משתמש/ת יש קישור אישי. כל מי שנרשם דרכו מוסיף לכם {money(REFERRAL_BONUS)} וירטואליים ליתרה — ומגיע לכם
+            לכל משתמש/ת יש קישור אישי. כל מי שנרשם דרכו מוסיף לכם {money(REFERRAL_BONUS)} לניקוד — ומגיע לכם
             עוד מישהו להתווכח איתו על הסקרים.
           </p>
         </div>

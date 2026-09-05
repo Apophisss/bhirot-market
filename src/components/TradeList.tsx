@@ -15,7 +15,7 @@ export interface TradeItem {
 }
 
 /** Renders the signed-in user's own trades only — trades are never attributed to other users. */
-export function TradeList({ trades, showMarket = false, emptyText = "עדיין אין עסקאות" }: { trades: TradeItem[]; showMarket?: boolean; emptyText?: string }) {
+export function TradeList({ trades, showMarket = false, emptyText = "עדיין אין תשובות" }: { trades: TradeItem[]; showMarket?: boolean; emptyText?: string }) {
   if (!trades.length) return <p className="text-sm text-muted-2">{emptyText}</p>;
   return (
     <ul className="divide-y divide-border">

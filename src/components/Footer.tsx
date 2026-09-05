@@ -25,7 +25,7 @@ export async function Footer() {
         </nav>
         <div className="flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            {SITE_NAME} הוא משחק חיזויים <strong className="text-white">בכסף וירטואלי בלבד</strong>. אין כאן הימורים, כסף אמיתי או ייעוץ.
+            {SITE_NAME} הוא משחק ניחושים <strong className="text-white">בנקודות משחק בלבד</strong>. אין כאן כסף אמיתי, פרסים, תשלום או ייעוץ.
             השאלות נכתבות ומתעדכנות על ידי {SITE_TEAM} ומבוססות על פרסומים פומביים.
           </p>
           <nav className="-my-1 flex shrink-0 flex-wrap gap-x-4">

@@ -13,7 +13,7 @@ import { shareCard } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-const DESCRIPTION = `שתפו את ${SITE_NAME} עם קישור אישי וקבלו ₪${REFERRAL_BONUS.toLocaleString("en-US")} וירטואליים על כל חבר/ה שנרשמים דרככם.`;
+const DESCRIPTION = `שתפו את ${SITE_NAME} עם קישור אישי וקבלו ${REFERRAL_BONUS.toLocaleString("en-US")} נקודות על כל חבר/ה שנרשמים דרככם.`;
 
 export const metadata: Metadata = {
   title: "הזמינו חברים",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 const STEPS = [
   { n: "1", title: "מעתיקים את הקישור האישי", body: "כל משתמש/ת מקבלים קישור משלהם. הוא לא משתנה, אפשר לשלוח אותו שוב ושוב." },
   { n: "2", title: "שולחים לחברים", body: "וואטסאפ, קבוצה, סטורי — כל מקום שבו מדברים על הבחירות." },
-  { n: "3", title: `מקבלים ${money(REFERRAL_BONUS)} על כל הרשמה`, body: "ברגע שהם נרשמים דרך הקישור, הבונוס נכנס ליתרה שלכם. גם הם מתחילים עם ₪10,000." },
+  { n: "3", title: `מקבלים ${money(REFERRAL_BONUS)} על כל הרשמה`, body: "ברגע שהם נרשמים דרך הקישור, הבונוס נכנס לניקוד שלכם. גם הם מתחילים עם 10,000 נקודות." },
 ];
 
 export default async function InvitePage() {
@@ -46,8 +46,8 @@ export default async function InvitePage() {
             {money(REFERRAL_BONUS)} על כל חבר/ה שמצטרפים דרככם
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/75 sm:text-lg">
-            שוק חיזויים שווה בדיוק כמו האנשים שמתווכחים בו. שתפו את {SITE_NAME} עם הקישור האישי שלכם, וכל מי שנרשם דרכו
-            מוסיף לכם {money(REFERRAL_BONUS)} וירטואליים ליתרה — עד {MAX_REFERRALS} חברים.
+            משחק ניחושים שווה בדיוק כמו האנשים שמתווכחים בו. שתפו את {SITE_NAME} עם הקישור האישי שלכם, וכל מי שנרשם דרכו
+            מוסיף לכם {money(REFERRAL_BONUS)} לניקוד — עד {MAX_REFERRALS} חברים.
           </p>
           {!user && (
             <Link
@@ -96,7 +96,7 @@ export default async function InvitePage() {
         <section className="card p-4 sm:p-5">
           <p className="text-sm leading-relaxed text-text">
             הקישור האישי נוצר ברגע שמתחברים. ההתחברות היא עם Google, אורכת שתי שניות, ומזכה גם אתכם ב
-            {money(STARTING_BALANCE)} וירטואליים להתחלה.
+            {money(STARTING_BALANCE)} להתחלה.
           </p>
           <Link
             href="/login?callbackUrl=/invite"
@@ -123,8 +123,8 @@ export default async function InvitePage() {
           ))}
         </ol>
         <p className="mt-3 text-xs leading-relaxed text-muted-2">
-          הבונוס הוא בכסף וירטואלי בלבד, כמו כל היתרה באתר — אין לו שום ערך כספי ואי אפשר למשוך אותו. הוא נספר בנפרד
-          מהרווח וההפסד שלכם, כדי שלוח המובילים ימשיך למדוד חיזוי ולא שיתופים. הזמנה עצמית או חשבון שכבר נרשם בעבר לא
+          הבונוס הוא בנקודות משחק בלבד, כמו כל הניקוד באתר — אין לו שום ערך כספי ואי אפשר למשוך אותו. הוא נספר בנפרד
+          מהרווח וההפסד שלכם, כדי שלוח המובילים ימשיך למדוד ניחוש ולא שיתופים. הזמנה עצמית או חשבון שכבר נרשם בעבר לא
           מזכים.
         </p>
       </section>

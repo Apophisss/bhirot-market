@@ -9,7 +9,7 @@ import { EVENTS } from "@/lib/events";
 export const dynamic = "force-dynamic";
 
 /**
- * One answer in "מצב זריז": a binding BUY of `stake` ₪ on one side of one market.
+ * One answer in "מצב זריז": a binding BUY of `stake` points on one side of one question.
  *
  * Same engine as /api/trade, but the stake band lives on the endpoint rather than
  * in the request, so the client cannot opt out of it, and `action` is pinned to
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
-      { ok: false, error: `סכום התשובה חייב להיות מספר שלם בין ₪${RAPID_MIN_STAKE} ל־₪${RAPID_MAX_STAKE}`, code: "BAD_REQUEST" },
+      { ok: false, error: `התשובה חייבת להיות מספר שלם של נקודות בין ${RAPID_MIN_STAKE} ל־${RAPID_MAX_STAKE}`, code: "BAD_REQUEST" },
       { status: 400 },
     );
   }

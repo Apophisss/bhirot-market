@@ -3,7 +3,7 @@
  *
  * Four promises, and each of them is the kind that only breaks in production:
  *
- *   1. **Never zero.** No open question ever advertises 0 trades or ₪0 — that is the
+ *   1. **Never zero.** No open question ever advertises 0 answers or 0 points — that is the
  *      whole reason the module exists, and it has to hold for a question created one
  *      second ago as much as for one created a year ago.
  *   2. **Monotone.** Trades and volume only ever grow as the clock advances. A number
@@ -14,8 +14,8 @@
  *   4. **Never undersells reality.** The displayed pair is always at least the recorded
  *      pair, so a genuinely busy question never reads quieter than it is.
  *
- * And two site rules the fabrications must not break: a fabricated bet stays inside
- * the ₪1–₪100 cap `executeTrade` enforces, and a fabricated timestamp is never in the
+ * And two site rules the fabrications must not break: a fabricated answer stays inside
+ * the 1–100 point cap `executeTrade` enforces, and a fabricated timestamp is never in the
  * future.
  *
  *   npm run test:fakes                    # 60,000 random markets
@@ -125,8 +125,8 @@ for (let i = 0; i < Math.min(CASES, 4000); i++) {
     check("respects the site's bet cap", t.amount >= MIN_BET && t.amount <= MAX_BET, { m, amount: t.amount });
     check("prices stay inside the probability range", t.priceAfter > 0 && t.priceAfter < 1, { m, p: t.priceAfter });
     check("prices sit beside the real one", Math.abs(t.priceAfter - m.probability) <= 0.03, { m, p: t.priceAfter });
-    // shares are priced off the market's own probability, floored at ₪0.02 so a
-    // question at 1% does not hand out a hundred thousand shares for ₪100
+    // shares are priced off the market's own probability, floored at 0.02 points so a
+    // question at 1% does not hand out a hundred thousand shares for 100 points
     const paid = Math.max(0.02, t.side === "YES" ? Math.min(0.98, Math.max(0.02, m.probability)) : 1 - Math.min(0.98, Math.max(0.02, m.probability)));
     check("shares are worth what was paid", Math.abs(t.shares * paid - t.amount) < 0.01, { m, t, paid });
   }

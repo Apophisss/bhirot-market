@@ -53,7 +53,7 @@ export function tickAt(ms: number): number {
 
 /**
  * The fabricated trade for one tick, or null when there is nothing tradable to
- * attach it to. Amounts stay in the range a real player bets (₪5–₪250) and the
+ * attach it to. Amounts stay in the range a real player puts on an answer (5–250 points) and the
  * price stays within a point of the market's real probability, so a visitor who
  * clicks through from the feed does not meet a contradiction.
  */

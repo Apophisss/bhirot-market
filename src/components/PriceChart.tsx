@@ -161,7 +161,7 @@ export function PriceChart({
               </span>
             )}
             {!hoverPt && !traded && (
-              <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-muted-2">טרם נסחר</span>
+              <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-muted-2">טרם נענתה</span>
             )}
             {hoverPt && (
               <span className="flex items-center gap-1.5 text-xs text-muted">
@@ -204,7 +204,7 @@ export function PriceChart({
         role="img"
         aria-label={
           hasEstimate
-            ? "גרף סיכוי לאורך זמן. הקטע המקווקו הוא אומדן להמחשה ולא מסחר אמיתי."
+            ? "מהלך מד הניחושים לאורך זמן. הקטע המקווקו הוא אומדן להמחשה ולא תשובות אמיתיות."
             : "גרף הסתברות לאורך זמן"
         }
       >
@@ -266,7 +266,7 @@ export function PriceChart({
               fill="var(--color-muted-2)"
               textAnchor={openNearEdge ? "end" : "start"}
             >
-              פתיחת המסחר
+              פתיחת השאלה
             </text>
           </g>
         )}
@@ -287,8 +287,8 @@ export function PriceChart({
       {!traded && (
         <p className="mt-2 text-center text-xs text-muted-2">
           {hasEstimate
-            ? `עדיין אין עסקאות — הקו המקווקו הוא אומדן להמחשה בלבד${bandLabel ? ` (סטייה של ${bandLabel} מהמחיר הרשום)` : ""}, לא מסחר אמיתי`
-            : "עדיין אין עסקאות — הגרף יתעדכן עם המסחר הראשון"}
+            ? `עדיין אין תשובות — הקו המקווקו הוא אומדן להמחשה בלבד${bandLabel ? ` (סטייה של ${bandLabel} מהמחיר הרשום)` : ""}, לא תשובות אמיתיות`
+            : "עדיין אין תשובות — הגרף יתעדכן עם התשובה הראשונה"}
         </p>
       )}
     </div>

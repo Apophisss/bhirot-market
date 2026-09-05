@@ -29,7 +29,7 @@ export const dynamic = "force-dynamic";
 type Search = { category?: string; q?: string; sort?: string; status?: string; show?: string; person?: string };
 
 const RESOLVED_DESCRIPTION =
-  "כל שוקי החיזוי של בחירות 2026 שכבר הוכרעו — התוצאה, ההסבר והמקור שהכריע כל שאלה, לצד הגרף שמראה איך השוק תמחר אותה עד הרגע האחרון.";
+  "כל שאלות הניחוש של בחירות 2026 שכבר הוכרעו — התוצאה, ההסבר והמקור שהכריע כל שאלה, לצד הגרף שמראה איך השחקנים ניחשו אותה עד הרגע האחרון.";
 
 /** Backstop for the /?category=<id> -> /category/<id> redirect that middleware.ts issues. */
 function legacyCategoryRedirect(sp: Search) {
@@ -46,7 +46,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   if (q) {
     return {
       title: `חיפוש: ${q}`,
-      description: `תוצאות החיפוש "${q}" בשוקי החיזוי של ${SITE_NAME}.`,
+      description: `תוצאות החיפוש "${q}" בשאלות של ${SITE_NAME}.`,
       robots: { index: false, follow: true },
     };
   }
@@ -55,10 +55,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   }
   if (sp.status === "resolved") {
     return {
-      title: "שווקים שהוכרעו",
+      title: "שאלות שהוכרעו",
       description: RESOLVED_DESCRIPTION,
       alternates: { canonical: "/?status=resolved" },
-      ...shareCard({ title: `שווקים שהוכרעו | ${SITE_NAME}`, description: RESOLVED_DESCRIPTION, path: "/?status=resolved" }),
+      ...shareCard({ title: `שאלות שהוכרעו | ${SITE_NAME}`, description: RESOLVED_DESCRIPTION, path: "/?status=resolved" }),
     };
   }
   return {
@@ -126,7 +126,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <JsonLd
           data={collectionPage({
             path: status === "resolved" ? "/?status=resolved" : "/",
-            name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
+            name: status === "resolved" ? `שאלות שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
             // the ItemList is a pointer for crawlers, not a copy of the board: twelve
             // entries name the page's own content, and each extra one is ~400 bytes of
@@ -142,7 +142,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <Countdown variant="card" />
           <div className="tabular shrink-0 text-left text-[11px] leading-tight text-muted">
             <div>
-              <strong className="text-text-strong">{openCount}</strong> שווקים
+              <strong className="text-text-strong">{openCount}</strong> שאלות
             </div>
             <div>
               <strong className="text-text-strong">{money(volume, { compact: true })}</strong> נפח
@@ -175,7 +175,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <h1 className="mt-2.5 text-[22px] font-black leading-tight text-white sm:mt-4 sm:text-4xl lg:text-5xl">{SITE_TAGLINE}</h1>
               <p className="mt-1.5 max-w-xl text-[13px] leading-relaxed text-white/80 sm:mt-3 sm:text-lg">
                 <strong className="text-white">{openCount} שאלות</strong> פתוחות על הקמפיין
-                <span className="hidden sm:inline"> — סקרים, קואליציות, משפטים ומהלכים פוליטיים</span>, בכסף וירטואלי בלבד.
+                <span className="hidden sm:inline"> — סקרים, קואליציות, משפטים ומהלכים פוליטיים</span>, בנקודות משחק בלבד.
               </p>
               {/*
                 One primary CTA, and it goes where a visitor can actually do something.
@@ -198,7 +198,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                     data-evt="hero-portfolio"
                     className="tap pressable hidden items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20 sm:flex"
                   >
-                    לתיק שלי
+                    הניקוד שלי
                   </Link>
                 )}
                 <Link
@@ -224,9 +224,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </div>
               {/* one thin line on a phone; the full grid from `sm` up */}
               <div className="tabular flex flex-wrap gap-x-3 text-[11px] text-white/70 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-1.5 sm:text-xs lg:flex lg:flex-wrap">
-                <span><strong className="text-white">{openCount}</strong> שווקים</span>
-                <span><strong className="text-white">{money(volume, { compact: true })}</strong> נפח</span>
-                <span><strong className="text-white">{traderCount}</strong> סוחרים</span>
+                <span><strong className="text-white">{openCount}</strong> שאלות</span>
+                <span><strong className="text-white">{money(volume, { compact: true })}</strong> שוחקו</span>
+                <span><strong className="text-white">{traderCount}</strong> שחקנים</span>
                 {resolvedCount > 0 && <span><strong className="text-white">{resolvedCount}</strong> הוכרעו</span>}
               </div>
               {/* the election countdown is the one piece of the sidebar a phone still gets */}
@@ -241,12 +241,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {person && (
         <header className="space-y-1">
           <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">{person.name}</h1>
-          <p className="max-w-3xl text-[13px] text-muted sm:text-sm">כל שוקי החיזוי הפתוחים שנוגעים ל{person.name}.</p>
+          <p className="max-w-3xl text-[13px] text-muted sm:text-sm">כל השאלות הפתוחות שנוגעות ל{person.name}.</p>
         </header>
       )}
       {status === "resolved" && !q && (
         <header className="space-y-1">
-          <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">שווקים שהוכרעו</h1>
+          <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">שאלות שהוכרעו</h1>
           <p className="max-w-3xl text-[13px] text-muted sm:text-sm">{RESOLVED_DESCRIPTION}</p>
         </header>
       )}

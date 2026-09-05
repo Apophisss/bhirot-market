@@ -23,7 +23,7 @@ const HEADERS = { "cache-control": "public, max-age=300, stale-while-revalidate=
  *
  * Before this every question shared the one static `/og.png`, so a link posted to
  * WhatsApp or X said nothing about which question it was. The odds are the whole
- * draw of a prediction market, so they belong in the preview.
+ * draw of the game, so they belong in the preview.
  */
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   await ensureSynced();
@@ -182,7 +182,7 @@ function Fallback() {
     >
       <Logo />
       <div style={{ fontSize: 64, fontWeight: 800 }}>{SITE_NAME}</div>
-      <div style={{ fontSize: 32, color: OG.muted }}>שוק החיזויים של בחירות 2026</div>
+      <div style={{ fontSize: 32, color: OG.muted }}>משחק הניחושים של בחירות 2026</div>
     </div>
   );
 }

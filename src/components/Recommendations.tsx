@@ -33,10 +33,10 @@ export function RecommendationSection({
 }) {
   if (!items.length) return null;
   /*
-    "מה כולם סוחרים עכשיו" has to be true of the cards under it — and "true of the
+    "מה כולם עונים עכשיו" has to be true of the cards under it — and "true of the
     cards" means the activity line the cards actually print, which is the display
     pair (src/lib/fake-market-stats.ts). Reading `tradeCount` here instead would put
-    "עדיין אין כאן הרבה מסחר" above six cards each advertising hundreds of trades,
+    "עדיין כמעט לא ענו כאן" above six cards each advertising hundreds of answers,
     which is the contradiction this filter exists to avoid, only pointing the other
     way. The fallback heading is kept for the case it was written for: a board too
     small to fill the strip.
@@ -44,7 +44,7 @@ export function RecommendationSection({
   const traded = items.filter((r) => r.market.displayTradeCount > 0);
   const active = !personalized && traded.length >= 3;
   const shown = active ? traded : items;
-  const heading = personalized ? "מומלץ בשבילכם" : active ? "מה כולם סוחרים עכשיו" : "שאלות להתחיל מהן";
+  const heading = personalized ? "מומלץ בשבילכם" : active ? "מה כולם עונים עכשיו" : "שאלות להתחיל מהן";
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -56,13 +56,13 @@ export function RecommendationSection({
       <p className="-mt-1 text-[13px] text-muted sm:text-sm">
         {personalized
           ? surveyOnly
-            ? "לפי הנושאים והמתמודדים שבחרתם בשאלון, יחד עם מה שהכי פעיל על הלוח. ככל שתסחרו, ההמלצות ילכו אחרי מה שאתם באמת עושים."
-            : "לפי השאלות שכבר סחרתם בהן ולפי מה שהכי פעיל על הלוח בימים האחרונים."
+            ? "לפי הנושאים והמתמודדים שבחרתם בשאלון, יחד עם מה שהכי פעיל על הלוח. ככל שתענו יותר, ההמלצות ילכו אחרי מה שאתם באמת עושים."
+            : "לפי השאלות שכבר עניתם עליהן ולפי מה שהכי פעיל על הלוח בימים האחרונים."
           : !active
-            ? "עדיין אין כאן הרבה מסחר, אז אלה השאלות הפתוחות שהכי כדאי להתחיל מהן — התשובה הראשונה היא זו שקובעת את המחיר."
+            ? "עדיין כמעט לא ענו כאן, אז אלה השאלות הפתוחות שהכי כדאי להתחיל מהן — התשובה הראשונה היא זו שקובעת את המד."
             : loggedIn
-              ? "השאלות הכי פעילות על הלוח. ברגע שתסחרו בכמה שאלות, ההמלצות כאן יתאימו את עצמן אליכם."
-              : "השאלות הכי פעילות על הלוח כרגע. אחרי התחברות ההמלצות יתאימו את עצמן לתחומים שאתם סוחרים בהם."}
+              ? "השאלות הכי פעילות על הלוח. ברגע שתענו על כמה שאלות, ההמלצות כאן יתאימו את עצמן אליכם."
+              : "השאלות הכי פעילות על הלוח כרגע. אחרי התחברות ההמלצות יתאימו את עצמן לתחומים שאתם עונים עליהם."}
       </p>
       <RecommendationGrid items={shown} />
     </section>

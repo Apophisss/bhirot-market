@@ -70,7 +70,7 @@ export function RapidSpark({ spark, tradeCount }: { spark: Spark; tradeCount: nu
             role="img"
             aria-label={
               hasEstimate
-                ? `מהלך הסיכוי לאורך זמן, כרגע ${pct(last.p)}. הקטע המקווקו הוא אומדן להמחשה, לא מסחר אמיתי.`
+                ? `מהלך מד הניחושים לאורך זמן, כרגע ${pct(last.p)}. הקטע המקווקו הוא אומדן להמחשה, לא תשובות אמיתיות.`
                 : `מהלך הסיכוי לאורך זמן, כרגע ${pct(last.p)}`
             }
           >
@@ -128,7 +128,7 @@ export function RapidSpark({ spark, tradeCount }: { spark: Spark; tradeCount: nu
             {`${change >= 0 ? "+" : "-"}${Math.abs(change * 100).toFixed(1)} נק׳`}
           </span>
         ) : (
-          <span className="shrink-0">{tradeCount > 0 ? "מהלך המחיר" : "טרם נסחר"}</span>
+          <span className="shrink-0">{tradeCount > 0 ? "מהלך המד" : "טרם נענתה"}</span>
         )}
       </figcaption>
     </figure>

@@ -16,7 +16,7 @@ import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "התיק שלי",
+  title: "הניקוד שלי",
   // personal, login-gated page: never index it
   robots: { index: false, follow: false, nocache: true },
 };
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
  * price down, and the average the sale actually gets is the honest number.
  */
 function sellHint(h: HoldingView): string {
-  return `מכירה של ${fmtShares(h.shares)} מניות עכשיו מזכה ב־${money(h.value, { decimals: true })} — ${sharePrice(h.exitPrice)} למניה בממוצע. המחיר הנוכחי (${pct(h.currentPrice, 1)}) הוא מחיר המניה הבאה; מכירה גדולה מורידה אותו תוך כדי.`;
+  return `מכירה של ${fmtShares(h.shares)} תשובות עכשיו מזכה ב־${money(h.value, { decimals: true })} — ${sharePrice(h.exitPrice)} לתשובה בממוצע. המחיר הנוכחי (${pct(h.currentPrice, 1)}) הוא מחיר התשובה הבאה; מכירה גדולה מורידה אותו תוך כדי.`;
 }
 
 export default async function PortfolioPage() {
@@ -53,7 +53,7 @@ export default async function PortfolioPage() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="min-w-0 truncate text-xl font-extrabold text-text-strong sm:text-2xl">התיק של {user.name}</h1>
+        <h1 className="min-w-0 truncate text-xl font-extrabold text-text-strong sm:text-2xl">הניקוד של {user.name}</h1>
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/leaderboard"
@@ -78,8 +78,8 @@ export default async function PortfolioPage() {
         The P&L is the only number here that moves when something happens, so it is
         the one the page leads with — at twice the size of the rest and with the
         percentage beside the shekels. "שווי כולל" opened the page for a long time
-        and was the least informative tile on it: it reads ₪10,000 next to
-        "התחלת עם ₪10,000" for every user who has not traded, and barely moves for
+        and was the least informative tile on it: it reads 10,000 next to
+        "התחלת עם 10,000" for every user who has not answered anything, and barely moves for
         one who has. It is now a sub-line under the number it is the base of.
       */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
@@ -98,7 +98,7 @@ export default async function PortfolioPage() {
           hint={`מתוך ${money(capital)}${referrals.earned > 0 ? " (כולל בונוס הזמנות)" : " שהתחלת איתם"}`}
         />
         <StatTile
-          label="שווי פוזיציות פתוחות"
+          label="שווי תשובות פתוחות"
           value={money(positionsValue)}
           hint={`מה שתקבלו אם תמכרו הכול עכשיו · לא ממומש ${signedMoney(unrealized)}`}
           tone={pnlTone(unrealized)}
@@ -108,7 +108,7 @@ export default async function PortfolioPage() {
       <InviteCard code={referrals.code} invited={referrals.invited} earned={referrals.earned} remaining={referrals.remaining} />
 
       <section className="card overflow-hidden">
-        <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">פוזיציות פתוחות ({openHoldings.length})</h2>
+        <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">תשובות פתוחות ({openHoldings.length})</h2>
         {openHoldings.length ? (
           <>
             <ul className="divide-y divide-border sm:hidden">
@@ -119,7 +119,7 @@ export default async function PortfolioPage() {
                   </Link>
                   <div className="mt-2 flex items-center justify-between gap-2 text-xs">
                     <span className={`rounded-md px-2 py-1 font-bold ${h.side === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}>
-                      {h.side === "YES" ? "כן" : "לא"} · {fmtShares(h.shares)} מניות
+                      {h.side === "YES" ? "כן" : "לא"} · {fmtShares(h.shares)} תשובות
                     </span>
                     <span className={`tabular font-bold ${pnlTone(h.pnl)}`}>{signedMoney(h.pnl)}</span>
                   </div>
@@ -144,12 +144,12 @@ export default async function PortfolioPage() {
             <table className="w-full text-sm">
               <thead className="bg-surface-2 text-xs text-muted">
                 <tr>
-                  <th className="px-4 py-2 text-right font-medium">שוק</th>
+                  <th className="px-4 py-2 text-right font-medium">שאלה</th>
                   <th className="px-3 py-2 text-right font-medium">צד</th>
-                  <th className="px-3 py-2 text-right font-medium">מניות</th>
+                  <th className="px-3 py-2 text-right font-medium">תשובות</th>
                   <th className="px-3 py-2 text-right font-medium">מחיר ממוצע</th>
                   <th className="px-3 py-2 text-right font-medium">מחיר נוכחי</th>
-                  <th className="px-3 py-2 text-right font-medium" title="מה שתקבלו אם תמכרו את הפוזיציה עכשיו">שווי במכירה</th>
+                  <th className="px-3 py-2 text-right font-medium" title="מה שתקבלו אם תמכרו את התשובות עכשיו">שווי במכירה</th>
                   <th className="px-3 py-2 text-right font-medium">רווח/הפסד</th>
                   <th className="px-3 py-2"></th>
                 </tr>
@@ -167,7 +167,7 @@ export default async function PortfolioPage() {
                     <td className="tabular px-3 py-2.5 font-semibold" title={sellHint(h)}>{money(h.value, { decimals: true })}</td>
                     <td className={`tabular px-3 py-2.5 font-semibold ${pnlTone(h.pnl)}`}>{signedMoney(h.pnl)}</td>
                     <td className="px-3 py-2.5">
-                      <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}&action=sell#trade`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">סחר</Link>
+                      <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}&action=sell#trade`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">לשאלה</Link>
                     </td>
                   </tr>
                 ))}
@@ -177,15 +177,15 @@ export default async function PortfolioPage() {
           </>
         ) : (
           <p className="p-6 text-center text-sm text-muted">
-            אין פוזיציות פתוחות. התחילו <Link href="/rapid" className="text-accent-2 hover:underline">במצב זריז</Link> או{" "}
-            <Link href="/" className="text-accent-2 hover:underline">בחרו שוק מהרשימה</Link>.
+            אין תשובות פתוחות. התחילו <Link href="/rapid" className="text-accent-2 hover:underline">במצב זריז</Link> או{" "}
+            <Link href="/" className="text-accent-2 hover:underline">בחרו שאלה מהרשימה</Link>.
           </p>
         )}
       </section>
 
       {holdings.some((h) => h.settled) && (
         <section className="card overflow-hidden">
-          <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">שווקים שהוכרעו</h2>
+          <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">שאלות שהוכרעו</h2>
           <ul className="divide-y divide-border text-sm">
             {holdings
               .filter((h) => h.settled)
@@ -204,8 +204,8 @@ export default async function PortfolioPage() {
       )}
 
       <section className="card p-3.5 sm:p-4">
-        <h2 className="mb-2 font-bold text-text-strong">היסטוריית עסקאות</h2>
-        <TradeList trades={trades} showMarket emptyText="עדיין לא ביצעת עסקאות" />
+        <h2 className="mb-2 font-bold text-text-strong">היסטוריית תשובות</h2>
+        <TradeList trades={trades} showMarket emptyText="עדיין לא ענית על שאלות" />
       </section>
     </div>
   );

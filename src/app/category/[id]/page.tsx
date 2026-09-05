@@ -75,23 +75,23 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       )}
       <JsonLd
         data={breadcrumbs([
-          { name: "שווקים", path: "/" },
+          { name: "שאלות", path: "/" },
           { name: cat.label, path: `/category/${cat.id}` },
         ])}
       />
 
       <nav className="text-xs text-muted" aria-label="פירורי לחם">
-        <Link href="/" className="hover:text-text">שווקים</Link> ‹ <span className="text-text">{cat.label}</span>
+        <Link href="/" className="hover:text-text">שאלות</Link> ‹ <span className="text-text">{cat.label}</span>
       </nav>
 
       <header className="cat-band rounded-2xl border p-5 sm:p-6" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
         <h1 className="text-2xl font-black text-text-strong sm:text-3xl">
-          {cat.label} — שוקי חיזוי לבחירות 2026
+          {cat.label} — שאלות ניחוש לבחירות 2026
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-text sm:text-[15px]">{cat.description}</p>
         <p className="mt-3 text-xs text-muted">
-          {status === "resolved" ? `${markets.length} שווקים שהוכרעו בקטגוריה` : `${openCount} שווקים פתוחים למסחר`} · המסחר
-          בכסף וירטואלי בלבד ·{" "}
+          {status === "resolved" ? `${markets.length} שאלות שהוכרעו בקטגוריה` : `${openCount} שאלות פתוחות`} · המשחק
+          בנקודות בלבד ·{" "}
           <Link href="/about" className="text-accent-2 hover:underline">
             איך זה עובד
           </Link>

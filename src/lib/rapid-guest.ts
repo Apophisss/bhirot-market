@@ -5,7 +5,7 @@
  * straight to `/login?callbackUrl=/rapid`, the counter stayed on "נענו 0", and the
  * answer itself was thrown away — so a visitor who did sign in came back to `1/60`
  * with nothing to show for the decision they had already made. The one thing a
- * prediction market has to demonstrate is that answering is easy, and the product
+ * guessing game has to demonstrate is that answering is easy, and the product
  * refused to let anyone try it once.
  *
  * So the first few answers are kept here instead, in the browser, and turned into

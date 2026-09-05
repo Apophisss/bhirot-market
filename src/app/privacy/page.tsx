@@ -21,7 +21,7 @@ export default function PrivacyPage() {
     <article className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
       <JsonLd
         data={breadcrumbs([
-          { name: "שווקים", path: "/" },
+          { name: "שאלות", path: "/" },
           { name: "מדיניות פרטיות", path: "/privacy" },
         ])}
       />
@@ -32,16 +32,16 @@ export default function PrivacyPage() {
 
       <LegalSection title="מה זה האתר">
         <p>
-          {SITE_NAME} הוא משחק חיזויים <strong>בכסף וירטואלי בלבד</strong> על הבחירות לכנסת ה־26. אין באתר תשלומים, אין פרסים
-          כספיים ואין אפשרות להפקיד או למשוך כסף. אנחנו לא אוספים פרטי אשראי, ואין לנו מה לעשות איתם.
+          {SITE_NAME} הוא משחק ניחושים <strong>בנקודות משחק בלבד</strong> על הבחירות לכנסת ה־26. אין באתר תשלומים, אין פרסים
+          ואין אפשרות להפקיד או למשוך כסף. אנחנו לא אוספים פרטי אשראי, ואין לנו מה לעשות איתם.
         </p>
       </LegalSection>
 
       <LegalSection title="אילו נתונים נאספים">
         <p>כשמתחברים עם חשבון Google, אנחנו מקבלים מגוגל ושומרים אצלנו:</p>
         <ul className="list-inside list-disc space-y-1 text-muted">
-          <li><strong className="text-text">שם תצוגה, כתובת אימייל ותמונת פרופיל</strong> — כדי להציג אתכם בלוח המובילים, בתגובות ובתיק האישי.</li>
-          <li><strong className="text-text">פעילות המשחק</strong> — העסקאות שביצעתם, הפוזיציות שלכם, היתרה הווירטואלית והתגובות שכתבתם.</li>
+          <li><strong className="text-text">שם תצוגה, כתובת אימייל ותמונת פרופיל</strong> — כדי להציג אתכם בלוח המובילים, בתגובות ובדף הניקוד שלכם.</li>
+          <li><strong className="text-text">פעילות המשחק</strong> — התשובות שנתתם, מה שאתם מחזיקים, הניקוד שלכם והתגובות שכתבתם.</li>
           <li><strong className="text-text">מקור ההגעה</strong> — אם הגעתם דרך מודעה, נשמר מזהה הקליק של גוגל (gclid) ופרמטרי הקמפיין, כדי שנדע אילו מודעות עובדות.</li>
         </ul>
         <p>
@@ -58,7 +58,7 @@ export default function PrivacyPage() {
           )}
         </ul>
         <p>
-          העדפות תצוגה מקומיות (כמו סכום ההימור שבחרתם ב״מצב זריז״) נשמרות ב־<code className="rounded bg-surface-2 px-1">localStorage</code> בדפדפן שלכם
+          העדפות תצוגה מקומיות (כמו מספר הנקודות שבחרתם לכל תשובה ב״מצב זריז״) נשמרות ב־<code className="rounded bg-surface-2 px-1">localStorage</code> בדפדפן שלכם
           ולא נשלחות אלינו כלל.
         </p>
       </LegalSection>
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
       <LegalSection title="כמה זמן וזכויותיכם">
         <p>
           הנתונים נשמרים כל עוד החשבון קיים. אתם רשאים לעיין בנתונים שנשמרו עליכם, לתקן אותם או לבקש למחוק את החשבון
-          כולו — לרבות היתרה, הפוזיציות והתגובות. מחיקה היא סופית ולא ניתנת לשחזור.
+          כולו — לרבות הניקוד, התשובות והתגובות. מחיקה היא סופית ולא ניתנת לשחזור.
         </p>
         <p>
           לבקשות עיון, תיקון או מחיקה — שלחו פנייה דרך{" "}

@@ -79,14 +79,14 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
       {/*
         The activity line reads the DISPLAY pair (see src/lib/fake-market-stats.ts),
         never the recorded one: a question nobody has answered yet used to advertise
-        "₪0 נפח · 0 עסקאות" beside "היו הראשונים", which is a scoreboard reading zero
+        "0 נק׳ · 0 תשובות" beside "היו הראשונים", which is a scoreboard reading zero
         and an argument against joining. The display count starts above
         THIN_MARKET_TRADES, so the "מחיר ראשוני" caveat only appears where the line
         beside it is genuinely small.
       */}
       <footer className="mt-auto flex items-center justify-between gap-2 text-[11px] text-muted sm:text-xs">
         <span className="tabular truncate">
-          {money(m.displayVolume, { compact: true })} נפח · {m.displayTradeCount} עסקאות
+          {money(m.displayVolume, { compact: true })} · {m.displayTradeCount} תשובות
           {!resolved && m.displayTradeCount < THIN_MARKET_TRADES && <span className="text-muted-2"> · מחיר ראשוני</span>}
         </span>
         <span className="shrink-0">{resolved || urgent ? "" : closesLabel(m.closesAt)}</span>

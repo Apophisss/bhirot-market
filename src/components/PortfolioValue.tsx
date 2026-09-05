@@ -9,9 +9,9 @@ import { STARTING_BALANCE } from "@/lib/db/schema";
  *
  * It is the whole portfolio — available cash plus what the open positions would
  * fetch if they were sold now — the same "שווי כולל" the portfolio page and the
- * leaderboard rank by. Available cash alone made a purchase read as a loss: ₪5
- * spent took the header from ₪10,000 to ₪9,995 with nothing on screen to show
- * what the ₪5 bought.
+ * leaderboard rank by. Free points alone made an answer read as a loss: 5 points
+ * spent took the header from 10,000 to 9,995 with nothing on screen to show what
+ * those 5 points bought.
  *
  * The two figures were once confused with one another (the header said one number
  * under the word "יתרה" while the trade panel said another under the same word),
@@ -29,7 +29,7 @@ export async function PortfolioValue() {
       href="/portfolio"
       data-evt="header-balance"
       className="tap flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 text-[13px] font-semibold hover:border-border-2 sm:gap-2 sm:px-3 sm:text-sm"
-      title={`שווי כולל (יתרה + פוזיציות פתוחות) ${money(netWorth)} · יתרה זמינה ${money(user.balance)}`}
+      title={`ניקוד כולל (נקודות פנויות + תשובות פתוחות) ${money(netWorth)} · נקודות פנויות ${money(user.balance)}`}
     >
       {/* the full label needs room the phone header does not have */}
       <span className="text-[10px] font-medium text-muted-2 sm:hidden">שווי</span>

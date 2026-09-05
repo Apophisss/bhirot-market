@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { otherSide, sellPrefill, sellSide, sharesOn } from "@/lib/sell";
 import { MAX_BET } from "@/lib/limits";
-import { money, pct, shares as fmtShares, sharePrice, signedMoney } from "@/lib/format";
+import { money, pct, shares as fmtShares, sharePrice, signedMoney, POINTS_SHORT } from "@/lib/format";
 import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
 import { gaEvent } from "@/lib/gtag";
@@ -34,7 +34,7 @@ export interface TradePanelProps {
 type Action = "BUY" | "SELL";
 
 /** why there is a ceiling at all — a bare number reads as an arbitrary restriction */
-const CAP_REASON = `עד ${MAX_BET} ₪ וירטואליים לעסקה, כדי שעסקה בודדת לא תזיז את המחיר ותשאיר אותו הוגן לכולם`;
+const CAP_REASON = `עד ${MAX_BET} נקודות לתשובה, כדי שתשובה בודדת לא תזיז את המד ותשאיר אותו הוגן לכולם`;
 
 export function TradePanel({
   market,
@@ -78,7 +78,7 @@ export function TradePanel({
       if (picked === "YES" || picked === "NO") {
         setSide(picked);
         setAction("BUY");
-        // the box means ₪ on the buy tab and shares on the sell tab — a leftover
+        // the box means points on the answer tab and answers held on the return tab — a leftover
         // share count must not be re-read as an amount to spend
         setInput("");
       }
@@ -140,7 +140,7 @@ export function TradePanel({
     [side, market.qYes, market.qNo, market.liquidity],
   );
   const sellCap = held;
-  // a single bet is capped at ₪MAX_BET site-wide; the market band and the user's
+  // a single answer is capped at MAX_BET points site-wide; the price band and the user's
   // balance can only lower that, never raise it
   const buyLimit = Math.min(MAX_BET, buyCap, balance ?? Infinity);
   const limit = action === "BUY" ? buyLimit : sellCap;
@@ -148,10 +148,10 @@ export function TradePanel({
   const buyBlocked = action === "BUY" && buyCap <= 0;
   const buyLimitNote =
     MAX_BET <= Math.min(buyCap, balance ?? Infinity)
-      ? `אפשר להמר עד ${money(MAX_BET)} בעסקה אחת`
+      ? `אפשר לשים עד ${money(MAX_BET)} על תשובה אחת`
       : buyCap <= (balance ?? Infinity)
-        ? `הסכום המרבי לעסקה כרגע הוא ${money(buyLimit)} — מעבר לזה השוק יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
-        : `היתרה שלך מאפשרת עד ${money(buyLimit)}`;
+        ? `המרב לתשובה כרגע הוא ${money(buyLimit)} — מעבר לזה המד יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
+        : `הניקוד שלך מאפשר עד ${money(buyLimit)}`;
 
   const quote = useMemo(() => {
     if (qty <= 0) return null;
@@ -236,8 +236,8 @@ export function TradePanel({
           kind: "ok",
           text:
             action === "BUY"
-              ? `קנית ${fmtShares(data.quote.shares)} מניות ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount, { decimals: true })}`
-              : `מכרת ${fmtShares(data.quote.shares)} מניות תמורת ${money(data.quote.amount, { decimals: true })}`,
+              ? `ענית ${fmtShares(data.quote.shares)} פעמים ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount, { decimals: true })}`
+              : `החזרת ${fmtShares(data.quote.shares)} תשובות תמורת ${money(data.quote.amount, { decimals: true })}`,
           // a prediction is worth sharing the moment it is made, and not after
           shareSide: action === "BUY" ? side : undefined,
         });
@@ -268,19 +268,19 @@ export function TradePanel({
   if (!market.isTradable) {
     return (
       <div className="card p-4 sm:p-5">
-        <h3 className="mb-2 font-bold text-text-strong">המסחר סגור</h3>
+        <h3 className="mb-2 font-bold text-text-strong">השאלה סגורה</h3>
         {market.status === "resolved" ? (
           <p className={`rounded-lg p-3 text-center text-lg font-extrabold ${market.resolution === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}>
             התוצאה: {market.resolution === "YES" ? "כן" : "לא"}
           </p>
         ) : market.status === "cancelled" ? (
-          <p className="rounded-lg bg-surface-2 p-3 text-center font-bold text-muted">השוק בוטל והכסף הוחזר</p>
+          <p className="rounded-lg bg-surface-2 p-3 text-center font-bold text-muted">השאלה בוטלה והנקודות הוחזרו</p>
         ) : (
-          <p className="text-sm text-muted">מועד הסגירה עבר. השוק ממתין להכרעה על ידי צוות המערכת לפי קריטריוני ההכרעה.</p>
+          <p className="text-sm text-muted">מועד הסגירה עבר. השאלה ממתינה להכרעה על ידי צוות המערכת לפי קריטריוני ההכרעה.</p>
         )}
         {position && (position.yesShares > 0 || position.noShares > 0) && (
           <div className="mt-3 text-sm text-muted">
-            הפוזיציה שלך: {position.yesShares > 0 && <span className="text-yes">{fmtShares(position.yesShares)} כן</span>}
+            התשובות שלך: {position.yesShares > 0 && <span className="text-yes">{fmtShares(position.yesShares)} כן</span>}
             {position.yesShares > 0 && position.noShares > 0 && " · "}
             {position.noShares > 0 && <span className="text-no">{fmtShares(position.noShares)} לא</span>}
           </div>
@@ -289,24 +289,24 @@ export function TradePanel({
     );
   }
 
-  // buy shortcuts add to the amount, so they stay inside the ₪MAX_BET cap
+  // the shortcuts add to the amount, so they stay inside the MAX_BET cap
   const quick = action === "BUY" ? [10, 25, 50, MAX_BET] : [0.25, 0.5, 0.75, 1];
 
   // the confirm button's own label, reused by the sticky bar below so the two can
   // never drift apart
   const confirmLabel = !loggedIn
-    ? "התחברות כדי לסחור"
+    ? "התחברות כדי לענות"
     : busy
       ? "מבצע…"
       : action === "BUY"
-        ? `קנייה: ${side === "YES" ? "כן" : "לא"}`
-        : `מכירה: ${side === "YES" ? "כן" : "לא"}`;
+        ? `תשובה: ${side === "YES" ? "כן" : "לא"}`
+        : `החזרה: ${side === "YES" ? "כן" : "לא"}`;
   const confirmTone = !loggedIn ? "bg-accent hover:bg-accent-2" : side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2";
-  // what the button is about to do, in one line: side, money, shares
+  // what the button is about to do, in one line: side, points, answers
   const confirmSummary = quote
     ? action === "BUY"
-      ? `${money(Math.min(qty, buyLimit))} · ${fmtShares(quote.shares)} מניות`
-      : `${fmtShares(Math.min(qty, held))} מניות · ${money(quote.amount, { decimals: true })}`
+      ? `${money(Math.min(qty, buyLimit))} · ${fmtShares(quote.shares)} תשובות`
+      : `${fmtShares(Math.min(qty, held))} תשובות · ${money(quote.amount, { decimals: true })}`
     : null;
 
   return (
@@ -354,7 +354,7 @@ export function TradePanel({
               <span className="tabular text-sm font-semibold opacity-90">{sharePrice(s === "YES" ? market.probability : 1 - market.probability)}</span>
               {action === "SELL" && (
                 <span className="tabular block text-[11px] font-semibold opacity-80">
-                  {heldHere > 0 ? `${fmtShares(heldHere)} מניות` : "אין מניות"}
+                  {heldHere > 0 ? `${fmtShares(heldHere)} תשובות` : "אין תשובות"}
                 </span>
               )}
             </button>
@@ -365,13 +365,13 @@ export function TradePanel({
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between text-xs text-muted">
           <span title={action === "BUY" ? CAP_REASON : undefined}>
-            {action === "BUY" ? `סכום (₪ וירטואלי · עד ${money(MAX_BET)} לעסקה)` : `מניות למכירה (יש לך ${fmtShares(held)})`}
+            {action === "BUY" ? `נקודות (עד ${money(MAX_BET)} לתשובה)` : `תשובות להחזרה (יש לך ${fmtShares(held)})`}
           </span>
-          {balance != null && action === "BUY" && <span className="tabular">יתרה: {money(balance)}</span>}
+          {balance != null && action === "BUY" && <span className="tabular">ניקוד: {money(balance)}</span>}
         </div>
         {buyBlocked ? (
           <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
-            הצד הזה הגיע לתקרה ({Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לקנות עוד. מכירה של פוזיציה קיימת עדיין אפשרית.
+            הצד הזה הגיע לתקרה ({Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לענות עוד. החזרה של תשובות שכבר יש לכם עדיין אפשרית.
           </p>
         ) : action === "SELL" && held <= 0 ? (
           // never leave a disabled sell button unexplained: a holder who lands on the
@@ -380,20 +380,20 @@ export function TradePanel({
           <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
             {heldOther > 0 ? (
               <>
-                אין לך מניות {side === "YES" ? "כן" : "לא"} בשוק הזה. הפוזיציה שלך היא {fmtShares(heldOther)} מניות{" "}
+                אין לך תשובות {side === "YES" ? "כן" : "לא"} בשאלה הזו. יש לך {fmtShares(heldOther)} תשובות{" "}
                 {flip === "YES" ? "כן" : "לא"} —{" "}
                 <button onClick={() => pickSide(flip)} className="font-bold underline hover:text-text-strong">
-                  למכירה שלהן
+                  להחזרה שלהן
                 </button>
               </>
             ) : (
-              "אין לך פוזיציה בשוק הזה, אז אין מה למכור. אפשר לקנות בלשונית ״קנייה״."
+              "אין לך תשובות בשאלה הזו, אז אין מה להחזיר. אפשר לענות בלשונית ״תשובה״."
             )}
           </p>
         ) : (
           overLimit && (
             <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
-              {action === "BUY" ? buyLimitNote : `יש לך ${fmtShares(limit)} מניות למכירה`}
+              {action === "BUY" ? buyLimitNote : `יש לך ${fmtShares(limit)} תשובות להחזרה`}
             </p>
           )
         )}
@@ -408,7 +408,7 @@ export function TradePanel({
             placeholder="0"
             className="tabular w-full rounded-xl border border-border bg-surface-2 py-3.5 pe-3 ps-10 text-2xl font-bold outline-none focus:border-accent"
           />
-          <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-lg text-muted">{action === "BUY" ? "₪" : "#"}</span>
+          <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-sm text-muted">{action === "BUY" ? POINTS_SHORT : "#"}</span>
         </div>
         <div className="mt-2 flex gap-2">
           {quick.map((q) => (
@@ -439,9 +439,9 @@ export function TradePanel({
       <dl className="mt-4 space-y-1.5 text-sm">
         {action === "BUY" ? (
           <>
-            <Row label="מחיר ממוצע למניה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
-            <Row label="מניות שתקבל/י" value={quote ? fmtShares(quote.shares) : "—"} />
-            <Row label="מחיר אחרי העסקה" value={quote ? pct(quote.priceAfter, 1) : pct(sidePrice, 1)} muted />
+            <Row label="מחיר ממוצע לתשובה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
+            <Row label="תשובות שתקבל/י" value={quote ? fmtShares(quote.shares) : "—"} />
+            <Row label="המד אחרי התשובה" value={quote ? pct(quote.priceAfter, 1) : pct(sidePrice, 1)} muted />
             <Row
               label="תשלום אם צדקת"
               value={quote ? `${money(quote.payout, { decimals: true })}` : "—"}
@@ -505,8 +505,8 @@ export function TradePanel({
               <ShareButton
                 title={marketTitle}
                 path={pathname}
-                text={`חזיתי ${msg.shareSide === "YES" ? "כן" : "לא"} · ${marketTitle}`}
-                label="שתפו את החיזוי"
+                text={`ניחשתי ${msg.shareSide === "YES" ? "כן" : "לא"} · ${marketTitle}`}
+                label="שתפו את הניחוש"
                 className="mt-2 bg-surface"
               />
             )}
@@ -516,18 +516,18 @@ export function TradePanel({
 
       {position && (position.yesShares > 0 || position.noShares > 0) && (
         <div className="mt-4 rounded-lg border border-border bg-surface-2 p-3 text-xs text-muted">
-          <div className="mb-1 font-semibold text-text" title="השווי הוא מה שתקבלו בפועל אם תמכרו את הפוזיציה עכשיו, אחרי ההשפעה של המכירה עצמה על המחיר">
-            הפוזיציה שלך
+          <div className="mb-1 font-semibold text-text" title="השווי הוא מה שתקבלו בפועל אם תחזירו את התשובות עכשיו, אחרי ההשפעה של ההחזרה עצמה על המד">
+            התשובות שלך
           </div>
           {position.yesShares > 0 && (
             <div className="flex justify-between">
-              <span className="text-yes">כן · {fmtShares(position.yesShares)} מניות</span>
+              <span className="text-yes">כן · {fmtShares(position.yesShares)} תשובות</span>
               <span className="tabular">שווי במכירה {money(worth.yes)} · עלות {money(position.yesCost)}</span>
             </div>
           )}
           {position.noShares > 0 && (
             <div className="flex justify-between">
-              <span className="text-no">לא · {fmtShares(position.noShares)} מניות</span>
+              <span className="text-no">לא · {fmtShares(position.noShares)} תשובות</span>
               <span className="tabular">שווי במכירה {money(worth.no)} · עלות {money(position.noCost)}</span>
             </div>
           )}
@@ -536,7 +536,7 @@ export function TradePanel({
 
       {!loggedIn && (
         <p className="mt-3 text-center text-xs text-muted-2">
-          <Link href="/login" className="inline-flex min-h-11 items-center text-accent-2 hover:underline">התחברו עם Google</Link> וקבלו ₪10,000 וירטואליים למסחר
+          <Link href="/login" className="inline-flex min-h-11 items-center text-accent-2 hover:underline">התחברו עם Google</Link> וקבלו 10,000 נקודות למשחק
         </p>
       )}
     </div>

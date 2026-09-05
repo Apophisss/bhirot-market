@@ -46,7 +46,7 @@ export function ActivityFeed({
     return () => clearInterval(id);
   }, [markets]);
 
-  if (!items.length) return <p className="text-sm text-muted-2">עדיין אין עסקאות</p>;
+  if (!items.length) return <p className="text-sm text-muted-2">עדיין אין תשובות</p>;
 
   return (
     <ul className="divide-y divide-border">

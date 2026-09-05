@@ -15,7 +15,7 @@ import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
 
-const DESCRIPTION = `שאלה אחרי שאלה: עונים כן או לא בסכום מחייב של ₪${RAPID_MIN_STAKE}–₪${RAPID_MAX_STAKE} וממשיכים הלאה.`;
+const DESCRIPTION = `שאלה אחרי שאלה: עונים כן או לא ב-${RAPID_MIN_STAKE}–${RAPID_MAX_STAKE} נקודות מחייבות וממשיכים הלאה.`;
 
 type Search = { category?: string; sort?: string; all?: string };
 
@@ -105,7 +105,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
           <Link href="/login?callbackUrl=%2Frapid" className="inline-flex min-h-11 items-center font-bold text-accent-2 hover:underline">
             התחברות
           </Link>{" "}
-          הופכת אותן לפוזיציות אמיתיות.
+          מכניסה אותן לניקוד שלכם.
         </p>
       )}
 
@@ -130,7 +130,7 @@ function EmptyFeed({ category, includeAnswered }: { category: string; includeAns
         {includeAnswered ? "אין כרגע שאלות פתוחות" : "ענית על כל השאלות הפתוחות"}
       </h2>
       <p className="max-w-md text-sm text-muted">
-        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השווקים.
+        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השאלות.
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {!includeAnswered && (
@@ -147,7 +147,7 @@ function EmptyFeed({ category, includeAnswered }: { category: string; includeAns
           </Link>
         )}
         <Link href="/" className="tap pressable flex items-center justify-center rounded-xl border border-border-2 px-5 font-semibold hover:bg-surface-2">
-          לרשימת השווקים
+          לרשימת השאלות
         </Link>
       </div>
     </div>

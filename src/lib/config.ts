@@ -1,13 +1,25 @@
 /** Scheduled date of the 26th Knesset election (updated by the editorial routine if an early election is set). */
 export const ELECTION_DATE = "2026-10-27";
 export const SITE_NAME = "בחירות מרקט";
-export const SITE_TAGLINE = "שוק החיזויים של בחירות 2026";
+/**
+ * How the site describes itself, everywhere.
+ *
+ * It used to say "שוק החיזויים" — a prediction market. That is not what this is:
+ * there is no money, nothing to deposit or withdraw and no prize, and describing a
+ * free knowledge game in the vocabulary of a financial market misdescribes the
+ * product to its visitors and files it under a category it does not belong to. The
+ * tagline, the description and the keywords are the first thing that gets read —
+ * by a person and by a crawler — so they are the first thing that has to be right.
+ */
+export const SITE_TAGLINE = "משחק הניחושים של בחירות 2026";
 /** One-line site description, shared by <meta name="description">, the manifest and the JSON-LD graph. */
 export const SITE_DESCRIPTION =
-  "שוק חיזויים בכסף וירטואלי על בחירות 2026 לכנסת: סקרים, קואליציה, משפט נתניהו, חוק הגיוס ועוד. השאלות נכתבות ומוכרעות על ידי צוות המערכת.";
+  "משחק ניחושים חינמי על בחירות 2026 לכנסת: סקרים, קואליציה, משפט נתניהו, חוק הגיוס ועוד. עונים כן או לא, צוברים נקודות, והשאלות נכתבות ומוכרעות על ידי צוות המערכת.";
 export const SITE_KEYWORDS = [
   "בחירות 2026",
-  "שוק חיזויים",
+  "משחק ניחושים",
+  "משחק ידע",
+  "חידון פוליטי",
   "סקרים",
   "מנדטים",
   "הכנסת ה-26",
@@ -15,7 +27,7 @@ export const SITE_KEYWORDS = [
   "נתניהו",
   "חוק הגיוס",
   "פוליטיקה ישראלית",
-  "prediction market israel",
+  "israeli politics quiz",
 ];
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 /** Byline for everything the site's editorial team publishes (questions, resolutions, updates). */

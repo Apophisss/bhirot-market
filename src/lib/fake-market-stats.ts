@@ -12,7 +12,7 @@
  * `/api/health`, the analysis bundle, resolution — keeps reading the real pair.
  *
  * The problem it solves: a board whose questions are written faster than they are
- * traded advertised "₪0 נפח · 0 עסקאות" on every card, "עדיין אין עסקאות" on every
+ * answered advertised "0 נק׳ · 0 תשובות" on every card, "עדיין אין תשובות" on every
  * page and "היו הראשונים" as its call to action. That is a scoreboard reading zero,
  * and a scoreboard reading zero is an argument against joining.
  *
@@ -63,12 +63,12 @@ export const FAKE_FEATURED_BOOST = 1.6;
 export const FAKE_TRADES_CAP = 900;
 
 /**
- * The average bet the fabricated crowd puts on one question, in ₪.
+ * The average answer the fabricated crowd puts on one question, in points.
  *
- * The span stops at half the site's own ₪100 per-order cap on purpose. The trade
+ * The span stops at half the site's own 100-point per-answer cap on purpose. The
  * list draws individual amounts around this average and then clamps them to the cap,
  * so an average anywhere near it makes half the visible rows saturate at exactly
- * ₪100 — a column of identical round numbers, which is the single easiest way to
+ * 100 — a column of identical round numbers, which is the single easiest way to
  * spot a fabricated feed.
  */
 export const FAKE_AVG_BET_MIN = 14;
@@ -98,11 +98,11 @@ export interface ActivityInput {
 export interface MarketActivity {
   /** trades the card and the page advertise (fabricated + real) */
   tradeCount: number;
-  /** volume the card and the page advertise, in ₪ (fabricated + inflated real) */
+  /** points the card and the page advertise (fabricated + inflated real) */
   volume: number;
   /** trades per day this question is fabricated to attract */
   ratePerDay: number;
-  /** the average fabricated bet on this question, in ₪ */
+  /** the average fabricated answer on this question, in points */
   avgBet: number;
 }
 
@@ -187,14 +187,14 @@ export interface FakeMarketTrade {
 }
 
 /**
- * The fabricated trades a question's "עסקאות אחרונות" list shows, newest first.
+ * The fabricated answers a question's "תשובות אחרונות" list shows, newest first.
  *
  * They are laid out backwards from `now` on the question's own cadence, so a market
  * fabricated to attract two trades a day shows a list spanning weeks and a busy one
  * shows a list spanning hours — which is the only way the timestamps and the trade
  * count on the same page can agree. Prices stay within a point of the market's real
  * probability, so nothing here contradicts the number beside it, and amounts stay
- * inside the site's own ₪1–₪100 bet cap.
+ * inside the site's own 1–100 point cap.
  */
 export function fakeMarketTrades(
   m: ActivityInput & { probability: number; title?: string },
