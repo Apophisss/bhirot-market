@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
@@ -20,11 +20,28 @@ export interface TradePanelProps {
   initialSide?: Side;
   /** the portfolio links straight to "מכירה", so the sale can be checked against the value it showed */
   initialAction?: Action;
+  /**
+   * The amount the visitor had already typed before being sent to Google, carried
+   * back on the URL. Without it, signing in from the middle of a trade returned an
+   * empty form and the decision had to be made twice.
+   */
+  initialAmount?: string;
 }
 
 type Action = "BUY" | "SELL";
 
-export function TradePanel({ market, position, balance, loggedIn, initialSide = "YES", initialAction = "BUY" }: TradePanelProps) {
+/** why there is a ceiling at all — a bare number reads as an arbitrary restriction */
+const CAP_REASON = `עד ${MAX_BET} ₪ וירטואליים לעסקה, כדי שעסקה בודדת לא תזיז את המחיר ותשאיר אותו הוגן לכולם`;
+
+export function TradePanel({
+  market,
+  position,
+  balance,
+  loggedIn,
+  initialSide = "YES",
+  initialAction = "BUY",
+  initialAmount,
+}: TradePanelProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [action, setAction] = useState<Action>(initialAction);
@@ -35,10 +52,14 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   // pre-filling the whole position makes the panel quote exactly the value the
   // portfolio just showed, instead of an empty form and a dash.
   const [input, setInput] = useState<string>(() =>
-    initialAction === "SELL" ? sellPrefill(position, sellSide(position, initialSide)) : "",
+    initialAction === "SELL" ? sellPrefill(position, sellSide(position, initialSide)) : initialAmount ?? "",
   );
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  /** the panel's own confirm button — the sticky bar below only appears once it is off screen */
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [confirmOffScreen, setConfirmOffScreen] = useState(false);
 
   /** Moves the panel onto one side, carrying the sell box with it. */
   function pickSide(next: Side, forAction: Action = action) {
@@ -62,7 +83,17 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
     return () => window.removeEventListener("market:pick-side", onPick);
   }, []);
 
+  // the sticky confirm bar exists only while the real button is out of sight
+  useEffect(() => {
+    const el = confirmRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([entry]) => setConfirmOffScreen(!entry.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   const state: MarketState = { qYes: market.qYes, qNo: market.qNo, b: market.liquidity };
+
   const held = sharesOn(position, side);
   const heldCost = side === "YES" ? position?.yesCost ?? 0 : position?.noCost ?? 0;
   const flip = otherSide(side);
@@ -112,6 +143,28 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
     [position?.yesShares, position?.noShares, market.qYes, market.qNo, market.liquidity],
   );
 
+  const confirmDisabled =
+    busy ||
+    (loggedIn &&
+      (!quote || qty <= 0 || overLimit || limit <= 0 || (action === "SELL" && held <= 0) || (action === "BUY" && balance != null && qty > balance)));
+  const showConfirmBar = market.isTradable && confirmOffScreen && qty > 0 && !confirmDisabled;
+
+  /*
+    The market page renders this panel twice — once in the phone column, once in the
+    desktop aside — and only one of the two is ever laid out. The hidden copy has no
+    box at all, so its confirm button reads as "off screen" forever; letting it
+    announce a bar would hide the buy/sell bar on a page that is showing neither.
+    `offsetParent` is null exactly for the copy inside `display:none`, so only the
+    live panel speaks. StickyTradeBar listens and steps aside.
+  */
+  useEffect(() => {
+    if (!rootRef.current?.offsetParent) return;
+    window.dispatchEvent(new CustomEvent("market:confirm-bar", { detail: showConfirmBar }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("market:confirm-bar", { detail: false }));
+    };
+  }, [showConfirmBar]);
+
   async function submit() {
     track(EVENTS.tradeAttempt, {
       marketId: market.id,
@@ -119,7 +172,12 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       props: { side, action, loggedIn: loggedIn ? 1 : 0 },
     });
     if (!loggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+      // the decision travels with the visitor: the market page reads `side` and
+      // `amount` back off the URL and hands them to this panel, so signing in
+      // returns to the form as it was rather than to an empty one
+      const back = new URLSearchParams({ side: side.toLowerCase() });
+      if (qty > 0) back.set("amount", String(qty));
+      router.push(`/login?callbackUrl=${encodeURIComponent(`${pathname}?${back}#trade`)}`);
       return;
     }
     if (!quote || qty <= 0) return;
@@ -150,7 +208,21 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
               ? `קנית ${fmtShares(data.quote.shares)} מניות ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount, { decimals: true })}`
               : `מכרת ${fmtShares(data.quote.shares)} מניות תמורת ${money(data.quote.amount, { decimals: true })}`,
         });
+        // A sale used to leave "מניות למכירה (יש לך 61.6)" and the whole position box
+        // standing after the shares were gone, because the box is filled from the
+        // *prefill* the panel started with and `router.refresh()` only replaces the
+        // server props. Buying looked fine by luck: it clears to an empty amount
+        // field either way. So the panel is put back into the state the trade
+        // produced before the refresh lands, rather than waiting for the refresh to
+        // do it — and a sale that closed the position drops back to the buy tab,
+        // which is the only thing left to do in a market you no longer hold.
+        const soldAll = action === "SELL" && Math.min(qty, held) >= held - 1e-4;
         setInput("");
+        if (soldAll) {
+          const stillHeld = sharesOn(position, flip) > 0;
+          if (!stillHeld) setAction("BUY");
+          else pickSide(flip, "SELL");
+        }
         router.refresh();
       }
     } catch {
@@ -187,8 +259,25 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   // buy shortcuts add to the amount, so they stay inside the ₪MAX_BET cap
   const quick = action === "BUY" ? [10, 25, 50, MAX_BET] : [0.25, 0.5, 0.75, 1];
 
+  // the confirm button's own label, reused by the sticky bar below so the two can
+  // never drift apart
+  const confirmLabel = !loggedIn
+    ? "התחברות כדי לסחור"
+    : busy
+      ? "מבצע…"
+      : action === "BUY"
+        ? `קנייה: ${side === "YES" ? "כן" : "לא"}`
+        : `מכירה: ${side === "YES" ? "כן" : "לא"}`;
+  const confirmTone = !loggedIn ? "bg-accent hover:bg-accent-2" : side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2";
+  // what the button is about to do, in one line: side, money, shares
+  const confirmSummary = quote
+    ? action === "BUY"
+      ? `${money(Math.min(qty, buyLimit))} · ${fmtShares(quote.shares)} מניות`
+      : `${fmtShares(Math.min(qty, held))} מניות · ${money(quote.amount, { decimals: true })}`
+    : null;
+
   return (
-    <div className="card p-4 sm:p-5">
+    <div ref={rootRef} className="card p-4 sm:p-5">
       <div className="mb-4 flex gap-1 rounded-lg bg-surface-2 p-1">
         {(["BUY", "SELL"] as Action[]).map((a) => (
           <button
@@ -242,7 +331,9 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
 
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between text-xs text-muted">
-          <span>{action === "BUY" ? `סכום (₪ וירטואלי · עד ${money(MAX_BET)})` : `מניות למכירה (יש לך ${fmtShares(held)})`}</span>
+          <span title={action === "BUY" ? CAP_REASON : undefined}>
+            {action === "BUY" ? `סכום (₪ וירטואלי · עד ${money(MAX_BET)} לעסקה)` : `מניות למכירה (יש לך ${fmtShares(held)})`}
+          </span>
           {balance != null && action === "BUY" && <span className="tabular">יתרה: {money(balance)}</span>}
         </div>
         {buyBlocked ? (
@@ -296,7 +387,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
                 // "100%" leaves at most 0.0001 shares, which the engine writes off.
                 else setInput(String(Math.floor(held * q * 1e4) / 1e4));
               }}
-              className="pressable min-h-9 flex-1 rounded-lg border border-border bg-surface-2 py-1.5 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
+              className="tap pressable flex-1 rounded-lg border border-border bg-surface-2 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
             >
               {action === "BUY" ? `+${q}` : `${Math.round(q * 100)}%`}
             </button>
@@ -304,7 +395,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           {action === "BUY" && balance != null && (
             <button
               onClick={() => setInput(String(Math.floor(limit)))}
-              className="pressable min-h-9 flex-1 rounded-lg border border-border bg-surface-2 py-1.5 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
+              className="tap pressable flex-1 rounded-lg border border-border bg-surface-2 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
             >
               מקס
             </button>
@@ -339,22 +430,45 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       </dl>
 
       <button
+        ref={confirmRef}
         onClick={submit}
-        disabled={
-          busy ||
-          (loggedIn &&
-            (!quote || qty <= 0 || overLimit || limit <= 0 || (action === "SELL" && held <= 0) || (action === "BUY" && balance != null && qty > balance)))
-        }
-        className={`pressable mt-4 w-full rounded-xl py-3.5 text-lg font-extrabold text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
-          !loggedIn ? "bg-accent hover:bg-accent-2" : side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
-        }`}
+        disabled={confirmDisabled}
+        className={`pressable mt-4 w-full rounded-xl py-3.5 text-lg font-extrabold text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${confirmTone}`}
       >
-        {!loggedIn ? "התחברות כדי לסחור" : busy ? "מבצע…" : action === "BUY" ? `קנייה: ${side === "YES" ? "כן" : "לא"}` : `מכירה: ${side === "YES" ? "כן" : "לא"}`}
+        {confirmLabel}
+        {confirmSummary && <span className="tabular ms-2 text-sm font-bold opacity-90">{confirmSummary}</span>}
       </button>
 
-      {msg && (
-        <p className={`mt-3 rounded-lg px-3 py-2 text-sm ${msg.kind === "ok" ? "bg-yes/10 text-yes" : "bg-no/10 text-no"}`}>{msg.text}</p>
+      {/*
+        On a 812px-tall phone the confirm button sat at 1,043px — the decision was
+        made two screens above the button that acts on it, and the fixed tab bar
+        covered the bottom 61px on top of that. Once an amount is in and the real
+        button has scrolled away, the same button follows to the bottom of the
+        screen with the trade written on it. `pb-safe` keeps it off the home
+        indicator, and it sits above the tab bar rather than under it.
+      */}
+      {showConfirmBar && (
+        <div className="bottom-nav px-safe slide-up fixed inset-x-0 z-40 border-t border-border bg-bg/95 py-2 backdrop-blur lg:hidden">
+          <div className="mx-auto max-w-lg px-3">
+            <button
+              onClick={submit}
+              disabled={confirmDisabled}
+              className={`pressable flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-base font-extrabold text-white transition disabled:opacity-40 ${confirmTone}`}
+            >
+              {confirmLabel}
+              {confirmSummary && <span className="tabular text-sm font-bold opacity-90">· {confirmSummary}</span>}
+            </button>
+          </div>
+        </div>
       )}
+
+      {/* the trade confirmation is injected, not navigated to — without a live region
+          a screen reader is never told the trade went through */}
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {msg && (
+          <p className={`mt-3 rounded-lg px-3 py-2 text-sm ${msg.kind === "ok" ? "bg-yes/10 text-yes" : "bg-no/10 text-no"}`}>{msg.text}</p>
+        )}
+      </div>
 
       {position && (position.yesShares > 0 || position.noShares > 0) && (
         <div className="mt-4 rounded-lg border border-border bg-surface-2 p-3 text-xs text-muted">

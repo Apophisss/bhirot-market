@@ -14,7 +14,7 @@
  *
  * Exits 1 on the first violations and prints the failing cases.
  */
-import { money, signedMoney, sharePrice } from "../src/lib/format";
+import { money, signedMoney, signedPct, pnlSign, sharePrice } from "../src/lib/format";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail?: unknown) {
@@ -66,6 +66,26 @@ eq("a loss of 37 agorot", signedMoney(-0.37), "-₪0.37");
 eq("a round win still shows agorot", signedMoney(12), "+₪12.00");
 eq("a share price is always in agorot", sharePrice(0.42), "₪0.42");
 
+// ---- a displayed zero is unsigned, and is neither a win nor a loss -----------
+//
+// A buy-and-sell round trip that cost less than half an agora used to print
+// "-₪0.00": the rounding happened after the sign was chosen. Zero has no sign,
+// and nothing that prints as zero may be painted green or red either.
+
+eq("a loss too small to show is plain zero", signedMoney(-0.001), "₪0.00");
+eq("a gain too small to show is plain zero", signedMoney(0.001), "₪0.00");
+eq("an exact zero is plain zero", signedMoney(0), "₪0.00");
+eq("negative zero is plain zero", signedMoney(-0), "₪0.00");
+// (JS rounds -0.5 to -0, so the first value that survives the rounding is -0.006)
+eq("more than half an agora is a real loss", signedMoney(-0.006), "-₪0.01");
+check("a sliver of a loss is toned as zero", pnlSign(-0.004) === 0, { v: -0.004 });
+check("a real loss is toned as a loss", pnlSign(-0.02) === -1, { v: -0.02 });
+check("a real gain is toned as a gain", pnlSign(0.02) === 1, { v: 0.02 });
+
+eq("a return carries its sign", signedPct(0.0123), "+1.2%");
+eq("a negative return carries its sign", signedPct(-0.0123), "-1.2%");
+eq("a return too small to show is unsigned", signedPct(-0.0001), "0%");
+
 // ---- the property: nothing real is ever displayed as ₪0 ---------------------
 
 for (let i = 0; i < 100_000; i++) {
@@ -77,7 +97,10 @@ for (let i = 0; i < 100_000; i++) {
   }
   check("the digits are the amount, to the agora", Math.abs(parse(s) - rounded) < 1e-9, { v, s, rounded });
   const signed = signedMoney(v);
-  check("signed P&L carries the sign and the agorot", /^[+-]₪[\d,]+\.\d{2}$/.test(signed), { v, signed });
+  // a value that rounds to zero prints unsigned; everything else keeps its sign
+  check("signed P&L carries the sign and the agorot", /^[+-]?₪[\d,]+\.\d{2}$/.test(signed), { v, signed });
+  check("only a displayed zero drops the sign", /^[+-]/.test(signed) === (Math.abs(Math.round(v * 100)) > 0), { v, signed });
+  check("a signed P&L never shows a signed zero", signed !== "-₪0.00" && signed !== "+₪0.00", { v, signed });
 }
 
 if (failures) {

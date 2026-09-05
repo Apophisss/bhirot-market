@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getLeaderboard } from "@/lib/portfolio";
 import { buildBoard, type BoardRow } from "@/lib/fake-leaderboard";
 import { Avatar } from "@/components/Avatar";
-import { money, signedMoney } from "@/lib/format";
+import { money, signedMoney, pnlTone } from "@/lib/format";
 import { auth } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
 import { shareCard } from "@/lib/seo";
@@ -33,7 +33,7 @@ function Row({ r, muteRank = false }: { r: BoardRow; muteRank?: boolean }) {
         </div>
       </td>
       <td className="tabular px-2 py-2.5 font-semibold sm:px-3">{money(r.netWorth)}</td>
-      <td className={`tabular px-2 py-2.5 font-semibold sm:px-3 ${r.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(r.pnl)}</td>
+      <td className={`tabular px-2 py-2.5 font-semibold sm:px-3 ${pnlTone(r.pnl)}`}>{signedMoney(r.pnl)}</td>
       <td className="tabular hidden px-3 py-2.5 text-muted sm:table-cell">{r.tradeCount}</td>
     </tr>
   );

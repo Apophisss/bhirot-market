@@ -6,7 +6,7 @@ import { getPortfolio, getUserTrades, getLeaderboard, type HoldingView } from "@
 import { getReferralSummary } from "@/lib/referral-program";
 import { buildBoard } from "@/lib/fake-leaderboard";
 import { STARTING_BALANCE } from "@/lib/db/schema";
-import { money, signedMoney, pct, shares as fmtShares, sharePrice } from "@/lib/format";
+import { money, signedMoney, signedPct, pct, shares as fmtShares, sharePrice, closesLabel, pnlSign, pnlTone } from "@/lib/format";
 import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
 import { InviteCard } from "@/components/InviteCard";
@@ -47,7 +47,8 @@ export default async function PortfolioPage() {
   const myRank = board.find((r) => r.isMe)?.rank ?? null;
   const netWorth = user.balance + positionsValue;
   // invite bonuses are capital, not performance: they raise the balance but never the P&L
-  const totalPnl = netWorth - STARTING_BALANCE - referrals.earned;
+  const capital = STARTING_BALANCE + referrals.earned;
+  const totalPnl = netWorth - capital;
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -73,23 +74,34 @@ export default async function PortfolioPage() {
       {/* משתמש ותיק מגיע לכאן גם כשהוא לא עובר בדף הבית — ההצעה למלא את השאלון הולכת אחריו */}
       {askSurvey && <SurveyPrompt next="/portfolio" />}
 
+      {/*
+        The P&L is the only number here that moves when something happens, so it is
+        the one the page leads with — at twice the size of the rest and with the
+        percentage beside the shekels. "שווי כולל" opened the page for a long time
+        and was the least informative tile on it: it reads ₪10,000 next to
+        "התחלת עם ₪10,000" for every user who has not traded, and barely moves for
+        one who has. It is now a sub-line under the number it is the base of.
+      */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <StatTile
-          label="שווי כולל"
-          value={money(netWorth)}
-          hint={
-            referrals.earned > 0
-              ? `התחלת עם ${money(STARTING_BALANCE)} + ${money(referrals.earned)} בונוס הזמנות`
-              : `התחלת עם ${money(STARTING_BALANCE)}`
-          }
+          size="hero"
+          className="col-span-2"
+          label="רווח/הפסד כולל"
+          value={signedMoney(totalPnl)}
+          badge={pnlSign(totalPnl) === 0 ? undefined : signedPct(totalPnl / capital)}
+          tone={pnlTone(totalPnl)}
+          hint={`ממומש ${signedMoney(realized)} · לא ממומש ${signedMoney(unrealized)} · שווי כולל ${money(netWorth)}`}
         />
-        <StatTile label="רווח/הפסד כולל" value={signedMoney(totalPnl)} tone={totalPnl >= 0 ? "yes" : "no"} hint={`ממומש ${signedMoney(realized)}`} />
-        <StatTile label="יתרה זמינה" value={money(user.balance)} />
+        <StatTile
+          label="יתרה זמינה"
+          value={money(user.balance)}
+          hint={`מתוך ${money(capital)}${referrals.earned > 0 ? " (כולל בונוס הזמנות)" : " שהתחלת איתם"}`}
+        />
         <StatTile
           label="שווי פוזיציות פתוחות"
           value={money(positionsValue)}
           hint={`מה שתקבלו אם תמכרו הכול עכשיו · לא ממומש ${signedMoney(unrealized)}`}
-          tone={unrealized >= 0 ? "yes" : "no"}
+          tone={pnlTone(unrealized)}
         />
       </div>
 
@@ -109,11 +121,13 @@ export default async function PortfolioPage() {
                     <span className={`rounded-md px-2 py-1 font-bold ${h.side === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}>
                       {h.side === "YES" ? "כן" : "לא"} · {fmtShares(h.shares)} מניות
                     </span>
-                    <span className={`tabular font-bold ${h.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.pnl)}</span>
+                    <span className={`tabular font-bold ${pnlTone(h.pnl)}`}>{signedMoney(h.pnl)}</span>
                   </div>
                   <div className="tabular mt-2 flex items-center justify-between gap-2 text-xs text-muted">
                     <span title={sellHint(h)}>
                       ממוצע {sharePrice(h.avgPrice)} · נוכחי {pct(h.currentPrice, 1)} · במכירה {money(h.value, { decimals: true })}
+                      {/* when the question decides is what brings a holder back to it */}
+                      {h.market.status === "open" && <span className="text-muted-2"> · {closesLabel(h.market.closesAt)}</span>}
                     </span>
                     <Link
                       href={`/market/${h.market.id}?side=${h.side.toLowerCase()}&action=sell#trade`}
@@ -151,7 +165,7 @@ export default async function PortfolioPage() {
                     <td className="tabular px-3 py-2.5">{sharePrice(h.avgPrice)}</td>
                     <td className="tabular px-3 py-2.5">{pct(h.currentPrice, 1)}</td>
                     <td className="tabular px-3 py-2.5 font-semibold" title={sellHint(h)}>{money(h.value, { decimals: true })}</td>
-                    <td className={`tabular px-3 py-2.5 font-semibold ${h.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.pnl)}</td>
+                    <td className={`tabular px-3 py-2.5 font-semibold ${pnlTone(h.pnl)}`}>{signedMoney(h.pnl)}</td>
                     <td className="px-3 py-2.5">
                       <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}&action=sell#trade`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">סחר</Link>
                     </td>
@@ -181,7 +195,7 @@ export default async function PortfolioPage() {
                   <span className="shrink-0 text-xs text-muted">
                     <span className={h.side === "YES" ? "text-yes" : "text-no"}>{fmtShares(h.shares)} {h.side === "YES" ? "כן" : "לא"}</span> · תוצאה:{" "}
                     {h.market.status === "cancelled" ? "בוטל" : h.market.resolution === "YES" ? "כן" : "לא"} ·{" "}
-                    <span className={`tabular font-semibold ${h.realizedPnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.realizedPnl)}</span>
+                    <span className={`tabular font-semibold ${pnlTone(h.realizedPnl)}`}>{signedMoney(h.realizedPnl)}</span>
                   </span>
                 </li>
               ))}

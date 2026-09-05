@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { auth, signOut } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
 import { REFERRAL_BONUS } from "@/lib/referral";
@@ -8,6 +9,8 @@ import { PortfolioValue } from "./PortfolioValue";
 import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
+import { MobileSearch } from "./MobileSearch";
+import { LoginLink } from "./LoginLink";
 import { needsSurvey } from "@/lib/preferences-store";
 
 // The leaderboard is deliberately absent: it hangs off the profile (the user menu
@@ -18,6 +21,9 @@ const NAV = [
   { href: "/activity", label: "פעילות", evt: "nav-activity" },
   { href: "/about", label: "איך זה עובד", evt: "nav-about" },
 ];
+
+const LOGIN_BUTTON =
+  "tap pressable inline-flex items-center rounded-lg bg-accent px-4 text-sm font-semibold text-white shadow-md shadow-accent/25 hover:bg-accent-2";
 
 export async function Header() {
   const session = await auth();
@@ -43,7 +49,9 @@ export async function Header() {
             </span>
           </Link>
 
-          {/* below md the search lives above the board itself (see MarketBrowser) */}
+          {/* below md the field is replaced by an icon that opens a full-screen sheet */}
+          <MobileSearch />
+
           <form action="/" className="hidden flex-1 md:block">
             <label className="relative block max-w-md">
               <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-2">
@@ -113,13 +121,19 @@ export async function Header() {
                 <Link href="/about" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-text-strong sm:inline lg:hidden">
                   איך זה עובד
                 </Link>
-                <Link
-                  href="/login"
-                  data-evt="header-login"
-                  className="pressable rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-md shadow-accent/25 hover:bg-accent-2"
+                {/* useSearchParams needs a boundary; the fallback is the same button
+                    pointing at a bare /login, which is what it used to be everywhere */}
+                <Suspense
+                  fallback={
+                    <Link href="/login" data-evt="header-login" className={LOGIN_BUTTON}>
+                      התחברות
+                    </Link>
+                  }
                 >
-                  התחברות
-                </Link>
+                  <LoginLink evt="header-login" className={LOGIN_BUTTON}>
+                    התחברות
+                  </LoginLink>
+                </Suspense>
               </>
             )}
           </div>

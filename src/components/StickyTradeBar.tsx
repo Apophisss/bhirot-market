@@ -9,6 +9,8 @@ import { pct } from "@/lib/format";
  */
 export function StickyTradeBar({ probability }: { probability: number }) {
   const [show, setShow] = useState(false);
+  /** the panel's own confirm bar wants the same strip; it wins, it is the later step */
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     const el = document.getElementById("trade");
@@ -18,12 +20,18 @@ export function StickyTradeBar({ probability }: { probability: number }) {
     return () => io.disconnect();
   }, []);
 
+  useEffect(() => {
+    const onBar = (e: Event) => setConfirming(Boolean((e as CustomEvent<boolean>).detail));
+    window.addEventListener("market:confirm-bar", onBar);
+    return () => window.removeEventListener("market:confirm-bar", onBar);
+  }, []);
+
   function pick(side: "YES" | "NO") {
     window.dispatchEvent(new CustomEvent("market:pick-side", { detail: side }));
     document.getElementById("trade")?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  if (!show) return null;
+  if (!show || confirming) return null;
 
   return (
     <div className="bottom-nav px-safe slide-up fixed inset-x-0 z-30 border-t border-border bg-bg/95 py-2 backdrop-blur lg:hidden">

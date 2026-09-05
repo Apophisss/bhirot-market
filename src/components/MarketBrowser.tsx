@@ -11,7 +11,19 @@ export const SORTS: { id: MarketSort; label: string }[] = [
   { id: "volume", label: "נפח" },
 ];
 
-export const PAGE = 36;
+/**
+ * Cards in the first server-rendered page.
+ *
+ * It was 36, which put 42 cards (with the featured/closing-soon strips) into the
+ * home page's HTML: 427KB before compression, a 12,358px-tall document, and a
+ * first paint that waits for all of it. Twelve fills the grid on every breakpoint
+ * — four rows on a phone, six on a tablet, four on a desktop — and nobody reaches
+ * card 13 without asking.
+ */
+export const PAGE = 12;
+
+/** how many more each "הצגת עוד" adds — the first page is the one that has to be cheap */
+export const PAGE_STEP = 24;
 
 export type BrowseParams = { q?: string; sort?: string; status?: string; show?: string; person?: string };
 
@@ -91,7 +103,7 @@ export function MarketBrowser({
             href={link({ status: "open", show: undefined })}
             data-evt="status-tab"
             data-evt-label="פתוחים"
-            className={`shrink-0 rounded-lg px-3 py-2 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+            className={`tap inline-flex shrink-0 items-center rounded-lg px-3 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
           >
             פתוחים
           </Link>
@@ -99,14 +111,14 @@ export function MarketBrowser({
             href={link({ status: "resolved", show: undefined })}
             data-evt="status-tab"
             data-evt-label="הוכרעו"
-            className={`shrink-0 rounded-lg px-3 py-2 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+            className={`tap inline-flex shrink-0 items-center rounded-lg px-3 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
           >
             הוכרעו
           </Link>
           {q && (
-            <span className="ms-1 flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs text-muted">
+            <span className="tap ms-1 flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 text-xs text-muted">
               חיפוש: <strong className="text-text">{q}</strong>
-              <Link href={link({ q: undefined })} className="ms-1 flex px-1 py-0.5 text-muted-2 hover:text-no" aria-label="נקה חיפוש">
+              <Link href={link({ q: undefined })} className="ms-1 flex h-11 w-8 items-center justify-center text-muted-2 hover:text-no" aria-label="נקה חיפוש">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
                 <path d="M6 6l12 12M18 6L6 18" />
               </svg>
@@ -114,9 +126,9 @@ export function MarketBrowser({
             </span>
           )}
           {person && (
-            <span className="ms-1 flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs text-muted">
+            <span className="tap ms-1 flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 text-xs text-muted">
               מועמד: <strong className="text-text">{person.name}</strong>
-              <Link href={link({ person: undefined })} className="ms-1 flex px-1 py-0.5 text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">
+              <Link href={link({ person: undefined })} className="ms-1 flex h-11 w-8 items-center justify-center text-muted-2 hover:text-no" aria-label="נקה סינון מועמד">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
                 <path d="M6 6l12 12M18 6L6 18" />
               </svg>
@@ -128,7 +140,7 @@ export function MarketBrowser({
           <Link
             href="/rapid"
             data-evt="browser-rapid"
-            className="pressable me-2 inline-flex shrink-0 items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 font-bold text-accent-2 hover:bg-accent/20"
+            className="tap pressable me-2 inline-flex shrink-0 items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 font-bold text-accent-2 hover:bg-accent/20"
           >
             <BoltIcon />
             ענו ברצף
@@ -140,7 +152,7 @@ export function MarketBrowser({
               href={link({ sort: s.id })}
               data-evt="sort-tab"
               data-evt-label={s.label}
-              className={`shrink-0 rounded-md px-2.5 py-1.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+              className={`tap inline-flex shrink-0 items-center rounded-md px-2.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
               rel="nofollow"
             >
               {s.label}
@@ -156,10 +168,24 @@ export function MarketBrowser({
               <MarketCard key={m.id} m={m} />
             ))}
           </div>
+          {/*
+            The end of the list is where "I could not find the question I wanted"
+            actually happens, so that is where the way to add one belongs. It was
+            only in the profile menu, behind a login the visitor may not have.
+          */}
+          {total <= shown && (
+            <p className="pt-2 text-center text-[13px] text-muted">
+              לא מצאתם את השאלה שחיפשתם?{" "}
+              <Link href="/suggest" data-evt="browser-suggest" className="font-semibold text-accent-2 hover:underline">
+                הציעו אותה
+              </Link>{" "}
+              — צוות המערכת עובר על ההצעות ומפרסם את הטובות שבהן.
+            </p>
+          )}
           {total > shown && (
             <div className="flex flex-col items-center gap-1 pt-2">
               <Link
-                href={link({ show: String(shown + PAGE) })}
+                href={link({ show: String(shown + PAGE_STEP) })}
                 data-evt="show-more"
                 className="tap pressable flex w-full items-center justify-center rounded-xl border border-border-2 bg-surface px-6 font-semibold text-text hover:bg-surface-2 sm:w-auto"
                 scroll={false}

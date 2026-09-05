@@ -5,9 +5,20 @@ function label(days: number) {
   return days > 0 ? `בעוד ${days} ימים` : days === 0 ? "היום" : "התקיימו";
 }
 
-/** Days to election day. `hero` sits on the dark banner, `card` on a white surface. */
-export function Countdown({ variant = "hero" }: { variant?: "hero" | "card" }) {
+/**
+ * Days to election day. `hero` is the block on the dark banner, `card` the version
+ * for a white surface, and `line` the same fact as one thin white line — what the
+ * phone hero has room for once the pitch is cut back to a single CTA.
+ */
+export function Countdown({ variant = "hero" }: { variant?: "hero" | "card" | "line" }) {
   const days = daysUntil(`${ELECTION_DATE}T00:00:00+03:00`);
+  if (variant === "line") {
+    return (
+      <div className="tabular text-[11px] text-white/70">
+        הבחירות לכנסת ה־26 <strong className="font-extrabold text-white">{label(days)}</strong>
+      </div>
+    );
+  }
   if (variant === "card") {
     return (
       <div className="min-w-0">

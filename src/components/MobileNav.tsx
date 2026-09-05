@@ -8,19 +8,31 @@ const ICONS = {
   markets: "M4 13h5V4H4v9Zm0 7h5v-5H4v5Zm7 0h5V11h-5v9Zm7 0h5V8h-5v12ZM11 9h5V4h-5v5Z",
   activity: "M3 12h4l3 8 4-16 3 8h4",
   wallet: "M3 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1h-4a3 3 0 0 0 0 6h4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Zm14 3h4v2h-4a1 1 0 1 1 0-2Z",
-  login: "M10 17v-2H5V9h5V7l5 5-5 5Zm3-14a6 6 0 0 1 6 6v6a6 6 0 0 1-6 6h-1v-2h1a4 4 0 0 0 4-4V9a4 4 0 0 0-4-4h-1V3h1Z",
+  // podium: three bars with the tallest in the middle
+  trophy: "M4 20h16v2H4v-2Zm5-9h6v8H9v-8Zm-6 3h5v5H3v-5Zm13-7h5v12h-5V7Z",
   // same glyph as BoltIcon, so rapid mode is marked identically everywhere
   bolt: "M13.5 2 4 13.5h6L9.5 22 20 10.5h-6.5L13.5 2Z",
 } as const;
 
 type Item = { href: string; label: string; icon: keyof typeof ICONS; stroke?: boolean };
 
-// The leaderboard is reached from the profile (the user menu and /portfolio), not
-// from the tab bar.
+/*
+  Four slots, and every one of them has to earn its place on a phone.
+
+  - "פעילות" is gone: it is a stream of anonymous strangers' trades, which is the
+    least useful thing a phone-sized navigation can point at. It now lives at the
+    bottom of a question's own page, where the trades are about the question the
+    reader is looking at.
+  - "לוח המובילים" takes its place. It was reachable only from the profile menu,
+    which meant a signed-out visitor had no route to it at all — and it is the one
+    page that answers "is anyone actually any good at this?".
+  - "התחברות" is gone too: the header carries a full blue login button on every
+    single page, so the tab-bar copy was the third "התחברות" on one screen.
+*/
 const BASE: Item[] = [
   { href: "/", label: "שווקים", icon: "markets" },
   { href: "/rapid", label: "מצב זריז", icon: "bolt" },
-  { href: "/activity", label: "פעילות", icon: "activity", stroke: true },
+  { href: "/leaderboard", label: "המובילים", icon: "trophy" },
 ];
 
 /**
@@ -30,10 +42,7 @@ const BASE: Item[] = [
  */
 export function MobileNav({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname();
-  const items: Item[] = [
-    ...BASE,
-    loggedIn ? { href: "/portfolio", label: "התיק שלי", icon: "wallet" } : { href: "/login", label: "התחברות", icon: "login" },
-  ];
+  const items: Item[] = loggedIn ? [...BASE, { href: "/portfolio", label: "התיק שלי", icon: "wallet" }] : BASE;
 
   return (
     <nav

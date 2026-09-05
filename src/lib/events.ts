@@ -15,6 +15,8 @@ export const EVENTS = {
   outbound: "outbound",
   /** search from the header (props.q) */
   search: "search",
+  /** a question was shared from its card or its page (props.path) */
+  share: "share",
   /** the trade panel was submitted (props.side/action, value = ₪ or shares) */
   tradeAttempt: "trade_attempt",
   /** a trade was executed — recorded server-side, so it is the authoritative number */
@@ -44,6 +46,7 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.click]: "לחיצה על אלמנט מסומן",
   [EVENTS.outbound]: "יציאה לקישור חיצוני",
   [EVENTS.search]: "חיפוש",
+  [EVENTS.share]: "שיתוף שאלה",
   [EVENTS.tradeAttempt]: "ניסיון עסקה",
   [EVENTS.trade]: "עסקה שבוצעה",
   [EVENTS.tradeError]: "עסקה שנדחתה",
@@ -65,6 +68,10 @@ export const CLICK_IDS: Record<string, string> = {
   "nav-about": "ניווט: איך זה עובד",
   mobilenav: "ניווט תחתון (מובייל)",
   "header-login": "כפתור התחברות בהדר",
+  "header-balance": "יתרה בהדר",
+  "mobile-search-open": "פתיחת חיפוש במובייל",
+  "share-market": "שיתוף שאלה",
+  "browser-suggest": "הצעת שאלה מסוף הרשימה",
   "menu-leaderboard": "תפריט המשתמש: לוח המובילים",
   "portfolio-leaderboard": "לוח המובילים מדף התיק",
   "hero-rapid": "CTA מצב זריז בהירו",

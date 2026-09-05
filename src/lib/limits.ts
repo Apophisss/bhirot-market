@@ -22,3 +22,14 @@ export const MAX_BET = 100;
  * cap must not trap a user inside their own position.
  */
 export const MAX_SELL_SHARES = 100_000;
+
+/**
+ * Below this many trades a price is still essentially the opening estimate the
+ * editorial team set, not an answer the crowd arrived at — the market card and
+ * the market page say so rather than presenting it as a settled number.
+ *
+ * Two trades is the threshold and not one: a single counter-trade is enough to
+ * move a thin market by tens of points, so a price that has been tested exactly
+ * once is no more "traded" than a price that has never been tested at all.
+ */
+export const THIN_MARKET_TRADES = 3;

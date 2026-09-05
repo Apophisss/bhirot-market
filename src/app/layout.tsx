@@ -11,7 +11,14 @@ import { AdConversions } from "@/components/AdConversions";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "@/lib/config";
 import { siteGraph } from "@/lib/seo";
 
-const heebo = Heebo({ subsets: ["hebrew", "latin"], variable: "--font-heebo", display: "swap" });
+// the site uses regular / medium / bold / extrabold and nothing else; pinning the
+// weights lets next/font subset the file instead of shipping the whole axis
+const heebo = Heebo({
+  subsets: ["hebrew", "latin"],
+  weight: ["400", "500", "700", "800"],
+  variable: "--font-heebo",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

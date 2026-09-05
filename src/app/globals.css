@@ -25,8 +25,15 @@
   --color-border-2: #c2d2ec;
   --color-text: #1c2b45;
   --color-text-strong: #0a1020;
-  --color-muted: #576b8b;
-  --color-muted-2: #8494ae;
+  /*
+    Both greys carry real information (closing times, volumes, trade counts) at
+    11-13px, so both are held to WCAG AA for small text — 4.5:1 on white AND on
+    `--color-surface-2`, which is what cards and chips actually sit on. The old
+    pair (#576b8b / #8494ae) put the secondary grey at 3.08:1 on white, which is
+    below the bar for every size.
+  */
+  --color-muted: #4f6182; /* 6.24:1 on white, 5.71:1 on surface-2 */
+  --color-muted-2: #64708a; /* 4.97:1 on white, 4.54:1 on surface-2 */
   /* Blue is the brand colour; the darker tone doubles as link + hover state */
   --color-accent: #1d4ed8;
   --color-accent-2: #1a3fae;
@@ -35,11 +42,17 @@
   --color-ink: #0a1020;
   --color-ink-2: #16203a;
   --color-brand-deep: #0d2a6b;
-  --color-yes: #15803d;
-  --color-yes-2: #166534;
-  --color-no: #dc2626;
-  --color-no-2: #b91c1c;
-  --color-warn: #b45309;
+  /*
+    Green and red are read as text on their own 15% tint (`bg-yes/15 text-yes`)
+    far more often than they are used as fills, and that pairing is the tightest
+    contrast on the site — so the tones are chosen to clear 4.5:1 THERE, which
+    leaves them comfortably clear as solid fills under white text as well.
+  */
+  --color-yes: #166534; /* 5.66:1 on its own tint, 7.13:1 under white */
+  --color-yes-2: #14532d;
+  --color-no: #b91c1c; /* 5.01:1 on its own tint, 6.47:1 under white */
+  --color-no-2: #991b1b;
+  --color-warn: #9a4a08; /* 5.40:1 on the 10% tint the warning notes use */
   --radius-card: 14px;
 }
 

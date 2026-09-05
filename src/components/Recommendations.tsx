@@ -32,10 +32,22 @@ export function RecommendationSection({
   surveyOnly?: boolean;
 }) {
   if (!items.length) return null;
+  /*
+    "מה כולם סוחרים עכשיו" has to be true of the cards under it. On a young board
+    most picks carry ₪0 volume and 0 trades, and a strip of untraded questions
+    under that heading is contradicted by the cards themselves. So: prefer the
+    picks that have actually been traded, and when there are not enough of those,
+    keep the cards and change the claim instead of keeping the claim and losing
+    six questions from the top of the page.
+  */
+  const traded = items.filter((r) => r.market.tradeCount > 0);
+  const active = !personalized && traded.length >= 3;
+  const shown = active ? traded : items;
+  const heading = personalized ? "מומלץ בשבילכם" : active ? "מה כולם סוחרים עכשיו" : "שאלות להתחיל מהן";
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="text-base font-bold text-text-strong sm:text-lg">{personalized ? "מומלץ בשבילכם" : "מה כולם סוחרים עכשיו"}</h2>
+        <h2 className="text-base font-bold text-text-strong sm:text-lg">{heading}</h2>
         <Link href="/rapid" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
           לענות עליהן במצב זריז
         </Link>
@@ -45,11 +57,13 @@ export function RecommendationSection({
           ? surveyOnly
             ? "לפי הנושאים והמתמודדים שבחרתם בשאלון, יחד עם מה שהכי פעיל על הלוח. ככל שתסחרו, ההמלצות ילכו אחרי מה שאתם באמת עושים."
             : "לפי השאלות שכבר סחרתם בהן ולפי מה שהכי פעיל על הלוח בימים האחרונים."
-          : loggedIn
-            ? "השאלות הכי פעילות על הלוח. ברגע שתסחרו בכמה שאלות, ההמלצות כאן יתאימו את עצמן אליכם."
-            : "השאלות הכי פעילות על הלוח כרגע. אחרי התחברות ההמלצות יתאימו את עצמן לתחומים שאתם סוחרים בהם."}
+          : !active
+            ? "עדיין אין כאן הרבה מסחר, אז אלה השאלות הפתוחות שהכי כדאי להתחיל מהן — התשובה הראשונה היא זו שקובעת את המחיר."
+            : loggedIn
+              ? "השאלות הכי פעילות על הלוח. ברגע שתסחרו בכמה שאלות, ההמלצות כאן יתאימו את עצמן אליכם."
+              : "השאלות הכי פעילות על הלוח כרגע. אחרי התחברות ההמלצות יתאימו את עצמן לתחומים שאתם סוחרים בהם."}
       </p>
-      <RecommendationGrid items={items} />
+      <RecommendationGrid items={shown} />
     </section>
   );
 }
