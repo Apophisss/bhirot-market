@@ -8,7 +8,10 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // private or machine-only routes; filtered listings are handled with noindex + canonical
-        disallow: ["/api/", "/portfolio", "/login", "/admin", "/onboarding"],
+        // /friends, /leagues and the league invite landing (/l/<code>, one page per
+        // code) are private by nature: a league table is a name-carrying board between
+        // people who chose to be in it, and it has no business in a search index
+        disallow: ["/api/", "/portfolio", "/login", "/admin", "/onboarding", "/friends", "/leagues", "/l/"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

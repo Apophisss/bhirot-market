@@ -25,6 +25,14 @@ export const EVENTS = {
   tradeError: "trade_error",
   /** a comment was posted — recorded server-side */
   comment: "comment",
+  /** a friend request was sent — recorded server-side, without who was asked */
+  friendRequest: "friend_request",
+  /** a friend request was accepted — recorded server-side, without who accepted whom */
+  friendAccept: "friend_accept",
+  /** a league was opened — recorded server-side */
+  leagueCreate: "league_create",
+  /** someone joined a league, through the link or through an invitation */
+  leagueJoin: "league_join",
   /** a new account was created — recorded server-side on first sign-in */
   signup: "signup",
   /** an existing user signed in — recorded server-side */
@@ -33,6 +41,16 @@ export const EVENTS = {
   webVital: "web_vital",
   /** an uncaught browser error or rejected promise (props.message) */
   clientError: "client_error",
+  /** a question was proposed from /suggest — recorded server-side (props.loggedIn) */
+  suggestion: "suggestion",
+  /** a message was sent from /contact — recorded server-side (props.loggedIn) */
+  contactMessage: "contact_message",
+  /** the preferences survey was answered or skipped (props.status, props.topics/people counts) */
+  survey: "survey",
+  /** an invite link actually paid out — recorded server-side (props.result) */
+  referralClaimed: "referral_claimed",
+  /** a user signed out — recorded server-side */
+  logout: "logout",
   /** the analysis bundle was downloaded from the admin area */
   bundleDownload: "bundle_download",
   /** the add-to-home-screen offer (props.action = shown/prompted/accepted/dismissed/instructions/installed, props.platform) */
@@ -53,10 +71,19 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.trade]: "עסקה שבוצעה",
   [EVENTS.tradeError]: "עסקה שנדחתה",
   [EVENTS.comment]: "תגובה",
+  [EVENTS.friendRequest]: "בקשת חברות",
+  [EVENTS.friendAccept]: "אישור חברות",
+  [EVENTS.leagueCreate]: "פתיחת ליגה",
+  [EVENTS.leagueJoin]: "הצטרפות לליגה",
   [EVENTS.signup]: "הרשמה",
   [EVENTS.login]: "התחברות",
   [EVENTS.webVital]: "מדד ביצועים",
   [EVENTS.clientError]: "שגיאת דפדפן",
+  [EVENTS.suggestion]: "הצעת שאלה",
+  [EVENTS.contactMessage]: "הודעה ליצירת קשר",
+  [EVENTS.survey]: "שאלון העדפות",
+  [EVENTS.referralClaimed]: "הזמנה שנפדתה",
+  [EVENTS.logout]: "יציאה",
   [EVENTS.bundleDownload]: "הורדת באנדל נתונים",
   [EVENTS.installApp]: "הוספה למסך הבית",
 };
@@ -76,6 +103,12 @@ export const CLICK_IDS: Record<string, string> = {
   "share-market": "שיתוף שאלה",
   "browser-suggest": "הצעת שאלה מסוף הרשימה",
   "menu-leaderboard": "תפריט המשתמש: לוח המובילים",
+  "menu-friends": "תפריט המשתמש: חברים",
+  "menu-leagues": "תפריט המשתמש: ליגות",
+  "friends-search": "חיפוש אנשים בדף החברים",
+  "league-copy-link": "העתקת קישור הזמנה לליגה",
+  "league-share": "שיתוף קישור הליגה",
+  "portfolio-friends": "חברים מדף התיק",
   "portfolio-leaderboard": "לוח המובילים מדף התיק",
   "hero-rapid": "CTA מצב זריז בהירו",
   "hero-login": "CTA התחברות בהירו",

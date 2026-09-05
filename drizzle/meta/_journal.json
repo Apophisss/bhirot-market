@@ -68,8 +68,22 @@
     {
       "idx": 9,
       "version": "6",
-      "when": 1788649963526,
-      "tag": "0009_user_settings",
+      "when": 1788648611749,
+      "tag": "0009_rapid_skip",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1788650923029,
+      "tag": "0010_friends_leagues",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1788651357118,
+      "tag": "0011_user_settings",
       "breakpoints": true
     }
   ]

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, notExists, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, notExists, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { getCategory } from "./categories";
 import { isTeamAuthored } from "./config";
@@ -8,7 +8,7 @@ import { getRecommendations } from "./recommendations";
 import { buildRapidSpark, type RapidCard, type RapidSort } from "./rapid";
 import type { DisplayHistory } from "./synthetic-history";
 
-const { markets, positions } = schema;
+const { markets, positions, rapidSkips } = schema;
 
 /** how many rows to score before slicing down to the requested feed length */
 const POOL_FACTOR = 4;
@@ -20,16 +20,16 @@ const CERTAIN_LOW = 0.03;
 const CERTAIN_HIGH = 0.97;
 
 export interface RapidFeedOptions {
-  /** when set, markets this user has ever traded are dropped from the feed */
+  /** when set, markets this user has ever traded — or skipped — are dropped from the feed */
   userId?: string | null;
   category?: string;
   sort?: RapidSort;
-  /** keep markets the user already answered */
+  /** keep the markets the user already answered *and* the ones they skipped */
   includeAnswered?: boolean;
   limit?: number;
 }
 
-/** Open, still-tradable markets for the rapid feed — by default only ones the user has not answered yet. */
+/** Open, still-tradable markets for the rapid feed — by default only ones the user has neither answered nor skipped. */
 export async function listRapidFeed(opts: RapidFeedOptions = {}): Promise<MarketView[]> {
   const now = Date.now();
   const limit = opts.limit ?? 60;
@@ -41,7 +41,10 @@ export async function listRapidFeed(opts: RapidFeedOptions = {}): Promise<Market
   const db = await getDb();
   const conds = [eq(markets.status, "open"), gt(markets.closesAt, new Date(now))];
   if (opts.category && opts.category !== "all") conds.push(eq(markets.category, opts.category));
-  if (opts.userId && !opts.includeAnswered) conds.push(unanswered(db, opts.userId));
+  if (opts.userId && !opts.includeAnswered) {
+    conds.push(unanswered(db, opts.userId));
+    conds.push(unskipped(db, opts.userId));
+  }
 
   const rows = await db
     .select()
@@ -58,12 +61,18 @@ export async function listRapidFeed(opts: RapidFeedOptions = {}): Promise<Market
  * trades with what the board is doing right now, drops the questions they answered
  * and spreads the categories, so the feed asks it for a slice and only pushes the
  * questions the market treats as settled to the back.
+ *
+ * The skips are subtracted here rather than inside the engine: they are a statement
+ * about this deck ("not this question, not now"), not about the user's taste, and the
+ * home page's recommendations are none of their business.
  */
 async function recommendedFeed(opts: RapidFeedOptions, limit: number, now: number): Promise<MarketView[]> {
+  const skipped = opts.userId && !opts.includeAnswered ? await listSkippedIds(opts.userId) : [];
   const { items } = await getRecommendations({
     userId: opts.userId,
     category: opts.category,
     includeAnswered: opts.includeAnswered,
+    exclude: skipped,
     limit: Math.min(limit * 2, REC_CAP),
     now,
   });
@@ -88,6 +97,57 @@ function unanswered(db: Awaited<ReturnType<typeof getDb>>, userId: string) {
       .from(positions)
       .where(and(eq(positions.marketId, markets.id), eq(positions.userId, userId))),
   );
+}
+
+/**
+ * A `rapid_skip` row is written the moment the user passes on a question and is
+ * never deleted, so "no row" is exactly "this user never skipped this question".
+ */
+function unskipped(db: Awaited<ReturnType<typeof getDb>>, userId: string) {
+  return notExists(
+    db
+      .select({ one: sql`1` })
+      .from(rapidSkips)
+      .where(and(eq(rapidSkips.marketId, markets.id), eq(rapidSkips.userId, userId))),
+  );
+}
+
+/* --------------------------------------------------------------- the skips --
+ * Answering a question takes it out of the deck because a `position` row exists.
+ * A skip is the same decision with less money on it, and it needs the same
+ * memory: without one, the question a user waved away yesterday is the first card
+ * they are handed today. The browser keeps its own copy for the seconds before a
+ * skip lands here and for visitors with no account at all (src/lib/rapid-skips.ts);
+ * this is the record that survives a new phone.
+ */
+
+/** Every question this user has skipped. */
+export async function listSkippedIds(userId: string): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.select({ id: rapidSkips.marketId }).from(rapidSkips).where(eq(rapidSkips.userId, userId));
+  return rows.map((r) => r.id);
+}
+
+/**
+ * Writes skips down, and returns how many ids were accepted.
+ *
+ * Skipping the same question twice is still one skip (the pair is the primary
+ * key), and a skip on a question that no longer exists is dropped rather than
+ * raising — the deck sends what it has on screen, and by the time the request
+ * lands a market may have been resolved and swept away.
+ */
+export async function recordRapidSkips(userId: string, marketIds: string[]): Promise<number> {
+  const ids = [...new Set(marketIds.filter(Boolean))];
+  if (!ids.length) return 0;
+  const db = await getDb();
+  const live = await db.select({ id: markets.id }).from(markets).where(inArray(markets.id, ids));
+  if (!live.length) return 0;
+  const now = new Date();
+  await db
+    .insert(rapidSkips)
+    .values(live.map((m) => ({ userId, marketId: m.id, createdAt: now })))
+    .onConflictDoNothing();
+  return live.length;
 }
 
 /** The feed the deck is mounted with: the questions, each with the curve behind it. */

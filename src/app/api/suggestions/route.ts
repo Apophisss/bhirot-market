@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { SuggestionInputSchema, createSuggestion } from "@/lib/inbox";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
+import { track } from "@/lib/analytics";
+import { EVENTS } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 
@@ -39,5 +41,8 @@ export async function POST(req: Request) {
   }
 
   const suggestion = await createSuggestion(parsed.data, user);
+  // server-side: the form posts from a page an ad-blocker may have stripped the
+  // browser tracker from, and a proposed question is too rare an event to lose
+  await track(EVENTS.suggestion, { req, userId, path: "/suggest", props: { loggedIn: userId ? 1 : 0 } });
   return NextResponse.json({ ok: true, id: suggestion.id });
 }

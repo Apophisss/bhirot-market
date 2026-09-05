@@ -47,7 +47,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   /*
     איך נקבע מה מוצג: ה-URL מנצח, ומה שלא נאמר בו נלקח מהחשבון.
 
-    המיון ו"כולל שאלות שכבר עניתי" הם בחירה של המשתמש כמו כל בחירה אחרת באתר, והם
+    המיון ו"כולל שאלות שכבר ראיתי" הם בחירה של המשתמש כמו כל בחירה אחרת באתר, והם
     היו היחידים ששכחנו: כל כניסה חדשה ל-`/rapid` — ובפרט מכל מכשיר אחר — החזירה את
     ברירת המחדל. לכן קישור מפורש עדיין קובע (אפשר לשלוח כתובת ולקבל בדיוק אותה
     חפיסה), אבל כתובת שלא אומרת כלום מקבלת את מה שהחשבון בחר בפעם האחרונה.
@@ -56,6 +56,8 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   */
   const sortParam = parseRapidSort(sp.sort);
   const sort: RapidSort = sortParam ?? settings.rapidSort;
+  // "כולל שאלות שכבר ראיתי": both halves of what the deck subtracts — the questions
+  // this user answered, and the ones they skipped (see src/lib/rapid-feed.ts)
   const includeAnswered = sp.all != null ? sp.all === "1" : settings.rapidIncludeAnswered;
 
   const [cards, askSurvey] = await Promise.all([
@@ -136,7 +138,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
               includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
             }`}
           >
-            כולל שאלות שכבר עניתי
+            כולל שאלות שכבר ראיתי
           </Link>
           <Link href="/" className="tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold text-muted hover:text-text">
             לרשימה המלאה
@@ -202,10 +204,10 @@ function EmptyFeed({
   return (
     <div className="card flex flex-col items-center gap-3 p-8 text-center sm:p-12">
       <h2 className="text-xl font-extrabold text-text-strong">
-        {includeAnswered ? "אין כרגע שאלות פתוחות" : "ענית על כל השאלות הפתוחות"}
+        {includeAnswered ? "אין כרגע שאלות פתוחות" : "עברתם על כל השאלות הפתוחות"}
       </h2>
       <p className="max-w-md text-sm text-muted">
-        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השאלות.
+        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן או שדילגתם עליהן, או לעבור לרשימת השאלות.
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {!includeAnswered && (
@@ -213,7 +215,7 @@ function EmptyFeed({
             href={withAnsweredHref}
             className="tap pressable flex items-center justify-center rounded-xl bg-accent px-5 font-bold text-white hover:bg-accent-2"
           >
-            הצג גם שאלות שעניתי
+            הצג גם שאלות שכבר ראיתי
           </Link>
         )}
         {allCategoriesHref && (
