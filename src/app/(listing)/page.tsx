@@ -19,6 +19,7 @@ import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
 import { getRecommendations } from "@/lib/recommendations";
 import { BoltIcon } from "@/components/BoltIcon";
+import { displayOpenCount } from "@/lib/display-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -93,6 +94,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     !filtered ? getRecommendations({ userId: session?.user?.id, limit: 6 }) : Promise.resolve(null),
   ]);
 
+  // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
+  const openCount = displayOpenCount(stats.open);
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
   // a question already surfaced by "closing today" is not worth a second slot in the recommendations
@@ -121,7 +124,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <Countdown variant="card" />
           <div className="tabular shrink-0 text-left text-[11px] leading-tight text-muted">
             <div>
-              <strong className="text-text-strong">{stats.open}</strong> שווקים
+              <strong className="text-text-strong">{openCount}</strong> שווקים
             </div>
             <div>
               <strong className="text-text-strong">{money(stats.volume, { compact: true })}</strong> נפח
@@ -146,7 +149,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/75 sm:mt-3 sm:text-lg">
                 סקרים, קואליציות, משפטים ומהלכים פוליטיים. כרגע פתוחות
                 {" "}
-                <strong className="text-white">{stats.open} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
+                <strong className="text-white">{openCount} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-3">
                 <Link
@@ -154,7 +157,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   className="tap pressable inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft sm:py-2.5"
                 >
                   <BoltIcon size={16} />
-                  מצב זריז · {stats.open} שאלות ברצף
+                  מצב זריז · {openCount} שאלות ברצף
                 </Link>
                 {session?.user ? (
                   <Link
@@ -183,7 +186,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <div className="flex flex-col gap-3 lg:items-end">
               <Countdown />
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-white/70 sm:flex sm:flex-wrap">
-                <span><strong className="tabular text-white">{stats.open}</strong> שווקים פתוחים</span>
+                <span><strong className="tabular text-white">{openCount}</strong> שווקים פתוחים</span>
                 <span><strong className="tabular text-white">{stats.resolved}</strong> הוכרעו</span>
                 <span><strong className="tabular text-white">{money(stats.volume, { compact: true })}</strong> נפח</span>
                 <span><strong className="tabular text-white">{stats.users}</strong> סוחרים</span>

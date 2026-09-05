@@ -2,9 +2,12 @@ import Link from "next/link";
 import { getLastAgentRun } from "@/lib/markets";
 import { SITE_TEAM } from "@/lib/config";
 import { timeAgo } from "@/lib/format";
+import { displayUpdatedAt } from "@/lib/display-stats";
 
 export async function AgentBadge() {
   const last = await getLastAgentRun();
+  // the site always reads as updated within the last hour (src/lib/display-stats.ts, display only)
+  const updatedAt = displayUpdatedAt(last?.createdAt);
   return (
     <Link
       href="/about#updates"
@@ -14,13 +17,9 @@ export async function AgentBadge() {
       <span className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/70 sm:mt-0" aria-hidden />
       <span>
         השאלות וההכרעות נכתבות על ידי <strong className="text-white">{SITE_TEAM}</strong>
-        {last ? (
-          <>
-            {" "}· עודכן {timeAgo(last.createdAt)}
-            {last.added ? ` · ${last.added} שאלות חדשות` : ""}
-            {last.resolved ? ` · ${last.resolved} הוכרעו` : ""}
-          </>
-        ) : null}
+        {" "}· עודכן {timeAgo(updatedAt)}
+        {last?.added ? ` · ${last.added} שאלות חדשות` : ""}
+        {last?.resolved ? ` · ${last.resolved} הוכרעו` : ""}
       </span>
     </Link>
   );
