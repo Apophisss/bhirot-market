@@ -9,6 +9,8 @@ import { ensureSynced } from "@/lib/sync";
 import { getPreferences, savePreferences } from "@/lib/preferences-store";
 import { HORIZONS, MAX_PEOPLE, MAX_TOPICS } from "@/lib/preferences";
 import { MarketImage } from "@/components/MarketImage";
+import { track } from "@/lib/analytics";
+import { EVENTS } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -59,11 +61,16 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
 
   async function save(formData: FormData) {
     "use server";
-    await savePreferences(userId, {
-      topics: formData.getAll("topics").map(String),
-      people: formData.getAll("people").map(String),
-      horizon: String(formData.get("horizon") ?? "mixed"),
-      status: "completed",
+    const topics = formData.getAll("topics").map(String);
+    const people = formData.getAll("people").map(String);
+    const horizon = String(formData.get("horizon") ?? "mixed");
+    await savePreferences(userId, { topics, people, horizon, status: "completed" });
+    // counts, not choices: how many people finish the survey and how much they fill
+    // in is the question here, and the answers themselves are already in the table
+    await track(EVENTS.survey, {
+      userId,
+      path: "/onboarding",
+      props: { status: "completed", topics: topics.length, people: people.length, horizon, editing: editing ? 1 : 0 },
     });
     redirect(next);
   }
@@ -71,6 +78,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   async function skip() {
     "use server";
     await savePreferences(userId, { status: "skipped", horizon: "mixed" });
+    await track(EVENTS.survey, { userId, path: "/onboarding", props: { status: "skipped", editing: editing ? 1 : 0 } });
     redirect(next);
   }
 

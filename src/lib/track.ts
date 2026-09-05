@@ -2,7 +2,13 @@
  * Browser-side event queue for the site's own analytics.
  * Batches events and ships them with `sendBeacon`, so tracking never blocks a click
  * and never throws into the page. Server-side counterpart: `src/lib/analytics.ts`.
+ *
+ * Every event also goes to GA4 (`ga-bridge.ts`), so the two systems see the same
+ * site instead of GA4 seeing whichever handful of interactions someone remembered
+ * to wire up by hand.
  */
+
+import { forwardToGa } from "./ga-bridge";
 
 export interface TrackPayload {
   path?: string;
@@ -64,7 +70,14 @@ export function isFirstVisit(): boolean {
 }
 
 export function track(name: string, payload: TrackPayload = {}): void {
-  if (disabled || typeof window === "undefined") return;
+  if (typeof window === "undefined") return;
+  // before the gate below on purpose: `disabled` turns off this site's own log,
+  // and GA already ignores it — <GoogleAnalytics> loads gtag.js and reports page
+  // views whatever this flag says. Events following the same rule is what keeps
+  // GA coherent; the alternative is a GA property full of pages nobody interacted
+  // with. GA's own off switch is a missing measurement ID.
+  forwardToGa(name, payload);
+  if (disabled) return;
   try {
     queue.push({
       name,
