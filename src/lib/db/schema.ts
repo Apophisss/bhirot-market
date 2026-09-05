@@ -23,6 +23,10 @@ export const users = sqliteTable("user", {
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
   balance: real("balance").notNull().default(STARTING_BALANCE),
+  /** personal invite code, minted on first visit to /invite (see `referral-program.ts`) */
+  referralCode: text("referralCode").unique(),
+  /** id of the user whose invite link brought this one in. Deliberately not a foreign key: an inviter who deletes their account must not take their invitees' rows with them. */
+  referredBy: text("referredBy"),
   createdAt: integer("createdAt", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -203,6 +207,34 @@ export const comments = sqliteTable(
       .$defaultFn(() => new Date()),
   },
   (c) => [index("comment_market_idx").on(c.marketId, c.createdAt)],
+);
+
+/**
+ * One row per accepted invite: who invited whom, and what the inviter was paid for it.
+ * The row is the ledger — `referral.bonus` is what separates gifted capital from
+ * trading profit everywhere a P&L is shown.
+ */
+export const referrals = sqliteTable(
+  "referral",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    referrerId: text("referrerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** the invited user — unique, so an account can only ever be credited once */
+    invitedId: text("invitedId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** ₪ paid to the inviter for this signup; 0 once they pass MAX_REFERRALS */
+    bonus: real("bonus").notNull().default(0),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (r) => [
+    uniqueIndex("referral_invited_idx").on(r.invitedId),
+    index("referral_referrer_idx").on(r.referrerId, r.createdAt),
+  ],
 );
 
 /** Log of editorial content updates (hourly routine / cron / admin API). */

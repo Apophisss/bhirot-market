@@ -2,6 +2,7 @@ import type { MarketView } from "./markets";
 import { getPerson } from "./content";
 import { getCategory, type Category } from "./categories";
 import { ELECTION_DATE, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "./config";
+import { MAX_REFERRALS, REFERRAL_BONUS } from "./referral";
 
 /** Absolute URL for a site-relative path — canonical tags and JSON-LD need the full form. */
 export function absUrl(path = "/"): string {
@@ -190,6 +191,10 @@ export const FAQ: { q: string; a: string }[] = [
   {
     q: "כמה כסף וירטואלי מקבלים בהתחלה?",
     a: "כל משתמש/ת שמתחבר/ת עם חשבון Google מקבל/ת ₪10,000 וירטואליים. לוח המובילים מדרג לפי שווי כולל — היתרה בתוספת שווי הפוזיציות הפתוחות במחירי השוק.",
+  },
+  {
+    q: "מה זה הקישור האישי להזמנת חברים?",
+    a: `לכל משתמש/ת יש קישור אישי לשיתוף האתר. כל מי שנרשם דרך הקישור מזכה אתכם ב־₪${REFERRAL_BONUS.toLocaleString("en-US")} וירטואליים שנכנסים ליתרה מיד, עד ${MAX_REFERRALS} חברים. הבונוס נספר בשווי הכולל אבל לא ברווח/הפסד, כך שלוח המובילים ממשיך למדוד חיזוי בלבד.`,
   },
   {
     q: "מי כותב את השאלות?",

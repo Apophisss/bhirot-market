@@ -8,6 +8,7 @@ import { MarketBrowser, PAGE, browseHref, parseSort } from "@/components/MarketB
 import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
+import { InvitePromo } from "@/components/InvitePromo";
 import { PmCandidates } from "@/components/PmCandidates";
 import { RecommendationSection } from "@/components/Recommendations";
 import { JsonLd } from "@/components/JsonLd";
@@ -208,6 +209,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       {!filtered && !session?.user && <HowToPlay />}
+
+      {!filtered && <InvitePromo loggedIn={Boolean(session?.user)} />}
 
       {closingSoon.length > 0 && (
         <section className="space-y-3">

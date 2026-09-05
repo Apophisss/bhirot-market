@@ -2,6 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { STARTING_BALANCE } from "./db/schema";
 import { toView, type MarketView } from "./markets";
+import { getReferralEarningsByUser } from "./referral-program";
 
 const { positions, markets, users, trades } = schema;
 
@@ -97,7 +98,10 @@ export interface LeaderRow {
   balance: number;
   positionsValue: number;
   netWorth: number;
+  /** worth minus the capital the house handed over — the starting balance and any invite bonuses */
   pnl: number;
+  /** ₪ earned from invites; part of net worth, deliberately not part of P&L */
+  referralBonus: number;
   tradeCount: number;
 }
 
@@ -110,6 +114,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
     .innerJoin(markets, eq(positions.marketId, markets.id))
     .where(and(eq(positions.settled, false), inArray(markets.status, ["open"])));
   const tradeCounts = await db.select({ userId: trades.userId, id: trades.id }).from(trades);
+  const referralBonus = await getReferralEarningsByUser();
 
   const value = new Map<string, number>();
   for (const { p, prob } of openPositions) {
@@ -122,6 +127,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
     .map((u) => {
       const pv = value.get(u.id) ?? 0;
       const net = u.balance + pv;
+      const bonus = referralBonus.get(u.id) ?? 0;
       return {
         userId: u.id,
         name: u.name,
@@ -129,7 +135,8 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
         balance: u.balance,
         positionsValue: pv,
         netWorth: net,
-        pnl: net - STARTING_BALANCE,
+        pnl: net - STARTING_BALANCE - bonus,
+        referralBonus: bonus,
         tradeCount: counts.get(u.id) ?? 0,
       };
     })

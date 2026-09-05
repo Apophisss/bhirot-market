@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth, signOut } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
+import { REFERRAL_BONUS } from "@/lib/referral";
+import { money } from "@/lib/format";
 import { UserBalance } from "./UserBalance";
 import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
@@ -79,6 +81,10 @@ export async function Header() {
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
                   <Link href="/for-you" className="block px-4 py-3 text-sm hover:bg-surface-2">מומלץ בשבילי</Link>
+                  <Link href="/invite" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
+                    הזמינו חברים
+                    <span className="tabular shrink-0 rounded-full bg-yes/15 px-2 py-0.5 text-[11px] font-bold text-yes">{money(REFERRAL_BONUS)}</span>
+                  </Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
                   <form action={doSignOut}>
                     <button className="block w-full px-4 py-3 text-right text-sm text-no hover:bg-surface-2">התנתקות</button>

@@ -20,7 +20,10 @@ export default async function LeaderboardPage() {
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
         <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">לוח המובילים</h1>
-        <p className="text-[13px] text-muted sm:text-sm">דירוג לפי שווי כולל (יתרה + שווי פוזיציות פתוחות). כולם התחילו עם ₪10,000 וירטואליים.</p>
+        <p className="text-[13px] text-muted sm:text-sm">
+          דירוג לפי שווי כולל (יתרה + שווי פוזיציות פתוחות). כולם התחילו עם ₪10,000 וירטואליים; בונוס ההזמנות נספר
+          בשווי אבל לא ברווח/הפסד, שמודד חיזוי בלבד.
+        </p>
       </div>
       <div className="card overflow-hidden">
         {rows.length ? (
