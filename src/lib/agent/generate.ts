@@ -6,6 +6,7 @@ import { clampTopicality } from "../topicality";
 import { CATEGORY_IDS } from "../categories";
 import { loadPeople, MarketContentSchema, type MarketContent } from "../content";
 import { listMarkets } from "../markets";
+import { duplicateRisk, REASON_TEXT, type Comparable } from "../similarity";
 import { logAgentRun, upsertMarkets } from "../sync";
 import { EDITORIAL_GUIDE, RESEARCH_INSTRUCTIONS } from "./prompt";
 
@@ -56,22 +57,15 @@ export interface GeneratorResult {
   skippedResolutions: { slug: string; reason: string }[];
 }
 
-function normalize(s: string): Set<string> {
-  return new Set(
-    s
-      .replace(/[^\p{L}\p{N}\s]/gu, " ")
-      .split(/\s+/)
-      .filter((w) => w.length > 2),
-  );
-}
-
-function similarity(a: string, b: string): number {
-  const A = normalize(a);
-  const B = normalize(b);
-  if (!A.size || !B.size) return 0;
-  let inter = 0;
-  for (const w of A) if (B.has(w)) inter++;
-  return inter / Math.min(A.size, B.size);
+/** A stored market in the shape the duplicate check reads (../similarity). */
+function comparable(m: { id: string; title: string; resolutionCriteria: string; closesAt: Date; sources: { url: string }[] }): Comparable {
+  return {
+    slug: m.id,
+    title: m.title,
+    resolutionCriteria: m.resolutionCriteria,
+    closesAt: m.closesAt.toISOString(),
+    sources: m.sources,
+  };
 }
 
 async function research(client: Anthropic, existingTitles: string[]): Promise<string> {
@@ -156,11 +150,41 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
 
   const now = new Date();
   const toInsert: MarketContent[] = [];
+  /** what this run has already taken, so it cannot propose the same question twice */
+  const accepted: Comparable[] = [];
   const peopleIds = new Set(people.map((p) => p.id));
   for (const p of out.newMarkets) {
-    const dup = existing.find((m) => m.id === p.slug || similarity(m.title, p.title) >= 0.6);
+    const bySlug = existing.find((m) => m.id === p.slug);
+    if (bySlug) {
+      result.rejected.push({ slug: p.slug, reason: `duplicate of ${bySlug.id}` });
+      continue;
+    }
+    const proposed: Comparable = {
+      slug: p.slug,
+      title: p.title,
+      resolutionCriteria: p.resolutionCriteria,
+      closesAt: p.closesAt,
+      sources: p.sources,
+    };
+    // The check this path used to carry was its own — raw word overlap at 0.6,
+    // no stemming, no scaffolding removed — on a board where every title is
+    // built from "האם … יפרסם … סקר … מנדטים … עד". It now shares one definition
+    // of "the same question" with scripts/merge-markets.ts. Nobody reads this
+    // run before it publishes, so both levels are refused: the writer who would
+    // justify a "review" pair in a batch does not exist on the cron path.
+    //
+    // Only against what is still open — a question the board already settled is
+    // history, and asking it again about a new window is a legitimate question —
+    // plus the proposals this same run already accepted, which is how one run
+    // writes the same story twice.
+    const dup = [...existingOpen.map(comparable), ...accepted]
+      .map((m) => ({ m, risk: duplicateRisk(proposed, m) }))
+      .find(({ risk }) => risk.level !== "clear");
     if (dup) {
-      result.rejected.push({ slug: p.slug, reason: `duplicate of ${dup.id}` });
+      result.rejected.push({
+        slug: p.slug,
+        reason: `duplicate of ${dup.m.slug} — ${dup.risk.reasons.map((r) => REASON_TEXT[r]).join("; ")}`,
+      });
       continue;
     }
     const candidate = MarketContentSchema.safeParse({
@@ -188,6 +212,7 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
       continue;
     }
     toInsert.push(candidate.data);
+    accepted.push(candidate.data);
   }
 
   const toResolve: MarketContent[] = [];
