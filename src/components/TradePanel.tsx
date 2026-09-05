@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
+import { otherSide, sellPrefill, sellSide, sharesOn } from "@/lib/sell";
 import { MAX_BET } from "@/lib/limits";
 import { money, pct, shares as fmtShares, sharePrice } from "@/lib/format";
 import { track } from "@/lib/track";
@@ -27,18 +28,23 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   const router = useRouter();
   const pathname = usePathname();
   const [action, setAction] = useState<Action>(initialAction);
-  const [side, setSide] = useState<Side>(initialSide);
+  // a sale can only ever be about a side that is held, so the sell tab never opens
+  // on an empty one — see the note in src/lib/sell.ts
+  const [side, setSide] = useState<Side>(() => (initialAction === "SELL" ? sellSide(position, initialSide) : initialSide));
   // arriving on the sell tab from the portfolio means "I want to sell this holding":
   // pre-filling the whole position makes the panel quote exactly the value the
   // portfolio just showed, instead of an empty form and a dash.
-  const [input, setInput] = useState<string>(() => {
-    if (initialAction !== "SELL") return "";
-    const heldNow = initialSide === "YES" ? position?.yesShares ?? 0 : position?.noShares ?? 0;
-    // truncate, never round up: a value above the holding would trip overLimit
-    return heldNow > 0 ? String(Math.floor(heldNow * 1e4) / 1e4) : "";
-  });
+  const [input, setInput] = useState<string>(() =>
+    initialAction === "SELL" ? sellPrefill(position, sellSide(position, initialSide)) : "",
+  );
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  /** Moves the panel onto one side, carrying the sell box with it. */
+  function pickSide(next: Side, forAction: Action = action) {
+    setSide(next);
+    if (forAction === "SELL") setInput(sellPrefill(position, next));
+  }
 
   // the sticky mobile bar (see StickyTradeBar) picks a side and scrolls the panel into view
   useEffect(() => {
@@ -47,6 +53,9 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       if (picked === "YES" || picked === "NO") {
         setSide(picked);
         setAction("BUY");
+        // the box means ₪ on the buy tab and shares on the sell tab — a leftover
+        // share count must not be re-read as an amount to spend
+        setInput("");
       }
     };
     window.addEventListener("market:pick-side", onPick);
@@ -54,8 +63,10 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   }, []);
 
   const state: MarketState = { qYes: market.qYes, qNo: market.qNo, b: market.liquidity };
-  const held = side === "YES" ? position?.yesShares ?? 0 : position?.noShares ?? 0;
+  const held = sharesOn(position, side);
   const heldCost = side === "YES" ? position?.yesCost ?? 0 : position?.noCost ?? 0;
+  const flip = otherSide(side);
+  const heldOther = sharesOn(position, flip);
   const qty = Number(input) || 0;
 
   // buying is capped at the 99% band so the user sees the limit instead of a
@@ -183,8 +194,11 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           <button
             key={a}
             onClick={() => {
+              // "מכירה" lands on a side that is actually held: the selector is shared
+              // with "קנייה", where כן is a fine default and here it is not.
               setAction(a);
-              setInput("");
+              pickSide(a === "SELL" ? sellSide(position, side) : side, a);
+              if (a === "BUY") setInput("");
               setMsg(null);
             }}
             className={`pressable flex-1 rounded-md py-2 text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
@@ -194,23 +208,36 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
         ))}
       </div>
 
+      {/* in "מכירה" each button also says what is held on that side, so the choice
+          is not a guess: a sale is about a holding, not about a price */}
       <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => setSide("YES")}
-          className={`pressable rounded-xl border-2 py-3.5 text-center font-extrabold transition ${
-            side === "YES" ? "border-yes bg-yes text-white" : "border-border bg-surface-2 text-yes hover:border-yes/60"
-          }`}
-        >
-          כן <span className="tabular text-sm font-semibold opacity-90">{sharePrice(market.probability)}</span>
-        </button>
-        <button
-          onClick={() => setSide("NO")}
-          className={`pressable rounded-xl border-2 py-3.5 text-center font-extrabold transition ${
-            side === "NO" ? "border-no bg-no text-white" : "border-border bg-surface-2 text-no hover:border-no/60"
-          }`}
-        >
-          לא <span className="tabular text-sm font-semibold opacity-90">{sharePrice(1 - market.probability)}</span>
-        </button>
+        {(["YES", "NO"] as Side[]).map((s) => {
+          const on = side === s;
+          const heldHere = sharesOn(position, s);
+          return (
+            <button
+              key={s}
+              onClick={() => pickSide(s)}
+              className={`pressable rounded-xl border-2 py-3 text-center font-extrabold transition ${
+                s === "YES"
+                  ? on
+                    ? "border-yes bg-yes text-white"
+                    : "border-border bg-surface-2 text-yes hover:border-yes/60"
+                  : on
+                    ? "border-no bg-no text-white"
+                    : "border-border bg-surface-2 text-no hover:border-no/60"
+              }`}
+            >
+              {s === "YES" ? "כן" : "לא"}{" "}
+              <span className="tabular text-sm font-semibold opacity-90">{sharePrice(s === "YES" ? market.probability : 1 - market.probability)}</span>
+              {action === "SELL" && (
+                <span className="tabular block text-[11px] font-semibold opacity-80">
+                  {heldHere > 0 ? `${fmtShares(heldHere)} מניות` : "אין מניות"}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-4">
@@ -221,6 +248,23 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
         {buyBlocked ? (
           <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
             הצד הזה הגיע לתקרה ({Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לקנות עוד. מכירה של פוזיציה קיימת עדיין אפשרית.
+          </p>
+        ) : action === "SELL" && held <= 0 ? (
+          // never leave a disabled sell button unexplained: a holder who lands on the
+          // wrong side has to be told which side their position is on, and get there
+          // in one click
+          <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
+            {heldOther > 0 ? (
+              <>
+                אין לך מניות {side === "YES" ? "כן" : "לא"} בשוק הזה. הפוזיציה שלך היא {fmtShares(heldOther)} מניות{" "}
+                {flip === "YES" ? "כן" : "לא"} —{" "}
+                <button onClick={() => pickSide(flip)} className="font-bold underline hover:text-text-strong">
+                  למכירה שלהן
+                </button>
+              </>
+            ) : (
+              "אין לך פוזיציה בשוק הזה, אז אין מה למכור. אפשר לקנות בלשונית ״קנייה״."
+            )}
           </p>
         ) : (
           overLimit && (

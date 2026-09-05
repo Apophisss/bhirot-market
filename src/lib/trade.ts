@@ -136,7 +136,18 @@ export async function executeTrade(req: TradeRequest) {
       // a sale is never blocked by the price band: whatever the market did to the
       // position, the holder can always sell all of it (see PRICE_BAND in lmsr.ts).
       const sellShares = Math.min(req.quantity, heldShares);
-      if (sellShares <= 0) throw new TradeError("אין לך מניות למכירה", 400, "NO_SHARES");
+      if (sellShares <= 0) {
+        // "אין לך מניות למכירה" on its own reads as "you never bought anything" to a
+        // holder whose position is simply on the other side. Name the side.
+        const otherShares = isYes ? position.noShares : position.yesShares;
+        throw new TradeError(
+          otherShares > 0
+            ? `אין לך מניות ${isYes ? "כן" : "לא"} בשוק הזה — הפוזיציה שלך היא בצד ${isYes ? "לא" : "כן"}`
+            : "אין לך פוזיציה בשוק הזה למכירה",
+          400,
+          "NO_SHARES",
+        );
+      }
       quote = quoteSell(state, req.side, sellShares);
       if (!Number.isFinite(quote.amount) || quote.amount < 0) throw new TradeError("שגיאת חישוב, נסו כמות אחרת");
       newBalance = user.balance + quote.amount;
