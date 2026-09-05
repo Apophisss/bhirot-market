@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-05T16:40:00+03:00",
-  "lastUpdateNote": "דירוג עורך לכל 327 השאלות הפתוחות: appeal 1-5 לפי כמה השאלה מגניבה ומעניינת, האות שמנוע ההמלצות שוקל לצד הטעם האישי והפופולריות.",
+  "updatedAt": "2026-09-05T18:35:00+03:00",
+  "lastUpdateNote": "הסקר המרכזי: שש שאלות הכותרת של הבחירות — מי יעמוד בראש הממשלה הבאה, כמה מנדטים לליכוד ולמפלגה הגדולה, אם החרדים יהיו בקואליציה, וכמה צמוד יהיה הפער בין הגושים.",
   "markets": [
     {
       "slug": "golan-sues-sara-netanyahu-oct7",
@@ -24,7 +24,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 4,
-      "featured": true,
+      "featured": false,
       "status": "open",
       "sources": [
         {
@@ -45,7 +45,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed"
+      "createdBy": "seed",
+      "updatedAt": "2026-09-05T18:35:00+03:00"
     },
     {
       "slug": "sara-netanyahu-sues-golan-2026",
@@ -79,8 +80,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "sara-netanyahu-public-apology-golan",
@@ -114,8 +115,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "channel14-likud-30-plus-by-sept15",
@@ -137,7 +138,7 @@
       "initialProbability": 0.72,
       "liquidity": 2000,
       "appeal": 4,
-      "featured": true,
+      "featured": false,
       "status": "open",
       "sources": [
         {
@@ -154,7 +155,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed"
+      "createdBy": "seed",
+      "updatedAt": "2026-09-05T18:35:00+03:00"
     },
     {
       "slug": "channel14-yashar-below-20-by-sept30",
@@ -188,8 +190,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "beyachad-yashar-joint-list-by-sept10",
@@ -231,8 +233,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "lieberman-eisenkot-joint-list-by-sept10",
@@ -266,8 +268,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "otzma-rz-joint-list-by-sept10",
@@ -301,8 +303,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "winter-smotrich-joint-list-by-sept10",
@@ -337,8 +339,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "blue-white-submits-independent-list",
@@ -440,8 +442,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "rz-zehut-above-threshold-first-ch12-after-lists",
@@ -480,8 +482,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "winter-party-5-plus-ch12-by-sept30",
@@ -519,8 +521,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "yashar-25-plus-mainstream-poll-by-sept30",
@@ -541,7 +543,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 4,
-      "featured": true,
+      "featured": false,
       "status": "open",
       "sources": [
         {
@@ -558,8 +560,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T18:35:00+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "beyachad-7-or-less-ch12-by-sept30",
@@ -598,8 +600,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "netanyahu-eisenkot-tv-debate-before-election",
@@ -634,8 +636,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "herzog-decides-netanyahu-pardon-before-election",
@@ -759,8 +761,11 @@
       "closesAt": "2026-10-15T23:59:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם ועדת הבחירות המרכזית תפסול לפחות מועמד אחד או רשימה אחת עד מועד ההכרעה, 29 בספטמבר 2026, בחול המועד סוכות?\" (cec-disqualification-decision-by-september-29). השאלה הזו רחבה משתי שאלות פסילה פתוחות אחרות וכוללת אותן, אך תומחרה נמוך מהן (15% מול 45% ו-58%) - כלומר אותו אירוע בתמחור לא עקבי. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "המכון הישראלי לדמוקרטיה: פסילת רשימות ומועמדים",
@@ -772,10 +777,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "resolutionNote": "בוטל ככפילות של \"האם ועדת הבחירות המרכזית תפסול לפחות מועמד אחד או רשימה אחת עד מועד ההכרעה, 29 בספטמבר 2026, בחול המועד סוכות?\" (cec-disqualification-decision-by-september-29). השאלה הזו רחבה משתי שאלות פסילה פתוחות אחרות וכוללת אותן, אך תומחרה נמוך מהן (15% מול 45% ו-58%) - כלומר אותו אירוע בתמחור לא עקבי. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "state-commission-oct7-decision-before-election",
@@ -853,6 +856,7 @@
     {
       "slug": "hendel-tropper-list-above-threshold-any-poll",
       "title": "האם 'הבית הציוני – המילואימניקים' יקבל 4 מנדטים ומעלה בסקר של חדשות 12/13 או כאן עד 15.10?",
+      "subtitle": "רשימת המילואימניקים של הנדל וטרופר לא עברה עד כה את אחוז החסימה בסקרים",
       "description": "יועז הנדל וחילי טרופר (שפרש מכחול לבן במאי) הקימו רשימה משותפת שמתמקדת בשוויון בנטל ובגיוס אוניברסלי. בסקרים שבהם נמדדה, הרשימה לא עברה עד כה את אחוז החסימה (3.25%).",
       "resolutionCriteria": "יוכרע \"כן\" אם בין 5.9.2026 ל-15.10.2026 יפורסם לפחות סקר מנדטים אחד מטעם חדשות 12 (קשת/mako), חדשות 13 (רשת/13tv) או כאן 11 (תאגיד השידור הישראלי), שבו הרשימה שבראשה עומדים יועז הנדל ו/או חילי טרופר (\"הבית הציוני – המילואימניקים\") מקבלת 4 מנדטים ומעלה. המקור המכריע: הפרסום הרשמי של הערוץ המשדר (mako.co.il, 13tv.co.il, kan.org.il). \"לא\" אם כל הסקרים של שלושת הערוצים האלה בחלון הזה ייחסו לרשימה פחות מ-4 מנדטים או יציגו אותה כמי שאינה עוברת את אחוז החסימה, וכן \"לא\" אם אף אחד משלושת הערוצים לא יפרסם בחלון הזה סקר מנדטים שכולל את הרשימה. סקרים של ערוצים או כלי תקשורת אחרים אינם נחשבים. אם הרשימה תתמזג לרשימה אחרת או לא תוגש לוועדת הבחירות המרכזית — השוק יבוטל.",
       "category": "polls",
@@ -882,9 +886,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "subtitle": "רשימת המילואימניקים של הנדל וטרופר לא עברה עד כה את אחוז החסימה בסקרים",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "likud-largest-last-ch12-poll",
@@ -918,8 +921,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "turnout-above-70-election-2026",
@@ -950,12 +953,13 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "netanyahu-bloc-61-election-result",
       "title": "האם גוש נתניהו יגיע ל-61 מנדטים בתוצאות הבחירות ב-27.10.2026?",
+      "subtitle": "הגוש: ליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית ועמך ישראל",
       "description": "ברוב סקרי כאן, חדשות 12 וחדשות 13 גוש הקואליציה עומד על 52–53 מנדטים, בעוד סקרי ערוץ 14 נותנים לו 63. תמונת הגושים תלויה מאוד באיזה מהמפלגות הקטנות (הציונות הדתית, עמך ישראל של וינטר) יעברו את אחוז החסימה.",
       "resolutionCriteria": "יוכרע \"כן\" אם לפי התוצאות הרשמיות של הבחירות לכנסת ה-26 שתפרסם ועדת הבחירות המרכזית (bechirot.gov.il; צפוי 4.11.2026) סך המנדטים של הליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית-זהות ועמך ישראל יהיה 61 ומעלה. רשימה משותפת שכל מרכיביה הם מהמפלגות שלעיל (לרבות רשימת הציונות הדתית עם זהות של פייגלין) תיספר במלואה. מפלגה שלא תעבור את אחוז החסימה תורמת 0 מנדטים. \"לא\" אם הסך יהיה 60 מנדטים או פחות. אם הבחירות יידחו ולא ייערכו ב-27.10.2026 — השוק יבוטל.",
       "category": "election-day",
@@ -988,9 +992,8 @@
         }
       ],
       "createdAt": "2026-09-04T21:00:00+03:00",
-      "createdBy": "seed",
-      "subtitle": "הגוש: ליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית ועמך ישראל",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "seed"
     },
     {
       "slug": "eisenkot-first-mandate-to-form-government",
@@ -1070,8 +1073,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "religious-zionism-below-threshold-weekend-poll-sunday",
@@ -1135,8 +1138,11 @@
       "closesAt": "2026-09-06T01:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "אי אפשר להכריע בדיעבד באיזו ידיעה נפתחה המהדורה — הראיה קיימת רק בשידור עצמו, ואין פרסום כתוב קבוע של סדר המהדורה.",
+      "resolvedAt": "2026-09-05T14:43:08+03:00",
       "sources": [
         {
           "title": "חדשות היום, 4 בספטמבר 2026 (בלוג חי) | הארץ",
@@ -1148,10 +1154,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "אי אפשר להכריע בדיעבד באיזו ידיעה נפתחה המהדורה — הראיה קיימת רק בשידור עצמו, ואין פרסום כתוב קבוע של סדר המהדורה.",
-      "resolvedAt": "2026-09-05T14:43:08+03:00",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-responds-shabbat-interview-backlash-sunday",
@@ -1188,8 +1192,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "winter-join-or-quit-sunday",
@@ -1348,8 +1352,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-new-reserved-slot-sunday",
@@ -1496,8 +1500,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "channel14-removes-sara-interview-sunday",
@@ -1532,8 +1536,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "hcj-petition-ag-ovadia-hilula-tuesday",
@@ -1575,8 +1579,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-cabinet-remarks-draft-ruling-sunday",
@@ -1616,8 +1620,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "idf-resume-draft-evader-enforcement-monday",
@@ -1658,8 +1662,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "hcj-october7-inquiry-operative-ruling-monday",
@@ -1695,8 +1699,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "yisrael-beitenu-full-list-published-sunday",
@@ -1804,8 +1808,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "idf-lebanon-strike-announcement-sunday-eve",
@@ -1828,7 +1832,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "appeal": 3,
-      "featured": true,
+      "featured": false,
       "status": "open",
       "sources": [
         {
@@ -1845,7 +1849,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch"
+      "createdBy": "editorial-batch",
+      "updatedAt": "2026-09-05T18:35:00+03:00"
     },
     {
       "slug": "us-strike-pickaxe-mountain-monday-morning",
@@ -1925,8 +1930,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-condemn-settler-violence-sunday-night",
@@ -2002,8 +2007,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "utj-agudah-degel-joint-list-deal-monday",
@@ -2044,8 +2049,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "degel-gafni-dropped-top-spot-tuesday-am",
@@ -2081,8 +2086,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "shas-final-candidate-list-published-monday",
@@ -2118,8 +2123,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "haredi-parties-18-seats-poll-sat-night",
@@ -2152,8 +2157,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-haredi-leaders-contact-sunday",
@@ -2191,8 +2196,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-reserved-slot-right-bloc-merger",
@@ -2233,8 +2238,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "avi-dichter-likud-top-20",
@@ -2270,8 +2275,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "israel-katz-above-saar-likud-list",
@@ -2392,8 +2397,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "another-likud-mk-defects-before-deadline",
@@ -2434,8 +2439,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-last-term-declaration",
@@ -2474,8 +2479,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-25-seats-mainstream-poll",
@@ -2509,8 +2514,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-otzma-surplus-agreement",
@@ -2533,8 +2538,11 @@
       "closesAt": "2026-10-16T14:00:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם הליכוד ועוצמה יהודית יחתמו על הסכם עודפים ביניהן עד 16.10.2026?\" (likud-otzma-surplus-agreement-by-oct16). אותו הסכם עודפים בין הליכוד לעוצמה יהודית, אותו מועד אחרון (16.10.2026) ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "מפלגת הליכוד אישרה: טלי גוטליב תוכל להתמודד בעוצמה יהודית | זה המקום המסתמן ברשימה",
@@ -2550,10 +2558,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם הליכוד ועוצמה יהודית יחתמו על הסכם עודפים ביניהן עד 16.10.2026?\" (likud-otzma-surplus-agreement-by-oct16). אותו הסכם עודפים בין הליכוד לעוצמה יהודית, אותו מועד אחרון (16.10.2026) ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-ad-pulled-by-elections-committee",
@@ -2593,8 +2599,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-faction-three-new-mks",
@@ -2634,8 +2640,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "yashar-beyachad-joint-list-by-deadline",
@@ -2659,8 +2665,11 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם 'ביחד' (בנט-לפיד) ו'ישר!' (איזנקוט) יגישו רשימה משותפת לוועדת הבחירות עד 10.9?\" (beyachad-yashar-joint-list-by-sept10). אותה שאלה: רשימה משותפת אחת של ישר ושל ביחד עד סגירת ההגשה ב-10.9.2026. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "בחירות 2026 | המפלגה של בנט ולפיד דועכת, והקולות בעד איחוד עם איזנקוט מתגברים - הארץ",
@@ -2680,10 +2689,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם 'ביחד' (בנט-לפיד) ו'ישר!' (איזנקוט) יגישו רשימה משותפת לוועדת הבחירות עד 10.9?\" (beyachad-yashar-joint-list-by-sept10). אותה שאלה: רשימה משותפת אחת של ישר ושל ביחד עד סגירת ההגשה ב-10.9.2026. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "beyachad-splits-separate-lists",
@@ -2724,8 +2731,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "lapid-second-slot-beyachad-list",
@@ -2865,8 +2872,11 @@
       "closesAt": "2026-10-02T23:59:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם 'ישר!' של איזנקוט תגיע ל-25 מנדטים ומעלה בסקר של חדשות 12, חדשות 13 או כאן עד 30.9?\" (yashar-25-plus-mainstream-poll-by-sept30). אותו סף (25 מנדטים לישר) בחלון חופף כמעט לגמרי. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "בחירות 2026 | סקר חדשות 13: לראשונה, מפלגת ישר של איזנקוט עוקפת את הליכוד במנדט - הארץ",
@@ -2886,10 +2896,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם 'ישר!' של איזנקוט תגיע ל-25 מנדטים ומעלה בסקר של חדשות 12, חדשות 13 או כאן עד 30.9?\" (yashar-25-plus-mainstream-poll-by-sept30). אותו סף (25 מנדטים לישר) בחלון חופף כמעט לגמרי. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "bennett-largest-party-rule-pledge",
@@ -2930,8 +2938,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "yashar-beyachad-surplus-agreement",
@@ -3012,8 +3020,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "beyachad-under-15-official-results",
@@ -3076,8 +3084,11 @@
       "closesAt": "2026-11-05T12:00:00+03:00",
       "initialProbability": 0.33,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם הרשימה בראשות גדי איזנקוט תהיה הרשימה הגדולה ביותר בתוצאות הרשמיות של הבחירות ב-27.10.2026?\" (eisenkot-list-largest-in-official-results). אותה שאלה: האם הרשימה בראשות איזנקוט תהיה הגדולה ביותר בתוצאות הרשמיות. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "בחירות 2026 | סקר חדשות 13: לראשונה, מפלגת ישר של איזנקוט עוקפת את הליכוד במנדט - הארץ",
@@ -3093,10 +3104,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם הרשימה בראשות גדי איזנקוט תהיה הרשימה הגדולה ביותר בתוצאות הרשמיות של הבחירות ב-27.10.2026?\" (eisenkot-list-largest-in-official-results). אותה שאלה: האם הרשימה בראשות איזנקוט תהיה הגדולה ביותר בתוצאות הרשמיות. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "beyachad-recommends-eisenkot-to-herzog",
@@ -3177,8 +3186,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-trial-full-five-day-hearing-week",
@@ -3217,8 +3226,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-defense-closed-witness-list-filed",
@@ -3335,8 +3344,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "prosecution-amends-indictment-drops-bribery-case-4000",
@@ -3497,8 +3506,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "new-government-decision-to-oust-attorney-general-by-nov-20-2026",
@@ -3631,8 +3640,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "ag-formal-opinion-on-netanyahu-pardon-request-by-nov-18-2026",
@@ -3712,8 +3721,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "hcj-ruling-on-ben-gvir-removal-petitions-by-nov-5-2026",
@@ -3794,8 +3803,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "police-senior-promotions-cycle-approved-by-sept-30-2026",
@@ -3935,8 +3944,11 @@
       "closesAt": "2026-10-26T22:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "Netanyahu claims defense officials intentionally failed to wake him in hours before Oct. 7 attack — The Times of Israel",
@@ -3948,10 +3960,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-televised-head-to-head-debate-2026",
@@ -3974,8 +3984,11 @@
       "closesAt": "2026-10-25T22:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם יתקיים עימות טלוויזיוני ישיר בין נתניהו לאיזנקוט לפני יום הבחירות?\" (netanyahu-eisenkot-tv-debate-before-election). אותו אירוע: עימות טלוויזיוני של נתניהו מול מועמד יריב. השאלה הרחבה תומחרה נמוך מהמצומצמת ממנה (7% מול 10%). כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "2026 Israeli legislative election — Wikipedia",
@@ -3987,10 +4000,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם יתקיים עימות טלוויזיוני ישיר בין נתניהו לאיזנקוט לפני יום הבחירות?\" (netanyahu-eisenkot-tv-debate-before-election). אותו אירוע: עימות טלוויזיוני של נתניהו מול מועמד יריב. השאלה הרחבה תומחרה נמוך מהמצומצמת ממנה (7% מול 10%). כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-unga-podium-speech-september-2026",
@@ -4071,8 +4082,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-market-walkabout-before-yom-kippur-2026",
@@ -4227,8 +4238,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "thirty-five-lists-submitted-by-sept-10",
@@ -4266,8 +4277,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "winter-amcha-yisrael-independent-list-sept-10",
@@ -4307,8 +4318,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "goldknopf-heads-utj-list-sept-10",
@@ -4370,8 +4381,11 @@
       "closesAt": "2026-09-15T23:59:00+03:00",
       "initialProbability": 0.85,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם תוגש לוועדת הבחירות המרכזית בקשה לפסילת מועמדותו של איתמר בן גביר עד 30.9?\" (petition-disqualify-ben-gvir-filed-by-sept30). אותה שאלה: הגשת בקשת פסילה נגד בן גביר או עוצמה יהודית. המועד האחרון להגשה הוא 15.9, ולכן שני החלונות מוכרעים יחד. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "בחירות 2026 | בניסיון נוסף לפסול את בן גביר, ארגונים יפנו לוועדת הבחירות בטענה שהתערבותו במשטרה פגעה בדמוקרטיה - הארץ",
@@ -4387,10 +4401,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם תוגש לוועדת הבחירות המרכזית בקשה לפסילת מועמדותו של איתמר בן גביר עד 30.9?\" (petition-disqualify-ben-gvir-filed-by-sept30). אותה שאלה: הגשת בקשת פסילה נגד בן גביר או עוצמה יהודית. המועד האחרון להגשה הוא 15.9, ולכן שני החלונות מוכרעים יחד. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "ag-supports-disqualification-by-sept-17",
@@ -4509,8 +4521,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "post-closing-poll-netanyahu-bloc-61-sept-14-17",
@@ -4593,8 +4605,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "cec-disqualification-decision-by-september-29",
@@ -4639,8 +4651,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "cec-disqualifies-arab-list-by-september-29",
@@ -4723,8 +4735,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "cec-plenum-voter-tracking-reversal-by-october-5",
@@ -4768,8 +4780,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "ovadia-yosef-state-memorial-allowed-by-october-5",
@@ -4811,8 +4823,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-trial-hearing-october-4",
@@ -4851,8 +4863,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-speech-national-memorial-day-october-5",
@@ -4892,8 +4904,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-bloc-60-poll-before-sukkot",
@@ -4978,8 +4990,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-mainstream-tv-interview-by-end-of-tishrei",
@@ -5101,8 +5113,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "arab-society-turnout-above-60-percent-2026",
@@ -5218,8 +5230,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "raam-above-60-percent-in-rahat",
@@ -5459,8 +5471,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "tel-aviv-eisenkot-list-largest-2026",
@@ -5845,8 +5857,11 @@
       "closesAt": "2026-10-27T19:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "196 דקות בשבעה חודשים: נתניהו מתראיין רק בערוץ 14 | העין השביעית",
@@ -5862,10 +5877,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-ministers-return-to-channel-12-studio",
@@ -6166,8 +6179,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "eisenkot-on-meet-the-press-segal-caspit",
@@ -6488,8 +6501,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "channel-14-exit-poll-netanyahu-bloc-error",
@@ -6529,8 +6542,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "hcj-freezes-kan-budget-cut-karhi-law",
@@ -6719,8 +6732,11 @@
       "closesAt": "2026-11-20T20:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם פיץ' תסיר את התחזית השלילית מדירוג האשראי של ישראל ותקבע לו תחזית יציבה או חיובית עד 20.11.2026?\" (fitch-israel-outlook-off-negative-by-20-november-2026). אותה פעולת דירוג של פיץ עד 20.11.2026 - הסרת התחזית השלילית - ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "Fitch keeps Israel's 'A' credit rating, negative outlook amid rise in public debt, war-related risks – The Times of Israel",
@@ -6740,10 +6756,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם פיץ' תסיר את התחזית השלילית מדירוג האשראי של ישראל ותקבע לו תחזית יציבה או חיובית עד 20.11.2026?\" (fitch-israel-outlook-off-negative-by-20-november-2026). אותה פעולת דירוג של פיץ עד 20.11.2026 - הסרת התחזית השלילית - ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "israel-sovereign-rating-upgrade-by-nov-17-2026",
@@ -6787,8 +6801,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "israel-2027-budget-proposal-by-october-31",
@@ -6810,8 +6824,11 @@
       "closesAt": "2026-10-30T20:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם הממשלה תאשר הצעת תקציב מדינה לשנת 2027 עד 5.11.2026?\" (cabinet-approves-2027-state-budget-proposal-by-5-nov-2026). אותו אירוע: אישור הצעת תקציב 2027 בממשלה. החלון שנשמר ארוך יותר והקריטריון בו חד יותר. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "תקציב 2027: הבור האמיתי עמוק בעשרות מיליארדי שקלים – כלכליסט",
@@ -6831,10 +6848,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם הממשלה תאשר הצעת תקציב מדינה לשנת 2027 עד 5.11.2026?\" (cabinet-approves-2027-state-budget-proposal-by-5-nov-2026). אותו אירוע: אישור הצעת תקציב 2027 בממשלה. החלון שנשמר ארוך יותר והקריטריון בו חד יותר. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "deficit-above-5-percent-september-2026-report",
@@ -6878,8 +6893,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "shekel-stronger-day-after-election-2026",
@@ -6923,8 +6938,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "ta35-up-first-session-after-election-2026",
@@ -6964,8 +6979,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "histadrut-general-strike-before-november-15-2026",
@@ -7290,8 +7305,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "cec-disqualifies-individual-candidate-2026",
@@ -7327,8 +7342,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "gallant-endorses-a-list-by-oct-23",
@@ -7561,8 +7576,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "joint-list-10-seats-official-results-2026",
@@ -7672,8 +7687,11 @@
       "closesAt": "2026-11-10T23:59:59+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם רע\"ם תקבל יותר מ-60% מהקולות הכשרים ברהט בבחירות 27.10.2026?\" (raam-above-60-percent-in-rahat). אותו אירוע עם סף נמוך יותר, ובכל זאת תומחר באותם 55% בדיוק - סף נמוך יותר חייב להיות סביר יותר, ולכן השאלה אינה מוסיפה מידע. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "Rahat — population and 2022 election voting breakdown",
@@ -7689,10 +7707,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם רע\"ם תקבל יותר מ-60% מהקולות הכשרים ברהט בבחירות 27.10.2026?\" (raam-above-60-percent-in-rahat). אותו אירוע עם סף נמוך יותר, ובכל זאת תומחר באותם 55% בדיוק - סף נמוך יותר חייב להיות סביר יותר, ולכן השאלה אינה מוסיפה מידע. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "shas-utj-combined-18-seats-2026",
@@ -7738,8 +7754,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "new-haredi-party-crosses-threshold-2026",
@@ -7781,8 +7797,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "binyamin-council-netanyahu-bloc-88-percent-2026",
@@ -7905,8 +7921,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "likud-vs-yashar-official-results",
@@ -7952,8 +7968,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "utj-overtakes-shas-official-results",
@@ -8046,8 +8062,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "beyachad-democrats-five-seat-gap",
@@ -8090,8 +8106,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "raam-overtakes-joint-list-results",
@@ -8115,8 +8131,11 @@
       "closesAt": "2026-11-09T22:00:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם הרשימה המשותפת תקבל יותר מנדטים מרע\"ם בתוצאות הרשמיות של הבחירות שיפורסמו ב-4.11.2026?\" (joint-list-more-seats-than-raam-official-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, רעם או הרשימה המשותפת. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "מדד וממוצע סקרים 2026 – ישר! עם איזנקוט. 24 מנדטים - סקר הסקרים",
@@ -8136,10 +8155,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם הרשימה המשותפת תקבל יותר מנדטים מרע\"ם בתוצאות הרשמיות של הבחירות שיפורסמו ב-4.11.2026?\" (joint-list-more-seats-than-raam-official-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, רעם או הרשימה המשותפת. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "liberman-vs-winter-official-results",
@@ -8273,8 +8290,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "otzma-yehudit-vs-shas-official-results",
@@ -8367,8 +8384,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "beyachad-overtakes-likud-in-campaign-poll",
@@ -8438,8 +8455,11 @@
       "closesAt": "2026-11-06T22:00:00+03:00",
       "initialProbability": 0.27,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם גוש נתניהו (ליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית, עמך ישראל) יגיע ל-61 מנדטים בבחירות?\" (netanyahu-bloc-61-election-result). אותה שאלה: 61 מנדטים לגוש הימין-חרדים בתוצאות הרשמיות. בנוסף, סעיף ההמלצות אצל הנשיא אינו ניתן להכרעה עד מועד הסגירה. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "סקר ערוץ 14, 30.08.2026 – הליכוד 31, ישר! 24",
@@ -8455,10 +8475,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם גוש נתניהו (ליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית, עמך ישראל) יגיע ל-61 מנדטים בבחירות?\" (netanyahu-bloc-61-election-result). אותה שאלה: 61 מנדטים לגוש הימין-חרדים בתוצאות הרשמיות. בנוסף, סעיף ההמלצות אצל הנשיא אינו ניתן להכרעה עד מועד הסגירה. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "change-bloc-61-without-arab-parties",
@@ -8499,8 +8517,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "arab-lists-hold-balance-of-power-no-bloc-61",
@@ -8541,8 +8559,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "arab-lists-twelve-seats-or-more-2026",
@@ -8583,8 +8601,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "exact-tie-between-zionist-blocs-2026",
@@ -8623,8 +8641,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-bloc-outscores-change-bloc-in-seats",
@@ -8703,8 +8721,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-bloc-vote-share-above-50-percent",
@@ -8783,8 +8801,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "three-polls-netanyahu-bloc-leads-mid-september",
@@ -8823,8 +8841,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "idf-strike-beirut-dahiyeh-before-election-day",
@@ -8866,8 +8884,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "lebanese-army-phase-two-disarmament-litani-awali",
@@ -8949,8 +8967,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "idf-withdrawal-south-lebanon-territory-by-november",
@@ -9027,8 +9045,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "houthi-launch-sirens-israel-by-october-31",
@@ -9191,8 +9209,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "idf-advances-gaza-yellow-line-new-sector-by-sept-24-2026",
@@ -9308,8 +9326,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "elections-committee-blocks-likud-gaza-combat-footage-ad-by-oct-15",
@@ -9349,8 +9367,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "israel-formally-accepts-board-of-peace-disarmament-roadmap-by-oct-18",
@@ -9720,8 +9738,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "eur-ils-below-340-by-november-4",
@@ -9795,8 +9813,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "boi-fx-intervention-announcement-2026",
@@ -9919,8 +9937,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "israel-state-revenues-jan-sep-2026-above-465-billion",
@@ -9955,8 +9973,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "fitch-israel-rating-action-before-election-day-2026",
@@ -10321,8 +10339,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-interview-mainstream-channels-monday-morning",
@@ -10363,8 +10381,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "hendel-tropper-join-eisenkot-monday",
@@ -10526,8 +10544,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "sohlberg-elections-committee-propaganda-ruling-monday",
@@ -10571,8 +10589,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "security-cabinet-convenes-by-monday-morning",
@@ -10658,8 +10676,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "smotrich-feiglin-joint-list-announced-monday",
@@ -10700,8 +10718,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "elections-committee-ad-removal-order-sunday",
@@ -10746,8 +10764,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-new-anti-eisenkot-video-sunday",
@@ -10790,8 +10808,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "smotrich-inside-likud-report-sat-night",
@@ -10832,8 +10850,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "ofer-winter-merger-announcement-monday",
@@ -10856,8 +10874,11 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם עופר וינטר יודיע עד יום ראשון בערב (6.9) על הצטרפות לרשימה אחרת או על פרישה מהמרוץ?\" (winter-join-or-quit-sunday). אותה הודעה של עופר וינטר על חיבור לרשימה אחרת, בחלון החופף ב-9 שעות בלבד. השוק שנשמר רחב יותר וכולל גם פרישה. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "בן גביר פסל סופית, וינטר רוצה להיות \"כליא ברק\" | האופציות הפוחתות של נתניהו",
@@ -10873,10 +10894,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם עופר וינטר יודיע עד יום ראשון בערב (6.9) על הצטרפות לרשימה אחרת או על פרישה מהמרוץ?\" (winter-join-or-quit-sunday). אותה הודעה של עופר וינטר על חיבור לרשימה אחרת, בחלון החופף ב-9 שעות בלבד. השוק שנשמר רחב יותר וכולל גם פרישה. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "pm-rotation-agreement-announced-by-sept10",
@@ -10917,8 +10936,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "lieberman-rules-out-haredi-coalition-by-sept30",
@@ -11075,8 +11094,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-commits-ben-gvir-minister-by-oct26",
@@ -11672,8 +11691,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "arab-mks-26th-knesset-at-least-12",
@@ -11714,8 +11733,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "haredi-mks-26th-knesset-at-least-17",
@@ -12358,8 +12377,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "netanyahu-leads-pm-suitability-ch12-by-oct23",
@@ -12480,8 +12499,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "poll-average-yashar-ahead-of-likud-sept10",
@@ -12521,8 +12540,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "channel14-shas-8-or-less-before-list-deadline",
@@ -12881,8 +12900,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "cec-sanction-channel14-polls-by-oct23",
@@ -12922,8 +12941,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "channel14-final-poll-likud-overestimate-5-seats",
@@ -13002,8 +13021,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "gotliv-appears-on-otzma-submitted-list",
@@ -13200,8 +13219,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "shas-utj-surplus-agreement-by-oct16",
@@ -13322,8 +13341,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "draft-law-second-third-reading-before-election-day",
@@ -13359,8 +13378,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "rz-zehut-more-seats-than-otzma-official-results",
@@ -13383,8 +13402,11 @@
       "closesAt": "2026-11-06T22:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "cancelled",
+      "resolutionNote": "בוטל ככפילות של \"האם עוצמה יהודית של בן גביר תקבל יותר מנדטים מרשימת הציונות הדתית של סמוטריץ' ופייגלין בתוצאות הבחירות ב-27.10.2026?\" (otzma-yehudit-vs-smotrich-feiglin-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, עוצמה יהודית או הציונות הדתית-זהות. סכום שני האחוזים היה 107% - יותר מ-100. כל הכסף שהושקע בשוק הזה מוחזר.",
+      "resolvedAt": "2026-09-05T02:30:00+03:00",
       "sources": [
         {
           "title": "Smotrich, Feiglin announce joint election run, urge other right-wing parties to join – The Times of Israel",
@@ -13400,10 +13422,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "resolutionNote": "בוטל ככפילות של \"האם עוצמה יהודית של בן גביר תקבל יותר מנדטים מרשימת הציונות הדתית של סמוטריץ' ופייגלין בתוצאות הבחירות ב-27.10.2026?\" (otzma-yehudit-vs-smotrich-feiglin-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, עוצמה יהודית או הציונות הדתית-זהות. סכום שני האחוזים היה 107% - יותר מ-100. כל הכסף שהושקע בשוק הזה מוחזר.",
-      "resolvedAt": "2026-09-05T02:30:00+03:00",
-      "updatedAt": "2026-09-05T02:30:00+03:00"
+      "updatedAt": "2026-09-05T02:30:00+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "democrats-beyachad-joint-list-by-sept10",
@@ -13445,8 +13465,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "hadash-woman-in-farah-vacated-joint-list-slot",
@@ -13487,8 +13507,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "segalovich-top-five-raam-list-sept10",
@@ -13642,8 +13662,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "joint-list-10-plus-mainstream-poll-by-sept30",
@@ -13795,8 +13815,8 @@
         }
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
-      "createdBy": "editorial-batch",
-      "updatedAt": "2026-09-05T14:43:08+03:00"
+      "updatedAt": "2026-09-05T14:43:08+03:00",
+      "createdBy": "editorial-batch"
     },
     {
       "slug": "joint-list-more-seats-than-raam-official-results",
@@ -13917,6 +13937,262 @@
       ],
       "createdAt": "2026-09-04T22:13:16.194Z",
       "createdBy": "editorial-batch"
+    },
+    {
+      "slug": "netanyahu-heads-next-government",
+      "title": "האם נתניהו יעמוד בראש הממשלה הבאה של ישראל?",
+      "subtitle": "השאלה שכל הקמפיין נסוב סביבה — ובסקר האחרון של חדשות 13 הגושים עומדים 53 מול 53",
+      "description": "הכנסת ה-25 פוזרה ב-17.7.2026, הבחירות נקבעו ל-27.10.2026, התוצאות הרשמיות יפורסמו ב-4.11 והכנסת ה-26 תושבע ב-10.11. אחרי ההשבעה נפתחות ההתייעצויות אצל הנשיא הרצוג, המנדט מוטל על חבר כנסת, ולמרכיב יש 28 יום ועוד הארכה של עד 14 יום. בסקר חדשות 13 מ-2.9.2026 עומדים הגושים על 53 מול 53 כשהרשימות הערביות מחזיקות ב-14 מנדטים — כלומר לאף אחד מהגושים הציוניים אין 61. נתניהו זקוק ל-61 מהגוש שלו: יאיר גולן הודיע ש\"אף אחת ממפלגות קואליציית 7 באוקטובר לא תהיה שותפה לממשלה שנקים\", ליברמן הודיע שלא ישב עם ש\"ס, ובנט הצהיר שדרעי וגפני לא יהיו בממשלה בראשותו. זו שאלת המפתח של הלוח — מי יעמוד בראש הממשלה הבאה.",
+      "resolutionCriteria": "יוכרע \"כן\" אם עד 31.1.2027 בשעה 23:59 (שעון ישראל) תאושר במליאת הכנסת ה-26 ממשלה שבנימין נתניהו מכהן בה כראש הממשלה, וחבריה יצהירו אמונים — כפי שיתועד בפרוטוקול הכנסת באתר knesset.gov.il או ידווח בלפחות שניים מהמקורות: ynet, הארץ, N12 (חדשות 12), חדשות 13, כאן 11, The Times of Israel. המשך כהונה כראש ממשלת מעבר של הממשלה היוצאת — אינו נחשב; נדרשת ממשלה חדשה שהוצגה בפני הכנסת ה-26. הסכם רוטציה שבו נתניהו מכהן ראשון כראש ממשלה — \"כן\"; הסכם שבו הוא מושבע כראש ממשלה חליפי ואמור להתחלף בתפקיד רק במועד מאוחר יותר — \"לא\", אלא אם הושבע בפועל כראש הממשלה עד המועד. \"לא\" בכל מצב אחר, לרבות אם עד המועד לא תושבע ממשלה כלל, אם תושבע ממשלה בראשות אדם אחר, או אם הכנסת תתפזר ותצא לבחירות נוספות.",
+      "category": "coalition",
+      "tags": [
+        "נתניהו",
+        "ראשות הממשלה",
+        "קואליציה",
+        "בחירות 2026"
+      ],
+      "people": [
+        "benjamin-netanyahu",
+        "gadi-eisenkot",
+        "isaac-herzog"
+      ],
+      "closesAt": "2027-01-31T23:59:00+02:00",
+      "initialProbability": 0.36,
+      "liquidity": 4000,
+      "appeal": 5,
+      "featured": true,
+      "status": "open",
+      "sources": [
+        {
+          "title": "הארץ: סקר חדשות 13 — 53 מול 53, ולגוש איזנקוט אין רוב",
+          "url": "https://www.haaretz.co.il/news/elections/2026-09-02/ty-article/.premium/000001a0-635a-dca9-a1e2-775efb4f0000"
+        },
+        {
+          "title": "כלכליסט: הבחירות ב-27 באוקטובר, השבעת הכנסת ב-10 בנובמבר — הלו\"ז הפוליטי המלא",
+          "url": "https://www.calcalist.co.il/local_news/article/sjg4rmbeze"
+        },
+        {
+          "title": "ynet: איזנקוט קרץ לחרדים — וליברמן וגולן הודיעו \"לא נשב עם ש\"ס\"",
+          "url": "https://www.ynet.co.il/news/article/h1dbrnzvmg"
+        },
+        {
+          "title": "המכון הישראלי לדמוקרטיה: הבחירות לכנסת ה-26",
+          "url": "https://www.idi.org.il/elections-2026/"
+        }
+      ],
+      "createdAt": "2026-09-05T18:10:00+03:00",
+      "createdBy": "editorial-routine",
+      "updatedAt": "2026-09-05T18:35:00+03:00"
+    },
+    {
+      "slug": "eisenkot-heads-next-government",
+      "title": "האם גדי איזנקוט יעמוד בראש הממשלה הבאה של ישראל?",
+      "subtitle": "מוביל בשאלת ההתאמה לראשות הממשלה — אבל לגוש שלו אין 61 בלי הרשימות הערביות",
+      "description": "\"ישר!\" בראשות גדי איזנקוט מתחרה על מקום המפלגה הגדולה: בסקר חדשות 13 מ-2.9.2026 היא קיבלה 23 מנדטים מול 22 לליכוד, והגושים עמדו 53 מול 53 עם 14 מנדטים לרשימות הערביות. הבעיה של איזנקוט אינה הגודל אלא ההרכבה: חלק מהמפלגות בגוש שלו החרימו מראש שיתוף פעולה עם הרשימות הערביות, ולכן רוב אריתמטי של 67 מול 53 בגוש מתנגדי נתניהו עדיין אינו קואליציה. הדרכים שלו ל-61 עוברות בחרדים — שבנט וליברמן פסלו מראש — או בתמיכה חיצונית של הרשימות הערביות.",
+      "resolutionCriteria": "יוכרע \"כן\" אם עד 31.1.2027 בשעה 23:59 (שעון ישראל) תאושר במליאת הכנסת ה-26 ממשלה שגדי איזנקוט מכהן בה כראש הממשלה, וחבריה יצהירו אמונים — כפי שיתועד בפרוטוקול הכנסת באתר knesset.gov.il או ידווח בלפחות שניים מהמקורות: ynet, הארץ, N12 (חדשות 12), חדשות 13, כאן 11, The Times of Israel. הטלת המנדט להרכבת הממשלה על איזנקוט, בלי שהממשלה אושרה בפועל — אינה נחשבת. הסכם רוטציה שבו איזנקוט מכהן ראשון כראש ממשלה — \"כן\"; הסכם שבו הוא מושבע כראש ממשלה חליפי בלבד — \"לא\", אלא אם הושבע בפועל כראש הממשלה עד המועד. \"לא\" בכל מצב אחר, לרבות אם עד המועד לא תושבע ממשלה כלל, אם תושבע ממשלה בראשות אדם אחר, או אם הכנסת תתפזר ותצא לבחירות נוספות.",
+      "category": "coalition",
+      "tags": [
+        "איזנקוט",
+        "ראשות הממשלה",
+        "קואליציה",
+        "בחירות 2026"
+      ],
+      "people": [
+        "gadi-eisenkot",
+        "benjamin-netanyahu",
+        "isaac-herzog"
+      ],
+      "closesAt": "2027-01-31T23:59:00+02:00",
+      "initialProbability": 0.33,
+      "liquidity": 4000,
+      "appeal": 5,
+      "featured": true,
+      "status": "open",
+      "sources": [
+        {
+          "title": "הארץ: סקר חדשות 13 — 53 מול 53, ולגוש איזנקוט אין רוב",
+          "url": "https://www.haaretz.co.il/news/elections/2026-09-02/ty-article/.premium/000001a0-635a-dca9-a1e2-775efb4f0000"
+        },
+        {
+          "title": "מעריב: סקר חדשות 13 מ-2.9 — ליכוד 22, ישר! 23, הגושים 53-53",
+          "url": "https://www.maariv.co.il/news/elections-2026/article-1362451"
+        },
+        {
+          "title": "וואלה: בנט — \"דרעי וגפני לא יהיו בממשלה בראשותי\"",
+          "url": "https://news.walla.co.il/item/3860168"
+        },
+        {
+          "title": "כלכליסט: הלו\"ז הפוליטי המלא עד השבעת הכנסת ה-26",
+          "url": "https://www.calcalist.co.il/local_news/article/sjg4rmbeze"
+        }
+      ],
+      "createdAt": "2026-09-05T18:10:00+03:00",
+      "createdBy": "editorial-routine"
+    },
+    {
+      "slug": "likud-25-seats-official-results",
+      "title": "האם הליכוד יקבל 25 מנדטים ומעלה בתוצאות הרשמיות של הבחירות?",
+      "subtitle": "בסקרי המיינסטרים הליכוד נע בין 19 ל-23 מנדטים; בערוץ 14 הוא מקבל 31",
+      "description": "הליכוד בראשות בנימין נתניהו — שתקווה חדשה של גדעון סער התמזגה לתוכו והפריימריז שלו נערכו ב-17.8.2026 — מתומחר בסקרים נמוך בהרבה מ-32 המנדטים שקיבל בבחירות 2022. סקר חדשות 13 מ-2.9.2026 נתן לו 22 מנדטים, חדשות 13 מ-26.8 נתן 19, כאן 11 מ-19.8 נתן 23, וערוץ 14 (פילבר) מ-30.8 נתן 31 — פער בית של 12 מנדטים על אותה מפלגה באותו שבוע. השאלה בודקת את התוצאה עצמה, לא סקר: כמה מנדטים הליכוד באמת יקבל בקלפי.",
+      "resolutionCriteria": "יוכרע \"כן\" אם לפי התוצאות הרשמיות של הבחירות לכנסת ה-26, כפי שיפרסמו ועדת הבחירות המרכזית באתר bechirot.gov.il וברשומות (צפוי 4.11.2026), רשימת הליכוד תקבל 25 מנדטים או יותר. אם הליכוד יתמודד ברשימה משותפת עם מפלגות נוספות, ייספרו מלוא מנדטי הרשימה המשותפת. מנדטים שיתווספו לליכוד מהסכם עודפים ייספרו כחלק מהמנדטים שלו כפי שהם מופיעים בתוצאות הרשמיות. \"לא\" אם יקבל 24 מנדטים או פחות. אם הבחירות יידחו ולא ייערכו ב-27.10.2026 — השוק יבוטל.",
+      "category": "election-day",
+      "tags": [
+        "ליכוד",
+        "נתניהו",
+        "מנדטים",
+        "תוצאות רשמיות"
+      ],
+      "people": [
+        "benjamin-netanyahu",
+        "gideon-saar"
+      ],
+      "closesAt": "2026-11-08T23:59:00+02:00",
+      "initialProbability": 0.33,
+      "liquidity": 2000,
+      "appeal": 4,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "מעריב: סקר חדשות 13 מ-2.9 — הליכוד 22, ישר! 23",
+          "url": "https://www.maariv.co.il/news/elections-2026/article-1362451"
+        },
+        {
+          "title": "חדשות 13: מפת המנדטים והגושים",
+          "url": "https://13tv.co.il/item/news/politics/politics/dnxub-905274776/"
+        },
+        {
+          "title": "המכון הישראלי לדמוקרטיה: הבחירות לכנסת ה-26",
+          "url": "https://www.idi.org.il/elections-2026/"
+        }
+      ],
+      "createdAt": "2026-09-05T18:10:00+03:00",
+      "createdBy": "editorial-routine"
+    },
+    {
+      "slug": "largest-list-27-seats-official-results",
+      "title": "האם המפלגה הגדולה ביותר תקבל 27 מנדטים ומעלה בבחירות 27.10.2026?",
+      "subtitle": "בשש מערכות הבחירות האחרונות הגדולה תמיד עברה 30 — הפעם הסקרים עוצרים על 23",
+      "description": "מאז 2015 המפלגה הגדולה בכנסת קיבלה תמיד 30 מנדטים לפחות: ליכוד 30 ב-2015, 35 באפריל 2019, כחול לבן 33 בספטמבר 2019, ליכוד 36 ב-2020, 30 ב-2021 ו-32 ב-2022. בקמפיין הנוכחי אף מפלגה לא מתקרבת לשם בסקרי המיינסטרים: בסקר חדשות 13 מ-2.9.2026 \"ישר!\" של איזנקוט קיבלה 23 והליכוד 22, וממוצע הסקרים נותן לגדולה כ-24. השאלה היא אם הבוחר יתכנס בסוף אל אחת משתי הגדולות, כפי שקרה בכל מערכת בחירות בעשור האחרון, או שהפעם המפה תישאר מפוצלת.",
+      "resolutionCriteria": "יוכרע \"כן\" אם לפי התוצאות הרשמיות של הבחירות לכנסת ה-26, כפי שיפרסמו ועדת הבחירות המרכזית באתר bechirot.gov.il וברשומות (צפוי 4.11.2026), הרשימה שקיבלה את מספר המנדטים הגדול ביותר תקבל 27 מנדטים או יותר. הספירה היא לפי רשימות כפי שהתמודדו בקלפי: רשימה משותפת נספרת כרשימה אחת, ופיצול או התפלגות של סיעה אחרי הבחירות אינם משנים את ההכרעה. אם שתי רשימות או יותר יקבלו את אותו מספר מנדטים גבוה ביותר, ההכרעה לפי מספר המנדטים הזה. \"לא\" אם הרשימה הגדולה ביותר תקבל 26 מנדטים או פחות. אם הבחירות יידחו ולא ייערכו ב-27.10.2026 — השוק יבוטל.",
+      "category": "election-day",
+      "tags": [
+        "מנדטים",
+        "תוצאות רשמיות",
+        "ליכוד",
+        "ישר!"
+      ],
+      "people": [
+        "gadi-eisenkot",
+        "benjamin-netanyahu"
+      ],
+      "closesAt": "2026-11-08T23:59:00+02:00",
+      "initialProbability": 0.32,
+      "liquidity": 2000,
+      "appeal": 4,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "מעריב: סקר חדשות 13 מ-2.9 — ישר! 23, הליכוד 22",
+          "url": "https://www.maariv.co.il/news/elections-2026/article-1362451"
+        },
+        {
+          "title": "הארץ: סקר חדשות 13 — מפת הגושים 53 מול 53",
+          "url": "https://www.haaretz.co.il/news/elections/2026-09-02/ty-article/.premium/000001a0-635a-dca9-a1e2-775efb4f0000"
+        },
+        {
+          "title": "המכון הישראלי לדמוקרטיה: הבחירות לכנסת ה-26",
+          "url": "https://www.idi.org.il/elections-2026/"
+        }
+      ],
+      "createdAt": "2026-09-05T18:10:00+03:00",
+      "createdBy": "editorial-routine"
+    },
+    {
+      "slug": "haredi-parties-in-next-coalition",
+      "title": "האם ש\"ס או יהדות התורה יהיו חלק מהקואליציה הבאה?",
+      "subtitle": "איזנקוט קרץ לש\"ס, בנט וליברמן פסלו — ובלי החרדים אף גוש לא מגיע ל-61",
+      "description": "ש\"ס בראשות אריה דרעי ויהדות התורה בראשות יצחק גולדקנופף ומשה גפני מחזיקות יחד כ-17 מנדטים בסקרים, ובמפה של 53 מול 53 הן הקבוצה שיכולה להכריע מי מרכיב ממשלה. איזנקוט כבר קרץ לכיוון: בריאיון לכיכר השבת אמר ש\"ש\"ס היא מפלגה עם רכיבים ציוניים\" ושהוא רואה בה שותפה בתנאי שתצהיר על שלושת עקרונות היסוד. בתוך הגוש שלו נחתכה התשובה מיד — ליברמן הודיע שלא ישב עם ש\"ס וש\"בלי חוק גיוס לכולם לא נצטרף לקואליציה\", יאיר גולן כתב ש\"אף אחת ממפלגות קואליציית 7 באוקטובר לא תהיה שותפה לממשלה שנקים\", ובנט הצהיר ב-12.8.2026 ש\"דרעי וגפני לא יכולים להיות חלק מהממשלה הזאת כי הם לא יאפשרו לגייס חרדי אחד\". מנגד, בכל ממשלה בראשות נתניהו הן שותפות טבעיות. השאלה בודקת את התוצאה הקואליציונית בפועל, לא הצהרות.",
+      "resolutionCriteria": "יוכרע \"כן\" אם עד 31.1.2027 בשעה 23:59 (שעון ישראל) תושבע ממשלה בפני הכנסת ה-26 שבקואליציה שלה חברה סיעת ש\"ס או סיעת יהדות התורה (או סיעה שהיא ממשיכתן הישירה בשם אחר, לרבות פיצול של יהדות התורה לאגודת ישראל ולדגל התורה) — כפי שיעלה מהסכמים הקואליציוניים שיונחו על שולחן הכנסת, מרשימת סיעות הקואליציה באתר knesset.gov.il, או מדיווח של לפחות שניים מהמקורות: ynet, הארץ, N12 (חדשות 12), חדשות 13, כאן 11, The Times of Israel. תמיכה חיצונית בממשלה בלי חברות בקואליציה, או הצבעה בעד הממשלה בלי הסכם קואליציוני — אינן נחשבות. \"לא\" בכל מצב אחר, לרבות אם עד המועד לא תושבע ממשלה כלל.",
+      "category": "haredi",
+      "tags": [
+        "ש\"ס",
+        "יהדות התורה",
+        "דרעי",
+        "גפני",
+        "קואליציה"
+      ],
+      "people": [
+        "aryeh-deri",
+        "moshe-gafni",
+        "yitzhak-goldknopf",
+        "gadi-eisenkot"
+      ],
+      "closesAt": "2027-01-31T23:59:00+02:00",
+      "initialProbability": 0.43,
+      "liquidity": 2000,
+      "appeal": 4,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "וואלה: בנט — \"דרעי וגפני לא יהיו בממשלה בראשותי, משתמט לא יישב בקבינט\"",
+          "url": "https://news.walla.co.il/item/3860168"
+        },
+        {
+          "title": "ynet: איזנקוט קרץ לחרדים — וליברמן וגולן הודיעו \"לא נשב עם ש\"ס\"",
+          "url": "https://www.ynet.co.il/news/article/h1dbrnzvmg"
+        },
+        {
+          "title": "הארץ: סקר חדשות 13 — מפת הגושים 53 מול 53",
+          "url": "https://www.haaretz.co.il/news/elections/2026-09-02/ty-article/.premium/000001a0-635a-dca9-a1e2-775efb4f0000"
+        }
+      ],
+      "createdAt": "2026-09-05T18:10:00+03:00",
+      "createdBy": "editorial-routine",
+      "updatedAt": "2026-09-05T18:35:00+03:00"
+    },
+    {
+      "slug": "bloc-gap-under-five-seats-2026",
+      "title": "האם הפער בין גוש נתניהו לגוש השינוי יהיה קטן מ-5 מנדטים ב-27.10.2026?",
+      "subtitle": "חדשות 13 ב-2.9: 53 מול 53. ערוץ 14 באותו שבוע: 63 מול 45",
+      "description": "השאלה איזה גוש יוביל כבר נסחרת על הלוח; השאלה הזאת שואלת כמה צמוד זה יהיה. הסקרים חלוקים לא רק על הזוכה אלא על סדר הגודל: חדשות 13 ב-2.9.2026 הראה 53 מול 53 עם 14 מנדטים לרשימות הערביות, ערוץ 14 (פילבר) ב-30.8 הראה 63 מול 45, וחדשות 13 ביולי הראה 49 לגוש נתניהו מול 71 למתנגדיו. פער של מנדט או שניים בין הגושים משאיר את הרכבת הממשלה בידי מפלגה בודדת; פער של חמישה ומעלה מכריע את הלילה.",
+      "resolutionCriteria": "יוכרע \"כן\" אם לפי התוצאות הרשמיות של ועדת הבחירות המרכזית לכנסת ה-26 (bechirot.gov.il; צפוי 4.11.2026) ההפרש המוחלט בין סך מנדטי גוש נתניהו (ליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית-זהות, עמך ישראל) לבין סך מנדטי גוש השינוי הציוני (כל שאר הרשימות שעברו את אחוז החסימה ואינן רשימות ערביות) יהיה 4 מנדטים או פחות — לרבות תיקו מדויק. הרשימות הערביות (המשותפת, רע\"ם וכל רשימה ערבית אחרת) אינן נספרות באף אחד מהגושים. מפלגה שלא עברה את אחוז החסימה תורמת 0 מנדטים. רשימה משותפת שכל מרכיביה שייכים לגוש אחד נספרת במלואה לאותו גוש. \"לא\" אם ההפרש יהיה 5 מנדטים או יותר. אם הבחירות יידחו ולא ייערכו ב-27.10.2026 — השוק יבוטל.",
+      "category": "election-day",
+      "tags": [
+        "גושים",
+        "מנדטים",
+        "תוצאות רשמיות",
+        "נתניהו"
+      ],
+      "people": [
+        "benjamin-netanyahu",
+        "gadi-eisenkot"
+      ],
+      "closesAt": "2026-11-09T22:00:00+02:00",
+      "initialProbability": 0.42,
+      "liquidity": 2000,
+      "appeal": 4,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "הארץ: סקר חדשות 13 — 53 מול 53, ולגוש איזנקוט אין רוב",
+          "url": "https://www.haaretz.co.il/news/elections/2026-09-02/ty-article/.premium/000001a0-635a-dca9-a1e2-775efb4f0000"
+        },
+        {
+          "title": "חדשות 13: שינוי במפת הגושים — נתניהו ואיזנקוט בשוויון",
+          "url": "https://13tv.co.il/item/news/politics/politics/dnxub-905274776/"
+        },
+        {
+          "title": "מעריב: סקר חדשות 13 מ-2.9 — מפת הגושים",
+          "url": "https://www.maariv.co.il/news/elections-2026/article-1362451"
+        }
+      ],
+      "createdAt": "2026-09-05T18:10:00+03:00",
+      "createdBy": "editorial-routine",
+      "updatedAt": "2026-09-05T18:35:00+03:00"
     }
   ]
 }
