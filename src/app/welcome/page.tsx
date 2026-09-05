@@ -128,7 +128,7 @@ export default async function WelcomePage() {
             )}
           </div>
           <p className="text-sm leading-relaxed text-muted">
-            שאלות אמיתיות מהלוח, עם מד הניחושים שלהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
+            שאלות אמיתיות מהלוח, עם מד הביטחון של השחקנים בהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
             ונהפוך אותה לתשובה שנספרת בניקוד, ב-{money(RAPID_DEFAULT_STAKE)}, ברגע שתתחברו.
           </p>
           {/* Real, current markets that answer back — a static card is a screenshot,
