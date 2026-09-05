@@ -7,6 +7,8 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { REFERRAL_COOKIE } from "./referral";
 import { claimReferral } from "./referral-program";
+import { track } from "./analytics";
+import { EVENTS } from "./events";
 
 declare module "next-auth" {
   interface Session {
@@ -79,8 +81,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
       : []),
   ],
   events: {
+    // sign-ups and logins are recorded server-side, so no ad-blocker can hide them
     async createUser({ user }) {
       if (user.id) await claimPendingReferral(user.id);
+      await track(EVENTS.signup, { userId: user.id, path: "/login" });
+    },
+    async signIn({ user, isNewUser }) {
+      if (!isNewUser && user.id) await track(EVENTS.login, { userId: user.id, path: "/login" });
     },
   },
   callbacks: {

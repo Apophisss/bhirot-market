@@ -144,3 +144,29 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
     .sort((a, b) => b.netWorth - a.netWorth)
     .slice(0, limit);
 }
+
+/**
+ * Cash plus the value of every position that is still open — the same "שווי כולל"
+ * the portfolio page shows, but as one lean query so the header can render it.
+ */
+export async function getNetWorth(userId: string, balance: number): Promise<number> {
+  const db = await getDb();
+  const rows = await db
+    .select({
+      yesShares: positions.yesShares,
+      noShares: positions.noShares,
+      probability: markets.probability,
+      status: markets.status,
+      resolution: markets.resolution,
+    })
+    .from(positions)
+    .innerJoin(markets, eq(positions.marketId, markets.id))
+    .where(and(eq(positions.userId, userId), eq(positions.settled, false)));
+
+  let value = 0;
+  for (const r of rows) {
+    const yes = r.status === "resolved" ? (r.resolution === "YES" ? 1 : 0) : r.probability;
+    value += r.yesShares * yes + r.noShares * (1 - yes);
+  }
+  return balance + value;
+}

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { executeTrade, isBusyError, TradeError } from "@/lib/trade";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE } from "@/lib/rapid";
+import { track } from "@/lib/analytics";
+import { EVENTS } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,14 @@ export async function POST(req: Request) {
 
   try {
     const r = await executeTrade({ userId: session.user.id, marketId, side, action: "BUY", quantity: stake });
+    await track(EVENTS.trade, {
+      req,
+      userId: session.user.id,
+      marketId,
+      path: "/rapid",
+      value: r.quote.amount,
+      props: { side, action: "BUY", rapid: 1, shares: Math.round(r.quote.shares * 100) / 100 },
+    });
     return NextResponse.json({
       ok: true,
       marketId,
@@ -51,6 +61,13 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     if (err instanceof TradeError) {
+      await track(EVENTS.tradeError, {
+        req,
+        userId: session.user.id,
+        marketId,
+        path: "/rapid",
+        props: { reason: err.message, side, rapid: 1 },
+      });
       return NextResponse.json({ ok: false, error: err.message, code: err.code }, { status: err.status });
     }
     if (isBusyError(err)) {

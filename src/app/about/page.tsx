@@ -8,6 +8,7 @@ import { money } from "@/lib/format";
 import { fmtDate } from "@/lib/format";
 import { getLastAgentRun } from "@/lib/markets";
 import { timeAgo } from "@/lib/format";
+import { displayUpdatedAt } from "@/lib/display-stats";
 import { JsonLd } from "@/components/JsonLd";
 import { FAQ, breadcrumbs, faqGraph } from "@/lib/seo";
 import { CATEGORIES } from "@/lib/categories";
@@ -116,7 +117,7 @@ export default async function AboutPage() {
         </p>
         {last && (
           <p className="rounded-lg border border-border bg-surface-2 p-3 text-sm">
-            <strong>העדכון האחרון</strong> ({timeAgo(last.createdAt)}): {last.summary}
+            <strong>העדכון האחרון</strong> ({timeAgo(displayUpdatedAt(last.createdAt))}): {last.summary}
             {last.added ? ` · נוספו ${last.added}` : ""}
             {last.resolved ? ` · הוכרעו ${last.resolved}` : ""}
           </p>
