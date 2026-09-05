@@ -23,6 +23,10 @@ export const users = sqliteTable("user", {
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
   balance: real("balance").notNull().default(STARTING_BALANCE),
+  /** personal invite code, minted on first visit to /invite (see `referral-program.ts`) */
+  referralCode: text("referralCode").unique(),
+  /** id of the user whose invite link brought this one in. Deliberately not a foreign key: an inviter who deletes their account must not take their invitees' rows with them. */
+  referredBy: text("referredBy"),
   createdAt: integer("createdAt", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -205,6 +209,34 @@ export const comments = sqliteTable(
   (c) => [index("comment_market_idx").on(c.marketId, c.createdAt)],
 );
 
+/**
+ * One row per accepted invite: who invited whom, and what the inviter was paid for it.
+ * The row is the ledger — `referral.bonus` is what separates gifted capital from
+ * trading profit everywhere a P&L is shown.
+ */
+export const referrals = sqliteTable(
+  "referral",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    referrerId: text("referrerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** the invited user — unique, so an account can only ever be credited once */
+    invitedId: text("invitedId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** ₪ paid to the inviter for this signup; 0 once they pass MAX_REFERRALS */
+    bonus: real("bonus").notNull().default(0),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (r) => [
+    uniqueIndex("referral_invited_idx").on(r.invitedId),
+    index("referral_referrer_idx").on(r.referrerId, r.createdAt),
+  ],
+);
+
 /* ---------- Onboarding survey / personalization ---------- */
 
 export type SurveyStatus = "completed" | "skipped";
@@ -235,6 +267,67 @@ export const userPreferences = sqliteTable("user_preference", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+/* ---------- Inbox: what users send the editorial team ---------- */
+
+/** Where a message or a suggestion stands in the editorial team's queue. */
+export type InboxStatus = "new" | "open" | "done";
+export type SuggestionStatus = "pending" | "approved" | "rejected";
+
+/** "Contact us" messages. A message may come from a signed-out visitor, hence the nullable userId. */
+export const contactMessages = sqliteTable(
+  "contact_message",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+    name: text("name").notNull().default(""),
+    email: text("email").notNull().default(""),
+    /** question | bug | market | idea | other */
+    topic: text("topic").notNull().default("other"),
+    body: text("body").notNull(),
+    status: text("status").$type<InboxStatus>().notNull().default("new"),
+    /** private note written on the admin dashboard */
+    adminNote: text("adminNote"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    handledAt: integer("handledAt", { mode: "timestamp_ms" }),
+  },
+  (c) => [index("contact_status_idx").on(c.status, c.createdAt)],
+);
+
+/**
+ * A question proposed by a user. It never becomes a market on its own: the editorial
+ * team opens it in the dashboard's "new question" form, prices it, and publishes.
+ */
+export const questionSuggestions = sqliteTable(
+  "question_suggestion",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+    name: text("name").notNull().default(""),
+    email: text("email").notNull().default(""),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    resolutionCriteria: text("resolutionCriteria").notNull().default(""),
+    category: text("category").notNull().default("general"),
+    /** image the suggester picked for the card (absolute URL or /public path) */
+    imageUrl: text("imageUrl"),
+    /** the suggester's own estimate for YES, 0..1 */
+    probability: real("probability"),
+    sourceUrl: text("sourceUrl"),
+    closesAt: integer("closesAt", { mode: "timestamp_ms" }),
+    status: text("status").$type<SuggestionStatus>().notNull().default("pending"),
+    adminNote: text("adminNote"),
+    /** slug of the market this suggestion became, once published */
+    publishedSlug: text("publishedSlug"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    reviewedAt: integer("reviewedAt", { mode: "timestamp_ms" }),
+  },
+  (s) => [index("suggestion_status_idx").on(s.status, s.createdAt)],
+);
 
 /** Log of editorial content updates (hourly routine / cron / admin API). */
 export const agentRuns = sqliteTable("agent_run", {
