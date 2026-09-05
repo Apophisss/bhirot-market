@@ -96,12 +96,23 @@ for (const { name, fn, floor, mult } of CUMULATIVE) {
   check(`${name}: a negative number is not inflated`, fn(-5) === floor, { shown: fn(-5), floor });
   check(`${name}: a broken number is not inflated`, fn(NaN) === floor && fn(Infinity) === floor);
 
+  // a real number under a unit used to round *below itself* (₪0.02 x 3.4 -> ₪0), and
+  // only a 1-in-350,000 draw below caught it. The range that can round down is small
+  // and known, so it is checked outright rather than left to the dice.
+  for (let cents = 1; cents <= 100; cents++) {
+    const real = cents / 100;
+    check(`${name}: a sub-unit number is never rounded below itself`, fn(real) >= real, { real, shown: fn(real) });
+  }
+
   let prev = fn(0);
   for (let i = 0; i < CASES; i++) {
     const real = Math.round(Math.random() * 5_000_000) / 100; // covers both counts and shekels
     const shown = fn(real);
     check(`${name}: never undersells the real number`, shown >= real, { real, shown });
-    check(`${name}: stays under the advertised ceiling`, shown <= floor + Math.round(real * mult), { real, shown });
+    // the ceiling is the multiplier, except where the number itself is the higher of
+    // the two — the inflators never go below the truth, so neither does the ceiling
+    const ceiling = floor + Math.max(Math.round(real * mult), Math.ceil(real));
+    check(`${name}: stays under the advertised ceiling`, shown <= ceiling, { real, shown, ceiling });
     check(`${name}: deterministic`, shown === fn(real), { real, shown });
   }
   // monotone in the real number, which only ever grows -> the headline never walks backwards

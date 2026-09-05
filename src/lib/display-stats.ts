@@ -84,18 +84,24 @@ export function displayUserCount(realUsers: number): number {
 /**
  * The traded volume the hero advertises: the real volume, inflated. A board with
  * no trades yet stays at zero rather than growing money out of nothing.
+ *
+ * The `ceil` floor is what keeps the promise honest below a shekel: rounding
+ * alone turns a real ₪0.02 into ₪0, and a headline that *undersells* the board is
+ * the one thing these numbers must never do.
  */
 export function displayVolume(realVolume: number): number {
-  return Math.round(positive(realVolume) * DISPLAY_VOLUME_MULTIPLIER);
+  const real = positive(realVolume);
+  return Math.max(Math.round(real * DISPLAY_VOLUME_MULTIPLIER), Math.ceil(real));
 }
 
 /**
  * The number of resolved questions the hero advertises: the real count, inflated.
  * Zero resolutions stay zero — the site claims a track record only once it has
- * one.
+ * one — and, as with the volume above, the count is never rounded below itself.
  */
 export function displayResolvedCount(realResolved: number): number {
-  return Math.round(positive(realResolved) * DISPLAY_RESOLVED_MULTIPLIER);
+  const real = positive(realResolved);
+  return Math.max(Math.round(real * DISPLAY_RESOLVED_MULTIPLIER), Math.ceil(real));
 }
 
 /** The fabricated update moment of one half-hour slot. */

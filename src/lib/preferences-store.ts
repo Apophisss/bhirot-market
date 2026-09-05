@@ -39,13 +39,25 @@ export async function getPreferences(userId: string | null | undefined): Promise
 }
 
 /**
- * Whether to put the survey in front of this user. A skip is an answer — it writes a
- * row like any other, so nobody is asked twice for the same revision.
+ * עד לתאריך הזה, "לא עכשיו" שעל גבי הלוח נשמר כדילוג קבוע במסד — משתמש ותיק שרק דחה
+ * את ההצעה נשאר בלי שאלון לתמיד, מכפתור שכתוב עליו "לא עכשיו". הדילוגים שנרשמו לפני
+ * המעבר נפתחים שוב פעם אחת. מכאן ואילך דחייה נשמרת בעוגייה לשבוע (survey-offer.ts),
+ * ורק דילוג מתוך השאלון עצמו ("תראו לי הכול") נשמר כתשובה.
+ */
+export const REOFFER_SKIPS_BEFORE = Date.UTC(2026, 8, 5, 13, 0); // 5.9.2026, רגע המעבר
+
+/**
+ * Whether to put the survey in front of this user. A completed answer settles it until
+ * the questions change (`SURVEY_VERSION`); a skip settles it too, except for the old
+ * ones described above.
  */
 export async function needsSurvey(userId: string | null | undefined): Promise<boolean> {
   if (!userId) return false;
-  const prefs = await getPreferences(userId);
-  return !prefs || prefs.version < SURVEY_VERSION;
+  const db = await getDb();
+  const row = await db.query.userPreferences.findFirst({ where: eq(userPreferences.userId, userId) });
+  if (!row) return true;
+  if (row.version < SURVEY_VERSION) return true;
+  return row.status === "skipped" && row.updatedAt.getTime() < REOFFER_SKIPS_BEFORE;
 }
 
 /** Drops anything that is not a real category / person id, and caps the list length. */

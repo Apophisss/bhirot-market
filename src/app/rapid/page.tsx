@@ -7,6 +7,8 @@ import { RAPID_MAX_STAKE, RAPID_MIN_STAKE, RAPID_SORTS, type RapidSort } from "@
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { RapidDeck } from "@/components/RapidDeck";
 import { BoltIcon } from "@/components/BoltIcon";
+import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -25,7 +27,11 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
 
   const [session, user] = await Promise.all([auth(), currentUser()]);
   const loggedIn = Boolean(session?.user?.id);
-  const cards = await listRapidCards({ userId: user?.id ?? null, category, sort, includeAnswered });
+  const [cards, askSurvey] = await Promise.all([
+    listRapidCards({ userId: user?.id ?? null, category, sort, includeAnswered }),
+    // סדר החפיסה כאן הוא בדיוק מה שהשאלון קובע, ולכן זה המקום להציע אותו למי שעדיין לא ענה
+    shouldOfferSurvey(session?.user?.id),
+  ]);
 
   const link = (patch: Partial<Search>) => {
     const next = { ...sp, ...patch };
@@ -89,6 +95,8 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
           <span className="sm:hidden">כדי שכל תשובה תהפוך לפוזיציה אמיתית.</span>
         </p>
       )}
+
+      {askSurvey && <SurveyPrompt next="/rapid" compact />}
 
       <RapidDeck
         key={`${category}:${sort}:${includeAnswered}`}

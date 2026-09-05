@@ -8,6 +8,7 @@ import { PortfolioValue } from "./PortfolioValue";
 import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
+import { needsSurvey } from "@/lib/preferences-store";
 
 // The leaderboard is deliberately absent: it hangs off the profile (the user menu
 // below and /portfolio), not off the main navigation.
@@ -21,6 +22,9 @@ const NAV = [
 export async function Header() {
   const session = await auth();
   const user = session?.user;
+  // תג קטן ליד "ההעדפות שלי" למי שעדיין לא ענה על השאלון — הדרך הקבועה להגיע אליו,
+  // גם אחרי ש"לא עכשיו" הסתיר את ההצעה שעל גבי הדפים
+  const askSurvey = await needsSurvey(user?.id);
 
   async function doSignOut() {
     "use server";
@@ -90,7 +94,12 @@ export async function Header() {
                     הזמינו חברים
                     <span className="tabular shrink-0 rounded-full bg-yes/15 px-2 py-0.5 text-[11px] font-bold text-yes">{money(REFERRAL_BONUS)}</span>
                   </Link>
-                  <Link href="/onboarding?edit=1" className="block px-4 py-3 text-sm hover:bg-surface-2">ההעדפות שלי</Link>
+                  <Link href="/onboarding?edit=1" data-evt="menu-preferences" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
+                    ההעדפות שלי
+                    {askSurvey && (
+                      <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-bold text-accent-2">שאלון קצר</span>
+                    )}
+                  </Link>
                   <Link href="/suggest" className="block px-4 py-3 text-sm hover:bg-surface-2">הצעת שאלה</Link>
                   <Link href="/contact" className="block px-4 py-3 text-sm hover:bg-surface-2">יצירת קשר</Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
