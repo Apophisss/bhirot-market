@@ -3,10 +3,11 @@ name: market-questions
 description: >-
   Question pipeline for the בחירות מרקט prediction board — find candidate questions in the Israeli
   political news, verify they are decidable and not duplicates, set the opening probability
-  (initialProbability), choose how elastic the market should be (liquidity), then merge, audit and
+  (initialProbability), choose how elastic the market should be (liquidity), rate how good the
+  question is (appeal, 1-5, which the recommendation engine weighs), then merge, audit and
   commit them into data/markets.json. Also covers resolving markets whose deadline passed. Use for
   "שאלות חדשות", "להוסיף שאלות לאתר", "לתמחר שאלה", "כמה אחוזים לתת", "כמה גמיש השוק",
-  "liquidity/b של שוק", "להכריע שווקים", the hourly editorial routine, or any edit to
+  "liquidity/b של שוק", "כמה השאלה מגניבה", "appeal/דירוג של שאלה", "להכריע שווקים", the hourly editorial routine, or any edit to
   data/markets.json.
 ---
 
@@ -23,9 +24,10 @@ description: >-
 2. ווידוא   → 9 שערים; מי שנופל בשער אחד — נזרק או מנוסח מחדש
 3. תמחור    → initialProbability מתוך בסיס־שכיחות + התאמות
 4. גמישות   → liquidity לפי npm run markets:liquidity
-5. הרכבה    → batch.json → markets:merge → markets:validate → markets:audit
-6. הכרעות   → שווקים שמועד היעד שלהם עבר (npm run resolve)
-7. commit + push (+ דחיפה ל-API אם יש SITE_URL ו-ADMIN_TOKEN)
+5. דירוג     → appeal: כמה השאלה מגניבה, 1–5. נכנס ישירות למנוע ההמלצות
+6. הרכבה    → batch.json → markets:merge → markets:validate → markets:audit
+7. הכרעות   → שווקים שמועד היעד שלהם עבר (npm run resolve)
+8. commit + push (+ דחיפה ל-API אם יש SITE_URL ו-ADMIN_TOKEN)
 ```
 
 היעד בכל ריצה: **2–6 שאלות חדשות**, לפחות שליש מהן נסגרות תוך 24–72 שעות. פחות שאלות טובות
@@ -125,7 +127,34 @@ npm run markets:liquidity -- --audit                 # כל השווקים הפ�
 
 הסבר מלא של המנגנון ומתי לחרוג: `references/liquidity.md`.
 
-## 5. הרכבה, מיזוג ובדיקה
+## 5. הדירוג — `appeal`
+
+`initialProbability` אומר כמה סביר שהתשובה היא "כן". `appeal` אומר דבר אחר לגמרי: **כמה השאלה
+הזאת מגניבה** — כמה אנשים ירצו לענות עליה, לריב עליה, לשלוח אותה לחבר. זה הדירוג שאתם, ככותבי
+השאלה, נותנים לה, והוא נכנס ישירות לניקוד של מנוע ההמלצות (`src/lib/appeal.ts`).
+
+| appeal | מה זה אומר | מתי |
+|---|---|---|
+| 1 טכנית | סוגרת פינה על הלוח. לא הייתם שולחים אותה לאף אחד. | שאלת המשך משעממת, כיסוי לשלמות |
+| 2 סבירה | בסדר גמור, אבל לא תעצור אף אחד באמצע גלילה. | הסקר השבועי ה-11 באותו פורמט |
+| 3 רגילה | ברירת המחדל: שאלה טובה כמו רוב הלוח. | רוב מה שאתם כותבים |
+| 4 מעניינת | יש בה סיפור. אנשים ירצו לראות איך היא נגמרת. | עימות אישי, סף דרמטי, מהלך מפתיע |
+| 5 מגניבה | השאלה של היום, זו שמדברים עליה. | לכל היותר אחת בריצה |
+
+**למה זה שדה אמיתי ולא קישוט:** כל שאר האותות שהמנוע מכיר — כמה כסף עבר, כמה אנשים ענו, כמה
+תגובות — קיימים רק אחרי שהשאלה כבר נראתה. שאלה שנוצרה לפני שעה עוד לא נראתה על ידי אף אחד,
+והמנוע לא ידע להרים אותה. הדירוג שלכם הוא האות היחיד שיש לה ביום הראשון.
+
+**לכן שקר בדירוג עולה כסף.** 5 מרים את השאלה בערך כמו הפרש פופולריות ענק, ו-1 מוריד אותה באותה
+מידה. אם דירגתם הכול 4–5, המנוע חוזר בדיוק למצב שבו אין דירוג — הוא מבדיל בין שאלות רק כשהדירוג
+מבדיל. `npm run markets:audit` מתריע על שני הכיוונים: לוח שכולו 3 (לא דירגתם), ולוח שיותר
+מ-40% ממנו 4+ (אינפלציית דירוגים).
+
+שני דברים מיוחדים לשדה הזה: הוא **כן** ניתן לעדכון אחרי שהשוק עלה (הוא שיפוט עורך ולא מחיר —
+`sync.ts` מעדכן אותו בשוק פתוח קיים), ושאלה בלי `appeal` נשארת על 3 ומדורגת בדיוק כאילו השדה
+לא קיים.
+
+## 6. הרכבה, מיזוג ובדיקה
 
 כתבו batch לפי `templates/batch.example.json` (כולל `newPeople` אם צריך אנשים חדשים), ואז:
 
@@ -141,7 +170,7 @@ npm test                      # אינווריאנטות של מנוע השוק
 הבדיקה הזו רואה רק כותרות — כפילות אמיתית נמדדת בקריטריון ההכרעה, ראו `references/validation.md`.
 דחייה היא תשובה, לא תקלה — אל תעקפו אותה בשינוי מילה בכותרת.
 
-## 6. הכרעות
+## 7. הכרעות
 
 בכל ריצה, לפני שמוסיפים: `npm run markets:audit` מציג תחת "resolution debt" כל שוק פתוח שמועד
 היעד שלו עבר. **ההכרעות עצמן עוברות בצינור נפרד** — `npm run resolve` — והסקיל שמסביר אותו הוא
@@ -156,7 +185,7 @@ npm test                      # אינווריאנטות של מנוע השוק
 רצועות): הוא התשובה לשאלה "האם האחוזים שלנו טובים בכלל", והוא הקלט לתמחור של הריצה הבאה.
 אם הוא אומר שאתם אופטימיים בשיטתיות — הורידו את נקודות הפתיחה בטבלה שלמעלה.
 
-## 7. commit
+## 8. commit
 
 ```bash
 git add data/markets.json data/people.json

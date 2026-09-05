@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0da293be-5b99-4e88-82ba-3aaf10b5c065",
-  "prevId": "86b4d1bb-d056-441e-9978-87eea360b065",
+  "id": "f7136ec5-691a-4bda-aaf7-e6240f419de6",
+  "prevId": "0da293be-5b99-4e88-82ba-3aaf10b5c065",
   "tables": {
     "account": {
       "name": "account",
@@ -501,6 +501,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'other'"
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
         },
         "body": {
           "name": "body",
@@ -1547,6 +1555,41 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "gclid": {
+          "name": "gclid",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "utmSource": {
+          "name": "utmSource",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "utmCampaign": {
+          "name": "utmCampaign",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "signupReportedAt": {
+          "name": "signupReportedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "firstTradeReportedAt": {
+          "name": "firstTradeReportedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         }
       },

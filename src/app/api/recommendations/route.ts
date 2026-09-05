@@ -40,6 +40,7 @@ export async function GET(req: Request) {
         score: Number(r.score.toFixed(4)),
         taste: Number(r.taste.toFixed(4)),
         popularity: Number(r.popularity.toFixed(4)),
+        appeal: r.appeal,
         reasons: r.reasons,
         url: `/market/${r.market.id}`,
       })),

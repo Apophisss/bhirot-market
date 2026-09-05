@@ -1,11 +1,18 @@
 /**
  * "מומלץ בשבילך" — the recommendation engine.
  *
- * Two signals, blended: what a user has shown they like (the categories, people
- * and tags they actually traded on) and what the board as a whole is doing right
- * now (recent money, recent traders, comments, lifetime volume). A signed-out
+ * Two measured signals, blended: what a user has shown they like (the categories,
+ * people and tags they actually traded on) and what the board as a whole is doing
+ * right now (recent money, recent traders, comments, lifetime volume). A signed-out
  * visitor gets pure popularity; the personal half fades in as the taste profile
  * fills up, so the list is never empty and never stale.
+ *
+ * A third signal is not measured at all: `appeal`, the 1..5 rating the editor who
+ * wrote the question gave it (`./appeal`). Both measured signals need the question
+ * to already have been seen by somebody, which a question published an hour ago has
+ * not been — so the creator's own judgement of how good it is carries real weight
+ * here, just under taste and popularity. An unrated question scores exactly as it
+ * would have before the field existed.
  *
  * A signed-in user who has not traded yet used to be in the same boat as a visitor.
  * The short survey (`preferences.ts`) is what fills that gap: its answers are folded
@@ -22,6 +29,7 @@
  */
 import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
+import { appealBoost, clampAppeal } from "./appeal";
 import { getCategory } from "./categories";
 import { getPerson } from "./content";
 import { toView, type MarketView } from "./markets";
@@ -38,6 +46,8 @@ export const MATURITY_EVENTS = 6;
 export const TRENDING_WINDOW_HOURS = 72;
 /** Above this affinity a dimension is strong enough to be worth telling the user about. */
 const REASON_THRESHOLD = 0.34;
+/** From this rating up, the creator's verdict is worth saying out loud on the card. */
+const APPEAL_REASON_THRESHOLD = 4;
 
 /**
  * What one survey answer is worth. The affinities sit just below 1 so a category the
@@ -271,9 +281,11 @@ export interface CandidateSignals {
   featured: boolean;
   /** 0..1, from popularityScores */
   popularity: number;
+  /** 1..5, the creator's rating; missing or 3 means unrated (see ./appeal) */
+  appeal?: number;
 }
 
-export type ReasonKind = "category" | "person" | "trending" | "closing" | "fresh" | "open";
+export type ReasonKind = "category" | "person" | "appeal" | "trending" | "closing" | "fresh" | "open";
 
 export interface RecReason {
   kind: ReasonKind;
@@ -285,6 +297,8 @@ export interface ScoredCandidate {
   score: number;
   taste: number;
   popularity: number;
+  /** the rating that went into the score, on the 1..5 scale */
+  appeal: number;
   reasons: RecReason[];
 }
 
@@ -338,9 +352,11 @@ export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now =
   const taste = tasteAffinity(profile, c);
   const urge = urgency(c.closesAt, now);
   const fresh = freshness(c.createdAt, now);
+  const appeal = clampAppeal(c.appeal);
   const score =
     w.taste * taste +
     w.popularity * c.popularity +
+    appealBoost(appeal) +
     0.9 * urge +
     0.5 * uncertainty(c.probability) +
     0.35 * fresh +
@@ -370,12 +386,17 @@ export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now =
       label: surveyPeople.has(bestPerson) ? `בחרתם את ${name} בשאלון` : `שאלות על ${name} מעניינות אתכם`,
     });
   }
+  // said before the popularity reason on purpose: a question the editor picked out is
+  // usually a *new* question, and "נסחר הרבה עכשיו" is exactly what it cannot claim yet
+  if (appeal >= APPEAL_REASON_THRESHOLD) {
+    reasons.push({ kind: "appeal", label: appeal >= 5 ? "מהשאלות הכי מגניבות על הלוח" : "צוות המערכת אהב את השאלה הזאת" });
+  }
   if (c.popularity >= 0.5) reasons.push({ kind: "trending", label: "נסחר הרבה עכשיו" });
   if (urge >= 0.7) reasons.push({ kind: "closing", label: "ההכרעה קרובה" });
   if (fresh >= 0.6) reasons.push({ kind: "fresh", label: "שאלה חדשה על הלוח" });
   if (!reasons.length) reasons.push({ kind: "open", label: "שאלה פתוחה שעוד לא עניתם עליה" });
 
-  return { id: c.id, score, taste, popularity: c.popularity, reasons: reasons.slice(0, 2) };
+  return { id: c.id, score, taste, popularity: c.popularity, appeal, reasons: reasons.slice(0, 2) };
 }
 
 /**
@@ -535,6 +556,8 @@ export interface Recommendation {
   /** 0..1 — how much of this pick came from the user's own history */
   taste: number;
   popularity: number;
+  /** 1..5 — the rating the question's creator gave it */
+  appeal: number;
   reasons: RecReason[];
 }
 
@@ -607,6 +630,7 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
         createdAt: view.createdAt.getTime(),
         featured: view.featured,
         popularity: popularity.get(r.id) ?? 0,
+        appeal: view.appeal,
       },
       profile,
       now,
@@ -622,6 +646,7 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
       score: s.score,
       taste: s.taste,
       popularity: s.popularity,
+      appeal: s.appeal,
       reasons: s.reasons,
     })),
     profile,

@@ -106,6 +106,8 @@ export const markets = sqliteTable(
     /** JSON {title,url}[] */
     sources: text("sources").notNull().default("[]"),
     featured: integer("featured", { mode: "boolean" }).notNull().default(false),
+    /** 1..5, how good a question the creator thinks it is (see src/lib/appeal.ts). 3 = unrated. */
+    appeal: integer("appeal").notNull().default(3),
     status: text("status").$type<MarketStatus>().notNull().default("open"),
     resolution: text("resolution").$type<Resolution>(),
     resolutionNote: text("resolutionNote"),

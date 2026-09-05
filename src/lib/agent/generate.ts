@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
+import { clampAppeal } from "../appeal";
 import { CATEGORY_IDS } from "../categories";
 import { loadPeople, MarketContentSchema, type MarketContent } from "../content";
 import { listMarkets } from "../markets";
@@ -21,6 +22,8 @@ const ProposalSchema = z.object({
   people: z.array(z.string()),
   closesAt: z.string(),
   initialProbability: z.number(),
+  /** how good a question the editor thinks this is, 1..5 (see ../appeal) */
+  appeal: z.number(),
   sources: z.array(z.object({ title: z.string(), url: z.string() })),
   /** short justification of why this is timely (not shown to users) */
   whyNow: z.string(),
@@ -162,6 +165,7 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
       subtitle: p.subtitle ?? undefined,
       people: p.people.filter((id) => peopleIds.has(id)),
       liquidity: 2000,
+      appeal: clampAppeal(p.appeal),
       featured: false,
       status: "open",
       createdAt: now.toISOString(),
@@ -203,6 +207,7 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
       closesAt: m.closesAt.toISOString(),
       initialProbability: m.probability,
       liquidity: m.liquidity,
+      appeal: m.appeal,
       featured: m.featured,
       status: r.resolution === "CANCELLED" ? "cancelled" : "resolved",
       resolution: r.resolution === "CANCELLED" ? undefined : r.resolution,

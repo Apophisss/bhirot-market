@@ -10,6 +10,7 @@
  * the editor should look at and may knowingly accept.
  */
 import fs from "node:fs";
+import { APPEAL_DEFAULT, APPEAL_LEVELS, appealLevel, clampAppeal } from "../src/lib/appeal";
 import { MarketsFileSchema, type MarketContent } from "../src/lib/content";
 import { verdict } from "../src/lib/elasticity";
 import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
@@ -224,6 +225,34 @@ section("elasticity (npx tsx scripts/liquidity.ts --audit for the detail)");
 const off = open.filter((m) => !verdict(m.initialProbability, m.liquidity).ok);
 if (off.length) warn(`${off.length}/${open.length} open markets are outside the healthy liquidity window: ${off.map((m) => m.slug).join(", ")}`);
 else ok(`all ${open.length} open markets sit in the healthy liquidity window`);
+
+// ── appeal ─────────────────────────────────────────────────────────────────
+// The creator's own 1..5 rating is a real term in the recommendation score
+// (src/lib/appeal.ts), so the audit watches the two ways it stops meaning
+// anything: nobody rating at all, and everybody rating everything a 5.
+section("appeal (the rating the creator gave each question)");
+if (!open.length) {
+  info("no open questions to rate");
+} else {
+  const counts = new Map<number, number>();
+  for (const m of open) counts.set(clampAppeal(m.appeal), (counts.get(clampAppeal(m.appeal)) ?? 0) + 1);
+  info(
+    APPEAL_LEVELS.map((l) => `${l.value} ${l.label}:${counts.get(l.value) ?? 0}`).join("  ") +
+      `  ·  ממוצע ${(open.reduce((sum, m) => sum + clampAppeal(m.appeal), 0) / open.length).toFixed(2)}`,
+  );
+  const unrated = counts.get(APPEAL_DEFAULT) ?? 0;
+  const top = open.filter((m) => clampAppeal(m.appeal) >= 4);
+  if (unrated === open.length) {
+    warn(`every open question sits at the neutral ${APPEAL_DEFAULT} — rate the next batch, or the recommendations lose the one signal a new question has`);
+  } else if (unrated / open.length > 0.8) {
+    warn(`${unrated}/${open.length} open questions are unrated (${APPEAL_DEFAULT}) — the rating only ranks what it is actually given to`);
+  }
+  if (top.length / open.length > 0.4) {
+    warn(`${top.length}/${open.length} open questions are rated ${appealLevel(4).label} or better — if most of the board is great, none of it is; the rating stops separating anything`);
+  } else if (top.length) {
+    ok(`${top.length}/${open.length} open questions are rated 4+: ${top.slice(0, 5).map((m) => `${m.slug}(${clampAppeal(m.appeal)})`).join(", ")}${top.length > 5 ? " …" : ""}`);
+  }
+}
 
 // ── calibration ────────────────────────────────────────────────────────────
 // The feedback loop for future pricing: were the opening probabilities any

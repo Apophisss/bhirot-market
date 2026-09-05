@@ -37,6 +37,9 @@ export async function upsertMarkets(items: MarketContent[], source = "sync"): Pr
       people: JSON.stringify(m.people),
       sources: JSON.stringify(m.sources),
       featured: m.featured,
+      // unlike `liquidity`, the creator's rating is pure editorial judgement: nobody
+      // traded on it, so a later re-rating is allowed to land on a live market
+      appeal: m.appeal,
       closesAt: new Date(m.closesAt),
     };
 
@@ -68,6 +71,7 @@ export async function upsertMarkets(items: MarketContent[], source = "sync"): Pr
         existing.people !== common.people ||
         existing.sources !== common.sources ||
         existing.featured !== common.featured ||
+        existing.appeal !== common.appeal ||
         existing.closesAt.getTime() !== common.closesAt.getTime();
       if (changed) {
         await db.update(markets).set({ ...common, updatedAt: now }).where(eq(markets.id, m.slug));
