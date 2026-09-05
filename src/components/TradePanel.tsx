@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { MAX_BET } from "@/lib/limits";
-import { money, pct, shares as fmtShares, agora } from "@/lib/format";
+import { money, pct, shares as fmtShares, sharePrice } from "@/lib/format";
 import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
+import { gaEvent } from "@/lib/gtag";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
@@ -122,6 +123,13 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       if (!res.ok || !data.ok) {
         setMsg({ kind: "err", text: data.error ?? "שגיאה" });
       } else {
+        gaEvent("trade", {
+          market_id: market.id,
+          side,
+          trade_action: action,
+          // virtual shekels, reported as a plain number — see gaEvent()
+          amount: Math.round(data.quote.amount * 100) / 100,
+        });
         setMsg({
           kind: "ok",
           text:
@@ -191,7 +199,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
             side === "YES" ? "border-yes bg-yes text-white" : "border-border bg-surface-2 text-yes hover:border-yes/60"
           }`}
         >
-          כן <span className="tabular text-sm font-semibold opacity-90">{agora(market.probability)}</span>
+          כן <span className="tabular text-sm font-semibold opacity-90">{sharePrice(market.probability)}</span>
         </button>
         <button
           onClick={() => setSide("NO")}
@@ -199,7 +207,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
             side === "NO" ? "border-no bg-no text-white" : "border-border bg-surface-2 text-no hover:border-no/60"
           }`}
         >
-          לא <span className="tabular text-sm font-semibold opacity-90">{agora(1 - market.probability)}</span>
+          לא <span className="tabular text-sm font-semibold opacity-90">{sharePrice(1 - market.probability)}</span>
         </button>
       </div>
 
@@ -261,7 +269,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
       <dl className="mt-4 space-y-1.5 text-sm">
         {action === "BUY" ? (
           <>
-            <Row label="מחיר ממוצע למניה" value={quote ? agora(quote.avgPrice) : agora(sidePrice)} />
+            <Row label="מחיר ממוצע למניה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
             <Row label="מניות שתקבל/י" value={quote ? fmtShares(quote.shares) : "—"} />
             <Row label="מחיר אחרי העסקה" value={quote ? pct(quote.priceAfter, 1) : pct(sidePrice, 1)} muted />
             <Row
@@ -273,7 +281,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           </>
         ) : (
           <>
-            <Row label="מחיר ממוצע במכירה" value={quote ? agora(quote.avgPrice) : agora(sidePrice)} />
+            <Row label="מחיר ממוצע במכירה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
             <Row label="תקבל/י" value={quote ? money(quote.amount, { decimals: true }) : "—"} strong />
             <Row
               label="רווח/הפסד על החלק הנמכר"

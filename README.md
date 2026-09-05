@@ -28,6 +28,7 @@
 | עדכון שעתי | (א) **רוטינת העדכון** של צוות המערכת, שעורכת את `data/markets.json` לפי `AGENT.md`; (ב) מחולל השאלות המובנה `/api/cron/refresh` (Vercel Cron) עם חיפוש באינטרנט |
 | אנליטיקה | מעקב עצמי (first-party) בלי קוקיז ובלי צד שלישי — צפיות, זמן שהייה, גלילה, לחיצות, חיפושים, עסקאות, Core Web Vitals ושגיאות דפדפן |
 | ניהול | `/admin` — לוח סטטיסטיקות (תנועה, משפך, שווקים, משתמשים) + הורדת **באנדל נתונים** לניתוח |
+| קלט ממשתמשים | `/suggest` (הצעת שאלה חדשה) ו-`/contact` (פנייה לצוות) — פתוחים לכולם; ההצעות והפניות מטופלות בלשוניות ״תיבה״ ו״שאלה חדשה״ שבלוח הניהול |
 
 ## מצב זריז (`/rapid`)
 
@@ -156,7 +157,8 @@ npm run dev                       # http://localhost:3000
    כדי שפריסה לא תנתק כל מי שמחובר.
 3. **משתנים** (`vars`, ניתנים לקריאה בממשק): `DOMAIN` (ברירת מחדל `bhirot-market.com`), `CLAUDE_MODEL`,
    `ADMIN_EMAILS` — מי נכנס ל־`/admin` אחרי התחברות רגילה עם Google (ברירת המחדל היא בעל האתר; רשימה
-   מופרדת בפסיקים דורסת אותה) — ו־`ALLOW_DEV_LOGIN`, כניסה מהירה ללא סיסמה, כבויה כברירת מחדל ולא כדאי
+   מופרדת בפסיקים דורסת אותה), `GA_MEASUREMENT_ID` (מזהה GA4 בפורמט `G-XXXXXXXXXX`; בלעדיו האתר עולה
+   בלי Google Analytics) — ו־`ALLOW_DEV_LOGIN`, כניסה מהירה ללא סיסמה, כבויה כברירת מחדל ולא כדאי
    להדליק באתר ציבורי.
 4. **DNS**: רשומת `A` של הדומיין (ו־`www`) אל ה־IP של השרת — אחת, לא כמה: Let's Encrypt מגריל רשומה
    מבין כל מה שקיים, וכך גם הדפדפן של כל גולש. בזמן החלפת DNS יש חלון שבו resolverים עדיין מחזיקים גם
@@ -186,7 +188,7 @@ npm run dev                       # http://localhost:3000
 1. צרו מסד Turso: `turso db create bhirot-market` → `turso db show --url` ו־`turso db tokens create`.
 2. ב־Vercel הגדירו משתני סביבה: `DATABASE_URL` (libsql://…), `DATABASE_AUTH_TOKEN`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`,
    `AUTH_GOOGLE_SECRET`, `ADMIN_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, ואופציונלית `ANTHROPIC_API_KEY` (+`CLAUDE_MODEL`),
-   `ADMIN_EMAILS` (כניסה ל-`/admin` עם חשבון Google) ו-`ANALYTICS_SALT`.
+   `ADMIN_EMAILS` (כניסה ל-`/admin` עם חשבון Google), `ANALYTICS_SALT` ו-`NEXT_PUBLIC_GA_MEASUREMENT_ID`.
 3. `vercel.json` כבר מגדיר Cron שעתי ל־`/api/cron/refresh`, שמסנכרן את `data/markets.json` ומריץ את המחולל המובנה אם יש מפתח API.
 
 ## שאלות קצרות טווח
@@ -218,8 +220,9 @@ npm run dev                       # http://localhost:3000
 
 ## אנליטיקה ועמוד הניהול
 
-האתר מודד את עצמו, בלי Google Analytics ובלי שום צד שלישי: `src/components/Analytics.tsx` שולח אירועים ב-`sendBeacon`
-אל `POST /api/analytics/collect`, והם נשמרים בטבלה `analytics_event` באותו מסד נתונים.
+האתר מודד את עצמו: `src/components/Analytics.tsx` שולח אירועים ב-`sendBeacon`
+אל `POST /api/analytics/collect`, והם נשמרים בטבלה `analytics_event` באותו מסד נתונים. המדידה הזו עומדת
+בפני עצמה ואינה תלויה בשום צד שלישי; לצידה רץ Google Analytics (ראו למטה), אם הוגדר לו מזהה מדידה.
 
 - **מה נמדד**: צפיות בעמודים (כולל `utm_*` ומקור הפניה), זמן שהייה ועומק גלילה, לחיצות על אלמנטים שמסומנים ב-`data-evt`,
   קישורים יוצאים, חיפושים, Core Web Vitals אמיתיים מהשדה ושגיאות דפדפן (`src/instrumentation-client.ts`).
@@ -250,6 +253,30 @@ SITE_URL=https://<domain> ADMIN_TOKEN=... npm run bundle -- --days 90
 # → bhirot-market-2026-09-05.json  (העבירו לסוכן יחד עם הפרומפט מ-/admin/bundle)
 ```
 
+
+## הקלט מהמשתמשים: `/suggest` ו-`/contact`
+
+שני טפסים ציבוריים, פתוחים לכולם גם בלי התחברות, שנפגשים בלוח הניהול:
+
+| דף | מה עושים בו |
+|---|---|
+| `/suggest` | מציעים שאלה חדשה: ניסוח, קטגוריה, מועד יעד, הערכת הסתברות, תמונה וקישור למקור — עם תצוגה מקדימה של הכרטיס כפי שייראה בלוח. מי שמחובר רואה בתחתית הדף את ההצעות שלו ומה קרה להן. |
+| `/contact` | פנייה לצוות: שאלה, דיווח על טעות בשוק, באג או רעיון. |
+
+הצעה של משתמש **לעולם לא הופכת לשוק לבדה**. היא נכנסת לטבלה `question_suggestion`, ומשם:
+
+- **`/admin/inbox`** — תיבת ההצעות והפניות: סטטוס לכל פריט (ממתינה/אושרה/נדחתה, חדש/בטיפול/טופל), הערה פנימית,
+  קישור `mailto` למענה, וכפתור ״פרסום כשאלה״.
+- **`/admin/questions`** — טופס פרסום שאלה חדשה: ניסוח, רקע, כללי הכרעה, קטגוריה, אנשים (מספקים את התמונה),
+  תמונה חלופית, תגיות, מקורות, מועד סגירה בשעון ישראל, מחיר פתיחה ונזילות — עם תצוגה מקדימה חיה. הכפתור בתיבה
+  פותח את הטופס כשהוא כבר מלא בפרטי ההצעה, והפרסום מסמן אותה כאושרה ומקשר אותה לשוק שנפתח.
+
+הפרסום נכנס למסד הנתונים מיד ופותח מסחר, ומחזיר את אובייקט ה-JSON להוספה ל-`data/markets.json` — שנשאר
+מקור האמת, בדיוק כמו בכל שאלה של רוטינת העדכון.
+
+שני הטפסים ציבוריים, ולכן מוגנים בחסם קצב בזיכרון לכל שולח (5 פניות ו-10 הצעות בשעה) ובסכמות zod
+שדוחות כתובת תמונה שאינה `https://` או נתיב מקומי.
+
 ## API
 
 | נתיב | תיאור |
@@ -260,6 +287,10 @@ SITE_URL=https://<domain> ADMIN_TOKEN=... npm run bundle -- --days 90
 | `POST /api/rapid/answer` `{marketId, side, stake}` | תשובה במצב זריז — קנייה מחייבת של ₪5–₪100 בצד שנבחר (דורש התחברות) |
 | `GET /api/recommendations?limit=12&category=…&all=1` | המלצות למשתמש המחובר (או פופולריות למבקר), עם הנימוק לכל שוק |
 | `POST /api/comments` | תגובה לשוק |
+| `POST /api/contact` `{name?, email, topic, body}` | פנייה לצוות (ציבורי, מוגבל ל-5 בשעה לכל שולח) |
+| `POST /api/suggestions` `{title, category, description?, resolutionCriteria?, closesAt?, probability?, imageUrl?, sourceUrl?}` | הצעת שאלה חדשה (ציבורי, מוגבל ל-10 בשעה לכל שולח) |
+| `POST /api/admin/questions` | פרסום שאלה חדשה מלוח הניהול (הרשאת ניהול או Bearer `ADMIN_TOKEN`) |
+| `GET /api/admin/inbox` · `PATCH /api/admin/inbox` | קריאת תיבת ההצעות והפניות ועדכון סטטוס/הערה (הרשאת ניהול או Bearer `ADMIN_TOKEN`) |
 | `POST /api/admin/markets` `{markets:[…], note, source}` | Upsert/הכרעה של שווקים (Bearer `ADMIN_TOKEN`) |
 | `GET /api/admin/markets` | ייצוא מלא של השווקים (Bearer `ADMIN_TOKEN`) |
 | `POST /api/sync` | סנכרון `data/markets.json` → DB (Bearer `ADMIN_TOKEN`) |
@@ -332,6 +363,7 @@ npm run markets:generate   # הרצת המחולל המובנה (דורש ANTHRO
 npm run history:verify     # בדיקת החסמים של גרף האומדן (--sparklines להצגת העקומות)
 npm run test:trade         # בדיקות קצה-לקצה של נתיב הכסף (קנייה, מכירה, הנזלה, הכרעה) מול DB זמני
 npm run test:referrals     # בדיקות תוכנית ההזמנות (קודים, תשלום יחיד, תקרה, הפרדת בונוס מרווח) מול DB זמני
+npm run test:admin         # הרשאות לוח הניהול, מועדים בשעון ישראל, slugים, חסם קצב וסכמות הטפסים
 npm run db:generate        # יצירת מיגרציה אחרי שינוי בסכמה
 npm run bundle             # הורדת באנדל הנתונים לקובץ (דורש SITE_URL + ADMIN_TOKEN)
 ```
@@ -360,14 +392,21 @@ src/lib/fake-leaderboard.ts   לוח המובילים האנונימי: כינו
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
+src/lib/admin.ts         רשימת ההרשאות ללוח הניהול (ADMIN_EMAILS) ובדיקת בקשה מנהלתית
+src/lib/admin-stats.ts   כל הסטטיסטיקות של לוח הניהול, בסבב שאילתות אחד
+src/lib/inbox.ts         הצעות שאלה ופניות: סכמות הקלט, שמירה, תיבה ועדכון סטטוס
+src/lib/il-time.ts       תרגום מועד סגירה בין שעון ישראל ל-ISO (כולל שעון קיץ)
+src/lib/rate-limit.ts    חסם קצב בזיכרון לטפסים הציבוריים
 src/lib/seo.ts           כותרות, canonical ו-JSON-LD (schema.org)
 src/lib/analytics.ts     קליטת אירועי אנליטיקה בצד השרת (hash מבקר, סינון בוטים, מחיקה לפי מדיניות)
 src/lib/stats.ts         כל שאילתות הדוחות של לוח הניהול והבאנדל
 src/lib/bundle.ts        בניית באנדל הנתונים (JSON + דוח Markdown)
+src/lib/gtag.ts          Google Analytics: הפעלה לפי מזהה המדידה, צפיות בעמוד ואירועים
 src/components/Analytics.tsx  המעקב בצד הדפדפן (sendBeacon)
+src/components/GoogleAnalytics.tsx  טעינת gtag.js ודיווח צפיות ל-GA4
 src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה, וחתימת עוגיית ההזמנה על /i/<code>
-src/app/admin/           לוח הניהול: סקירה, תנועה, שווקים, משתמשים, באנדל
-src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /invite, /i/[code], /about, /login, /admin, /onboarding
+src/app/admin/           לוח הניהול: סקירה, תנועה, שווקים, משתמשים, שאלה חדשה, תיבה, באנדל
+src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /invite, /i/[code], /about, /login, /admin, /onboarding, /suggest, /contact
 ```
 
 ## SEO
@@ -378,6 +417,25 @@ src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /p
 - **נתונים מובנים**: `Organization` + `WebSite` (עם SearchAction) בכל דף, `Article` + `BreadcrumbList` בדף שוק, `CollectionPage` בדפי רשימה ו-`FAQPage` ב-`/about` (השאלות נמצאות ב-`FAQ` ב-`src/lib/seo.ts` ומוצגות גם בדף עצמו — אין להוסיף שאלה ל-JSON-LD בלי להציג אותה).
 - **קודי סטטוס**: שלד הטעינה (`loading.tsx`) חי רק תחת קבוצת הראוט `(listing)`. אם מוסיפים `loading.tsx` מעל דפי שוק/קטגוריה, ה-404 שלהם יהפוך ל-200 רך (soft 404).
 - **אימות Search Console**: הגדירו `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` והתג ייווצר לבד.
+
+## Google Analytics
+
+בנוסף למדידה העצמית שלמעלה, האתר מדווח ל-GA4. הרכיב `src/components/GoogleAnalytics.tsx` נטען פעם אחת
+מה־layout הראשי — כך שכל דף מכוסה ואי אפשר לשכוח דף חדש. שתי המערכות מודדות את אותו אתר ואף אחת מהן
+לא תלויה בשנייה: `src/lib/analytics.ts` הוא הלוג הפנימי שמזין את `/admin`, ו-`src/lib/gtag.ts` הוא הדיווח לגוגל.
+
+- **הפעלה**: `NEXT_PUBLIC_GA_MEASUREMENT_ID` = מזהה המדידה של זרם הנתונים ב־GA4
+  (`Admin → Data streams → Measurement ID`), בפורמט `G-XXXXXXXXXX`. בלי הערך הזה **לא נטען שום
+  סקריפט של גוגל** — זה המצב הרגיל בפיתוח וב־CI.
+- **בזמן בילד, לא בזמן ריצה**: Next צורב משתני `NEXT_PUBLIC_*` לתוך הבאנדל. בפריסה לשרת הערך מגיע
+  מהמשתנה `GA_MEASUREMENT_ID` כ־build arg (‏`Dockerfile` + `.github/workflows/deploy.yml`); הוספה שלו
+  ל־`.env` של השרת בלבד לא תעשה כלום. שינוי הערך מחייב בילד מחדש.
+- **צפיות בעמוד**: פקודת ה־`config` מדווחת על העמוד שנחתו בו, ו־`GoogleAnalyticsPageViews` מדווחת על כל ניווט
+  צד־לקוח אחריו (כולל שינוי בשאילתה — מיון, חיפוש ו"הצגת עוד"). בלי החלק השני היה נרשם רק העמוד הראשון,
+  כי ב־App Router כל השאר הוא ניווט רך שלא טוען מחדש את הדף.
+- **אירועים** (`gaEvent` ב־`src/lib/gtag.ts`): `trade` (קנייה/מכירה בדף שוק), `rapid_answer`
+  (תשובה במצב זריז) ו־`comment_post`. הסכום נשלח כפרמטר `amount` ולא כ־`value` עם `currency`: הכסף כאן
+  וירטואלי, ו־`value` היה מכניס אותו לדוחות ההכנסות של GA כאילו אינו.
 
 ## גילוי נאות
 

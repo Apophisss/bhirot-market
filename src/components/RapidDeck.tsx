@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
-import { money, pct, agora, shares as fmtShares, closesLabel } from "@/lib/format";
+import { money, pct, sharePrice, shares as fmtShares, closesLabel } from "@/lib/format";
 import { SITE_TEAM } from "@/lib/config";
 import {
   RAPID_DEFAULT_STAKE,
@@ -17,6 +17,7 @@ import {
 } from "@/lib/rapid";
 import { MarketImage } from "./MarketImage";
 import { RapidSpark } from "./RapidSpark";
+import { gaEvent } from "@/lib/gtag";
 
 type AnswerStatus = "pending" | "ok" | "error";
 
@@ -228,6 +229,8 @@ export function RapidDeck({
         } catch {
           patch = { ...job, status: "error", error: "שגיאת רשת" };
         }
+        // reported before the unmount check below: the trade happened either way
+        if (patch.status === "ok") gaEvent("rapid_answer", { market_id: job.marketId, side: job.side, stake: job.stake });
         // out of money: every queued answer after this one would fail the same way,
         // so stop the run instead of firing a burst of doomed requests
         const stranded = data?.code === "INSUFFICIENT_BALANCE" ? queue.current.splice(0) : [];
@@ -809,7 +812,7 @@ function AnswerButton({
           </span>
         )}
         {yes ? "כן" : "לא"}
-        <span className="tabular text-sm font-bold opacity-80">{agora(price)}</span>
+        <span className="tabular text-sm font-bold opacity-80">{sharePrice(price)}</span>
       </span>
       <span className="tabular mt-1 block text-[11px] font-semibold opacity-90">
         {money(stake)} ← ≈{money(payout)} אם צדקת

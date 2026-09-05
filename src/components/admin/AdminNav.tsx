@@ -8,6 +8,8 @@ const TABS = [
   { href: "/admin/traffic", label: "תנועה" },
   { href: "/admin/markets", label: "שווקים" },
   { href: "/admin/users", label: "משתמשים" },
+  { href: "/admin/questions", label: "שאלה חדשה" },
+  { href: "/admin/inbox", label: "תיבה" },
   { href: "/admin/bundle", label: "באנדל נתונים" },
 ];
 
