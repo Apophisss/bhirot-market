@@ -6,7 +6,7 @@ import { getCategory } from "@/lib/categories";
 import { SITE_TEAM, isTeamAuthored } from "@/lib/config";
 import { PeopleStack } from "./PeopleStack";
 
-export function MarketCard({ m }: { m: MarketView }) {
+export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
   const href = `/market/${m.id}`;
   const cat = getCategory(m.category);
   const resolved = m.status !== "open";
@@ -16,7 +16,7 @@ export function MarketCard({ m }: { m: MarketView }) {
   return (
     <article className="card card-hover flex flex-col gap-3 p-3.5 sm:p-4">
       <div className="flex items-start gap-2.5 sm:gap-3">
-        <Link href={href} className="shrink-0" aria-label={m.title}>
+        <Link href={href} data-evt="market-card" data-evt-market={m.id} className="shrink-0" aria-label={m.title}>
           <PeopleStack photos={m.photos} fallback={cat.cover} size={44} max={3} />
         </Link>
         <div className="min-w-0 flex-1">
@@ -28,9 +28,15 @@ export function MarketCard({ m }: { m: MarketView }) {
             {urgent && <span className="rounded-md bg-no/15 px-1.5 py-0.5 font-semibold text-no">{closesLabel(m.closesAt)}</span>}
             {soon && <span className="rounded-md bg-warn/15 px-1.5 py-0.5 font-semibold text-warn">נסגר בקרוב</span>}
           </div>
-          <Link href={href} className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2">
+          <Link
+            href={href}
+            data-evt="market-card"
+            data-evt-market={m.id}
+            className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2"
+          >
             {m.title}
           </Link>
+          {note && <p className="mt-1 text-[11px] font-medium text-accent-2 sm:text-xs">{note}</p>}
         </div>
         <ProbabilityGauge p={m.probability} size={58} />
       </div>
@@ -47,12 +53,16 @@ export function MarketCard({ m }: { m: MarketView }) {
         <div className="grid grid-cols-2 gap-2">
           <Link
             href={`${href}?side=yes`}
+            data-evt="market-card-yes"
+            data-evt-market={m.id}
             className="tap pressable flex items-center justify-center rounded-lg bg-yes/15 text-center text-sm font-bold text-yes transition hover:bg-yes hover:text-white active:bg-yes active:text-white"
           >
             כן {pct(m.probability)}
           </Link>
           <Link
             href={`${href}?side=no`}
+            data-evt="market-card-no"
+            data-evt-market={m.id}
             className="tap pressable flex items-center justify-center rounded-lg bg-no/15 text-center text-sm font-bold text-no transition hover:bg-no hover:text-white active:bg-no active:text-white"
           >
             לא {pct(1 - m.probability)}

@@ -9,6 +9,7 @@ import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
 import { PmCandidates } from "@/components/PmCandidates";
+import { RecommendationSection } from "@/components/Recommendations";
 import { JsonLd } from "@/components/JsonLd";
 import { getPerson } from "@/lib/content";
 import { money } from "@/lib/format";
@@ -16,7 +17,9 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 import { findCategory } from "@/lib/categories";
 import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
+import { getRecommendations } from "@/lib/recommendations";
 import { BoltIcon } from "@/components/BoltIcon";
+import { displayOpenCount } from "@/lib/display-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +68,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureSynced();
-  const sp = await searchParams;
+  const [sp, session] = await Promise.all([searchParams, auth()]);
 
   legacyCategoryRedirect(sp);
 
@@ -81,20 +84,25 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // only the two canonical listings (/ and /?status=resolved) carry the ItemList
   const indexable = !q && !person && !sp.sort && !sp.show;
 
-  const [markets, stats, counts, peopleCounts, session, recentlyResolved, closingSoon] = await Promise.all([
+  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended] = await Promise.all([
     listMarkets({ category: "all", q, sort, status, person: person?.id, limit: 600 }),
     getMarketStats(),
     getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
     getPeopleCounts("open"),
-    auth(),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
+    !filtered ? getRecommendations({ userId: session?.user?.id, limit: 6 }) : Promise.resolve(null),
   ]);
 
+  // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
+  const openCount = displayOpenCount(stats.open);
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
-  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id)).slice(0, 3) : [];
-  const skip = new Set([...featured.map((m) => m.id), ...soonIds]);
+  // a question already surfaced by "closing today" is not worth a second slot in the recommendations
+  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 3);
+  const recIds = new Set(recommendations.map((r) => r.market.id));
+  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recIds.has(m.id)).slice(0, 3) : [];
+  const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recIds]);
   const rest = skip.size ? visible.filter((m) => !skip.has(m.id)) : visible;
 
   return (
@@ -105,7 +113,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             path: status === "resolved" ? "/?status=resolved" : "/",
             name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
-            markets: [...closingSoon, ...featured, ...rest].slice(0, 30),
+            markets: [...closingSoon, ...recommendations.map((r) => r.market), ...featured, ...rest].slice(0, 30),
           })}
         />
       )}
@@ -116,7 +124,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <Countdown variant="card" />
           <div className="tabular shrink-0 text-left text-[11px] leading-tight text-muted">
             <div>
-              <strong className="text-text-strong">{stats.open}</strong> שווקים
+              <strong className="text-text-strong">{openCount}</strong> שווקים
             </div>
             <div>
               <strong className="text-text-strong">{money(stats.volume, { compact: true })}</strong> נפח
@@ -141,19 +149,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/75 sm:mt-3 sm:text-lg">
                 סקרים, קואליציות, משפטים ומהלכים פוליטיים. כרגע פתוחות
                 {" "}
-                <strong className="text-white">{stats.open} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
+                <strong className="text-white">{openCount} שאלות</strong> על הקמפיין, למסחר בכסף וירטואלי בלבד.
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-3">
                 <Link
                   href="/rapid"
+                  data-evt="hero-rapid"
                   className="tap pressable inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft sm:py-2.5"
                 >
                   <BoltIcon size={16} />
-                  מצב זריז · {stats.open} שאלות ברצף
+                  מצב זריז · {openCount} שאלות ברצף
                 </Link>
                 {session?.user ? (
                   <Link
                     href="/portfolio"
+                    data-evt="hero-portfolio"
                     className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
                   >
                     לתיק שלי
@@ -161,6 +171,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 ) : (
                   <Link
                     href="/login"
+                    data-evt="hero-login"
                     className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 text-center font-semibold text-white hover:bg-white/20"
                   >
                     <span className="sm:hidden">התחברות · ₪10,000 וירטואליים</span>
@@ -169,6 +180,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 )}
                 <Link
                   href="/about"
+                  data-evt="hero-about"
                   className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
                 >
                   איך זה עובד?
@@ -178,7 +190,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <div className="flex flex-col gap-3 lg:items-end">
               <Countdown />
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-white/70 sm:flex sm:flex-wrap">
-                <span><strong className="tabular text-white">{stats.open}</strong> שווקים פתוחים</span>
+                <span><strong className="tabular text-white">{openCount}</strong> שווקים פתוחים</span>
                 <span><strong className="tabular text-white">{stats.resolved}</strong> הוכרעו</span>
                 <span><strong className="tabular text-white">{money(stats.volume, { compact: true })}</strong> נפח</span>
                 <span><strong className="tabular text-white">{stats.users}</strong> סוחרים</span>
@@ -219,6 +231,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ))}
           </div>
         </section>
+      )}
+
+      {recommendations.length > 0 && (
+        <RecommendationSection items={recommendations} personalized={Boolean(recommended?.personalized)} loggedIn={Boolean(session?.user)} />
       )}
 
       {featured.length > 0 && (

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
+import { track } from "@/lib/analytics";
+import { EVENTS } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 
@@ -20,5 +22,12 @@ export async function POST(req: Request) {
     .insert(schema.comments)
     .values({ userId: session.user.id, marketId: market.id, body: parsed.data.body })
     .returning();
+  await track(EVENTS.comment, {
+    req,
+    userId: session.user.id,
+    marketId: market.id,
+    path: `/market/${market.id}`,
+    props: { length: parsed.data.body.length },
+  });
   return NextResponse.json({ ok: true, comment: row });
 }

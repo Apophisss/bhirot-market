@@ -752,7 +752,12 @@ function RapidCardView({
           />
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-2 sm:mt-2">
-          <button onClick={onSkip} className="shrink-0 cursor-pointer rounded-md px-2 py-1 font-semibold hover:text-text-strong">
+          <button
+            onClick={onSkip}
+            data-evt="rapid-skip"
+            data-evt-market={card.id}
+            className="shrink-0 cursor-pointer rounded-md px-2 py-1 font-semibold hover:text-text-strong"
+          >
             דלג
           </button>
           <span className="line-clamp-2 text-end">
