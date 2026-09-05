@@ -23,6 +23,8 @@ export function Footer() {
             <Link href="/about" className="inline-flex items-center py-2 hover:text-white">איך זה עובד</Link>
             <Link href="/about#faq" className="inline-flex items-center py-2 hover:text-white">שאלות ותשובות</Link>
             <Link href="/about#updates" className="inline-flex items-center py-2 hover:text-white">מי כותב את השאלות</Link>
+            <Link href="/suggest" className="inline-flex items-center py-2 hover:text-white">הצעת שאלה</Link>
+            <Link href="/contact" className="inline-flex items-center py-2 hover:text-white">יצירת קשר</Link>
           </nav>
         </div>
       </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth, signOut } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
+import { isAdminEmail } from "@/lib/admin";
 import { UserBalance } from "./UserBalance";
 import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
@@ -19,6 +20,8 @@ const NAV = [
 export async function Header() {
   const session = await auth();
   const user = session?.user;
+  // the allowlist is read from the session's email — /admin itself re-checks against the database
+  const admin = isAdminEmail(user?.email);
 
   async function doSignOut() {
     "use server";
@@ -79,7 +82,12 @@ export async function Header() {
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
                   <Link href="/for-you" className="block px-4 py-3 text-sm hover:bg-surface-2">מומלץ בשבילי</Link>
+                  <Link href="/suggest" className="block px-4 py-3 text-sm hover:bg-surface-2">הצעת שאלה</Link>
+                  <Link href="/contact" className="block px-4 py-3 text-sm hover:bg-surface-2">יצירת קשר</Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
+                  {admin && (
+                    <Link href="/admin" className="block px-4 py-3 text-sm font-semibold text-accent hover:bg-surface-2">לוח ניהול</Link>
+                  )}
                   <form action={doSignOut}>
                     <button className="block w-full px-4 py-3 text-right text-sm text-no hover:bg-surface-2">התנתקות</button>
                   </form>
