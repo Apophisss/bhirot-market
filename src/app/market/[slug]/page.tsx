@@ -20,6 +20,7 @@ import { Comments } from "@/components/Comments";
 import { PeopleStack } from "@/components/PeopleStack";
 import { MarketCard } from "@/components/MarketCard";
 import { StickyTradeBar } from "@/components/StickyTradeBar";
+import { RapidCta } from "@/components/RapidCta";
 import { ShareButton } from "@/components/ShareButton";
 import { THIN_MARKET_TRADES } from "@/lib/limits";
 import type { CSSProperties } from "react";
@@ -250,6 +251,17 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             </div>
           </section>
         )}
+
+        {/* A question page ends with one question answered and no next one; the deck is
+            the next one, and on a phone this band is the only route to it that does not
+            require finding the tab bar. Pre-filtered to this question's category. */}
+        <RapidCta
+          evt="market-rapid"
+          href={`/rapid?category=${cat.id}`}
+          title={`עוד שאלות ב${cat.label} — במצב זריז`}
+          body={`השאלות עולות אחת אחרי השנייה: כן או לא, וממשיכים. ${market.status === "open" ? "אותו מד, אותן נקודות" : "אותו משחק"} — בלי לחזור לרשימה בין שאלה לשאלה.`}
+          label="לענות ברצף"
+        />
       </div>
 
       <aside className="hidden lg:block">
@@ -269,6 +281,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             <strong className="text-text">איך זה עובד?</strong> כל תשובת ״כן״ שווה נקודה אם התשובה היא כן, ואפס אחרת (ולהפך לתשובת ״לא״).
             המד מראה כמה בטוחים בה השחקנים כרגע. <Link href="/about" className="text-accent-2 hover:underline">עוד</Link>
           </div>
+          <RapidCta variant="line" evt="market-rapid-side" href={`/rapid?category=${cat.id}`} label="לשאלה הבאה במצב זריז" className="w-full justify-center" />
         </div>
       </aside>
 

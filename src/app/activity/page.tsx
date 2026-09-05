@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RapidCta } from "@/components/RapidCta";
 import { getRecentTrades, listMarkets } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { ActivityFeed } from "@/components/ActivityFeed";
@@ -55,6 +56,15 @@ export default async function ActivityPage() {
       <div className="card p-3.5 sm:p-4">
         <ActivityFeed initial={items} markets={feedMarkets} startedAt={startedAt} />
       </div>
+
+      {/* watching other people answer is the one page on the site with no question on
+          it; the deck is one tap away and is what the feed is a stream of */}
+      <RapidCta
+        evt="activity-rapid"
+        title="כל אלה ענו על שאלה. תורכם."
+        body="מצב זריז מגיש את השאלות אחת אחרי השנייה — כן או לא, וממשיכים. התשובות שלכם ייכנסו לזרם הזה."
+        label="לענות ברצף"
+      />
     </div>
   );
 }

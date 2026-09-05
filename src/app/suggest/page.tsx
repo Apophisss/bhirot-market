@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RapidCta } from "@/components/RapidCta";
 import { currentUser } from "@/lib/auth";
 import { SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { SuggestQuestionForm } from "@/components/SuggestQuestionForm";
@@ -56,6 +57,13 @@ export default async function SuggestPage() {
       </header>
 
       <SuggestQuestionForm loggedIn={Boolean(user)} defaultName={user?.name} defaultEmail={user?.email} />
+
+      {/* the proposal waits for the editorial routine; the board does not */}
+      <RapidCta
+        evt="suggest-rapid"
+        title="עד שההצעה נבדקת — ענו על מה שכבר על הלוח"
+        label="למצב זריז"
+      />
 
       {mine.length > 0 && (
         <section className="card p-3.5 sm:p-4">

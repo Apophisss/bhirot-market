@@ -12,6 +12,7 @@ import { EVENTS } from "@/lib/events";
 import { gaEvent } from "@/lib/gtag";
 import { checkAdConversions } from "@/components/AdConversions";
 import { ShareButton } from "./ShareButton";
+import { BoltIcon } from "./BoltIcon";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
@@ -501,14 +502,32 @@ export function TradePanel({
         {msg && (
           <div className={`mt-3 rounded-lg px-3 py-2 text-sm ${msg.kind === "ok" ? "bg-yes/10 text-yes" : "bg-no/10 text-no"}`}>
             <p>{msg.text}</p>
-            {msg.shareSide && marketTitle && (
-              <ShareButton
-                title={marketTitle}
-                path={pathname}
-                text={`ניחשתי ${msg.shareSide === "YES" ? "כן" : "לא"} · ${marketTitle}`}
-                label="שתפו את הניחוש"
-                className="mt-2 bg-surface"
-              />
+            {/*
+              An answered question is the moment a player is most likely to answer
+              another one, and until now the confirmation offered only a share button —
+              the panel's own dead end. The deck is the next question, so it goes here,
+              beside the share, on the successful trade only.
+            */}
+            {msg.kind === "ok" && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Link
+                  href="/rapid"
+                  data-evt="trade-done-rapid"
+                  className="tap pressable inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[13px] font-bold text-white hover:bg-accent-2"
+                >
+                  <BoltIcon />
+                  לשאלה הבאה במצב זריז
+                </Link>
+                {msg.shareSide && marketTitle && (
+                  <ShareButton
+                    title={marketTitle}
+                    path={pathname}
+                    text={`ניחשתי ${msg.shareSide === "YES" ? "כן" : "לא"} · ${marketTitle}`}
+                    label="שתפו את הניחוש"
+                    className="bg-surface"
+                  />
+                )}
+              </div>
             )}
           </div>
         )}

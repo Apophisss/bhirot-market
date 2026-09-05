@@ -20,13 +20,20 @@ export const metadata: Metadata = {
 type Search = { next?: string; edit?: string };
 
 /** Only same-site paths, and never a protocol-relative "//host" that leaves the site. */
-function safeNext(next?: string): string {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+function safeNext(next: string | undefined, fallback: string): string {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : fallback;
 }
 
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
-  const next = safeNext(sp.next);
+  /*
+    The survey exists to order the deck, so the deck is where answering it leads: a
+    first-time player arrives here straight from Google sign-in with no `next`, and
+    sending them to the board made them pick a question out of a grid before they
+    had answered a single one. Editing preferences later (`?edit=1`, from the user
+    menu) is not that flow — "ביטול" there still means "back to the board".
+  */
+  const next = safeNext(sp.next, sp.edit === "1" ? "/" : "/rapid");
   const session = await auth();
   if (!session?.user?.id) {
     const cb = `/onboarding${sp.next ? `?next=${encodeURIComponent(next)}` : ""}`;

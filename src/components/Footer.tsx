@@ -29,6 +29,7 @@ export async function Footer() {
             השאלות נכתבות ומתעדכנות על ידי {SITE_TEAM} ומבוססות על פרסומים פומביים.
           </p>
           <nav className="-my-1 flex shrink-0 flex-wrap gap-x-4">
+            <Link href="/rapid" data-evt="footer-rapid" className="tap inline-flex min-w-11 items-center justify-center font-semibold text-white hover:text-white">מצב זריז</Link>
             <Link href="/about" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">איך זה עובד</Link>
             <Link href="/invite" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">הזמינו חברים</Link>
             <Link href="/about#faq" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">שאלות ותשובות</Link>

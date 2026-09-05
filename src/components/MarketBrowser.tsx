@@ -138,7 +138,7 @@ export function MarketBrowser({
         </div>
         <div className="scrollbar-none swipe-x -mx-3 flex items-center gap-1 px-3 text-[13px] sm:mx-0 sm:px-0 sm:text-xs">
           <Link
-            href="/rapid"
+            href={category && category !== "all" ? `/rapid?category=${category}` : "/rapid"}
             data-evt="browser-rapid"
             className="tap pressable me-2 inline-flex shrink-0 items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 font-bold text-accent-2 hover:bg-accent/20"
           >
