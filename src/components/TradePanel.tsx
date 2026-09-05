@@ -11,12 +11,15 @@ import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
 import { gaEvent } from "@/lib/gtag";
 import { checkAdConversions } from "@/components/AdConversions";
+import { ShareButton } from "./ShareButton";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
   position: { yesShares: number; noShares: number; yesCost: number; noCost: number } | null;
   balance: number | null;
   loggedIn: boolean;
+  /** the question itself, so a trade can be shared straight from the confirmation */
+  marketTitle?: string;
   initialSide?: Side;
   /** the portfolio links straight to "מכירה", so the sale can be checked against the value it showed */
   initialAction?: Action;
@@ -38,6 +41,7 @@ export function TradePanel({
   position,
   balance,
   loggedIn,
+  marketTitle,
   initialSide = "YES",
   initialAction = "BUY",
   initialAmount,
@@ -55,7 +59,7 @@ export function TradePanel({
     initialAction === "SELL" ? sellPrefill(position, sellSide(position, initialSide)) : initialAmount ?? "",
   );
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string; shareSide?: Side } | null>(null);
   /** the panel's own confirm button — the sticky bar below only appears once it is off screen */
   const confirmRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -99,6 +103,33 @@ export function TradePanel({
   const flip = otherSide(side);
   const heldOther = sharesOn(position, flip);
   const qty = Number(input) || 0;
+
+  /*
+    Mirror the chosen side and amount into the URL.
+
+    The panel's own login button can build its `callbackUrl` from state, but the
+    blue "התחברות" in the header cannot see this component at all — and that is the
+    button a visitor who is not yet signed in actually reaches for. Putting the
+    decision on the URL is what lets every login link on the page carry it: the
+    market page reads `side` and `amount` straight back off the query.
+
+    `history.replaceState` rather than `router.replace`: this is a client-side
+    annotation of where the user is, not a navigation. Next keeps `useSearchParams`
+    in sync with it (which is how LoginLink notices), and no server render is
+    triggered — a round trip per keystroke would be absurd.
+  */
+  useEffect(() => {
+    if (loggedIn || action !== "BUY" || typeof window === "undefined") return;
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      params.set("side", side.toLowerCase());
+      if (qty > 0) params.set("amount", String(qty));
+      else params.delete("amount");
+      window.history.replaceState(null, "", `${window.location.pathname}?${params}${window.location.hash}`);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [loggedIn, action, side, qty]);
+
 
   // buying is capped at the 99% band so the user sees the limit instead of a
   // rejected trade. Selling is capped by the position alone — a holding can
@@ -207,6 +238,8 @@ export function TradePanel({
             action === "BUY"
               ? `קנית ${fmtShares(data.quote.shares)} מניות ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount, { decimals: true })}`
               : `מכרת ${fmtShares(data.quote.shares)} מניות תמורת ${money(data.quote.amount, { decimals: true })}`,
+          // a prediction is worth sharing the moment it is made, and not after
+          shareSide: action === "BUY" ? side : undefined,
         });
         // A sale used to leave "מניות למכירה (יש לך 61.6)" and the whole position box
         // standing after the shares were gone, because the box is filled from the
@@ -466,7 +499,18 @@ export function TradePanel({
           a screen reader is never told the trade went through */}
       <div role="status" aria-live="polite" aria-atomic="true">
         {msg && (
-          <p className={`mt-3 rounded-lg px-3 py-2 text-sm ${msg.kind === "ok" ? "bg-yes/10 text-yes" : "bg-no/10 text-no"}`}>{msg.text}</p>
+          <div className={`mt-3 rounded-lg px-3 py-2 text-sm ${msg.kind === "ok" ? "bg-yes/10 text-yes" : "bg-no/10 text-no"}`}>
+            <p>{msg.text}</p>
+            {msg.shareSide && marketTitle && (
+              <ShareButton
+                title={marketTitle}
+                path={pathname}
+                text={`חזיתי ${msg.shareSide === "YES" ? "כן" : "לא"} · ${marketTitle}`}
+                label="שתפו את החיזוי"
+                className="mt-2 bg-surface"
+              />
+            )}
+          </div>
         )}
       </div>
 

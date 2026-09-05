@@ -180,6 +180,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             position={position}
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
+            marketTitle={market.title}
             initialSide={side === "no" ? "NO" : "YES"}
             initialAction={action === "sell" ? "SELL" : "BUY"}
             initialAmount={prefill}
@@ -253,6 +254,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             position={position}
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
+            marketTitle={market.title}
             initialSide={side === "no" ? "NO" : "YES"}
             initialAction={action === "sell" ? "SELL" : "BUY"}
             initialAmount={prefill}

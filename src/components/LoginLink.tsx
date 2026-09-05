@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 /** Routes there is no point coming back to after signing in. */
 const NO_RETURN = ["/login", "/onboarding", "/welcome"];
@@ -40,8 +40,26 @@ export function LoginLink({
   evt?: string;
 }) {
   const returnTo = useReturnTo();
+  const router = useRouter();
   return (
-    <Link href={`/login?callbackUrl=${encodeURIComponent(returnTo)}`} data-evt={evt} className={className}>
+    <Link
+      href={`/login?callbackUrl=${encodeURIComponent(returnTo)}`}
+      data-evt={evt}
+      className={className}
+      onClick={(e) => {
+        // The href is rendered from `useSearchParams`, which is right for every
+        // ordinary page. On a market page the trade panel keeps annotating the URL
+        // with the side and amount as they are typed, and the last annotation can
+        // land after this link has rendered — so the destination is recomputed from
+        // the live location at the moment of the click, which is the moment that
+        // decides where the visitor comes back to.
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        const here = window.location.pathname + window.location.search;
+        const back = NO_RETURN.some((p) => window.location.pathname.startsWith(p)) ? "/" : here;
+        router.push(`/login?callbackUrl=${encodeURIComponent(back)}`);
+      }}
+    >
       {children}
     </Link>
   );

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { SITE_NAME } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
-import { AD_CHECK_PARAM } from "@/components/AdConversions";
+import { AD_CHECK_PARAM } from "@/lib/ad-attribution";
 import { shareCard } from "@/lib/seo";
 
 const LOGIN_DESCRIPTION = "התחברו וקבלו ₪10,000 וירטואליים למסחר בשוקי החיזוי של בחירות 2026.";
