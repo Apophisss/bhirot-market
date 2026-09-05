@@ -17,6 +17,7 @@ import {
   HANDLE_SLOTS,
   type RealTrader,
 } from "../src/lib/fake-leaderboard";
+import { displayUserCount } from "../src/lib/display-stats";
 import { STARTING_BALANCE } from "../src/lib/db/schema";
 
 let passed = 0;
@@ -125,6 +126,31 @@ test("the fabricated numbers stay plausible", () => {
   assert.ok(Math.abs(median - STARTING_BALANCE) < 0.25 * STARTING_BALANCE, `median ${median} drifted off the stake`);
   const winners = crowd.filter((t) => t.pnl > 0).length;
   assert.ok(winners > crowd.length * 0.25 && winners < crowd.length * 0.75, `${winners} winners is a lopsided board`);
+});
+
+/*
+  The hero on / and the table on /leaderboard are one click apart, and both print a
+  player count. /leaderboard sizes its fabricated crowd from `displayUserCount` for
+  exactly that reason (see the sizing comment in src/app/leaderboard/page.tsx); this
+  reproduces the arithmetic that page does, so the two can never drift apart again
+  without a test going red.
+*/
+test("the board is exactly as long as the hero says the site is", () => {
+  //             registered accounts, of which this many have actually answered
+  const cases: [number, number][] = [[0, 0], [5, 4], [40, 3], [500, 260], [12_000, 9_000]];
+  for (const [users, traders] of cases) {
+    const hero = displayUserCount(users);
+    const traded: RealTrader[] = Array.from({ length: traders }, (_, i) => ({
+      userId: `u-${i}`,
+      netWorth: STARTING_BALANCE + i,
+      pnl: i,
+      tradeCount: 1 + i,
+    }));
+    const board = buildBoard(traded, { now: NOW, fakeCount: Math.max(0, hero - traded.length) });
+    assert.equal(board.length, hero, `${users} signups / ${traders} players: board ${board.length} ≠ hero ${hero}`);
+    assert.ok(board.length >= FAKE_TRADER_COUNT, "the board never drops below the fabricated floor");
+    assert.equal(board.filter((r) => !r.fabricated).length, traders, "every real player still gets a row");
+  }
 });
 
 console.log(`✓ leaderboard: ${passed} tests passed`);

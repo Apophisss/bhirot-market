@@ -70,12 +70,21 @@ function positive(n: number): number {
 }
 
 /**
- * The number of traders the hero advertises: the real signups inflated by a
+ * The number of players the hero advertises: the real signups inflated by a
  * fixed multiplier, plus the fabricated crowd of `fake-leaderboard.ts`.
  *
- * The floor is not decoration — those traders are rows a visitor can literally
+ * The floor is not decoration — those players are rows a visitor can literally
  * count on /leaderboard, so a headline below `DISPLAY_USERS_FLOOR` would be
  * contradicted by the site's own page one click away.
+ *
+ * That argument runs in both directions, which is why /leaderboard sizes its
+ * fabricated crowd from THIS function rather than from `FAKE_TRADER_COUNT`
+ * directly. The hero counts every registered account; the board can only list the
+ * ones that have actually answered something, because `getLeaderboard()` drops the
+ * rest. With a fixed crowd the two disagreed by exactly the signups who never
+ * played — 335 in the hero against 324 rows on the board, and growing. The board
+ * is now `displayUserCount(users)` rows long by construction, so the only way to
+ * change one number is to change both.
  */
 export function displayUserCount(realUsers: number): number {
   return DISPLAY_USERS_FLOOR + Math.round(positive(realUsers) * DISPLAY_USERS_MULTIPLIER);

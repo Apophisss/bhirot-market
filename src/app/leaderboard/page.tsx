@@ -4,6 +4,7 @@ import { getLeaderboard } from "@/lib/portfolio";
 import { getMarketStats } from "@/lib/markets";
 import { STARTING_BALANCE } from "@/lib/limits";
 import { buildBoard, type BoardRow } from "@/lib/fake-leaderboard";
+import { displayUserCount } from "@/lib/display-stats";
 import { Avatar } from "@/components/Avatar";
 import { money, signedMoney, pnlTone } from "@/lib/format";
 import { auth } from "@/lib/auth";
@@ -50,8 +51,23 @@ export default async function LeaderboardPage() {
   // was right. Saying so is the difference between a ranking and a scoreboard.
   const provisional = stats.resolved === 0;
   // identities stop here: buildBoard turns each trader into a pseudonym, and only
-  // the pseudonymous rows are handed to the markup
-  const board = buildBoard(real, { meId: session?.user?.id });
+  // the pseudonymous rows are handed to the markup.
+  //
+  // The crowd is sized so the board comes out at exactly the number the hero
+  // advertises. The hero counts every registered account (`displayUserCount`,
+  // src/lib/display-stats.ts); this page can only list accounts that have actually
+  // answered something, because `getLeaderboard()` drops the rest — so a fixed
+  // FAKE_TRADER_COUNT left the hero claiming more players than the table one click
+  // away could show, and the gap widens with every signup who never plays. Deriving
+  // the crowd from the same function closes it: the board is always
+  // `displayUserCount(stats.users)` rows long, whatever the mix of real and
+  // fabricated. (The subtraction cannot go below the floor — `displayUserCount` is
+  // never smaller than FAKE_TRADER_COUNT, and real traders are a subset of the
+  // registered accounts it counts three times over.)
+  const board = buildBoard(real, {
+    meId: session?.user?.id,
+    fakeCount: Math.max(0, displayUserCount(stats.users) - real.length),
+  });
   const rows = board.slice(0, VISIBLE);
   const me = board.find((r) => r.isMe);
   const mePinned = me && me.rank > VISIBLE ? me : null;
