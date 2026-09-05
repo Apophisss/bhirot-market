@@ -86,9 +86,9 @@ export default async function WelcomePage() {
         </p>
 
         <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">
-          חושבים שאתם יודעים
+          כמה טוב אתם מכירים
           <br />
-          מה יקרה בבחירות?
+          את הפוליטיקה הישראלית?
         </h1>
         {/* The one piece of urgency on this page that is not invented: there is a real
             election on a real date. It used to sit in small grey type halfway down the
@@ -100,8 +100,8 @@ export default async function WelcomePage() {
           </p>
         )}
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-lg">
-          {SITE_NAME} הוא משחק ניחושים על הפוליטיקה הישראלית. מקבלים {money(STARTING_BALANCE)}, עונים ״כן״ או ״לא״
-          על שאלות שמתעדכנות כל שעה לפי החדשות, ומגלים אם קראתם את המפה טוב יותר מכולם.
+          {SITE_NAME} הוא משחק ידע על הפוליטיקה הישראלית — בנקודות משחק בלבד. אין כסף אמיתי, אין פרסים
+          ואין תשלום. עונים על שאלות, צוברים נקודות על תשובות נכונות, ומגלים אם קראתם את המפה טוב יותר מכולם.
         </p>
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
