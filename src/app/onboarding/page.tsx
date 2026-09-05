@@ -13,7 +13,7 @@ import { MarketImage } from "@/components/MarketImage";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "מה מעניין אתכם?",
-  description: "שאלון קצר שקובע אילו שוקי חיזוי יומלצו לכם ראשונים.",
+  description: "שאלון קצר שקובע אילו שאלות יומלצו לכם ראשונות.",
   robots: { index: false, follow: true },
 };
 
@@ -81,8 +81,8 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             {editing ? "על מה בא לכם לשחק?" : "לפני שמתחילים — על מה בא לכם לשחק?"}
           </h1>
           <p className="text-[13px] leading-relaxed text-muted sm:text-sm">
-            שלוש שאלות כלליות, בלי דעות פוליטיות ובלי שאלות אישיות. התשובות קובעות אילו שאלות והימורים
-            נמליץ לכם ראשונים בלוח ובמצב הזריז — אפשר לדלג, ואפשר לשנות בכל רגע מתפריט המשתמש.
+            שלוש שאלות כלליות, בלי דעות פוליטיות ובלי שאלות אישיות. התשובות קובעות אילו שאלות
+            נמליץ לכם ראשונות בלוח ובמצב הזריז — אפשר לדלג, ואפשר לשנות בכל רגע מתפריט המשתמש.
           </p>
         </header>
 

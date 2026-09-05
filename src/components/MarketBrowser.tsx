@@ -202,7 +202,7 @@ export function MarketBrowser({
       ) : (
         <div className="card p-8 text-center text-muted sm:p-12">
           <p>
-            לא נמצאו שווקים. נסו קטגוריה אחרת,{" "}
+            לא נמצאו שאלות. נסו קטגוריה אחרת,{" "}
             <Link href="/" className="text-accent-2 hover:underline">
               נקו את הסינון
             </Link>

@@ -8,7 +8,7 @@ import { SITE_NAME } from "@/lib/config";
 import { shareCard } from "@/lib/seo";
 
 const DESCRIPTION =
-  "הזרם החי של בחירות מרקט: העסקאות האחרונות בשוקי החיזוי על בחירות 2026 — כמה נקנה, באיזה צד ובאיזה מחיר. בלי שמות.";
+  "הזרם החי של בחירות מרקט: התשובות האחרונות בשאלות על בחירות 2026 — כמה נקודות, באיזה צד ובאיזה מחיר. בלי שמות.";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -50,7 +50,7 @@ export default async function ActivityPage() {
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
         <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">פעילות אחרונה</h1>
-        <p className="text-sm text-muted">כל העסקאות בכל השווקים, מהחדשה לישנה — בלי שמות.</p>
+        <p className="text-sm text-muted">כל התשובות בכל השאלות, מהחדשה לישנה — בלי שמות.</p>
       </div>
       <div className="card p-3.5 sm:p-4">
         <ActivityFeed initial={items} markets={feedMarkets} startedAt={startedAt} />

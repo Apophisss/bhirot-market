@@ -8,7 +8,7 @@
  */
 import { SITE_NAME, SITE_URL } from "./config";
 
-/** Virtual ₪ paid to the inviter for every friend who signs up through their link. */
+/** Points credited to the inviter for every friend who signs up through their link. */
 export const REFERRAL_BONUS = 2000;
 
 /**
@@ -69,5 +69,5 @@ export function inviteUrl(code: string): string {
 
 /** The message that goes out on WhatsApp — the link on its own line, so every client links it. */
 export function inviteShareText(url: string): string {
-  return `בואו לחזות את הבחירות איתי ב${SITE_NAME} — שוק חיזויים על בחירות 2026 בכסף וירטואלי בלבד. נרשמים דרך הקישור שלי ומתחילים עם ₪10,000:\n${url}`;
+  return `בואו לנחש איתי את הבחירות ב${SITE_NAME} — משחק ניחושים חינמי על בחירות 2026. נרשמים דרך הקישור שלי ומתחילים עם 10,000 נקודות:\n${url}`;
 }

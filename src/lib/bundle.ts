@@ -258,7 +258,7 @@ export function bundleToMarkdown(b: Bundle): string {
         ["משתמשים רשומים", n(s.users), `+${n(s.newUsers)} בטווח`],
         ["סוחרים פעילים", n(s.activeTraders), "—"],
         ["עסקאות", n(s.trades), "—"],
-        ["נפח (₪ וירטואלי)", n(s.volume), "—"],
+        ["נקודות ששוחקו", n(s.volume), "—"],
         ["שווקים פתוחים / הוכרעו", `${n(s.openMarkets)} / ${n(s.resolvedMarkets)}`, "—"],
       ],
     ),

@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "../src/lib/config";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL } from "../src/lib/config";
 import { LLMS_RESOLVED_LIMIT, renderLlmsTxt, type LlmsMarket } from "../src/lib/llms-txt";
 import { absUrl, clamp, shareCard } from "../src/lib/seo";
 import { fit } from "../src/lib/og";
@@ -59,7 +59,7 @@ test("shareCard fills in everything the layout would have contributed", () => {
   assert.equal(card.title, "כותרת");
   assert.equal(card.description, "תיאור");
   assert.deepEqual(card.images, [
-    { url: "/og.png", width: 1200, height: 630, alt: `${SITE_NAME} — שוק החיזויים של בחירות 2026` },
+    { url: "/og.png", width: 1200, height: 630, alt: `${SITE_NAME} — ${SITE_TAGLINE}` },
   ]);
 });
 
@@ -197,10 +197,12 @@ test("llms.txt opens the way the convention says: an h1, then a one-blockquote s
   assert.equal(lines[1], `> ${SITE_DESCRIPTION}`);
 });
 
-test("llms.txt says the money is virtual and that a price is not a poll", () => {
+test("llms.txt says the score is points and that the number is not a poll", () => {
   const txt = renderLlmsTxt({ open: [], resolved: [] });
-  assert.match(txt, /הכסף וירטואלי/);
+  assert.match(txt, /נקודות משחק/);
   assert.match(txt, /לא סקר/);
+  // the one description a model must never repeat back about this site
+  assert.doesNotMatch(txt, /שוק חיזויים/);
   // the model is told how to attribute a number before it is given any
   assert.ok(txt.indexOf("איך לצטט") < txt.indexOf("## שאלות פתוחות"));
 });
@@ -216,7 +218,7 @@ test("an open question is listed with its price, its deadline in Israel time and
 
 test("a question nobody traded yet says so rather than showing a volume", () => {
   const txt = renderLlmsTxt({ open: [market({ id: "x", title: "שאלה", tradeCount: 0, volume: 0 })], resolved: [] });
-  assert.match(txt, /טרם נסחר/);
+  assert.match(txt, /טרם נענתה/);
 });
 
 test("a question past its deadline is not offered as open", () => {

@@ -17,7 +17,7 @@ export default function NotFound() {
         href="/"
         className="tap pressable mt-6 inline-flex items-center justify-center rounded-lg bg-accent px-5 font-semibold text-white hover:bg-accent-2"
       >
-        חזרה לשווקים
+        חזרה לשאלות
       </Link>
     </div>
   );

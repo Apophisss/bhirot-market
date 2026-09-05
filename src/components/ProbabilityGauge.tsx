@@ -1,6 +1,6 @@
 import { pct } from "@/lib/format";
 
-/** Half-circle gauge showing the YES probability (Polymarket-style). */
+/** Half-circle gauge showing how sure the players are of "yes". */
 export function ProbabilityGauge({ p, size = 64, label = "סיכוי" }: { p: number; size?: number; label?: string }) {
   const r = size / 2 - 5;
   const cx = size / 2;
