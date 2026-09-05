@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
-import { MAX_BET, MAX_SELL_SHARES, MIN_BET } from "./limits";
-import { maxBuyAmount, maxSellShares, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
+import { MAX_BET, MIN_BET } from "./limits";
+import { maxBuyAmount, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
 
 const { markets, positions, trades, priceHistory, users } = schema;
 
@@ -58,26 +58,32 @@ export interface TradeRequest {
   quantity: number;
 }
 
+/** ₪ bounds of a single buy. A BUY is a bet, so it is capped by the site-wide limit. */
 export const MIN_TRADE = MIN_BET;
-/** A BUY is a bet, so it is capped in ₪ by the site-wide limit. */
 export const MAX_TRADE = MAX_BET;
-/** A SELL is measured in shares, not ₪ — see `MAX_SELL_SHARES`. */
-export { MAX_SELL_SHARES };
+
+/**
+ * A leftover smaller than this is written off instead of being left in the
+ * position: it is worth well under an agora, and rounding it away is what keeps
+ * "sell everything" actually leave nothing behind.
+ */
+export const DUST_SHARES = 1e-4;
 
 export async function executeTrade(req: TradeRequest) {
   const db = await getDb();
   if (req.side !== "YES" && req.side !== "NO") throw new TradeError("צד לא תקין");
   if (req.action !== "BUY" && req.action !== "SELL") throw new TradeError("פעולה לא תקינה");
-  const maxQuantity = req.action === "BUY" ? MAX_TRADE : MAX_SELL_SHARES;
-  if (!Number.isFinite(req.quantity) || req.quantity < MIN_TRADE) {
-    throw new TradeError("סכום לא תקין");
+  if (!Number.isFinite(req.quantity) || req.quantity <= 0) {
+    throw new TradeError(req.action === "BUY" ? "סכום לא תקין" : "כמות לא תקינה");
   }
-  if (req.quantity > maxQuantity) {
-    throw new TradeError(
-      req.action === "BUY" ? `אפשר להמר עד ₪${MAX_TRADE} בעסקה אחת` : "סכום לא תקין",
-      400,
-      "AMOUNT_TOO_LARGE",
-    );
+  // The ₪ bounds are a buy-side guard: a bet is capped site-wide. A sale is not a
+  // bet — it is capped by the shares actually held (below), and by nothing else, so
+  // a position can always be closed in a single order however large it grew.
+  if (req.action === "BUY") {
+    if (req.quantity < MIN_TRADE) throw new TradeError("סכום לא תקין");
+    if (req.quantity > MAX_TRADE) {
+      throw new TradeError(`אפשר להמר עד ₪${MAX_TRADE} בעסקה אחת`, 400, "AMOUNT_TOO_LARGE");
+    }
   }
 
   return withBusyRetry(() => db.transaction(async (tx) => {
@@ -127,23 +133,20 @@ export async function executeTrade(req: TradeRequest) {
       newShares = heldShares + quote.shares;
       newCost = heldCost + quote.amount;
     } else {
+      // a sale is never blocked by the price band: whatever the market did to the
+      // position, the holder can always sell all of it (see PRICE_BAND in lmsr.ts).
       const sellShares = Math.min(req.quantity, heldShares);
-      if (sellShares <= 1e-9) throw new TradeError("אין לך מניות למכירה", 400, "NO_SHARES");
-      const sellCap = maxSellShares(state, req.side);
-      if (sellShares > sellCap + 1e-6) {
-        throw new TradeError(
-          sellCap <= 0
-            ? `המחיר של הצד הזה כבר הגיע לרצפה (${Math.round(PRICE_BAND.min * 100)}%) ואי אפשר למכור עוד`
-            : `המכירה גדולה מדי ותדחוף את השוק מתחת ל-${Math.round(PRICE_BAND.min * 100)}%. המקסימום כרגע: ${Math.floor(sellCap)} מניות`,
-        );
-      }
+      if (sellShares <= 0) throw new TradeError("אין לך מניות למכירה", 400, "NO_SHARES");
       quote = quoteSell(state, req.side, sellShares);
+      if (!Number.isFinite(quote.amount) || quote.amount < 0) throw new TradeError("שגיאת חישוב, נסו כמות אחרת");
       newBalance = user.balance + quote.amount;
       newShares = heldShares - sellShares;
       const costPortion = heldShares > 0 ? heldCost * (sellShares / heldShares) : 0;
       newCost = heldCost - costPortion;
       realized = quote.amount - costPortion;
-      if (newShares < 1e-6) {
+      if (newShares < DUST_SHARES) {
+        // write the dust off rather than dropping its cost basis silently
+        realized -= newCost;
         newShares = 0;
         newCost = 0;
       }
