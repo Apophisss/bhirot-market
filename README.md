@@ -18,6 +18,8 @@
 | תוכן | `data/markets.json` — מקור האמת לשאלות; מסונכרן למסד הנתונים אוטומטית |
 | תמונות | תמונות אישי ציבור מוורדות מ־Wikimedia Commons אל `public/people/` (`npm run people:fetch`) — האתר לא מקשר החוצה — + עטיפות SVG לכל קטגוריה ותמונת שיתוף (`public/og.png`) |
 | עדכון שעתי | (א) **רוטינת העדכון** של צוות המערכת, שעורכת את `data/markets.json` לפי `AGENT.md`; (ב) מחולל השאלות המובנה `/api/cron/refresh` (Vercel Cron) עם חיפוש באינטרנט |
+| אנליטיקה | מעקב עצמי (first-party) בלי קוקיז ובלי צד שלישי — צפיות, זמן שהייה, גלילה, לחיצות, חיפושים, עסקאות, Core Web Vitals ושגיאות דפדפן |
+| ניהול | `/admin` — לוח סטטיסטיקות (תנועה, משפך, שווקים, משתמשים) + הורדת **באנדל נתונים** לניתוח |
 
 ## הרצה מקומית
 
@@ -41,7 +43,8 @@ npm run dev                       # http://localhost:3000
 
 1. צרו מסד Turso: `turso db create bhirot-market` → `turso db show --url` ו־`turso db tokens create`.
 2. ב־Vercel הגדירו משתני סביבה: `DATABASE_URL` (libsql://…), `DATABASE_AUTH_TOKEN`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`,
-   `AUTH_GOOGLE_SECRET`, `ADMIN_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, ואופציונלית `ANTHROPIC_API_KEY` (+`CLAUDE_MODEL`).
+   `AUTH_GOOGLE_SECRET`, `ADMIN_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, ואופציונלית `ANTHROPIC_API_KEY` (+`CLAUDE_MODEL`),
+   `ADMIN_EMAILS` (כניסה ל-`/admin` עם חשבון Google) ו-`ANALYTICS_SALT`.
 3. `vercel.json` כבר מגדיר Cron שעתי ל־`/api/cron/refresh`, שמסנכרן את `data/markets.json` ומריץ את המחולל המובנה אם יש מפתח API.
 
 ## שאלות קצרות טווח
@@ -69,6 +72,40 @@ npm run dev                       # http://localhost:3000
 מחקר עם כלי `web_search` → פלט מובנה (Zod) של שאלות חדשות והכרעות → ולידציה, סינון כפילויות, והכנסה למסד.
 אפשר להריץ ידנית: `npm run markets:generate -- --dry-run`.
 
+## אנליטיקה ועמוד הניהול
+
+האתר מודד את עצמו, בלי Google Analytics ובלי שום צד שלישי: `src/components/Analytics.tsx` שולח אירועים ב-`sendBeacon`
+אל `POST /api/analytics/collect`, והם נשמרים בטבלה `analytics_event` באותו מסד נתונים.
+
+- **מה נמדד**: צפיות בעמודים (כולל `utm_*` ומקור הפניה), זמן שהייה ועומק גלילה, לחיצות על אלמנטים שמסומנים ב-`data-evt`,
+  קישורים יוצאים, חיפושים, Core Web Vitals אמיתיים מהשדה ושגיאות דפדפן (`src/instrumentation-client.ts`).
+  עסקאות, תגובות והרשמות נרשמות **בצד השרת**, כך שחוסם פרסומות לא יכול להסתיר אותן.
+- **פרטיות**: אין קוקי מעקב. מבקר מזוהה ב-hash של IP+דפדפן שמתחלף כל יום (`ANALYTICS_SALT`), ה-IP עצמו לא נשמר,
+  ואירועים נמחקים אוטומטית אחרי `ANALYTICS_RETENTION_DAYS` (ברירת מחדל 180 יום) בכל ריצת cron.
+- **כיבוי**: `ANALYTICS_DISABLED=true`.
+
+`/admin` (כניסה עם `ADMIN_TOKEN` דרך `/admin/login`, או חשבון Google שמופיע ב-`ADMIN_EMAILS`; בפיתוח בלי שניהם — פתוח):
+
+| מסך | מה יש בו |
+|---|---|
+| `/admin` | מדדים ראשיים, "מה כדאי לתקן" (בעיות שנגזרות אוטומטית), גרפים יומיים, משפך, עמודים ומקורות, ריצות העדכון השעתי |
+| `/admin/traffic` | עמודים, מקורות, קמפיינים, מכשירים, מדינות, שעות היום, אירועים, לחיצות, חיפושים, Web Vitals ושגיאות |
+| `/admin/markets` | בריאות התוכן, כיול המחירים (ציון Brier), ביצועי קטגוריות, טבלת כל השווקים, מי מחכה להכרעה ומי בלי עסקאות |
+| `/admin/users` | הרשמות ליום, קוהורטות שימור, פילוח מסחר ולוח מובילים |
+| `/admin/bundle` | הורדת באנדל הנתונים + הפרומפט המומלץ להעברה לסוכן |
+
+## באנדל הנתונים (לניתוח ושיפור האתר)
+
+`GET /api/admin/bundle?days=90&format=json|md` מחזיר קובץ אחד עם כל מה שידוע על האתר: הבעיות שזוהו,
+המשפך, תנועה יומית, מעורבות לכל שוק, קוהורטות, ביצועים, שגיאות, ריצות העדכון — ובנוסף `guide` עם מילון מונחים,
+קטלוג האירועים ומפת הקוד, כדי שסוכן יוכל לנתח ולהציע שיפורים בלי הסברים נוספים. הקובץ **לא** מכיל שמות,
+אימיילים, כתובות IP או מזהי משתמש.
+
+```bash
+SITE_URL=https://<domain> ADMIN_TOKEN=... npm run bundle -- --days 90
+# → bhirot-market-2026-09-05.json  (העבירו לסוכן יחד עם הפרומפט מ-/admin/bundle)
+```
+
 ## API
 
 | נתיב | תיאור |
@@ -82,6 +119,8 @@ npm run dev                       # http://localhost:3000
 | `POST /api/sync` | סנכרון `data/markets.json` → DB (Bearer `ADMIN_TOKEN`) |
 | `GET /api/cron/refresh` | סנכרון + מחולל השאלות (Bearer `CRON_SECRET`/`ADMIN_TOKEN`) |
 | `GET /api/health` | סטטיסטיקות ועדכון אוטומטי אחרון |
+| `POST /api/analytics/collect` | קליטת אירועי מעקב מהדפדפן (ציבורי, ללא PII) |
+| `GET /api/admin/bundle?days=90&format=json\|md` | באנדל הנתונים לניתוח (Bearer `ADMIN_TOKEN` או קוקי ניהול) |
 
 ## סקריפטים
 
@@ -92,6 +131,7 @@ npm run markets:merge f.json --note "..."   # איחוד אצווה של שאל�
 npm run people:fetch       # הורדת תמונות חדשות מוויקיפדיה אל public/people (‎-- --force לרענון)
 npm run markets:generate   # הרצת המחולל המובנה (דורש ANTHROPIC_API_KEY)
 npm run db:generate        # יצירת מיגרציה אחרי שינוי בסכמה
+npm run bundle             # הורדת באנדל הנתונים לקובץ (דורש SITE_URL + ADMIN_TOKEN)
 ```
 
 ## מבנה
@@ -105,7 +145,12 @@ src/lib/lmsr.ts          מתמטיקת עושה השוק
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
-src/app/                 דפים: /, /market/[slug], /portfolio, /leaderboard, /activity, /about, /login
+src/lib/analytics.ts     קליטת אירועים בצד השרת (hash מבקר, סינון בוטים, מחיקה לפי מדיניות)
+src/lib/stats.ts         כל שאילתות הדוחות של לוח הניהול והבאנדל
+src/lib/bundle.ts        בניית באנדל הנתונים (JSON + דוח Markdown)
+src/components/Analytics.tsx  המעקב בצד הדפדפן (sendBeacon)
+src/app/admin/           לוח הניהול: סקירה, תנועה, שווקים, משתמשים, באנדל
+src/app/                 דפים: /, /market/[slug], /portfolio, /leaderboard, /activity, /about, /login, /admin
 ```
 
 ## גילוי נאות

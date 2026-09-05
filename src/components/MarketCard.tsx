@@ -16,7 +16,7 @@ export function MarketCard({ m }: { m: MarketView }) {
   return (
     <article className="card card-hover flex flex-col gap-3 p-4">
       <div className="flex items-start gap-3">
-        <Link href={href} className="shrink-0" aria-label={m.title}>
+        <Link href={href} data-evt="market-card" data-evt-market={m.id} className="shrink-0" aria-label={m.title}>
           <PeopleStack photos={m.photos} fallback={cat.cover} size={46} max={3} />
         </Link>
         <div className="min-w-0 flex-1">
@@ -28,7 +28,12 @@ export function MarketCard({ m }: { m: MarketView }) {
             {urgent && <span className="rounded-md bg-no/15 px-1.5 py-0.5 font-semibold text-no">⚡ {closesLabel(m.closesAt)}</span>}
             {soon && <span className="rounded-md bg-warn/15 px-1.5 py-0.5 font-semibold text-warn">⏳ נסגר בקרוב</span>}
           </div>
-          <Link href={href} className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2">
+          <Link
+            href={href}
+            data-evt="market-card"
+            data-evt-market={m.id}
+            className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2"
+          >
             {m.title}
           </Link>
         </div>
@@ -47,12 +52,16 @@ export function MarketCard({ m }: { m: MarketView }) {
         <div className="grid grid-cols-2 gap-2">
           <Link
             href={`${href}?side=yes`}
+            data-evt="market-card-yes"
+            data-evt-market={m.id}
             className="rounded-lg bg-yes/15 py-2 text-center text-sm font-bold text-yes transition hover:bg-yes hover:text-white"
           >
             כן {pct(m.probability)}
           </Link>
           <Link
             href={`${href}?side=no`}
+            data-evt="market-card-no"
+            data-evt-market={m.id}
             className="rounded-lg bg-no/15 py-2 text-center text-sm font-bold text-no transition hover:bg-no hover:text-white"
           >
             לא {pct(1 - m.probability)}

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Heebo } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Analytics } from "@/components/Analytics";
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/config";
 
 const heebo = Heebo({ subsets: ["hebrew", "latin"], variable: "--font-heebo", display: "swap" });
@@ -27,6 +29,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
       <body className="flex min-h-dvh flex-col">
+        {/* the tracker reads search params, so it lives inside its own Suspense boundary */}
+        <Suspense fallback={null}>
+          <Analytics enabled={process.env.ANALYTICS_DISABLED !== "true"} />
+        </Suspense>
         <Header />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-4 sm:px-6">{children}</main>
         <Footer />

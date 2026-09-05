@@ -6,10 +6,10 @@ import { UserBalance } from "./UserBalance";
 import { Avatar } from "./Avatar";
 
 const NAV = [
-  { href: "/", label: "שווקים" },
-  { href: "/activity", label: "פעילות" },
-  { href: "/leaderboard", label: "מובילים" },
-  { href: "/about", label: "איך זה עובד" },
+  { href: "/", label: "שווקים", evt: "nav-markets" },
+  { href: "/activity", label: "פעילות", evt: "nav-activity" },
+  { href: "/leaderboard", label: "מובילים", evt: "nav-leaderboard" },
+  { href: "/about", label: "איך זה עובד", evt: "nav-about" },
 ];
 
 export async function Header() {
@@ -45,7 +45,12 @@ export async function Header() {
 
         <nav className="ms-auto hidden items-center gap-1 lg:flex">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-accent">
+            <Link
+              key={n.href}
+              href={n.href}
+              data-evt={n.evt}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-accent"
+            >
               {n.label}
             </Link>
           ))}
@@ -78,6 +83,7 @@ export async function Header() {
               </Link>
               <Link
                 href="/login"
+                data-evt="header-login"
                 className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-md shadow-accent/25 hover:bg-accent-2"
               >
                 התחברות

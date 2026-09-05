@@ -85,15 +85,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 {session?.user ? (
-                  <Link href="/portfolio" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+                  <Link href="/portfolio" data-evt="hero-portfolio" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
                     לתיק שלי
                   </Link>
                 ) : (
-                  <Link href="/login" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
+                  <Link href="/login" data-evt="hero-login" className="rounded-xl bg-white px-5 py-2.5 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft">
                     התחברות וקבלת ₪10,000 וירטואליים
                   </Link>
                 )}
-                <Link href="/about" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
+                <Link href="/about" data-evt="hero-about" className="rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 font-semibold text-white hover:bg-white/20">
                   איך זה עובד?
                 </Link>
               </div>
@@ -147,10 +147,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <CategoryTabs active={category} params={{ q, sort: sp.sort, status: sp.status, person: person?.id }} counts={counts} />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1 text-sm">
-            <Link href={link({ status: "open", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
+            <Link href={link({ status: "open", show: undefined })} data-evt="status-tab" className={`rounded-lg px-3 py-1.5 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
               פתוחים
             </Link>
-            <Link href={link({ status: "resolved", show: undefined })} className={`rounded-lg px-3 py-1.5 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
+            <Link href={link({ status: "resolved", show: undefined })} data-evt="status-tab" className={`rounded-lg px-3 py-1.5 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
               הוכרעו
             </Link>
             {q && (
@@ -169,7 +169,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <div className="flex items-center gap-1 text-xs">
             <span className="me-1 text-muted-2">מיון:</span>
             {SORTS.map((s) => (
-              <Link key={s.id} href={link({ sort: s.id })} className={`rounded-md px-2 py-1 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
+              <Link key={s.id} href={link({ sort: s.id })} data-evt="sort-tab" data-evt-label={s.label} className={`rounded-md px-2 py-1 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}>
                 {s.label}
               </Link>
             ))}
@@ -187,6 +187,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <div className="flex flex-col items-center gap-1 pt-2">
                 <Link
                   href={link({ show: String(show + PAGE) })}
+                  data-evt="show-more"
                   className="rounded-xl border border-border-2 bg-surface px-6 py-2.5 font-semibold text-text hover:bg-surface-2"
                   scroll={false}
                 >

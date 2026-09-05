@@ -11,3 +11,5 @@ data/local.db-*
 tsconfig.tsbuildinfo
 next-env.d.ts
 screenshots/
+bhirot-market-*.json
+bhirot-market-*.md

@@ -28,6 +28,8 @@ export function CategoryTabs({
           <Link
             key={c.id}
             href={mk(c.id)}
+            data-evt="category-tab"
+            data-evt-label={c.label}
             className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
               isActive ? "border-accent bg-accent/15 text-accent-2" : "border-border bg-surface text-muted hover:border-border-2 hover:text-text-strong"
             }`}

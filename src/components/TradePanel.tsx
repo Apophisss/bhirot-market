@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { maxBuyAmount, maxSellShares, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
+import { track } from "@/lib/track";
+import { EVENTS } from "@/lib/events";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
@@ -57,6 +59,11 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
   const sidePrice = side === "YES" ? market.probability : 1 - market.probability;
 
   async function submit() {
+    track(EVENTS.tradeAttempt, {
+      marketId: market.id,
+      value: qty,
+      props: { side, action, loggedIn: loggedIn ? 1 : 0 },
+    });
     if (!loggedIn) {
       router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
       return;

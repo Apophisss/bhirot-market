@@ -64,6 +64,8 @@ export function PmCandidates({ counts = {}, active }: { counts?: Record<string, 
           }
           return (
             <Link
+              data-evt="candidate-chip"
+              data-evt-label={c.name}
               key={c.id}
               href={on ? "/" : `/?person=${c.id}`}
               title={`${c.name} — ${c.note}`}
