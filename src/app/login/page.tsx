@@ -33,7 +33,9 @@ export const metadata: Metadata = {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string; error?: string }> }) {
   const { callbackUrl, error } = await searchParams;
-  const redirectTo = callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
+  // no callbackUrl means the visitor came to /login on its own — the deck is where a
+  // new account with a full balance and no answers has something to do
+  const redirectTo = callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/rapid";
   const session = await auth();
   if (session?.user) redirect(redirectTo);
 

@@ -7,6 +7,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 const NO_RETURN = ["/login", "/onboarding", "/welcome"];
 
 /**
+ * Where a sign-in goes when there is nothing to come back to. The deck, not the
+ * board: a fresh account with a full balance and no answer to its name should land
+ * on a question, not on a grid of them.
+ */
+const DEFAULT_RETURN = "/rapid";
+
+/**
  * The current location, as a `callbackUrl` — query string included.
  *
  * The query is the part that was missing: `/market/<slug>?side=no&amount=25`
@@ -17,7 +24,7 @@ const NO_RETURN = ["/login", "/onboarding", "/welcome"];
 export function useReturnTo(): string {
   const pathname = usePathname();
   const params = useSearchParams();
-  if (!pathname || NO_RETURN.some((p) => pathname.startsWith(p))) return "/";
+  if (!pathname || NO_RETURN.some((p) => pathname.startsWith(p))) return DEFAULT_RETURN;
   const qs = params.toString();
   return qs ? `${pathname}?${qs}` : pathname;
 }
@@ -56,7 +63,7 @@ export function LoginLink({
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
         e.preventDefault();
         const here = window.location.pathname + window.location.search;
-        const back = NO_RETURN.some((p) => window.location.pathname.startsWith(p)) ? "/" : here;
+        const back = NO_RETURN.some((p) => window.location.pathname.startsWith(p)) ? DEFAULT_RETURN : here;
         router.push(`/login?callbackUrl=${encodeURIComponent(back)}`);
       }}
     >

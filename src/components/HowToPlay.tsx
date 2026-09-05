@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { BoltIcon } from "./BoltIcon";
 import { money } from "@/lib/format";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 
 const STEPS = [
   { n: "1", title: "מתחברים עם Google", body: `מקבלים ${money(STARTING_BALANCE)}. אין כסף אמיתי, אין פרסים ואין תשלום.` },
-  { n: "2", title: "בוחרים שאלה", body: "עונים ״כן״ אם אתם חושבים שזה יקרה, ״לא״ אם לא. המד מראה כמה בטוחים בה השחקנים." },
+  { n: "2", title: "עונים ברצף במצב זריז", body: "שאלה אחת על המסך: ״כן״ אם אתם חושבים שזה יקרה, ״לא״ אם לא — והבאה עולה מיד." },
   { n: "3", title: "צוברים נקודות אם צדקתם", body: "כל תשובה שצדקה שווה נקודה. אפשר גם לחזור בכם לפני ההכרעה ולנעול את הרווח." },
 ];
 
@@ -30,6 +31,15 @@ export function HowToPlay() {
           </li>
         ))}
       </ol>
+      {/* an explainer that ends without the thing it explains is a dead end */}
+      <Link
+        href="/rapid"
+        data-evt="howtoplay-rapid"
+        className="tap pressable mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-accent/25 hover:bg-accent-2 sm:w-auto"
+      >
+        <BoltIcon size={16} />
+        להתחיל במצב זריז
+      </Link>
     </section>
   );
 }
