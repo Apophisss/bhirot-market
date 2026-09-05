@@ -29,7 +29,7 @@ export function clampStake(v: number): number {
 export type RapidSort = "mix" | "closing" | "new" | "hot";
 
 export const RAPID_SORTS: { id: RapidSort; label: string }[] = [
-  { id: "mix", label: "מעורבב" },
+  { id: "mix", label: "מומלץ בשבילי" },
   { id: "closing", label: "נסגר בקרוב" },
   { id: "new", label: "חדשות" },
   { id: "hot", label: "חמות" },

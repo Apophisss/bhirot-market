@@ -43,7 +43,7 @@ export default async function LeaderboardPage() {
                   <td className={`tabular px-3 py-2.5 sm:px-4 ${i < 3 ? "font-bold text-text-strong" : "text-muted"}`}>{i + 1}</td>
                   <td className="px-2 py-2.5 sm:px-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      <Avatar name={r.name} image={r.image} size={28} />
+                      <Avatar name={r.name} image={r.image} seed={r.userId} size={28} />
                       <span className="truncate font-semibold text-text">{r.name ?? "אנונימי"}</span>
                     </div>
                   </td>

@@ -11,7 +11,6 @@ import { MobileNav } from "./MobileNav";
 
 const NAV = [
   { href: "/", label: "שווקים", evt: "nav-markets" },
-  { href: "/for-you", label: "מומלץ בשבילי", evt: "nav-for-you" },
   { href: "/rapid", label: "מצב זריז", evt: "nav-rapid" },
   { href: "/activity", label: "פעילות", evt: "nav-activity" },
   { href: "/leaderboard", label: "מובילים", evt: "nav-leaderboard" },
@@ -85,7 +84,6 @@ export async function Header() {
                   }
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
-                  <Link href="/for-you" className="block px-4 py-3 text-sm hover:bg-surface-2">מומלץ בשבילי</Link>
                   <Link href="/invite" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
                     הזמינו חברים
                     <span className="tabular shrink-0 rounded-full bg-yes/15 px-2 py-0.5 text-[11px] font-bold text-yes">{money(REFERRAL_BONUS)}</span>
