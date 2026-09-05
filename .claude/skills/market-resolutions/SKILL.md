@@ -22,6 +22,11 @@ propose → מחקר → report → אישור אנושי → apply → publish
 חתום של בדיוק ההכרעה והראיה שהוצגו, ו-`publish` לא שולח כלום ש-`apply` לא כתב קודם.
 `npm run test:resolution` מקבע את זה.
 
+הצינור רץ **מתוזמן**: Routine בסביבת Claude Code פותחת סשן חדש חמש פעמים ביום בשעות היום בישראל,
+מריצה `propose`, חוקרת, ומגישה דוח — ואז עוצרת. הפרוטוקול של ריצה מתוזמנת, על מה שהיא אסורה
+לעשות, נמצא ב-[`.claude/routines/resolve.md`](../../routines/resolve.md). אותן פקודות עובדות גם
+ידנית בכל סשן.
+
 ## 1. propose — מה בכלל מחכה
 
 ```bash
@@ -132,5 +137,6 @@ npm run resolve -- publish                 # POST /api/admin/markets + אימו�
 - `src/lib/resolution.ts` — הסכמה והשערים (טהור, בלי מסד/רשת/שעון)
 - `scripts/resolve.ts` — ה-CLI
 - `scripts/test-resolution.ts` — `npm run test:resolution`
+- `.claude/routines/resolve.md` — מה ריצה מתוזמנת עושה, ומתי היא רצה
 - `data/resolutions/` — הארכיון של הריצות
 - `.claude/skills/market-questions` — הצד השני: כתיבת שאלות ותמחורן

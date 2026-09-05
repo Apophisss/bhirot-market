@@ -102,6 +102,9 @@ npm run resolve -- publish                 # POST ל-/api/admin/markets, ואז 
 
 כל ריצה נשמרת ב-`data/resolutions/<runId>.json` — מה נשאל, מה ענינו, מי אישר ומה השרת החזיר.
 
+הצינור הזה רץ גם **מתוזמן**, בנפרד מרוטינת השאלות: חמש פעמים ביום בשעות היום בישראל נפתח סשן
+שמריץ `propose`, חוקר, ומגיש דוח — ועוצר. הפרוטוקול: `.claude/routines/resolve.md`.
+
 ## הפורמט של `data/markets.json`
 
 ```json
