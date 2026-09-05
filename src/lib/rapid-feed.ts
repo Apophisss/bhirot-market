@@ -4,7 +4,7 @@ import { getCategory } from "./categories";
 import { isTeamAuthored } from "./config";
 import { toView, type MarketView } from "./markets";
 import { getChartHistories } from "./display-history";
-import { boardFrequencies, EMPTY_TASTE, focusProfile, getTasteProfile, tasteAffinity, type TasteProfile } from "./recommendations";
+import { getRecommendations } from "./recommendations";
 import { buildRapidSpark, type RapidCard, type RapidSort } from "./rapid";
 import type { DisplayHistory } from "./synthetic-history";
 
@@ -13,7 +13,9 @@ const { markets, positions } = schema;
 /** how many rows to score before slicing down to the requested feed length */
 const POOL_FACTOR = 4;
 const POOL_CAP = 400;
-/** in "mix", a question the market treats as settled is not worth a binding answer */
+/** the recommendation engine never returns more than this in one call */
+const REC_CAP = 60;
+/** a question the market treats as settled is not worth a binding answer, so it goes last */
 const CERTAIN_LOW = 0.03;
 const CERTAIN_HIGH = 0.97;
 
@@ -29,42 +31,63 @@ export interface RapidFeedOptions {
 
 /** Open, still-tradable markets for the rapid feed — by default only ones the user has not answered yet. */
 export async function listRapidFeed(opts: RapidFeedOptions = {}): Promise<MarketView[]> {
-  const db = await getDb();
-  const now = new Date();
+  const now = Date.now();
   const limit = opts.limit ?? 60;
   const sort = opts.sort ?? "mix";
 
-  const conds = [eq(markets.status, "open"), gt(markets.closesAt, now)];
+  // the default deck *is* the recommendation list, one card at a time
+  if (sort === "mix") return recommendedFeed(opts, limit, now);
+
+  const db = await getDb();
+  const conds = [eq(markets.status, "open"), gt(markets.closesAt, new Date(now))];
   if (opts.category && opts.category !== "all") conds.push(eq(markets.category, opts.category));
-  if (opts.userId && !opts.includeAnswered) {
-    // a positions row exists from the first trade onwards and is never deleted,
-    // so "no row" is exactly "this user never answered this question"
-    conds.push(
-      notExists(
-        db
-          .select({ one: sql`1` })
-          .from(positions)
-          .where(and(eq(positions.marketId, markets.id), eq(positions.userId, opts.userId))),
-      ),
-    );
-  }
+  if (opts.userId && !opts.includeAnswered) conds.push(unanswered(db, opts.userId));
 
-  // only "mix" reorders in JS, so the taste profile is only worth a query there
-  const [rows, taste] = await Promise.all([
+  const rows = await db
+    .select()
+    .from(markets)
+    .where(and(...conds))
+    .orderBy(...sqlOrder(sort))
+    .limit(Math.min(limit * POOL_FACTOR, POOL_CAP));
+
+  return orderFeed(rows.map((r) => toView(r, now)), sort).slice(0, limit);
+}
+
+/**
+ * The recommended deck. `getRecommendations` already blends what the user actually
+ * trades with what the board is doing right now, drops the questions they answered
+ * and spreads the categories, so the feed asks it for a slice and only pushes the
+ * questions the market treats as settled to the back.
+ */
+async function recommendedFeed(opts: RapidFeedOptions, limit: number, now: number): Promise<MarketView[]> {
+  const { items } = await getRecommendations({
+    userId: opts.userId,
+    category: opts.category,
+    includeAnswered: opts.includeAnswered,
+    limit: Math.min(limit * 2, REC_CAP),
+    now,
+  });
+  const views = items.map((r) => r.market);
+  const inPlay = views.filter(isInPlay);
+  const settled = views.filter((m) => !isInPlay(m));
+  return [...inPlay, ...settled].slice(0, limit);
+}
+
+function isInPlay(m: MarketView): boolean {
+  return m.probability >= CERTAIN_LOW && m.probability <= CERTAIN_HIGH;
+}
+
+/**
+ * A positions row exists from the first trade onwards and is never deleted, so
+ * "no row" is exactly "this user never answered this question".
+ */
+function unanswered(db: Awaited<ReturnType<typeof getDb>>, userId: string) {
+  return notExists(
     db
-      .select()
-      .from(markets)
-      .where(and(...conds))
-      .orderBy(...sqlOrder(sort))
-      .limit(Math.min(limit * POOL_FACTOR, POOL_CAP)),
-    sort === "mix" ? getTasteProfile(opts.userId, now.getTime()) : Promise.resolve(EMPTY_TASTE),
-  ]);
-
-  const views = rows.map((r) => toView(r, now.getTime()));
-  // the same inverse-frequency correction the recommendations use: an interest only
-  // counts to the extent that it singles questions out on this board
-  const focused = taste.strength > 0 ? focusProfile(taste, boardFrequencies(views)) : taste;
-  return orderFeed(views, sort, now.getTime(), focused).slice(0, limit);
+      .select({ one: sql`1` })
+      .from(positions)
+      .where(and(eq(positions.marketId, markets.id), eq(positions.userId, userId))),
+  );
 }
 
 /** The feed the deck is mounted with: the questions, each with the curve behind it. */
@@ -120,42 +143,8 @@ function sqlOrder(sort: RapidSort) {
   }
 }
 
-/**
- * How "worth asking right now" a question is: a coin-flip question that closes soon,
- * is fresh and already has trading on it makes a better rapid card than one that
- * closes in four months.
- */
-function rapidScore(m: MarketView, now: number, taste: TasteProfile): number {
-  const days = Math.max(0.5, (m.closesAt.getTime() - now) / 86_400_000);
-  const urgency = 1 / Math.sqrt(days);
-  const heat = Math.log10(1 + m.volume) / 5;
-  const fresh = Math.max(0, 1 - (now - m.createdAt.getTime()) / (14 * 86_400_000)) * 0.4;
-  const uncertainty = 1 - Math.abs(m.probability - 0.5) * 2;
-  // a nudge, not a filter: the deck should still feel like the whole board
-  const affinity = taste.strength > 0 ? tasteAffinity(taste, m) * 0.8 : 0;
-  return urgency + heat + fresh + uncertainty * 0.6 + affinity + (m.featured ? 0.5 : 0);
-}
-
-/** Round-robin over categories so two questions about the same thing never sit back to back. */
-function interleaveByCategory(list: MarketView[]): MarketView[] {
-  const buckets = new Map<string, MarketView[]>();
-  for (const m of list) {
-    const b = buckets.get(m.category);
-    if (b) b.push(m);
-    else buckets.set(m.category, [m]);
-  }
-  const queues = [...buckets.values()];
-  const out: MarketView[] = [];
-  while (out.length < list.length) {
-    for (const q of queues) {
-      const next = q.shift();
-      if (next) out.push(next);
-    }
-  }
-  return out;
-}
-
-export function orderFeed(list: MarketView[], sort: RapidSort, now = Date.now(), taste: TasteProfile = EMPTY_TASTE): MarketView[] {
+/** Reorders an already-fetched pool for the explicit sorts; "mix" is ranked by the recommendation engine instead. */
+export function orderFeed(list: MarketView[], sort: RapidSort): MarketView[] {
   const sorted = [...list];
   switch (sort) {
     case "closing":
@@ -167,11 +156,7 @@ export function orderFeed(list: MarketView[], sort: RapidSort, now = Date.now(),
     case "hot":
       sorted.sort((a, b) => b.volume - a.volume || b.tradeCount - a.tradeCount);
       return sorted;
-    default: {
-      const inPlay = sorted.filter((m) => m.probability >= CERTAIN_LOW && m.probability <= CERTAIN_HIGH);
-      const base = inPlay.length ? inPlay : sorted;
-      base.sort((a, b) => rapidScore(b, now, taste) - rapidScore(a, now, taste));
-      return interleaveByCategory(base);
-    }
+    default:
+      return sorted;
   }
 }
