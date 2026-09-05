@@ -42,6 +42,7 @@ export default function PrivacyPage() {
         <ul className="list-inside list-disc space-y-1 text-muted">
           <li><strong className="text-text">שם תצוגה, כתובת אימייל ותמונת פרופיל</strong> — כדי להציג אתכם בלוח המובילים, בתגובות ובדף הניקוד שלכם.</li>
           <li><strong className="text-text">פעילות המשחק</strong> — התשובות שנתתם, מה שאתם מחזיקים, הניקוד שלכם והתגובות שכתבתם.</li>
+          <li><strong className="text-text">ההעדפות שבחרתם באתר</strong> — התשובות לשאלון ההיכרות, מספר הנקודות שבחרתם לכל תשובה ב״מצב זריז״ ואיך סידרתם את החפיסה. נשמרות בחשבון כדי שהאתר ייראה אותו דבר בכל מכשיר שתתחברו ממנו.</li>
           <li><strong className="text-text">מקור ההגעה</strong> — אם הגעתם דרך מודעה, נשמר מזהה הקליק של גוגל (gclid) ופרמטרי הקמפיין, כדי שנדע אילו מודעות עובדות.</li>
         </ul>
         <p>
@@ -58,8 +59,9 @@ export default function PrivacyPage() {
           )}
         </ul>
         <p>
-          העדפות תצוגה מקומיות (כמו מספר הנקודות שבחרתם לכל תשובה ב״מצב זריז״) נשמרות ב־<code className="rounded bg-surface-2 px-1">localStorage</code> בדפדפן שלכם
-          ולא נשלחות אלינו כלל.
+          ב־<code className="rounded bg-surface-2 px-1">localStorage</code> שבדפדפן שלכם נשמרים רק דברים ששייכים למכשיר הזה ולא נשלחים אלינו:
+          דחיית ההצעה להוסיף את האתר למסך הבית, ותשובות שנתתם <strong>לפני</strong> שהתחברתם — שנכנסות לחשבון ברגע ההתחברות ואז נמחקות מהדפדפן.
+          ההעדפות שבחרתם כמשתמשים רשומים נשמרות בחשבון, ולכן הן חוצות מכשירים.
         </p>
       </LegalSection>
 

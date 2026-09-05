@@ -70,6 +70,8 @@ export function WelcomeQuestions({ questions }: { questions: WelcomeQuestion[] }
         side,
         priceAtAnswer: side === "YES" ? q.probability : 1 - q.probability,
         title: q.title,
+        // the landing page never asks for an amount, so it records the one it showed
+        stake: RAPID_DEFAULT_STAKE,
         ts: Date.now(),
       });
       gaEvent("welcome_answer", { market_id: q.id, side });

@@ -64,6 +64,13 @@
       "when": 1788640289660,
       "tag": "0008_market_topicality",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1788649963526,
+      "tag": "0009_user_settings",
+      "breakpoints": true
     }
   ]
 }

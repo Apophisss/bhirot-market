@@ -287,6 +287,38 @@ export const userPreferences = sqliteTable("user_preference", {
     .$defaultFn(() => new Date()),
 });
 
+/**
+ * מה שהמשתמש בחר בממשק — הבחירות שאינן שייכות למכשיר שבו נבחרו.
+ *
+ * טבלה נפרדת מ-`user_preference` בכוונה, ולא עוד עמודות בה: שם, עצם קיומה של
+ * השורה הוא מה שאומר "כבר שאלנו את המשתמש הזה את השאלון" (`needsSurvey`), ולכן
+ * שמירת הסכום שנבחר בסליידר הייתה מוחקת בשקט את השאלון מכל מי שנגע בו. שם
+ * *תשובות* לשאלון, כאן *הגדרות תצוגה*.
+ *
+ * כל עמודה יכולה להיות NULL, וזה מה שמבדיל בין "בחר" ל"עוד לא בחר": ברירות
+ * המחדל חיות ב-`src/lib/settings.ts` ולא ב-SQL (כך המספר מוגדר פעם אחת, גם
+ * לדפדפן), ואימוץ ההעדפות של אורח בהתחברות ממלא רק את מה שעוד לא נבחר.
+ */
+export const userSettings = sqliteTable("user_setting", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** הסכום לכל תשובה במצב זריז, בנקודות (טווח: src/lib/rapid.ts) */
+  rapidStake: integer("rapidStake"),
+  /** מיון החפיסה האחרון שנבחר (RapidSort) */
+  rapidSort: text("rapidSort"),
+  /** "כולל שאלות שכבר עניתי" */
+  rapidIncludeAnswered: integer("rapidIncludeAnswered", { mode: "boolean" }),
+  /** עד מתי "לא עכשיו" משתיק את ההצעה למלא את השאלון — בחשבון, לא בדפדפן */
+  surveySnoozedUntil: integer("surveySnoozedUntil", { mode: "timestamp_ms" }),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 /* ---------- Inbox: what users send the editorial team ---------- */
 
 /** Where a message or a suggestion stands in the editorial team's queue. */
