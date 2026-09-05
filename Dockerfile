@@ -26,6 +26,20 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # wrong ships absolute links and share metadata pointing at localhost.
 ARG NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+# Same story for the GA4 measurement ID: passing it only to the running
+# container does nothing, because the client bundle was already built without
+# it. Empty here means the site ships with analytics off, which is the right
+# default for a local or unconfigured build.
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=""
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
+# Google Ads conversion tracking — same build-time rule as GA above: unset here
+# means the campaign reports nothing, no matter what the server's .env says.
+ARG NEXT_PUBLIC_ADS_ID=""
+ENV NEXT_PUBLIC_ADS_ID=$NEXT_PUBLIC_ADS_ID
+ARG NEXT_PUBLIC_ADS_LABEL_SIGNUP=""
+ENV NEXT_PUBLIC_ADS_LABEL_SIGNUP=$NEXT_PUBLIC_ADS_LABEL_SIGNUP
+ARG NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE=""
+ENV NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE=$NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE
 RUN npm run build
 
 # ---------- runtime ----------

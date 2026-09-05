@@ -7,11 +7,13 @@ import {
   apply,
   cost,
   costToBuy,
+  holdingValue,
   initialState,
   maxBuyAmount,
   PRICE_BAND,
   priceYes,
   proceedsFromSell,
+  positionValue,
   quoteBuy,
   quoteSell,
   sharesForAmount,
@@ -179,6 +181,63 @@ test("zero and negative amounts buy nothing", () => {
   const s = initialState(0.5, 2000);
   close(sharesForAmount(s, "YES", 0), 0, 1e-12);
   close(sharesForAmount(s, "YES", -100), 0, 1e-12);
+});
+
+/* --------------------------- valuing a position -------------------------- */
+
+test("a position is worth exactly what selling it quotes", () => {
+  for (const b of [500, 2000, 8000]) {
+    for (const p of [0.05, 0.3, 0.5, 0.85]) {
+      const s = initialState(p, b);
+      for (const shares of [1, 50, 400, 5000]) {
+        close(positionValue(s, "YES", shares), quoteSell(s, "YES", shares).amount, 1e-9, "YES");
+        close(positionValue(s, "NO", shares), quoteSell(s, "NO", shares).amount, 1e-9, "NO");
+      }
+    }
+  }
+});
+
+test("shares x price always overstates a position, never the other way round", () => {
+  // the reason the portfolio may not mark at the marginal price: the gap is the
+  // paper profit a trader could never realise, and it grows as the market thins.
+  const b = 500;
+  let s = initialState(0.5, b);
+  const shares = sharesForAmount(s, "YES", 100);
+  s = apply(s, "YES", shares);
+  const marginal = shares * priceYes(s);
+  const real = positionValue(s, "YES", shares);
+  assert.ok(real < marginal, "the sale cannot pay the marginal price");
+  assert.ok(real <= 100 + 1e-9, `buying ₪100 cannot be worth ${real} the instant it fills`);
+  assert.ok(marginal > 105, `setup: expected a phantom gain on a thin market, got ${marginal}`);
+});
+
+test("an empty or nonsensical holding is worth nothing", () => {
+  const s = initialState(0.5, 2000);
+  close(positionValue(s, "YES", 0), 0, 1e-12);
+  close(positionValue(s, "YES", -10), 0, 1e-12);
+  close(positionValue(s, "NO", NaN), 0, 1e-12);
+  close(holdingValue(s, 0, 0).total, 0, 1e-12);
+});
+
+test("both legs of a hedge are worth what closing them one after the other pays", () => {
+  const s = initialState(0.4, 1500);
+  const yes = 300;
+  const no = 180;
+  const v = holdingValue(s, yes, no);
+  const afterYes = apply(s, "YES", -yes);
+  close(v.yes, proceedsFromSell(s, "YES", yes), 1e-9, "the YES leg alone");
+  close(v.no, proceedsFromSell(afterYes, "NO", no), 1e-9, "the NO leg out of what is left");
+  close(v.total, cost(s) - cost(apply(afterYes, "NO", -no)), 1e-9, "the pair together");
+  // a matched pair pays ₪1 at resolution whichever way it goes, so it is worth
+  // its size no matter where the price sits
+  const pair = holdingValue(s, 250, 250).total;
+  close(pair, 250, 1e-9, "a matched pair is worth its size");
+});
+
+test("a single leg is not made cheaper by valuing it through the pair", () => {
+  const s = initialState(0.6, 2000);
+  close(holdingValue(s, 400, 0).yes, positionValue(s, "YES", 400), 1e-12, "YES only");
+  close(holdingValue(s, 0, 400).no, positionValue(s, "NO", 400), 1e-12, "NO only");
 });
 
 console.log(`lmsr: ${passed} invariant tests passed`);

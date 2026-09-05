@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/*
+  `short:` — a phone that is short, not a laptop that is wide.
+
+  Rapid mode gives the deck exactly what is left of the screen, so on a 667px-tall
+  phone (a 553px viewport once Safari's bars are counted) the page chrome above the
+  card eats the card: measured on the live site, only 2 of 40 cards could show their
+  chart there and none could show the price bar. Under this variant the chrome that
+  is repeated on every other page steps aside so the card keeps its content.
+
+  The width bound matters: a laptop window is routinely 720px tall and has all the
+  room it needs — the deck is only starved when the screen is short AND narrow.
+*/
+@custom-variant short (@media (max-height: 720px) and (max-width: 1023px));
+
 @theme {
   --font-sans: var(--font-heebo), "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   /* Light, white-first surfaces with a faint blue cast */
@@ -230,6 +244,38 @@
          the answer buttons under the fold, which is worse than a shorter card
          (the card body scrolls on its own) */
       min-height: 460px;
+    }
+  }
+
+  /* Shared form control for the long forms (contact, suggest a question, the
+     dashboard's publisher). 16px on phones so iOS does not zoom the page in when a
+     field takes focus — the base layer rule cannot reach a component class. */
+  .inp {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-2);
+    padding: 0.6rem 0.75rem;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--color-text);
+    outline: none;
+  }
+  .inp::placeholder {
+    color: var(--color-muted-2);
+  }
+  .inp:focus {
+    border-color: var(--color-accent);
+    background: var(--color-surface);
+  }
+  .inp:disabled {
+    opacity: 0.6;
+  }
+  @media (min-width: 640px) {
+    .inp {
+      font-size: 0.875rem;
     }
   }
 

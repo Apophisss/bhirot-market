@@ -23,6 +23,10 @@ export const users = sqliteTable("user", {
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
   balance: real("balance").notNull().default(STARTING_BALANCE),
+  /** personal invite code, minted on first visit to /invite (see `referral-program.ts`) */
+  referralCode: text("referralCode").unique(),
+  /** id of the user whose invite link brought this one in. Deliberately not a foreign key: an inviter who deletes their account must not take their invitees' rows with them. */
+  referredBy: text("referredBy"),
   createdAt: integer("createdAt", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -214,6 +218,128 @@ export const comments = sqliteTable(
   (c) => [index("comment_market_idx").on(c.marketId, c.createdAt)],
 );
 
+/**
+ * One row per accepted invite: who invited whom, and what the inviter was paid for it.
+ * The row is the ledger — `referral.bonus` is what separates gifted capital from
+ * trading profit everywhere a P&L is shown.
+ */
+export const referrals = sqliteTable(
+  "referral",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    referrerId: text("referrerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** the invited user — unique, so an account can only ever be credited once */
+    invitedId: text("invitedId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** ₪ paid to the inviter for this signup; 0 once they pass MAX_REFERRALS */
+    bonus: real("bonus").notNull().default(0),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (r) => [
+    uniqueIndex("referral_invited_idx").on(r.invitedId),
+    index("referral_referrer_idx").on(r.referrerId, r.createdAt),
+  ],
+);
+
+/* ---------- Onboarding survey / personalization ---------- */
+
+export type SurveyStatus = "completed" | "skipped";
+/** How far out a user likes their questions to close. */
+export type Horizon = "fast" | "mixed" | "long";
+
+/**
+ * What the short political survey learned about a user, and the fact that they
+ * were already asked. One row per user: its existence (whatever its `status`) is
+ * what stops the site from asking again.
+ */
+export const userPreferences = sqliteTable("user_preference", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** JSON string[] of category ids (see src/lib/categories.ts) */
+  topics: text("topics").notNull().default("[]"),
+  /** JSON string[] of people ids (see data/people.json) */
+  people: text("people").notNull().default("[]"),
+  horizon: text("horizon").$type<Horizon>().notNull().default("mixed"),
+  status: text("status").$type<SurveyStatus>().notNull().default("completed"),
+  /** which revision of the survey they answered, so a future one can re-ask */
+  version: integer("version").notNull().default(1),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+/* ---------- Inbox: what users send the editorial team ---------- */
+
+/** Where a message or a suggestion stands in the editorial team's queue. */
+export type InboxStatus = "new" | "open" | "done";
+export type SuggestionStatus = "pending" | "approved" | "rejected";
+
+/** "Contact us" messages. A message may come from a signed-out visitor, hence the nullable userId. */
+export const contactMessages = sqliteTable(
+  "contact_message",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+    name: text("name").notNull().default(""),
+    email: text("email").notNull().default(""),
+    /** question | bug | market | idea | other */
+    topic: text("topic").notNull().default("other"),
+    /** free-text title the sender wrote, so the inbox is scannable without opening every message */
+    subject: text("subject").notNull().default(""),
+    body: text("body").notNull(),
+    status: text("status").$type<InboxStatus>().notNull().default("new"),
+    /** private note written on the admin dashboard */
+    adminNote: text("adminNote"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    handledAt: integer("handledAt", { mode: "timestamp_ms" }),
+  },
+  (c) => [index("contact_status_idx").on(c.status, c.createdAt)],
+);
+
+/**
+ * A question proposed by a user. It never becomes a market on its own: the editorial
+ * team opens it in the dashboard's "new question" form, prices it, and publishes.
+ */
+export const questionSuggestions = sqliteTable(
+  "question_suggestion",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+    name: text("name").notNull().default(""),
+    email: text("email").notNull().default(""),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    resolutionCriteria: text("resolutionCriteria").notNull().default(""),
+    category: text("category").notNull().default("general"),
+    /** image the suggester picked for the card (absolute URL or /public path) */
+    imageUrl: text("imageUrl"),
+    /** the suggester's own estimate for YES, 0..1 */
+    probability: real("probability"),
+    sourceUrl: text("sourceUrl"),
+    closesAt: integer("closesAt", { mode: "timestamp_ms" }),
+    status: text("status").$type<SuggestionStatus>().notNull().default("pending"),
+    adminNote: text("adminNote"),
+    /** slug of the market this suggestion became, once published */
+    publishedSlug: text("publishedSlug"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    reviewedAt: integer("reviewedAt", { mode: "timestamp_ms" }),
+  },
+  (s) => [index("suggestion_status_idx").on(s.status, s.createdAt)],
+);
+
 /** Log of editorial content updates (hourly routine / cron / admin API). */
 export const agentRuns = sqliteTable("agent_run", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -227,5 +353,55 @@ export const agentRuns = sqliteTable("agent_run", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+/**
+ * First-party analytics log — one row per event (pageview, click, trade, web vital, error).
+ * Cookie-less: `visitorId` is a daily-rotating hash of ip+user-agent, so it identifies a
+ * browser for a day and never a person. No IP, no user-agent and no PII are stored.
+ */
+export const analyticsEvents = sqliteTable(
+  "analytics_event",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** pageview | page_exit | click | search | trade | signup | web_vital | client_error | … */
+    name: text("name").notNull(),
+    /** URL path without the query string */
+    path: text("path").notNull().default(""),
+    /** query string without the leading "?" (kept for utm + filter analysis) */
+    query: text("query").notNull().default(""),
+    /** referrer host; "" = direct, "internal" = another page of the site */
+    referrer: text("referrer").notNull().default(""),
+    /** utm_source, or the referrer host when there is no utm */
+    source: text("source").notNull().default(""),
+    medium: text("medium").notNull().default(""),
+    campaign: text("campaign").notNull().default(""),
+    /** daily-rotating hash of ip+ua — a browser-day, not a person */
+    visitorId: text("visitorId").notNull().default(""),
+    /** one browser tab visit (sessionStorage) */
+    sessionId: text("sessionId").notNull().default(""),
+    /** set when the visitor was signed in (no FK: the log outlives the account) */
+    userId: text("userId"),
+    /** market slug, when the event happened on/about a market */
+    marketId: text("marketId"),
+    device: text("device").notNull().default(""),
+    country: text("country").notNull().default(""),
+    /** numeric payload: ms for timings, ₪ for trades, score for web vitals */
+    value: real("value"),
+    /** JSON object with event-specific fields */
+    props: text("props").notNull().default("{}"),
+    ts: integer("ts", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (e) => [
+    index("analytics_ts_idx").on(e.ts),
+    index("analytics_name_ts_idx").on(e.name, e.ts),
+    index("analytics_path_ts_idx").on(e.path, e.ts),
+    index("analytics_visitor_ts_idx").on(e.visitorId, e.ts),
+    index("analytics_market_ts_idx").on(e.marketId, e.ts),
+    index("analytics_user_ts_idx").on(e.userId, e.ts),
+    index("analytics_session_ts_idx").on(e.sessionId, e.ts),
+  ],
+);
 
 export const nowMs = sql`(unixepoch() * 1000)`;

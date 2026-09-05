@@ -72,6 +72,11 @@ jobs:
       # NEXT_PUBLIC_SITE_URL is inlined into the client bundle at build time, so
       # it is passed here as well as written to the server's .env below. Only
       # one of the two halves is enough to ship links pointing at localhost.
+      #
+      # GA_MEASUREMENT_ID is a var and not a secret: it is public by design (it
+      # is in the page source of every site that uses it), and a write-only
+      # secret would mean nobody can check which stream the site reports to.
+      # Unset simply builds an image with no analytics in it.
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -82,6 +87,10 @@ jobs:
             ${{ env.IMAGE }}:latest
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://${{ env.DOMAIN }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.GA_MEASUREMENT_ID }}
+            NEXT_PUBLIC_ADS_ID=${{ vars.ADS_ID }}
+            NEXT_PUBLIC_ADS_LABEL_SIGNUP=${{ vars.ADS_LABEL_SIGNUP }}
+            NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE=${{ vars.ADS_LABEL_FIRST_TRADE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -262,12 +271,25 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+          # Who may open /admin by signing in with Google. A var rather than a
+          # secret for the same reason as ALLOW_DEV_LOGIN below: it decides who
+          # gets in, so its current value has to be readable. The default keeps
+          # the owner's access working with nothing to configure; set the
+          # ADMIN_EMAILS var (comma-separated) to replace the list. Entry with
+          # ADMIN_TOKEN through /admin/login works either way.
+          ADMIN_EMAILS: ${{ vars.ADMIN_EMAILS || 'ofirzlot@gmail.com' }}
           # A var rather than a secret, and off unless someone deliberately
           # turns it on: ALLOW_DEV_LOGIN is the passwordless "quick login",
           # which on a public site means anyone can sign in as any name. A
           # secret is write-only in the UI, and for a switch like this not
           # being able to read its current state is the wrong trade.
           ALLOW_DEV_LOGIN: ${{ vars.ALLOW_DEV_LOGIN }}
+          # Written to .env for the record only — the value that counts was
+          # baked into the bundle by the build step above.
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
+          NEXT_PUBLIC_ADS_ID: ${{ vars.ADS_ID }}
+          NEXT_PUBLIC_ADS_LABEL_SIGNUP: ${{ vars.ADS_LABEL_SIGNUP }}
+          NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE: ${{ vars.ADS_LABEL_FIRST_TRADE }}
         run: |
           # Read back whatever the server generated, for the three that were
           # not supplied here. Masked so a later `set -x` or an error message
@@ -298,7 +320,12 @@ jobs:
           AUTH_GOOGLE_SECRET=$AUTH_GOOGLE_SECRET
           AUTH_URL=https://$DOMAIN
           NEXT_PUBLIC_SITE_URL=https://$DOMAIN
+          NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
+          NEXT_PUBLIC_ADS_ID=$NEXT_PUBLIC_ADS_ID
+          NEXT_PUBLIC_ADS_LABEL_SIGNUP=$NEXT_PUBLIC_ADS_LABEL_SIGNUP
+          NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE=$NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE
           ADMIN_TOKEN=$ADMIN_TOKEN
+          ADMIN_EMAILS=$ADMIN_EMAILS
           CRON_SECRET=$CRON_SECRET
           ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
           CLAUDE_MODEL=$CLAUDE_MODEL

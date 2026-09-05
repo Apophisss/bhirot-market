@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { SITE_NAME } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
-import { CHECK_PARAM } from "@/components/Analytics";
+import { AD_CHECK_PARAM } from "@/components/AdConversions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -17,19 +17,22 @@ export const metadata: Metadata = {
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string; error?: string }> }) {
   const { callbackUrl, error } = await searchParams;
+  const redirectTo = callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
   const session = await auth();
-  if (session?.user) redirect(callbackUrl || "/");
-  const target = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/";
-  // the marker tells <Analytics> to ask for the sign_up conversion on the way back
-  const redirectTo = `${target}${target.includes("?") ? "&" : "?"}${CHECK_PARAM}=1`;
+  if (session?.user) redirect(redirectTo);
+  // everyone lands on the short survey first; it forwards to `redirectTo` immediately
+  // for anyone who already answered it, so a returning user never sees it twice
+  const onboarding = redirectTo.startsWith("/onboarding") ? redirectTo : `/onboarding?next=${encodeURIComponent(redirectTo)}`;
+  // the marker tells <AdConversions> to ask for the sign_up conversion on the way back
+  const afterLogin = `${onboarding}${onboarding.includes("?") ? "&" : "?"}${AD_CHECK_PARAM}=1`;
 
   async function google() {
     "use server";
-    await signIn("google", { redirectTo });
+    await signIn("google", { redirectTo: afterLogin });
   }
   async function dev(formData: FormData) {
     "use server";
-    await signIn("dev", { name: String(formData.get("name") ?? ""), redirectTo });
+    await signIn("dev", { name: String(formData.get("name") ?? ""), redirectTo: afterLogin });
   }
 
   return (

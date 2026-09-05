@@ -1,18 +1,21 @@
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
+import { getNetWorth } from "@/lib/portfolio";
 import { money } from "@/lib/format";
 
-export async function UserBalance() {
+/** header chip: the whole portfolio (cash + open positions), not just the free cash */
+export async function PortfolioValue() {
   const user = await currentUser();
   if (!user) return null;
+  const netWorth = await getNetWorth(user.id, user.balance);
   return (
     <Link
       href="/portfolio"
       className="tabular flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 py-1.5 text-[13px] font-semibold text-yes hover:border-border-2 sm:gap-1.5 sm:px-3 sm:text-sm"
-      title="היתרה הווירטואלית שלך"
+      title="שווי התיק שלך: היתרה הזמינה בתוספת מה שתקבלו על הפוזיציות הפתוחות אם תמכרו אותן עכשיו"
     >
       <span className="text-muted-2">₪</span>
-      {money(user.balance).replace("₪", "")}
+      {money(netWorth).replace("₪", "")}
     </Link>
   );
 }

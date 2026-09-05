@@ -12,8 +12,36 @@
     {
       "idx": 1,
       "version": "6",
-      "when": 1788611271480,
-      "tag": "0001_flowery_earthquake",
+      "when": 1788559834899,
+      "tag": "0001_analytics",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788608671524,
+      "tag": "0002_user_preference",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788609384712,
+      "tag": "0003_referrals",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788610122724,
+      "tag": "0004_inbox",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788613384303,
+      "tag": "0005_ads_and_contact_subject",
       "breakpoints": true
     }
   ]

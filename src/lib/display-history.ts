@@ -6,7 +6,7 @@
  * the raw-truth accessor (use it for anything that is not a picture);
  * `getChartHistory` is the display series.
  */
-import { getPriceHistory, type MarketView } from "./markets";
+import { getPriceHistory, getPriceHistoryMany, type MarketView } from "./markets";
 import {
   buildDisplayHistory,
   DEFAULT_SYNTH_CONFIG,
@@ -62,4 +62,33 @@ export async function getChartHistory(market: MarketView, now = Date.now()): Pro
     },
     synthConfig(),
   );
+}
+
+/**
+ * `getChartHistory` for a whole feed, in one database round trip — every market gets
+ * exactly the series it would have got on its own page, built against a single clock
+ * so two cards in the same deck cannot disagree about "now".
+ */
+export async function getChartHistories(list: MarketView[], now = Date.now()): Promise<Map<string, DisplayHistory>> {
+  const real = await getPriceHistoryMany(list.map((m) => m.id));
+  const cfg = synthConfig();
+  const out = new Map<string, DisplayHistory>();
+  for (const m of list) {
+    out.set(
+      m.id,
+      buildDisplayHistory(
+        {
+          marketId: m.id,
+          real: real.get(m.id) ?? [],
+          probability: m.probability,
+          closesAt: m.closesAt.getTime(),
+          status: m.status,
+          tradeCount: m.tradeCount,
+          now,
+        },
+        cfg,
+      ),
+    );
+  }
+  return out;
 }

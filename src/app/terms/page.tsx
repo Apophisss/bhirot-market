@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CONTACT_EMAIL, LEGAL_UPDATED, SITE_NAME, SITE_TEAM } from "@/lib/config";
+import { LEGAL_UPDATED, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { MAX_BET } from "@/lib/limits";
 import { fmtDate, money } from "@/lib/format";
@@ -93,14 +93,10 @@ export default function TermsPage() {
           נוכל לעדכן את התנאים; המשך שימוש אחרי עדכון מהווה הסכמה לגרסה החדשה. על התנאים חלים דיני מדינת ישראל, וסמכות
           השיפוט הבלעדית נתונה לבתי המשפט המוסמכים בישראל.
         </p>
-        {CONTACT_EMAIL ? (
-          <p>
-            יצירת קשר:{" "}
-            <a className="text-accent hover:underline" href={`mailto:${CONTACT_EMAIL}`}>
-              {CONTACT_EMAIL}
-            </a>
-          </p>
-        ) : null}
+        <p>
+          לכל שאלה או בקשה:{" "}
+          <Link href="/contact" className="text-accent hover:underline">טופס יצירת הקשר</Link>.
+        </p>
       </LegalSection>
 
       <p className="text-center text-sm text-muted">

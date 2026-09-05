@@ -1,111 +1,164 @@
 "use client";
 
-import Script from "next/script";
-import { useCallback, useEffect } from "react";
-import {
-  ADS_ID,
-  ATTR_COOKIE,
-  ATTR_MAX_AGE,
-  GA_ID,
-  adsSendTo,
-  analyticsEnabled,
-  readAttribution,
-  serializeAttribution,
-  type Conversion,
-} from "@/lib/analytics";
+import { useEffect, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useReportWebVitals } from "next/web-vitals";
+import { EVENTS } from "@/lib/events";
+import { disableTracking, flush, isFirstVisit, track } from "@/lib/track";
 
-declare global {
-  interface Window {
-    dataLayer?: unknown[];
-    gtag?: (...args: unknown[]) => void;
+/**
+ * React reports the same vital more than once (Strict Mode in dev, several roots),
+ * so keep the "already sent" set on `window` — it is the one thing that is a singleton
+ * no matter how many times the module is evaluated.
+ */
+function alreadySent(key: string): boolean {
+  const w = window as unknown as { __bmVitals?: Set<string> };
+  const seen = (w.__bmVitals ??= new Set<string>());
+  if (seen.has(key)) return true;
+  seen.add(key);
+  return false;
+}
+
+/** Stable reference, as `useReportWebVitals` requires. */
+function reportVital(metric: { name: string; value: number; rating?: string; id: string }) {
+  // ms for LCP/FCP/TTFB/INP, unitless for CLS
+  const value = Math.round(metric.value * 1000) / 1000;
+  if (typeof window === "undefined" || alreadySent(`${metric.name}:${value}`)) return;
+  track(EVENTS.webVital, { value, props: { metric: metric.name, rating: metric.rating ?? "" } });
+}
+
+/** A remount (React Strict Mode in dev, a re-render on the same URL) must not count twice. */
+const lastView = { key: "", at: 0 };
+
+function referrerHost(): string {
+  try {
+    if (!document.referrer) return "";
+    const host = new URL(document.referrer).hostname.replace(/^www\./, "");
+    return host === window.location.hostname.replace(/^www\./, "") ? "internal" : host;
+  } catch {
+    return "";
   }
 }
 
-/** Any client code can ask for a conversion re-check after an action that might have produced one. */
-export const CONVERSION_CHECK_EVENT = "bm:conversion-check";
-
-/** Marker appended to the post-login redirect, so the return trip always re-checks. */
-export const CHECK_PARAM = "_c";
-const SESSION_FLAG = "bm_conv_checked";
-/** Rapid mode fires an answer every couple of seconds; one check per window is plenty. */
-const CHECK_THROTTLE_MS = 10_000;
-
-let lastCheck = 0;
-
-export function checkConversions() {
-  if (typeof window === "undefined") return;
-  const now = Date.now();
-  if (now - lastCheck < CHECK_THROTTLE_MS) return;
-  lastCheck = now;
-  window.dispatchEvent(new Event(CONVERSION_CHECK_EVENT));
-}
-
-function fire({ name, value }: Conversion) {
-  if (typeof window.gtag !== "function") return;
-  // GA4 gets the plain event (readable in reports, importable into Ads);
-  // Ads gets a second, labelled hit only when a conversion action is configured.
-  window.gtag("event", name, { value, currency: "ILS" });
-  const sendTo = adsSendTo(name);
-  if (sendTo) window.gtag("event", "conversion", { send_to: sendTo, value, currency: "ILS" });
-}
-
 /**
- * Loads gtag, remembers which ad click brought a visitor, and reports the two
- * conversions Demand Gen bids on.
- *
- * The server decides *whether* a conversion is owed (see /api/conversions) so a
- * refresh cannot report the same signup twice; this component only delivers it.
+ * Site-wide tracking: a pageview per navigation, time-on-page and scroll depth on exit,
+ * clicks on anything carrying `data-evt`, outbound links and Core Web Vitals.
+ * Rendered once from the root layout, inside a Suspense boundary (it reads search params).
  */
-export function Analytics() {
-  const check = useCallback(async () => {
-    if (!analyticsEnabled) return;
-    try {
-      const res = await fetch("/api/conversions", { method: "POST" });
-      if (!res.ok) return;
-      const data = (await res.json()) as { events?: Conversion[] };
-      for (const e of data.events ?? []) fire(e);
-    } catch {
-      // measurement must never break the page
-    }
-  }, []);
+export function Analytics({ enabled = true }: { enabled?: boolean }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const startedAt = useRef(0);
+  const maxScroll = useRef(0);
+  const exited = useRef(false);
+
+  useReportWebVitals(reportVital);
 
   useEffect(() => {
-    // Store campaign params before anything can strip them from the URL. This runs
-    // even with no tag configured: attribution is also how we read the numbers later.
-    const attr = readAttribution(window.location.search);
-    if (attr) {
-      document.cookie = `${ATTR_COOKIE}=${encodeURIComponent(serializeAttribution(attr))}; path=/; max-age=${ATTR_MAX_AGE}; SameSite=Lax`;
+    if (!enabled) disableTracking();
+  }, [enabled]);
+
+  // pageview + page_exit (time on page, scroll depth)
+  useEffect(() => {
+    if (!enabled) return;
+    const path = pathname || "/";
+    const sp = new URLSearchParams(query);
+    const key = `${path}?${query}`;
+    const now = Date.now();
+    const repeat = lastView.key === key && now - lastView.at < 1500;
+    lastView.key = key;
+    lastView.at = now;
+    startedAt.current = now;
+    maxScroll.current = 0;
+    exited.current = false;
+
+    if (!repeat) {
+      track(EVENTS.pageview, {
+        path,
+        query,
+        referrer: referrerHost(),
+        source: sp.get("utm_source") ?? "",
+        medium: sp.get("utm_medium") ?? "",
+        campaign: sp.get("utm_campaign") ?? "",
+        props: {
+          title: document.title.slice(0, 120),
+          width: window.innerWidth,
+          first: isFirstVisit() ? 1 : 0,
+        },
+      });
+      const q = sp.get("q")?.trim();
+      if (q) track(EVENTS.search, { path, query, props: { q: q.slice(0, 60) } });
     }
-    // One check per tab, plus a guaranteed one on the way back from the login
-    // redirect — otherwise every page view of every logged-out visitor would
-    // post to an endpoint that has nothing to tell it.
-    let due = new URLSearchParams(window.location.search).has(CHECK_PARAM);
-    try {
-      if (!sessionStorage.getItem(SESSION_FLAG)) {
-        due = true;
-        sessionStorage.setItem(SESSION_FLAG, "1");
+
+    const onScroll = () => {
+      const el = document.documentElement;
+      const scrollable = el.scrollHeight - el.clientHeight;
+      const depth = scrollable > 0 ? Math.min(1, (window.scrollY || el.scrollTop) / scrollable) : 1;
+      if (depth > maxScroll.current) maxScroll.current = depth;
+    };
+    const exit = () => {
+      if (exited.current) return;
+      exited.current = true;
+      const spent = Date.now() - startedAt.current;
+      // anything under a quarter second is a remount, not a visit
+      if (spent >= 250) {
+        track(EVENTS.pageExit, {
+          path,
+          query,
+          value: spent,
+          props: { scroll: Math.round(maxScroll.current * 100) / 100 },
+        });
       }
-    } catch {
-      due = true; // storage blocked (private mode): fall back to checking
-    }
-    if (due) {
-      lastCheck = Date.now();
-      void check();
-    }
-    window.addEventListener(CONVERSION_CHECK_EVENT, check);
-    return () => window.removeEventListener(CONVERSION_CHECK_EVENT, check);
-  }, [check]);
+      flush();
+    };
+    const onHide = () => {
+      if (document.visibilityState === "hidden") exit();
+    };
 
-  if (!analyticsEnabled) return null;
-  const primary = GA_ID || ADS_ID;
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pagehide", exit);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pagehide", exit);
+      document.removeEventListener("visibilitychange", onHide);
+      exit();
+    };
+  }, [pathname, query, enabled]);
 
-  return (
-    <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${primary}`} strategy="afterInteractive" />
-      <Script id="gtag-init" strategy="afterInteractive">
-        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());
-${GA_ID ? `gtag('config','${GA_ID}');` : ""}${ADS_ID ? `gtag('config','${ADS_ID}');` : ""}`}
-      </Script>
-    </>
-  );
+  // delegated clicks: anything with data-evt, plus every outbound link
+  useEffect(() => {
+    if (!enabled) return;
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as Element | null;
+      if (!target?.closest) return;
+      const marked = target.closest<HTMLElement>("[data-evt]");
+      if (marked) {
+        track(EVENTS.click, {
+          marketId: marked.dataset.evtMarket || undefined,
+          props: {
+            id: marked.dataset.evt,
+            label: (marked.dataset.evtLabel ?? marked.textContent ?? "").trim().slice(0, 60),
+          },
+        });
+      }
+      const link = target.closest<HTMLAnchorElement>("a[href]");
+      const href = link?.getAttribute("href") ?? "";
+      if (/^https?:\/\//i.test(href)) {
+        try {
+          const host = new URL(href).hostname;
+          if (host !== window.location.hostname) {
+            track(EVENTS.outbound, { props: { host, href: href.slice(0, 200) } });
+          }
+        } catch {
+          /* ignore malformed hrefs */
+        }
+      }
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [enabled]);
+
+  return null;
 }

@@ -12,10 +12,17 @@ tsconfig.tsbuildinfo
 next-env.d.ts
 screenshots/
 
+# באנדלי הנתונים שמורידים מ-/admin/bundle (npm run bundle)
+bhirot-market-*.json
+bhirot-market-*.md
+
 # נוצרים מחדש ע"י `next dev` בכל הרצה (generate-agent-files.js) ואינם חלק מהתדריך של הריפו —
 # הנוהל שלנו נמצא ב-AGENT.md וב-.claude/skills.
 AGENTS.md
 CLAUDE.md
+
+# דוחות ההכרעה מיוצרים מחדש מקובץ הריצה (npm run resolve -- report); הריצות עצמן כן נשמרות.
+data/resolutions/*.report.html
 
 # קריאייטיב למודעות — נוצר מחדש מ-data/markets.json בכל `npm run ads:creatives`
 ads/creatives/

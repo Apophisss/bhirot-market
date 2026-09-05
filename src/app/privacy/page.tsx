@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CONTACT_EMAIL, LEGAL_UPDATED, SITE_NAME } from "@/lib/config";
+import { LEGAL_UPDATED, SITE_NAME } from "@/lib/config";
 import { fmtDate } from "@/lib/format";
 import { JsonLd } from "@/components/JsonLd";
 import { breadcrumbs } from "@/lib/seo";
@@ -93,20 +93,15 @@ export default function PrivacyPage() {
           הנתונים נשמרים כל עוד החשבון קיים. אתם רשאים לעיין בנתונים שנשמרו עליכם, לתקן אותם או לבקש למחוק את החשבון
           כולו — לרבות היתרה, הפוזיציות והתגובות. מחיקה היא סופית ולא ניתנת לשחזור.
         </p>
-        {CONTACT_EMAIL ? (
-          <p>
-            לבקשות עיון, תיקון או מחיקה:{" "}
-            <a className="text-accent hover:underline" href={`mailto:${CONTACT_EMAIL}`}>
-              {CONTACT_EMAIL}
-            </a>
-            . נשתדל להשיב תוך 14 יום.
-          </p>
-        ) : null}
+        <p>
+          לבקשות עיון, תיקון או מחיקה — שלחו פנייה דרך{" "}
+          <Link href="/contact" className="text-accent hover:underline">טופס יצירת הקשר</Link>. נשתדל להשיב תוך 14 יום.
+        </p>
       </LegalSection>
 
       <LegalSection title="קטינים ושינויים">
         <p>
-          האתר מיועד לגילאי 18 ומעלה. אם התחברתם ואתם מתחת לגיל 18, אנא הפסיקו להשתמש בו{CONTACT_EMAIL ? " ופנו אלינו למחיקת החשבון" : ""}.
+          האתר מיועד לגילאי 18 ומעלה. אם התחברתם ואתם מתחת לגיל 18, אנא הפסיקו להשתמש בו ופנו אלינו למחיקת החשבון.
         </p>
         <p>
           אם נשנה את המדיניות, נעדכן את התאריך בראש העמוד. שינוי מהותי יוצג גם כהודעה באתר.

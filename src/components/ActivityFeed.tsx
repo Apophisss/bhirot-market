@@ -4,17 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { money, pct, shares as fmtShares, timeAgo } from "@/lib/format";
 import { FAKE_TICK_MS, fakeTradesBetween, tickAt, type FeedItem, type FeedMarket } from "@/lib/fake-activity";
+import { LetterAvatar } from "@/components/Avatar";
 
 const MAX_ITEMS = 120;
 
 /**
  * The public activity stream. Trades are shown WITHOUT a trader: the site does
- * not expose who bet on what, so nothing here carries a name, an avatar or a
- * user id — not even in the props.
+ * not expose who bet on what, so nothing here carries a name or a user id — not
+ * even in the props.
  *
  * New items appear every FAKE_TICK_MS and come from `fake-activity`, which is a
  * pure function of the clock: it never writes a trade, so the feed cannot move a
  * price, a volume, a portfolio or the leaderboard.
+ *
+ * Each row wears a letter circle so it reads as a person rather than a bullet.
+ * The letter comes from the item's own key (see `letter-avatar`) — it is
+ * decoration, not an initial, and it identifies nobody.
  */
 export function ActivityFeed({
   initial,
@@ -50,10 +55,15 @@ export function ActivityFeed({
         const verb = t.action === "BUY" ? "נקנו" : "נמכרו";
         return (
           <li key={t.key} className="flex items-start gap-2.5 py-3 sm:items-center sm:gap-3">
-            <span
-              aria-hidden
-              className={`mt-1.5 h-2 w-2 shrink-0 rounded-full sm:mt-0 ${t.side === "YES" ? "bg-yes" : "bg-no"}`}
-            />
+            <span className="relative shrink-0">
+              <LetterAvatar letters={t.letter} seed={t.key} size={34} />
+              <span
+                aria-hidden
+                className={`absolute bottom-0 start-0 h-2.5 w-2.5 rounded-full border-2 border-surface ${
+                  t.side === "YES" ? "bg-yes" : "bg-no"
+                }`}
+              />
+            </span>
             <div className="min-w-0 flex-1 text-[13px] sm:text-sm">
               <div className="flex flex-wrap items-baseline gap-x-1.5">
                 <span className="text-muted">{verb}</span>

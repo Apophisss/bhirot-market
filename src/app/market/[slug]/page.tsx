@@ -67,10 +67,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function MarketPage({ params, searchParams }: { params: Params; searchParams: Promise<{ side?: string }> }) {
+export default async function MarketPage({ params, searchParams }: { params: Params; searchParams: Promise<{ side?: string; action?: string }> }) {
   await ensureSynced();
   const { slug } = await params;
-  const { side } = await searchParams;
+  const { side, action } = await searchParams;
   const market = await getMarket(slug);
   if (!market) notFound();
 
@@ -152,6 +152,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
             initialSide={side === "no" ? "NO" : "YES"}
+            initialAction={action === "sell" ? "SELL" : "BUY"}
           />
         </div>
 
@@ -167,7 +168,14 @@ export default async function MarketPage({ params, searchParams }: { params: Par
               <ul className="space-y-1 text-sm">
                 {market.sources.map((s) => (
                   <li key={s.url}>
-                    <a href={s.url} target="_blank" rel="noreferrer noopener" className="inline-block py-1 text-accent-2 hover:underline">
+                    <a
+                      href={s.url}
+                      data-evt="market-source"
+                      data-evt-market={market.id}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-block py-1 text-accent-2 hover:underline"
+                    >
                       {s.title}
                     </a>
                     <span className="ms-1 text-xs text-muted-2">({safeHost(s.url)})</span>
@@ -215,6 +223,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
             initialSide={side === "no" ? "NO" : "YES"}
+            initialAction={action === "sell" ? "SELL" : "BUY"}
           />
           <div className="card p-4 text-xs leading-relaxed text-muted">
             <strong className="text-text">איך זה עובד?</strong> כל מניית ״כן״ משלמת ₪1 וירטואלי אם התשובה היא כן, ו־₪0 אחרת (ולהפך למניית ״לא״).

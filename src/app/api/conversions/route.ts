@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
-import { claimConversions } from "@/lib/conversions";
-import { ATTR_COOKIE, parseAttribution } from "@/lib/analytics";
+import { claimAdConversions } from "@/lib/ad-conversions";
 
 export const dynamic = "force-dynamic";
 
-/** Tells the browser which conversions it still owes Google for the signed-in user. */
+/**
+ * Which Google Ads conversions the browser still owes for the signed-in user.
+ * The decision — and the "already reported" mark — is made server-side, so a
+ * refresh cannot report the same signup twice.
+ */
 export async function POST() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ events: [] });
-  const attr = parseAttribution((await cookies()).get(ATTR_COOKIE)?.value);
-  return NextResponse.json({ events: await claimConversions(session.user.id, attr) });
+  return NextResponse.json({ events: await claimAdConversions(session.user.id) });
 }
