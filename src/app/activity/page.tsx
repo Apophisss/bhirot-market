@@ -5,14 +5,17 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { buildInitialFeed, type FeedItem, type FeedMarket } from "@/lib/fake-activity";
 import { letterFor } from "@/lib/letter-avatar";
 import { SITE_NAME } from "@/lib/config";
+import { shareCard } from "@/lib/seo";
+
+const DESCRIPTION =
+  "הזרם החי של בחירות מרקט: העסקאות האחרונות בשוקי החיזוי על בחירות 2026 — כמה נקנה, באיזה צד ובאיזה מחיר. בלי שמות.";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "פעילות אחרונה",
-  description:
-    "הזרם החי של בחירות מרקט: העסקאות האחרונות בשוקי החיזוי על בחירות 2026 — כמה נקנה, באיזה צד ובאיזה מחיר. בלי שמות.",
+  description: DESCRIPTION,
   alternates: { canonical: "/activity" },
-  openGraph: { url: "/activity", title: `פעילות אחרונה | ${SITE_NAME}` },
+  ...shareCard({ title: `פעילות אחרונה | ${SITE_NAME}`, description: DESCRIPTION, path: "/activity" }),
 };
 
 export default async function ActivityPage() {

@@ -5,13 +5,17 @@ import { redirect } from "next/navigation";
 import { SITE_NAME } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
+import { shareCard } from "@/lib/seo";
+
+const LOGIN_DESCRIPTION = "התחברו וקבלו ₪10,000 וירטואליים למסחר בשוקי החיזוי של בחירות 2026.";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "התחברות",
-  description: "התחברו וקבלו ₪10,000 וירטואליים למסחר בשוקי החיזוי של בחירות 2026.",
+  description: LOGIN_DESCRIPTION,
   alternates: { canonical: "/login" },
   robots: { index: false, follow: true },
+  ...shareCard({ title: `התחברות | ${SITE_NAME}`, description: LOGIN_DESCRIPTION, path: "/login" }),
 };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string; error?: string }> }) {

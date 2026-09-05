@@ -12,6 +12,7 @@ import { money } from "@/lib/format";
 import { Avatar } from "@/components/Avatar";
 import { Countdown } from "@/components/Countdown";
 import { BoltIcon } from "@/components/BoltIcon";
+import { shareCard } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,9 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
     description: DESCRIPTION,
     // one page per invite code, all of them the same content: never index them
     robots: { index: false, follow: true },
-    openGraph: { url: invitePath(code), title, description: DESCRIPTION },
-    twitter: { title, description: DESCRIPTION },
+    // the most-shared link on the site: a personal invite pasted into a chat, so its
+    // preview has to carry the picture as well as the name
+    ...shareCard({ title, description: DESCRIPTION, path: invitePath(code) }),
   };
 }
 

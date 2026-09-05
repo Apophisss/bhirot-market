@@ -8,7 +8,7 @@ import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
 import { SITE_NAME, SITE_TEAM, isTeamAuthored } from "@/lib/config";
-import { absUrl, clamp, marketGraph } from "@/lib/seo";
+import { absUrl, clamp, marketGraph, shareCard } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 import { getPerson } from "@/lib/content";
 import { money, fmtDateTime, closesLabel, timeAgo } from "@/lib/format";
@@ -41,8 +41,6 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         ? "השוק בוטל."
         : `${odds} · נסגר ${fmtDateTime(m.closesAt)}.`;
   const description = clamp(`${state} ${m.subtitle ?? m.description}`, 165);
-  // person photos are portraits — the wide site card reads better when they are shared
-  const ogImage = m.image.startsWith("/people/") ? "/og.png" : m.image;
 
   return {
     title: m.title,
@@ -51,19 +49,22 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     alternates: { canonical: url },
     // a cancelled question keeps its page for anyone holding a link, but adds nothing to the index
     ...(m.status === "cancelled" ? { robots: { index: false, follow: true } } : {}),
-    openGraph: {
-      type: "article",
-      url,
+    ...shareCard({
       title: `${m.title} | ${SITE_NAME}`,
       description,
-      publishedTime: new Date(m.createdAt).toISOString(),
-      modifiedTime: new Date(m.updatedAt).toISOString(),
-      section: cat.label,
-      tags: m.tags,
-      authors: [absUrl("/about")],
-      images: [{ url: ogImage, alt: m.title }],
-    },
-    twitter: { card: "summary_large_image", title: m.title, description, images: [ogImage] },
+      path: url,
+      type: "article",
+      // ./og draws this question's own card — the price and the face on it are what
+      // make a shared link worth opening, where the one site-wide picture said nothing
+      images: [{ url: `${url}/og`, width: 1200, height: 630, type: "image/png", alt: m.title }],
+      article: {
+        publishedTime: new Date(m.createdAt).toISOString(),
+        modifiedTime: new Date(m.updatedAt).toISOString(),
+        section: cat.label,
+        tags: m.tags,
+        authors: [absUrl("/about")],
+      },
+    }),
   };
 }
 

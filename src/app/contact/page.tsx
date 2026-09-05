@@ -3,7 +3,7 @@ import Link from "next/link";
 import { currentUser } from "@/lib/auth";
 import { SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { ContactForm } from "@/components/ContactForm";
-import { breadcrumbs } from "@/lib/seo";
+import { breadcrumbs, shareCard } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "יצירת קשר",
   description: DESCRIPTION,
   alternates: { canonical: "/contact" },
-  openGraph: { url: "/contact", title: `יצירת קשר | ${SITE_NAME}`, description: DESCRIPTION },
+  ...shareCard({ title: `יצירת קשר | ${SITE_NAME}`, description: DESCRIPTION, path: "/contact" }),
 };
 
 export default async function ContactPage() {

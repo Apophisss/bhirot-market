@@ -16,7 +16,7 @@ import { getPerson } from "@/lib/content";
 import { money } from "@/lib/format";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 import { findCategory } from "@/lib/categories";
-import { collectionPage } from "@/lib/seo";
+import { collectionPage, shareCard } from "@/lib/seo";
 import { auth } from "@/lib/auth";
 import { getRecommendations } from "@/lib/recommendations";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
@@ -58,14 +58,14 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       title: "שווקים שהוכרעו",
       description: RESOLVED_DESCRIPTION,
       alternates: { canonical: "/?status=resolved" },
-      openGraph: { url: "/?status=resolved", title: `שווקים שהוכרעו | ${SITE_NAME}`, description: RESOLVED_DESCRIPTION },
+      ...shareCard({ title: `שווקים שהוכרעו | ${SITE_NAME}`, description: RESOLVED_DESCRIPTION, path: "/?status=resolved" }),
     };
   }
   return {
     title: { absolute: `${SITE_NAME} — ${SITE_TAGLINE} | סקרים, קואליציה ומנדטים` },
     description: SITE_DESCRIPTION,
     alternates: { canonical: "/" },
-    openGraph: { url: "/" },
+    ...shareCard({ title: `${SITE_NAME} — ${SITE_TAGLINE}`, description: SITE_DESCRIPTION, path: "/" }),
   };
 }
 

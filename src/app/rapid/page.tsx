@@ -1,6 +1,8 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { auth, currentUser } from "@/lib/auth";
-import { SITE_TEAM } from "@/lib/config";
+import { SITE_NAME, SITE_TEAM } from "@/lib/config";
+import { shareCard } from "@/lib/seo";
 import { ensureSynced } from "@/lib/sync";
 import { listRapidCards } from "@/lib/rapid-feed";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE, RAPID_SORTS, type RapidSort } from "@/lib/rapid";
@@ -11,12 +13,23 @@ import { SurveyPrompt } from "@/components/SurveyPrompt";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
-export const metadata = {
-  title: "מצב זריז",
-  description: `שאלה אחרי שאלה: עונים כן או לא בסכום מחייב של ₪${RAPID_MIN_STAKE}–₪${RAPID_MAX_STAKE} וממשיכים הלאה.`,
-};
+
+const DESCRIPTION = `שאלה אחרי שאלה: עונים כן או לא בסכום מחייב של ₪${RAPID_MIN_STAKE}–₪${RAPID_MAX_STAKE} וממשיכים הלאה.`;
 
 type Search = { category?: string; sort?: string; all?: string };
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Search> }): Promise<Metadata> {
+  const sp = await searchParams;
+  // the deck is one page; the category/sort/all switches only reshuffle the same
+  // questions, so they get the same treatment as the listing filters
+  const noise = Boolean((sp.category && sp.category !== "all") || sp.sort || sp.all);
+  return {
+    title: "מצב זריז",
+    description: DESCRIPTION,
+    ...(noise ? { robots: { index: false, follow: true } } : { alternates: { canonical: "/rapid" } }),
+    ...shareCard({ title: `מצב זריז | ${SITE_NAME}`, description: DESCRIPTION, path: "/rapid" }),
+  };
+}
 
 export default async function RapidPage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureSynced();

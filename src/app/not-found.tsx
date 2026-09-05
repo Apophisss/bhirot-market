@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+// Next emits its own `noindex` on this boundary and the response is a real 404, so
+// only the title is missing: without it every dead link is labelled with the site default.
+export const metadata: Metadata = {
+  title: "הדף לא נמצא",
+};
 
 export default function NotFound() {
   return (

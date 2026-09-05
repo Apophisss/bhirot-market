@@ -16,20 +16,22 @@
     "markets:sync": "tsx scripts/sync.ts",
     "markets:generate": "tsx scripts/generate-questions.ts",
     "people:fetch": "tsx scripts/fetch-people.ts",
+    "icons": "tsx scripts/generate-icons.ts",
     "bundle": "tsx scripts/fetch-bundle.ts",
     "markets:merge": "tsx scripts/merge-markets.ts",
     "history:verify": "tsx scripts/verify-synthetic-history.ts",
     "markets:audit": "tsx scripts/audit-markets.ts",
     "markets:liquidity": "tsx scripts/liquidity.ts",
     "resolve": "tsx scripts/resolve.ts",
-    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-referrals.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-display-stats.ts && tsx scripts/test-letter-avatar.ts && tsx scripts/test-leaderboard.ts && tsx scripts/test-admin.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/test-resolution.ts && tsx scripts/validate-markets.ts",
+    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-referrals.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-display-stats.ts && tsx scripts/test-letter-avatar.ts && tsx scripts/test-leaderboard.ts && tsx scripts/test-admin.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/test-resolution.ts && tsx scripts/test-seo.ts && tsx scripts/validate-markets.ts",
     "test:lmsr": "tsx scripts/test-lmsr.ts",
     "test:trade": "tsx scripts/test-trade.ts",
     "test:referrals": "tsx scripts/test-referrals.ts",
     "test:display": "tsx scripts/test-display-stats.ts",
     "test:letters": "tsx scripts/test-letter-avatar.ts",
     "test:admin": "tsx scripts/test-admin.ts",
-    "test:resolution": "tsx scripts/test-resolution.ts"
+    "test:resolution": "tsx scripts/test-resolution.ts",
+    "test:seo": "tsx scripts/test-seo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
@@ -50,6 +52,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.3.4",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
     "typescript": "^5.9.0"

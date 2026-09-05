@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { MarketView } from "./markets";
 import { getPerson } from "./content";
 import { getCategory, type Category } from "./categories";
@@ -18,6 +19,68 @@ export function clamp(text: string, max = 155): string {
   return `${(lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[,.;:־-]+$/, "")}…`;
 }
 
+/** The site-wide share card, used by every page that has no picture of its own. */
+export const SITE_OG_IMAGE = {
+  url: "/og.png",
+  width: 1200,
+  height: 630,
+  alt: `${SITE_NAME} — ${SITE_TAGLINE}`,
+} as const;
+
+type ShareImage = { url: string; width?: number; height?: number; type?: string; alt?: string };
+
+/**
+ * The `openGraph` + `twitter` half of a page's metadata, filled in completely.
+ *
+ * Next merges metadata shallowly: a page that sets `openGraph` (or `twitter`)
+ * replaces the parent object outright rather than adding to it. A page that only
+ * wanted its own og:title therefore dropped the site's og:image, og:site_name,
+ * og:locale and og:type — and left the Twitter card advertising the home page.
+ * Building both objects here instead of by hand is what keeps that from
+ * happening again: every field the layout would have contributed is restated.
+ *
+ * Pass `images: null` only where something else in the segment supplies the
+ * picture; an omitted `images` falls back to the site card rather than to nothing.
+ */
+export function shareCard(opts: {
+  /** exact og:title/twitter:title — pages usually want `${pageTitle} | ${SITE_NAME}` */
+  title: string;
+  description?: string;
+  /** site-relative path; becomes og:url */
+  path: string;
+  images?: ShareImage[] | null;
+  type?: "website" | "article";
+  /** og article:* fields, for market pages */
+  article?: {
+    publishedTime?: string;
+    modifiedTime?: string;
+    section?: string;
+    tags?: string[];
+    authors?: string[];
+  };
+}): Pick<Metadata, "openGraph" | "twitter"> {
+  const description = opts.description ?? SITE_DESCRIPTION;
+  const images = opts.images === null ? undefined : (opts.images ?? [SITE_OG_IMAGE]);
+  return {
+    openGraph: {
+      type: opts.type ?? "website",
+      siteName: SITE_NAME,
+      locale: "he_IL",
+      url: opts.path,
+      title: opts.title,
+      description,
+      ...(images ? { images } : {}),
+      ...(opts.article ?? {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: opts.title,
+      description,
+      ...(images ? { images: images.map((i) => i.url) } : {}),
+    },
+  };
+}
+
 const ORG_ID = absUrl("/#organization");
 const SITE_ID = absUrl("/#website");
 
@@ -33,6 +96,12 @@ export function organizationNode() {
     logo: { "@type": "ImageObject", url: absUrl("/logo.svg") },
     image: absUrl("/og.png"),
     knowsLanguage: "he-IL",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      url: absUrl("/contact"),
+      availableLanguage: ["he", "en"],
+    },
   };
 }
 
@@ -151,10 +220,13 @@ export function marketGraph(m: MarketView) {
         inLanguage: "he-IL",
         datePublished: new Date(m.createdAt).toISOString(),
         dateModified: new Date(m.updatedAt).toISOString(),
-        image: [absUrl(m.image)],
+        // the generated share card first: it is the only 1200x630 picture the question
+        // has, and the category covers are SVG, which Google Discover will not take
+        image: [absUrl(`/market/${m.id}/og`), absUrl(m.image)],
         author: { "@type": "Organization", name: `${SITE_TEAM}, ${SITE_NAME}`, url: absUrl("/about") },
         publisher: { "@id": ORG_ID },
         isPartOf: { "@id": SITE_ID },
+        isAccessibleForFree: true,
         ...(m.tags.length ? { keywords: m.tags.join(", ") } : {}),
         ...(about.length ? { about } : {}),
         ...(m.sources.length

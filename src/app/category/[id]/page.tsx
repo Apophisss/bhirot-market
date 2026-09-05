@@ -7,7 +7,7 @@ import { ensureSynced } from "@/lib/sync";
 import { MarketBrowser, PAGE, parseSort } from "@/components/MarketBrowser";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_NAME } from "@/lib/config";
-import { breadcrumbs, categoryTitle, clamp, collectionPage } from "@/lib/seo";
+import { breadcrumbs, categoryTitle, clamp, collectionPage, shareCard } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -28,17 +28,14 @@ export async function generateMetadata({
   const sp = await searchParams;
   const noise = Boolean(sp.q || sp.sort || sp.show || sp.status === "resolved");
   const title = categoryTitle(cat);
+  const description = clamp(cat.description, 300);
   return {
     title,
-    description: clamp(cat.description, 300),
+    description,
     ...(noise
       ? { robots: { index: false, follow: true } }
       : { alternates: { canonical: `/category/${cat.id}` } }),
-    openGraph: {
-      url: `/category/${cat.id}`,
-      title: `${title} | ${SITE_NAME}`,
-      description: clamp(cat.description, 300),
-    },
+    ...shareCard({ title: `${title} | ${SITE_NAME}`, description, path: `/category/${cat.id}` }),
   };
 }
 

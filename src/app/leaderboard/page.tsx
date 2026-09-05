@@ -5,6 +5,10 @@ import { Avatar } from "@/components/Avatar";
 import { money, signedMoney } from "@/lib/format";
 import { auth } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
+import { shareCard } from "@/lib/seo";
+
+const LEADERBOARD_DESCRIPTION =
+  "מי הכי טוב בחיזוי הבחירות? הדירוג האנונימי של בחירות מרקט לפי שווי תיק כולל — יתרה בכסף וירטואלי בתוספת מה שיתקבל על הפוזיציות הפתוחות אם יימכרו עכשיו. בלי שמות, בלי תמונות.";
 
 /** how many rows the table shows before the visitor's own row is pinned below */
 const VISIBLE = 100;
@@ -12,10 +16,9 @@ const VISIBLE = 100;
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "לוח המובילים",
-  description:
-    "מי הכי טוב בחיזוי הבחירות? הדירוג האנונימי של בחירות מרקט לפי שווי תיק כולל — יתרה בכסף וירטואלי בתוספת מה שיתקבל על הפוזיציות הפתוחות אם יימכרו עכשיו. בלי שמות, בלי תמונות.",
+  description: LEADERBOARD_DESCRIPTION,
   alternates: { canonical: "/leaderboard" },
-  openGraph: { url: "/leaderboard", title: `לוח המובילים | ${SITE_NAME}` },
+  ...shareCard({ title: `לוח המובילים | ${SITE_NAME}`, description: LEADERBOARD_DESCRIPTION, path: "/leaderboard" }),
 };
 
 function Row({ r, muteRank = false }: { r: BoardRow; muteRank?: boolean }) {
