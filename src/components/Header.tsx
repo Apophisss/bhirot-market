@@ -9,7 +9,6 @@ import { MobileNav } from "./MobileNav";
 
 const NAV = [
   { href: "/", label: "שווקים", evt: "nav-markets" },
-  { href: "/for-you", label: "מומלץ בשבילי", evt: "nav-for-you" },
   { href: "/rapid", label: "מצב זריז", evt: "nav-rapid" },
   { href: "/activity", label: "פעילות", evt: "nav-activity" },
   { href: "/leaderboard", label: "מובילים", evt: "nav-leaderboard" },
@@ -83,7 +82,6 @@ export async function Header() {
                   }
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
-                  <Link href="/for-you" className="block px-4 py-3 text-sm hover:bg-surface-2">מומלץ בשבילי</Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
                   <form action={doSignOut}>
                     <button className="block w-full px-4 py-3 text-right text-sm text-no hover:bg-surface-2">התנתקות</button>

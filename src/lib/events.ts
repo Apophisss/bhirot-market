@@ -58,7 +58,8 @@ export const EVENT_LABELS: Record<string, string> = {
 /** Click ids used by `data-evt` attributes around the site (documented for the analyst). */
 export const CLICK_IDS: Record<string, string> = {
   "nav-markets": "ניווט: שווקים",
-  "nav-for-you": "ניווט: מומלץ בשבילי",
+  // the page is gone, but clicks recorded before it went keep their label in the dashboard
+  "nav-for-you": "ניווט: מומלץ בשבילי (הוסר)",
   "nav-rapid": "ניווט: מצב זריז",
   "nav-activity": "ניווט: פעילות",
   "nav-leaderboard": "ניווט: מובילים",
