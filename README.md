@@ -233,6 +233,8 @@ src/lib/rapid-feed.ts    בניית פיד ״מצב זריז״ (שאילתה, נ
 src/lib/recommendations.ts    מנוע ההמלצות: פרופיל טעם, פופולריות, ניקוד וגיוון
 src/lib/elasticity.ts    תרגום liquidity לגמישות מחיר (כמה ₪100 מזיזים)
 src/lib/synthetic-history.ts  אומדן הגרף לפני העסקה הראשונה (תצוגה בלבד, חסום)
+src/lib/fake-activity.ts      זרם הפעילות ב-/activity (תצוגה בלבד, נגזר מהשעון)
+src/lib/fake-leaderboard.ts   לוח המובילים האנונימי: כינויים לסוחרים האמיתיים + קהל הדגמה (תצוגה בלבד)
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
