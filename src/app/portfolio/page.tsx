@@ -30,13 +30,21 @@ export default async function PortfolioPage() {
     <div className="space-y-5 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="min-w-0 truncate text-xl font-extrabold text-text-strong sm:text-2xl">התיק של {user.name}</h1>
-        <Link
-          href="/rapid"
-          className="pressable inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-bold text-accent-2 hover:bg-accent/20"
-        >
-          <BoltIcon />
-          סבב זריז
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/for-you"
+            className="pressable inline-flex items-center rounded-xl border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-accent hover:text-accent-2"
+          >
+            מומלץ בשבילי
+          </Link>
+          <Link
+            href="/rapid"
+            className="pressable inline-flex items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-bold text-accent-2 hover:bg-accent/20"
+          >
+            <BoltIcon />
+            סבב זריז
+          </Link>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <StatTile label="שווי כולל" value={money(netWorth)} hint={`התחלת עם ${money(STARTING_BALANCE)}`} />
@@ -141,7 +149,7 @@ export default async function PortfolioPage() {
 
       <section className="card p-3.5 sm:p-4">
         <h2 className="mb-2 font-bold text-text-strong">היסטוריית עסקאות</h2>
-        <TradeList trades={trades} showMarket showUser={false} emptyText="עדיין לא ביצעת עסקאות" />
+        <TradeList trades={trades} showMarket emptyText="עדיין לא ביצעת עסקאות" />
       </section>
     </div>
   );

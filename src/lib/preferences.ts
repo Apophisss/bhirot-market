@@ -1,14 +1,16 @@
 /**
- * השאלון הפוליטי הקצר וההמלצות שנגזרות ממנו.
+ * השאלון הפוליטי הקצר.
  *
- * Dependency-free leaf module (like `rapid.ts` and `limits.ts`): the survey form,
- * the home page and the rapid feed all share the same weights without pulling the
- * database client into the browser bundle. The queries live in `preferences-store.ts`.
+ * Dependency-free leaf module (like `rapid.ts` and `limits.ts`) so the survey form
+ * and the recommendation engine share the same constants without pulling the
+ * database client into the browser bundle. The queries live in `preferences-store.ts`,
+ * and the scoring that uses the answers lives in `recommendations.ts` — the survey
+ * does not get a ranking of its own, it seeds the one that already exists.
  *
- * The survey is deliberately tiny — three general questions, all skippable — and it
- * exists for one reason: a brand new user has no trading history, so without it the
- * first board they see is ranked by what everyone else is doing. With it, the first
- * recommendations are theirs.
+ * Why it exists: `recommendations.ts` blends personal taste with board popularity,
+ * and weights the personal half by how much the user's own trades have already said
+ * (`blendWeights`). A brand new account has said nothing, so without the survey the
+ * first board is pure popularity. Three questions are enough to fix that.
  */
 
 import type { Horizon, SurveyStatus } from "./db/schema";
@@ -45,78 +47,7 @@ export interface UserPreferences {
   version: number;
 }
 
-/** The shape the scoring needs — every `MarketView` already satisfies it. */
-export interface PersonalizableMarket {
-  category: string;
-  people: string[];
-  closesAt: Date;
-}
-
 /** A skipped survey, or one where nothing was picked, carries no signal to rank by. */
 export function hasSignal(p: UserPreferences | null | undefined): p is UserPreferences {
   return Boolean(p && (p.topics.length > 0 || p.people.length > 0 || p.horizon !== "mixed"));
-}
-
-const TOPIC_WEIGHT = 3;
-const PERSON_WEIGHT = 4;
-/** a market can name six people; two hits already say "this is about your candidates" */
-const MAX_PERSON_HITS = 2;
-const FAST_HOURS = 72;
-const WEEK_HOURS = 24 * 7;
-const FORTNIGHT_HOURS = 24 * 14;
-
-/**
- * How well one market matches the survey. Same shape as the related-markets score
- * in `markets.ts` (category 3, person 4) so the two rankings feel consistent.
- * 0 means "nothing in the survey points at this market" — never a negative signal
- * on its own, only the horizon can push a match down.
- */
-export function preferenceScore(
-  m: PersonalizableMarket,
-  p: UserPreferences | null | undefined,
-  now = Date.now(),
-): number {
-  if (!hasSignal(p)) return 0;
-  let score = 0;
-  if (p.topics.includes(m.category)) score += TOPIC_WEIGHT;
-  const hits = m.people.filter((id) => p.people.includes(id)).length;
-  score += Math.min(hits, MAX_PERSON_HITS) * PERSON_WEIGHT;
-  if (score === 0) return 0;
-
-  const hours = (m.closesAt.getTime() - now) / 3_600_000;
-  if (p.horizon === "fast") score += hours <= FAST_HOURS ? 2 : hours <= WEEK_HOURS ? 0.5 : -1;
-  else if (p.horizon === "long") score += hours >= FORTNIGHT_HOURS ? 1.5 : hours >= WEEK_HOURS ? 0.5 : -1;
-  return Math.max(0, score);
-}
-
-/** The markets the survey actually points at, best match first. */
-export function rankByPreferences<T extends PersonalizableMarket>(
-  list: T[],
-  p: UserPreferences | null | undefined,
-  limit = 6,
-  now = Date.now(),
-): T[] {
-  if (!hasSignal(p)) return [];
-  return list
-    .map((m, i) => ({ m, i, score: preferenceScore(m, p, now) }))
-    .filter((x) => x.score > 0)
-    // ties keep the order the caller handed us (already sorted by trending/volume)
-    .sort((a, b) => b.score - a.score || a.i - b.i)
-    .slice(0, limit)
-    .map((x) => x.m);
-}
-
-/**
- * The same signal as a small additive bonus, for feeds that already have a score of
- * their own (the rapid deck). Deliberately capped well under the urgency term there:
- * a preferred topic should reorder near-equal cards, not bury a question closing tonight.
- */
-export const PREFERENCE_BOOST = 0.12;
-
-export function preferenceBoost(
-  m: PersonalizableMarket,
-  p: UserPreferences | null | undefined,
-  now = Date.now(),
-): number {
-  return preferenceScore(m, p, now) * PREFERENCE_BOOST;
 }

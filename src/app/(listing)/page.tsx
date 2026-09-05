@@ -9,6 +9,7 @@ import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
 import { PmCandidates } from "@/components/PmCandidates";
+import { RecommendationSection } from "@/components/Recommendations";
 import { JsonLd } from "@/components/JsonLd";
 import { getPerson } from "@/lib/content";
 import { money } from "@/lib/format";
@@ -16,10 +17,10 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 import { findCategory } from "@/lib/categories";
 import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
-import { BoltIcon } from "@/components/BoltIcon";
+import { getRecommendations } from "@/lib/recommendations";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
-import { getPreferences } from "@/lib/preferences-store";
-import { hasSignal, rankByPreferences, SURVEY_VERSION } from "@/lib/preferences";
+import { needsSurvey } from "@/lib/preferences-store";
+import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<Search> }) {
   await ensureSynced();
-  const sp = await searchParams;
+  const [sp, session] = await Promise.all([searchParams, auth()]);
 
   legacyCategoryRedirect(sp);
 
@@ -84,27 +85,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // only the two canonical listings (/ and /?status=resolved) carry the ItemList
   const indexable = !q && !person && !sp.sort && !sp.show;
 
-  const [markets, stats, counts, peopleCounts, session, recentlyResolved, closingSoon] = await Promise.all([
+  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended, askSurvey] = await Promise.all([
     listMarkets({ category: "all", q, sort, status, person: person?.id, limit: 600 }),
     getMarketStats(),
     getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
     getPeopleCounts("open"),
-    auth(),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
+    !filtered ? getRecommendations({ userId: session?.user?.id, limit: 6 }) : Promise.resolve(null),
+    !filtered ? needsSurvey(session?.user?.id) : Promise.resolve(false),
   ]);
-
-  // the survey is what stands in for a trading history on a brand new account: until
-  // there is one, it is the only thing that makes the first board personal
-  const prefs = session?.user?.id ? await getPreferences(session.user.id) : null;
-  const askSurvey = Boolean(session?.user?.id) && !filtered && (!prefs || prefs.version < SURVEY_VERSION);
-  const recommended = !filtered && hasSignal(prefs) ? rankByPreferences(markets, prefs, 6) : [];
 
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
-  const recommendedIds = new Set(recommended.map((m) => m.id));
-  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recommendedIds.has(m.id)).slice(0, 3) : [];
-  const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recommendedIds]);
+  // a question already surfaced by "closing today" is not worth a second slot in the recommendations
+  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 3);
+  const recIds = new Set(recommendations.map((r) => r.market.id));
+  const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recIds.has(m.id)).slice(0, 3) : [];
+  const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recIds]);
   const rest = skip.size ? visible.filter((m) => !skip.has(m.id)) : visible;
 
   return (
@@ -115,7 +113,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             path: status === "resolved" ? "/?status=resolved" : "/",
             name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
-            markets: [...recommended, ...closingSoon, ...featured, ...rest].slice(0, 30),
+            markets: [...closingSoon, ...recommendations.map((r) => r.market), ...featured, ...rest].slice(0, 30),
           })}
         />
       )}
@@ -214,24 +212,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {!filtered && !session?.user && <HowToPlay />}
 
+      {/* the survey is what the recommendations below have to go on until this user trades */}
       {askSurvey && <SurveyPrompt />}
-
-      {recommended.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <h2 className="text-base font-bold text-text-strong sm:text-lg">מומלץ בשבילכם</h2>
-            <Link href="/onboarding?edit=1" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
-              עדכון ההעדפות
-            </Link>
-          </div>
-          <p className="-mt-1 text-[13px] text-muted sm:text-sm">לפי הנושאים והמתמודדים שבחרתם בשאלון.</p>
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
-            {recommended.map((m) => (
-              <MarketCard key={m.id} m={m} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {closingSoon.length > 0 && (
         <section className="space-y-3">
@@ -248,6 +230,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ))}
           </div>
         </section>
+      )}
+
+      {recommendations.length > 0 && (
+        <RecommendationSection
+          items={recommendations}
+          personalized={Boolean(recommended?.personalized)}
+          loggedIn={Boolean(session?.user)}
+          surveyOnly={Boolean(recommended?.profile.survey) && (recommended?.profile.markets ?? 0) === 0}
+        />
       )}
 
       {featured.length > 0 && (

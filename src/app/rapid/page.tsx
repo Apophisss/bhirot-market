@@ -3,7 +3,6 @@ import { auth, currentUser } from "@/lib/auth";
 import { SITE_TEAM } from "@/lib/config";
 import { ensureSynced } from "@/lib/sync";
 import { listRapidFeed, toRapidCard } from "@/lib/rapid-feed";
-import { getPreferences } from "@/lib/preferences-store";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE, RAPID_SORTS, type RapidSort } from "@/lib/rapid";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { RapidDeck } from "@/components/RapidDeck";
@@ -26,9 +25,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
 
   const [session, user] = await Promise.all([auth(), currentUser()]);
   const loggedIn = Boolean(session?.user?.id);
-  // survey answers order the "mix" deck until the user has enough trades to speak for themselves
-  const prefs = await getPreferences(user?.id ?? null);
-  const feed = await listRapidFeed({ userId: user?.id ?? null, category, sort, includeAnswered, prefs });
+  const feed = await listRapidFeed({ userId: user?.id ?? null, category, sort, includeAnswered });
   const cards = feed.map(toRapidCard);
 
   const link = (patch: Partial<Search>) => {

@@ -13,6 +13,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
   // `history` stays the real, recorded price history — it is a documented public
   // contract and must never contradict recentTrades[].priceAfter. The chart series,
   // which may contain display-only estimated points, ships separately and labelled.
+  // recentTrades carries no trader identity — the site does not expose who bet what.
   const [history, recent, chart] = await Promise.all([
     getPriceHistory(slug),
     getRecentTrades(slug, 20),

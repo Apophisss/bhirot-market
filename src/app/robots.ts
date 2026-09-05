@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // private or machine-only routes; filtered listings are handled with noindex + canonical
-        disallow: ["/api/", "/portfolio", "/login", "/onboarding"],
+        disallow: ["/api/", "/portfolio", "/for-you", "/login", "/onboarding"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
