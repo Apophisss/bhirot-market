@@ -3,6 +3,7 @@ import { getRecentTrades, listMarkets } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { buildInitialFeed, type FeedItem, type FeedMarket } from "@/lib/fake-activity";
+import { letterFor } from "@/lib/letter-avatar";
 import { SITE_NAME } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,8 @@ export default async function ActivityPage() {
     ts: t.createdAt.getTime(),
     marketId: t.marketId,
     marketTitle: t.marketTitle ?? undefined,
+    // seeded by the trade id, not by the trader: the feed stays anonymous
+    letter: letterFor(`t:${t.id}`),
   }));
 
   const { items, startedAt } = buildInitialFeed(real, feedMarkets);
