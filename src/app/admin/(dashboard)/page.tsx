@@ -117,7 +117,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
         <Card title="שווקים מובילים" hint="לפי צפיות ועסקאות">
           <TopList
             rows={markets.map((m) => ({
-              key: `${getCategory(m.category).emoji} ${m.title}`,
+              key: `${getCategory(m.category).label} · ${m.title}`,
               value: m.views,
               hint: `${m.trades} עסקאות`,
               href: `/market/${m.slug}`,

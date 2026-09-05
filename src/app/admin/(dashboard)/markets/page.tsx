@@ -62,7 +62,8 @@ export default async function AdminMarkets({ searchParams }: { searchParams: Pro
                   return (
                     <tr key={c.category} className="hover:bg-surface-2/60">
                       <td className="px-3 py-2">
-                        {cat.emoji} {cat.label}
+                        <span className="me-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ background: cat.accent }} aria-hidden />
+                        {cat.label}
                       </td>
                       <td className="tabular px-3 py-2 text-muted">
                         {fmt(c.open)}/{fmt(c.markets)}

@@ -11,6 +11,7 @@
  */
 import fs from "node:fs";
 import { MarketsFileSchema, PeopleFileSchema, MarketContentSchema } from "../src/lib/content";
+import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
 
 const [, , batchPath, ...rest] = process.argv;
 if (!batchPath) {
@@ -29,23 +30,6 @@ const incomingPeople: { id: string; name: string; role?: string; wiki?: string }
 const file = MarketsFileSchema.parse(JSON.parse(fs.readFileSync("data/markets.json", "utf8")));
 const peopleFile = PeopleFileSchema.parse(JSON.parse(fs.readFileSync("data/people.json", "utf8")));
 
-/** word-overlap similarity, used to catch re-phrased duplicates */
-function words(s: string): Set<string> {
-  return new Set(
-    s
-      .replace(/[^\p{L}\p{N}\s]/gu, " ")
-      .split(/\s+/)
-      .filter((w) => w.length > 2),
-  );
-}
-function similar(a: string, b: string): number {
-  const A = words(a);
-  const B = words(b);
-  if (!A.size || !B.size) return 0;
-  let hit = 0;
-  for (const w of A) if (B.has(w)) hit++;
-  return hit / Math.min(A.size, B.size);
-}
 
 // add new people first so market validation can reference them
 const peopleIds = new Set(peopleFile.people.map((p) => p.id));
@@ -76,7 +60,7 @@ for (const item of incoming) {
     continue;
   }
   const title = String(m.title ?? "");
-  const dup = titles.find((t) => similar(t, title) >= 0.62);
+  const dup = titles.find((t) => similar(t, title) >= DUPLICATE_THRESHOLD);
   if (dup) {
     rejected.push({ slug, reason: `too similar to "${dup.slice(0, 60)}"` });
     continue;
@@ -116,5 +100,5 @@ fs.writeFileSync("data/people.json", JSON.stringify({ people: peopleFile.people 
 fs.writeFileSync("data/markets.json", JSON.stringify(file, null, 2) + "\n");
 
 console.log(`added ${added.length} markets, ${addedPeople} people; rejected ${rejected.length}`);
-for (const r of rejected) console.log(`  ✗ ${r.slug}: ${r.reason}`);
+for (const r of rejected) console.log(`  rejected ${r.slug}: ${r.reason}`);
 console.log(`total markets now: ${file.markets.length}`);

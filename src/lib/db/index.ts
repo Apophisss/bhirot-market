@@ -17,10 +17,18 @@ function createDb() {
     authToken: process.env.DATABASE_AUTH_TOKEN || undefined,
   });
   const db = drizzle(client, { schema });
-  const ready = migrate(db, {
-    migrationsFolder: path.join(process.cwd(), "drizzle"),
-  }).catch((err) => {
-    console.error("[db] migration failed", err);
+  const ready = (async () => {
+    if (url.startsWith("file:")) {
+      // In the default rollback journal a COMMIT needs an exclusive lock, so any
+      // page render (a reader) can bounce a concurrent trade with SQLITE_BUSY.
+      // WAL lets readers and the writer proceed together. Turso does its own
+      // locking server-side and rejects these pragmas, hence the file: guard.
+      await client.execute("PRAGMA journal_mode=WAL");
+      await client.execute("PRAGMA synchronous=NORMAL");
+    }
+    await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
+  })().catch((err) => {
+    console.error("[db] init failed", err);
     throw err;
   });
   return { client, db, ready };

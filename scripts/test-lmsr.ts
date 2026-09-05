@@ -9,7 +9,6 @@ import {
   costToBuy,
   initialState,
   maxBuyAmount,
-  maxSellShares,
   PRICE_BAND,
   priceYes,
   proceedsFromSell,
@@ -26,7 +25,7 @@ function test(name: string, fn: () => void) {
     fn();
     passed++;
   } catch (err) {
-    console.error(`✗ ${name}`);
+    console.error(`FAIL ${name}`);
     throw err;
   }
 }
@@ -74,14 +73,22 @@ test("maxBuyAmount lands exactly on the band ceiling", () => {
       }
 });
 
-test("maxSellShares lands exactly on the band floor", () => {
-  for (const b of B_VALUES) {
-    const s = initialState(0.6, b);
-    const cap = maxSellShares(s, "YES");
-    assert.ok(cap > 0);
-    const after = apply(s, "YES", -cap);
-    close(priceYes(after), PRICE_BAND.min, 1e-6, `sell cap landed off-band b=${b}`);
-  }
+test("selling is never capped: any holding can be sold back in full", () => {
+  // the band is a buy-side guard only, so that a position is always liquidatable
+  for (const b of B_VALUES)
+    for (const p of PROBS) {
+      const s0 = initialState(p, b);
+      // a holding big enough to push the price far below the band floor
+      const held = sharesForAmount(s0, "YES", maxBuyAmount(s0, "YES"));
+      const sell = quoteSell(s0, "YES", held);
+      assert.ok(Number.isFinite(sell.amount), `non-finite proceeds b=${b} p=${p}`);
+      assert.ok(sell.amount >= 0, `negative proceeds ${sell.amount} b=${b} p=${p}`);
+      assert.ok(sell.amount <= held + 1e-6, `paid more than the shares can be worth b=${b} p=${p}`);
+      const after = apply(s0, "YES", -held);
+      const pAfter = priceYes(after);
+      assert.ok(pAfter > 0 && pAfter < 1, `price left (0,1) after a full exit: ${pAfter}`);
+      assert.ok(pAfter < p + 1e-9, "a sale can only lower the price");
+    }
 });
 
 test("sharesForAmount is the exact inverse of costToBuy", () => {
@@ -174,4 +181,4 @@ test("zero and negative amounts buy nothing", () => {
   close(sharesForAmount(s, "YES", -100), 0, 1e-12);
 });
 
-console.log(`✓ lmsr: ${passed} invariant tests passed`);
+console.log(`lmsr: ${passed} invariant tests passed`);

@@ -2,11 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { auth, currentUser } from "@/lib/auth";
-import { getMarket, getPriceHistory, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
+import { getMarket, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
+import { getChartHistory } from "@/lib/display-history";
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
-import { SITE_TEAM, isTeamAuthored } from "@/lib/config";
+import { SITE_NAME, SITE_TEAM, isTeamAuthored } from "@/lib/config";
+import { absUrl, clamp, marketGraph } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 import { getPerson } from "@/lib/content";
 import { money, fmtDateTime, closesLabel, timeAgo } from "@/lib/format";
 import { PriceChart } from "@/components/PriceChart";
@@ -15,6 +18,7 @@ import { TradeList } from "@/components/TradeList";
 import { Comments } from "@/components/Comments";
 import { PeopleStack } from "@/components/PeopleStack";
 import { MarketCard } from "@/components/MarketCard";
+import { StickyTradeBar } from "@/components/StickyTradeBar";
 
 export const dynamic = "force-dynamic";
 
@@ -23,16 +27,43 @@ type Params = Promise<{ slug: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const m = await getMarket(slug);
-  if (!m) return { title: "לא נמצא" };
+  // metadata resolves before the streaming shell is flushed, so notFound() here
+  // still yields a real 404 status instead of a soft 404
+  if (!m) notFound();
+
+  const cat = getCategory(m.category);
+  const url = `/market/${m.id}`;
+  const odds = `${Math.round(m.probability * 100)}% כן`;
+  const state =
+    m.status === "resolved"
+      ? `הוכרע: ${m.resolution === "YES" ? "כן" : "לא"}.`
+      : m.status === "cancelled"
+        ? "השוק בוטל."
+        : `${odds} · נסגר ${fmtDateTime(m.closesAt)}.`;
+  const description = clamp(`${state} ${m.subtitle ?? m.description}`, 165);
+  // person photos are portraits — the wide site card reads better when they are shared
+  const ogImage = m.image.startsWith("/people/") ? "/og.png" : m.image;
+
   return {
     title: m.title,
-    description: m.subtitle ?? m.description.slice(0, 160),
+    description,
+    keywords: [...m.tags, cat.label, "שוק חיזויים", "בחירות 2026"],
+    alternates: { canonical: url },
+    // a cancelled question keeps its page for anyone holding a link, but adds nothing to the index
+    ...(m.status === "cancelled" ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
-      title: m.title,
-      description: m.subtitle ?? undefined,
-      images: [m.image.startsWith("/people/") ? "/og.png" : m.image],
+      type: "article",
+      url,
+      title: `${m.title} | ${SITE_NAME}`,
+      description,
+      publishedTime: new Date(m.createdAt).toISOString(),
+      modifiedTime: new Date(m.updatedAt).toISOString(),
+      section: cat.label,
+      tags: m.tags,
+      authors: [absUrl("/about")],
+      images: [{ url: ogImage, alt: m.title }],
     },
-    twitter: { card: "summary_large_image", images: ["/og.png"] },
+    twitter: { card: "summary_large_image", title: m.title, description, images: [ogImage] },
   };
 }
 
@@ -44,8 +75,8 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   if (!market) notFound();
 
   const session = await auth();
-  const [history, recent, comments, user, related] = await Promise.all([
-    getPriceHistory(slug),
+  const [chart, recent, comments, user, related] = await Promise.all([
+    getChartHistory(market),
     getRecentTrades(slug, 25),
     getComments(slug),
     currentUser(),
@@ -55,27 +86,30 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   const cat = getCategory(market.category);
   const people = market.people.map((id) => getPerson(id)).filter(Boolean);
 
+  // The single column is capped explicitly: an implicit `auto` track grows to its widest
+  // item's min-content (the comment input), which scrolls the whole document on a phone.
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="space-y-5">
-        <nav className="text-xs text-muted">
-          <Link href="/" className="hover:text-text">שווקים</Link> ‹{" "}
-          <Link href={`/?category=${cat.id}`} className="hover:text-text">{cat.label}</Link>
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6">
+      <JsonLd data={marketGraph(market)} />
+      <div className="space-y-4 sm:space-y-5">
+        <nav className="-my-1 text-xs text-muted" aria-label="פירורי לחם">
+          <Link href="/" className="inline-block py-1 hover:text-text">שווקים</Link> ‹{" "}
+          <Link href={`/category/${cat.id}`} className="inline-block py-1 hover:text-text">{cat.label}</Link>
         </nav>
 
-        <header className="flex gap-4">
-          <PeopleStack photos={market.photos} fallback={cat.cover} size={84} max={3} />
+        <header className="flex gap-3 sm:gap-4">
+          <PeopleStack photos={market.photos} fallback={cat.cover} size={60} max={3} />
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
               <span className="rounded-md px-1.5 py-0.5 font-semibold" style={{ background: `${cat.accent}22`, color: cat.accent }}>
-                {cat.emoji} {cat.label}
+                {cat.label}
               </span>
               <span className="tabular">{money(market.volume, { compact: true })} נפח</span>
               <span>·</span>
               <span>{market.status === "open" ? closesLabel(market.closesAt) : market.status === "resolved" ? `הוכרע ${market.resolvedAt ? timeAgo(market.resolvedAt) : ""}` : "בוטל"}</span>
-              {isTeamAuthored(market.createdBy) && <span title={`נוסף על ידי ${SITE_TEAM}`}>· ✍️ {SITE_TEAM}</span>}
+              {isTeamAuthored(market.createdBy) && <span>· נוסף על ידי {SITE_TEAM}</span>}
             </div>
-            <h1 className="text-xl font-extrabold leading-tight text-text-strong sm:text-2xl">{market.title}</h1>
+            <h1 className="text-lg font-extrabold leading-tight text-text-strong sm:text-2xl">{market.title}</h1>
             {market.subtitle && <p className="mt-1 text-sm text-muted">{market.subtitle}</p>}
             {people.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -91,7 +125,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
 
         {market.status !== "open" && (
           <div
-            className={`rounded-xl border p-4 ${
+            className={`rounded-xl border p-3.5 sm:p-4 ${
               market.status === "cancelled" ? "border-border bg-surface-2" : market.resolution === "YES" ? "border-yes/40 bg-yes/10" : "border-no/40 bg-no/10"
             }`}
           >
@@ -102,9 +136,16 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           </div>
         )}
 
-        <PriceChart points={history} current={market.probability} isOpen={market.status === "open"} />
+        <PriceChart
+          points={chart.points}
+          current={market.probability}
+          isOpen={market.status === "open"}
+          estimateBand={chart.synthetic ? chart.maxDeviation : undefined}
+          tradeCount={market.tradeCount}
+          now={chart.now}
+        />
 
-        <div className="lg:hidden">
+        <div id="trade" className="scroll-mt-20 lg:hidden">
           <TradePanel
             market={{ id: market.id, qYes: market.qYes, qNo: market.qNo, liquidity: market.liquidity, probability: market.probability, isTradable: market.isTradable, status: market.status, resolution: market.resolution }}
             position={position}
@@ -114,7 +155,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           />
         </div>
 
-        <section className="card p-4 sm:p-5">
+        <section className="card p-3.5 sm:p-5">
           <h2 className="mb-2 font-bold text-text-strong">רקע</h2>
           <div className="prose-he whitespace-pre-line text-sm leading-relaxed text-text">{market.description}</div>
           <h2 className="mb-2 mt-5 font-bold text-text-strong">כללי הכרעה</h2>
@@ -132,7 +173,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
                       data-evt-market={market.id}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="text-accent-2 hover:underline"
+                      className="inline-block py-1 text-accent-2 hover:underline"
                     >
                       {s.title}
                     </a>
@@ -145,7 +186,8 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           {market.tags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {market.tags.map((t) => (
-                <Link key={t} href={`/?q=${encodeURIComponent(t)}`} className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted hover:text-text">
+                <Link key={t} href={`/?q=${encodeURIComponent(t)}`}
+                  rel="nofollow" className="rounded-full bg-surface-2 px-2.5 py-1.5 text-xs text-muted hover:text-text">
                   #{t}
                 </Link>
               ))}
@@ -153,7 +195,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           )}
         </section>
 
-        <section className="card p-4 sm:p-5">
+        <section className="card p-3.5 sm:p-5">
           <h2 className="mb-2 font-bold text-text-strong">עסקאות אחרונות</h2>
           <TradeList trades={recent} />
         </section>
@@ -163,7 +205,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
         {related.length > 0 && (
           <section className="space-y-3">
             <h2 className="font-bold text-text-strong">שווקים קשורים</h2>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
               {related.map((r) => (
                 <MarketCard key={r.id} m={r} />
               ))}
@@ -187,6 +229,8 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           </div>
         </div>
       </aside>
+
+      {market.isTradable && <StickyTradeBar probability={market.probability} />}
     </div>
   );
 }

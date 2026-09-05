@@ -75,10 +75,17 @@ export function initialState(p: number, b: number): MarketState {
 }
 
 /**
- * Trading is confined to a 1%–99% price band. LMSR itself stays well-defined
+ * Buying is confined to a 1%–99% price band. LMSR itself stays well-defined
  * outside it, but a saturated book hands out absurd share counts for pocket
- * change (₪1 buying 100k shares), which reads as broken to players. Orders that
- * would leave the band are rejected with the largest size that fits.
+ * change (₪1 buying 100k shares), which reads as broken to players. Buy orders
+ * that would leave the band are rejected with the largest size that fits.
+ *
+ * **Selling is deliberately not banded.** A position must always be liquidatable:
+ * a holder whose side collapsed (because everyone else bought the other side) has
+ * to be able to cash out and cut the loss, and a floor on the sell price would
+ * lock their money in until resolution. The price a sale can reach is bounded in
+ * practice anyway — it takes shares someone actually bought to push it there, and
+ * the cheap side is then the one everyone can buy back up.
  */
 export const PRICE_BAND = { min: 0.01, max: 0.99 } as const;
 
@@ -97,16 +104,7 @@ export function maxBuyAmount(state: MarketState, side: Side): number {
   return costToBuy(state, side, shares);
 }
 
-/** Largest number of `side` shares that can be sold without leaving the price band. */
-export function maxSellShares(state: MarketState, side: Side): number {
-  const { b } = state;
-  const qSide = side === "YES" ? state.qYes : state.qNo;
-  const qOther = side === "YES" ? state.qNo : state.qYes;
-  const shares = qSide - qOther - targetGap(b, PRICE_BAND.min);
-  return shares > 0 ? shares : 0;
-}
-
-/** True when both outcome prices sit inside the tradable band. */
+/** True when both outcome prices sit inside the band buying is allowed in. */
 export function withinBand(state: MarketState): boolean {
   const p = priceYes(state);
   return p >= PRICE_BAND.min - 1e-9 && p <= PRICE_BAND.max + 1e-9;

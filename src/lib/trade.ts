@@ -1,12 +1,51 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
-import { maxBuyAmount, maxSellShares, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
+import { MAX_BET, MIN_BET } from "./limits";
+import { maxBuyAmount, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
 
 const { markets, positions, trades, priceHistory, users } = schema;
 
+/** Machine-readable reason, so callers can react without matching Hebrew strings. */
+export type TradeErrorCode =
+  | "BAD_REQUEST"
+  | "MARKET_NOT_FOUND"
+  | "MARKET_CLOSED"
+  | "USER_NOT_FOUND"
+  | "INSUFFICIENT_BALANCE"
+  | "NO_SHARES"
+  | "AMOUNT_TOO_SMALL"
+  | "AMOUNT_TOO_LARGE";
+
 export class TradeError extends Error {
-  constructor(message: string, public status = 400) {
+  constructor(message: string, public status = 400, public code: TradeErrorCode = "BAD_REQUEST") {
     super(message);
+  }
+}
+
+/**
+ * libSQL hands every transaction its own connection and `BEGIN IMMEDIATE` fails
+ * instantly when another writer holds the lock. `busy_timeout` is deliberately
+ * left at 0: the driver executes statements synchronously, so a busy handler
+ * would block the event loop and stop the current holder from ever committing.
+ * Retrying in JS is both safe (a rejected transaction applied nothing) and the
+ * only thing that keeps a burst of rapid-mode answers from being dropped.
+ */
+const BUSY_RETRIES = 4;
+
+export function isBusyError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: unknown; message?: unknown };
+  return e.code === "SQLITE_BUSY" || /SQLITE_BUSY|database is locked/i.test(String(e.message ?? ""));
+}
+
+async function withBusyRetry<T>(run: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await run();
+    } catch (err) {
+      if (err instanceof TradeError || attempt >= BUSY_RETRIES || !isBusyError(err)) throw err;
+      await new Promise((r) => setTimeout(r, 25 * 2 ** attempt + Math.random() * 25));
+    }
   }
 }
 
@@ -19,26 +58,43 @@ export interface TradeRequest {
   quantity: number;
 }
 
-export const MIN_TRADE = 1;
-export const MAX_TRADE = 100_000;
+/** ₪ bounds of a single buy. A BUY is a bet, so it is capped by the site-wide limit. */
+export const MIN_TRADE = MIN_BET;
+export const MAX_TRADE = MAX_BET;
+
+/**
+ * A leftover smaller than this is written off instead of being left in the
+ * position: it is worth well under an agora, and rounding it away is what keeps
+ * "sell everything" actually leave nothing behind.
+ */
+export const DUST_SHARES = 1e-4;
 
 export async function executeTrade(req: TradeRequest) {
   const db = await getDb();
-  if (!Number.isFinite(req.quantity) || req.quantity < MIN_TRADE || req.quantity > MAX_TRADE) {
-    throw new TradeError("סכום לא תקין");
-  }
   if (req.side !== "YES" && req.side !== "NO") throw new TradeError("צד לא תקין");
   if (req.action !== "BUY" && req.action !== "SELL") throw new TradeError("פעולה לא תקינה");
+  if (!Number.isFinite(req.quantity) || req.quantity <= 0) {
+    throw new TradeError(req.action === "BUY" ? "סכום לא תקין" : "כמות לא תקינה");
+  }
+  // The ₪ bounds are a buy-side guard: a bet is capped site-wide. A sale is not a
+  // bet — it is capped by the shares actually held (below), and by nothing else, so
+  // a position can always be closed in a single order however large it grew.
+  if (req.action === "BUY") {
+    if (req.quantity < MIN_TRADE) throw new TradeError("סכום לא תקין");
+    if (req.quantity > MAX_TRADE) {
+      throw new TradeError(`אפשר להמר עד ₪${MAX_TRADE} בעסקה אחת`, 400, "AMOUNT_TOO_LARGE");
+    }
+  }
 
-  return db.transaction(async (tx) => {
+  return withBusyRetry(() => db.transaction(async (tx) => {
     const market = await tx.query.markets.findFirst({ where: eq(markets.id, req.marketId) });
-    if (!market) throw new TradeError("השוק לא נמצא", 404);
+    if (!market) throw new TradeError("השוק לא נמצא", 404, "MARKET_NOT_FOUND");
     const now = new Date();
     if (market.status !== "open" || market.closesAt.getTime() <= now.getTime()) {
-      throw new TradeError("המסחר בשוק הזה סגור");
+      throw new TradeError("המסחר בשוק הזה סגור", 400, "MARKET_CLOSED");
     }
     const user = await tx.query.users.findFirst({ where: eq(users.id, req.userId) });
-    if (!user) throw new TradeError("משתמש לא נמצא", 401);
+    if (!user) throw new TradeError("משתמש לא נמצא", 401, "USER_NOT_FOUND");
 
     let position = await tx.query.positions.findFirst({
       where: and(eq(positions.userId, req.userId), eq(positions.marketId, req.marketId)),
@@ -63,7 +119,7 @@ export async function executeTrade(req: TradeRequest) {
     let realized = 0;
 
     if (req.action === "BUY") {
-      if (req.quantity > user.balance + 1e-9) throw new TradeError("אין מספיק יתרה");
+      if (req.quantity > user.balance + 1e-9) throw new TradeError("אין מספיק יתרה", 400, "INSUFFICIENT_BALANCE");
       const cap = maxBuyAmount(state, req.side);
       if (cap <= 0) {
         throw new TradeError(`המחיר של הצד הזה כבר הגיע לתקרה (${Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לקנות עוד`);
@@ -72,28 +128,25 @@ export async function executeTrade(req: TradeRequest) {
         throw new TradeError(`העסקה גדולה מדי ותדחוף את השוק מעבר ל-${Math.round(PRICE_BAND.max * 100)}%. המקסימום כרגע: ₪${Math.floor(cap)}`);
       }
       quote = quoteBuy(state, req.side, req.quantity);
-      if (!(quote.shares > 0) || !Number.isFinite(quote.shares)) throw new TradeError("הסכום קטן מדי");
+      if (!(quote.shares > 0) || !Number.isFinite(quote.shares)) throw new TradeError("הסכום קטן מדי", 400, "AMOUNT_TOO_SMALL");
       newBalance = user.balance - quote.amount;
       newShares = heldShares + quote.shares;
       newCost = heldCost + quote.amount;
     } else {
+      // a sale is never blocked by the price band: whatever the market did to the
+      // position, the holder can always sell all of it (see PRICE_BAND in lmsr.ts).
       const sellShares = Math.min(req.quantity, heldShares);
-      if (sellShares <= 1e-9) throw new TradeError("אין לך מניות למכירה");
-      const sellCap = maxSellShares(state, req.side);
-      if (sellShares > sellCap + 1e-6) {
-        throw new TradeError(
-          sellCap <= 0
-            ? `המחיר של הצד הזה כבר הגיע לרצפה (${Math.round(PRICE_BAND.min * 100)}%) ואי אפשר למכור עוד`
-            : `המכירה גדולה מדי ותדחוף את השוק מתחת ל-${Math.round(PRICE_BAND.min * 100)}%. המקסימום כרגע: ${Math.floor(sellCap)} מניות`,
-        );
-      }
+      if (sellShares <= 0) throw new TradeError("אין לך מניות למכירה", 400, "NO_SHARES");
       quote = quoteSell(state, req.side, sellShares);
+      if (!Number.isFinite(quote.amount) || quote.amount < 0) throw new TradeError("שגיאת חישוב, נסו כמות אחרת");
       newBalance = user.balance + quote.amount;
       newShares = heldShares - sellShares;
       const costPortion = heldShares > 0 ? heldCost * (sellShares / heldShares) : 0;
       newCost = heldCost - costPortion;
       realized = quote.amount - costPortion;
-      if (newShares < 1e-6) {
+      if (newShares < DUST_SHARES) {
+        // write the dust off rather than dropping its cost basis silently
+        realized -= newCost;
         newShares = 0;
         newCost = 0;
       }
@@ -152,7 +205,7 @@ export async function executeTrade(req: TradeRequest) {
       probability: newProb,
       position: { side: req.side, shares: newShares, cost: newCost },
     };
-  });
+  }));
 }
 
 /** Settle all positions of a market. Pays 1 ₪ per winning share; refunds cost basis on cancel. */

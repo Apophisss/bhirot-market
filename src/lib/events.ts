@@ -58,13 +58,18 @@ export const EVENT_LABELS: Record<string, string> = {
 /** Click ids used by `data-evt` attributes around the site (documented for the analyst). */
 export const CLICK_IDS: Record<string, string> = {
   "nav-markets": "ניווט: שווקים",
+  "nav-for-you": "ניווט: מומלץ בשבילי",
+  "nav-rapid": "ניווט: מצב זריז",
   "nav-activity": "ניווט: פעילות",
   "nav-leaderboard": "ניווט: מובילים",
   "nav-about": "ניווט: איך זה עובד",
+  mobilenav: "ניווט תחתון (מובייל)",
   "header-login": "כפתור התחברות בהדר",
+  "hero-rapid": "CTA מצב זריז בהירו",
   "hero-login": "CTA התחברות בהירו",
   "hero-portfolio": "CTA לתיק שלי בהירו",
   "hero-about": "CTA איך זה עובד בהירו",
+  "browser-rapid": "מעבר למצב זריז מרשימת השווקים",
   "market-card": "כרטיס שוק ברשימה",
   "market-card-yes": "כפתור כן בכרטיס",
   "market-card-no": "כפתור לא בכרטיס",
@@ -76,4 +81,7 @@ export const CLICK_IDS: Record<string, string> = {
   "market-source": "מקור בכתבת השוק",
   "related-market": "שוק קשור",
   "footer-link": "קישור בפוטר",
+  "footer-category": "קטגוריה בפוטר",
+  "bundle-json": "הורדת באנדל JSON",
+  "bundle-md": "הורדת דוח Markdown",
 };
