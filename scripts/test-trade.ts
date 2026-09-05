@@ -20,8 +20,8 @@ delete process.env.DATABASE_AUTH_TOKEN;
 import { getDb, schema } from "../src/lib/db";
 import { executeTrade, settleMarket, TradeError, MIN_TRADE, MAX_TRADE } from "../src/lib/trade";
 import { MAX_BET } from "../src/lib/limits";
-import { initialState, maxBuyAmount, PRICE_BAND, priceYes } from "../src/lib/lmsr";
-import { getPortfolio } from "../src/lib/portfolio";
+import { holdingValue, initialState, maxBuyAmount, PRICE_BAND, priceYes, proceedsFromSell } from "../src/lib/lmsr";
+import { getNetWorth, getPortfolio } from "../src/lib/portfolio";
 
 const { users, markets, positions, trades, priceHistory } = schema;
 
@@ -437,15 +437,75 @@ async function main() {
     const u = await makeUser();
     const m = await makeMarket({ p: 0.4 });
     const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 100 });
+    const mk = await getMarket(m);
     const { openHoldings, positionsValue, unrealized } = await getPortfolio(u);
     const h = openHoldings.find((x) => x.market.id === m)!;
     assert.ok(h, "holding is listed");
     close(h.shares, buy.quote.shares, 1e-9, "shares");
     close(h.cost, 100, 1e-9, "cost");
     close(h.avgPrice, 100 / buy.quote.shares, 1e-9, "average price");
-    close(h.value, buy.quote.shares * (await getMarket(m)).probability, 1e-9, "market value");
+    close(
+      h.value,
+      proceedsFromSell({ qYes: mk.qYes, qNo: mk.qNo, b: mk.liquidity }, "YES", buy.quote.shares),
+      1e-9,
+      "the value is the sale proceeds",
+    );
+    close(h.exitPrice, h.value / h.shares, 1e-9, "exit price");
     close(positionsValue, h.value, 1e-9, "portfolio value");
     close(unrealized, h.value - 100, 1e-9, "unrealized P&L");
+  });
+
+  await test("the value shown is exactly what selling everything pays out", async () => {
+    // this is the whole contract of the column: what the portfolio marks the
+    // position at is the ₪ that actually lands in the balance on a full exit.
+    for (const b of [500, 2000, 8000]) {
+      const u = await makeUser();
+      const m = await makeMarket({ p: 0.35, b });
+      const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 100 });
+      const { positionsValue } = await getPortfolio(u);
+      const cashBefore = (await getUser(u)).balance;
+      const sell = await executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: buy.quote.shares });
+      close(sell.quote.amount, positionsValue, 1e-9, `b=${b}: the sale pays the value that was shown`);
+      close((await getUser(u)).balance, cashBefore + positionsValue, 1e-9, `b=${b}: the balance grows by exactly that`);
+    }
+  });
+
+  await test("a fresh buy does not invent a profit out of its own price impact", async () => {
+    // marking at the marginal price used to hand a ₪100 order an instant paper
+    // gain (on a thin market, tens of ₪) that no sale could ever realise.
+    for (const b of [500, 2000]) {
+      const u = await makeUser();
+      const m = await makeMarket({ p: 0.5, b });
+      await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 100 });
+      const { unrealized, positionsValue } = await getPortfolio(u);
+      assert.ok(unrealized <= 1e-9, `b=${b}: a buy showed an instant paper profit of ${unrealized}`);
+      // the only loss right after a buy is the round-trip spread, which is small
+      assert.ok(positionsValue > 90, `b=${b}: the position lost ${100 - positionsValue} to the spread`);
+    }
+  });
+
+  await test("a hedged position is valued at what closing both legs pays", async () => {
+    const u = await makeUser();
+    const m = await makeMarket({ p: 0.5, b: 1000 });
+    await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 100 });
+    await executeTrade({ userId: u, marketId: m, side: "NO", action: "BUY", quantity: 60 });
+    const { positionsValue } = await getPortfolio(u);
+    const pos = (await getPos(u, m))!;
+    const cashBefore = (await getUser(u)).balance;
+    await executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: pos.yesShares });
+    await executeTrade({ userId: u, marketId: m, side: "NO", action: "SELL", quantity: pos.noShares });
+    close((await getUser(u)).balance, cashBefore + positionsValue, 1e-9, "both legs together");
+  });
+
+  await test("the header chip and the portfolio page agree on the net worth", async () => {
+    const u = await makeUser();
+    const a = await makeMarket({ p: 0.3, b: 800 });
+    const c = await makeMarket({ p: 0.7, b: 4000 });
+    await executeTrade({ userId: u, marketId: a, side: "YES", action: "BUY", quantity: 80 });
+    await executeTrade({ userId: u, marketId: c, side: "NO", action: "BUY", quantity: 40 });
+    const balance = (await getUser(u)).balance;
+    const { positionsValue } = await getPortfolio(u);
+    close(await getNetWorth(u, balance), balance + positionsValue, 1e-9, "net worth");
   });
 
   await test("cash + position value is conserved across a busy market", async () => {
@@ -469,7 +529,7 @@ async function main() {
     for (const u of traders) {
       cash += (await getUser(u)).balance;
       const pos = await getPos(u, m);
-      if (pos) value += pos.yesShares * mk.probability + pos.noShares * (1 - mk.probability);
+      if (pos) value += holdingValue({ qYes: mk.qYes, qNo: mk.qNo, b: mk.liquidity }, pos.yesShares, pos.noShares).total;
     }
     subsidy = cash + value - start;
     assert.ok(subsidy <= mk.liquidity * Math.LN2 + 1e-6, `market maker subsidy ${subsidy} exceeds the b*ln2 bound`);

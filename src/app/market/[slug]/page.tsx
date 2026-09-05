@@ -67,10 +67,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function MarketPage({ params, searchParams }: { params: Params; searchParams: Promise<{ side?: string }> }) {
+export default async function MarketPage({ params, searchParams }: { params: Params; searchParams: Promise<{ side?: string; action?: string }> }) {
   await ensureSynced();
   const { slug } = await params;
-  const { side } = await searchParams;
+  const { side, action } = await searchParams;
   const market = await getMarket(slug);
   if (!market) notFound();
 
@@ -152,6 +152,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
             initialSide={side === "no" ? "NO" : "YES"}
+            initialAction={action === "sell" ? "SELL" : "BUY"}
           />
         </div>
 
@@ -222,6 +223,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             balance={user?.balance ?? null}
             loggedIn={Boolean(session?.user)}
             initialSide={side === "no" ? "NO" : "YES"}
+            initialAction={action === "sell" ? "SELL" : "BUY"}
           />
           <div className="card p-4 text-xs leading-relaxed text-muted">
             <strong className="text-text">איך זה עובד?</strong> כל מניית ״כן״ משלמת ₪1 וירטואלי אם התשובה היא כן, ו־₪0 אחרת (ולהפך למניית ״לא״).

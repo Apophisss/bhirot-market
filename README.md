@@ -158,7 +158,8 @@ npm run dev                       # http://localhost:3000
    כדי שפריסה לא תנתק כל מי שמחובר.
 3. **משתנים** (`vars`, ניתנים לקריאה בממשק): `DOMAIN` (ברירת מחדל `bhirot-market.com`), `CLAUDE_MODEL`,
    `ADMIN_EMAILS` — מי נכנס ל־`/admin` אחרי התחברות רגילה עם Google (ברירת המחדל היא בעל האתר; רשימה
-   מופרדת בפסיקים דורסת אותה) — ו־`ALLOW_DEV_LOGIN`, כניסה מהירה ללא סיסמה, כבויה כברירת מחדל ולא כדאי
+   מופרדת בפסיקים דורסת אותה), `GA_MEASUREMENT_ID` (מזהה GA4 בפורמט `G-XXXXXXXXXX`; בלעדיו האתר עולה
+   בלי Google Analytics) — ו־`ALLOW_DEV_LOGIN`, כניסה מהירה ללא סיסמה, כבויה כברירת מחדל ולא כדאי
    להדליק באתר ציבורי.
 4. **DNS**: רשומת `A` של הדומיין (ו־`www`) אל ה־IP של השרת — אחת, לא כמה: Let's Encrypt מגריל רשומה
    מבין כל מה שקיים, וכך גם הדפדפן של כל גולש. בזמן החלפת DNS יש חלון שבו resolverים עדיין מחזיקים גם
@@ -188,7 +189,7 @@ npm run dev                       # http://localhost:3000
 1. צרו מסד Turso: `turso db create bhirot-market` → `turso db show --url` ו־`turso db tokens create`.
 2. ב־Vercel הגדירו משתני סביבה: `DATABASE_URL` (libsql://…), `DATABASE_AUTH_TOKEN`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`,
    `AUTH_GOOGLE_SECRET`, `ADMIN_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, ואופציונלית `ANTHROPIC_API_KEY` (+`CLAUDE_MODEL`),
-   `ADMIN_EMAILS` (כניסה ל-`/admin` עם חשבון Google) ו-`ANALYTICS_SALT`.
+   `ADMIN_EMAILS` (כניסה ל-`/admin` עם חשבון Google), `ANALYTICS_SALT` ו-`NEXT_PUBLIC_GA_MEASUREMENT_ID`.
 3. `vercel.json` כבר מגדיר Cron שעתי ל־`/api/cron/refresh`, שמסנכרן את `data/markets.json` ומריץ את המחולל המובנה אם יש מפתח API.
 
 ## שאלות קצרות טווח
@@ -276,8 +277,9 @@ npm run resolve -- status                       # איפה הריצה עומדת
 
 ## אנליטיקה ועמוד הניהול
 
-האתר מודד את עצמו, בלי Google Analytics ובלי שום צד שלישי: `src/components/Analytics.tsx` שולח אירועים ב-`sendBeacon`
-אל `POST /api/analytics/collect`, והם נשמרים בטבלה `analytics_event` באותו מסד נתונים.
+האתר מודד את עצמו: `src/components/Analytics.tsx` שולח אירועים ב-`sendBeacon`
+אל `POST /api/analytics/collect`, והם נשמרים בטבלה `analytics_event` באותו מסד נתונים. המדידה הזו עומדת
+בפני עצמה ואינה תלויה בשום צד שלישי; לצידה רץ Google Analytics (ראו למטה), אם הוגדר לו מזהה מדידה.
 
 - **מה נמדד**: צפיות בעמודים (כולל `utm_*` ומקור הפניה), זמן שהייה ועומק גלילה, לחיצות על אלמנטים שמסומנים ב-`data-evt`,
   קישורים יוצאים, חיפושים, Core Web Vitals אמיתיים מהשדה ושגיאות דפדפן (`src/instrumentation-client.ts`).
@@ -366,8 +368,23 @@ SITE_URL=https://<domain> ADMIN_TOKEN=... npm run bundle -- --days 90
 - מחיר שירד מתחת ל־1% בעקבות מכירה מתקן את עצמו: הצד הזול נשאר פתוח לקנייה ומטפס בחזרה.
 - מסחר נסגר ב־`closesAt` או בהכרעה. אחר כך תשלום ₪1 למניה מנצחת, ובשוק שבוטל — החזר מלא של העלות.
 
-`npm run test:trade` מריץ את כל הנתיב הזה מקצה לקצה (27 בדיקות) מול מסד SQLite זמני: קנייה, מכירה, הנזלה
+`npm run test:trade` מריץ את כל הנתיב הזה מקצה לקצה (32 בדיקות) מול מסד SQLite זמני: קנייה, מכירה, הנזלה
 אחרי קריסת מחיר, הכרעה, ביטול, תיק אישי, עסקאות במקביל, ואיסור על יתרה שלילית.
+
+### שווי פוזיציה = מה שבאמת מקבלים במכירה
+
+המחיר שה־LMSR מציג הוא **מחיר שולי**: כמה עולה המניה *הבאה*, לא כמה שווה החבילה כולה. לכן
+`מניות × מחיר` הוא לא שווי אלא תקרה שעושה השוק לעולם לא משלם — והפער הכי גדול בדיוק ברגע שבו מסתכלים:
+הקנייה שלכם עצמה דוחפת את המחיר למעלה, ותמחור המניות החדשות לפי המחיר שהיא יצרה ממציא רווח שלא היה.
+בשוק דק (`b=500`) פקודה של ₪100 נראתה כך שווה ₪108 בשנייה שהיא נסגרה, והמספר קפץ עם כל עסקה של כל אחד אחר.
+
+השווי בכל מקום באתר — ״שווי פוזיציות פתוחות״ ו״שווי כולל״ בתיק, השבב בהדר, לוח המובילים והפוזיציה
+בפאנל המסחר — הוא לכן `positionValue`/`holdingValue` מ־`src/lib/lmsr.ts`: **התמורה בפועל ממכירת הפוזיציה
+עכשיו**, אותו מספר בדיוק ש־`quoteSell` מציג בשורת ״תקבל/י״. מי שמחזיק את שני הצדדים באותו שוק מוערך
+בהנזלה של שניהם ברצף, כך שהסכום הוא בדיוק מה ש״למכור הכול כאן״ משלם. שוק שהוכרע מוערך בתשלום שממתין לו
+(₪1 למניה מנצחת), לא בהנזלה.
+
+עמודת ״מחיר נוכחי״ נשארת המחיר השולי של השוק — היא מחיר, לא שווי; העמודה שלידה היא ״שווי במכירה״.
 
 ## גרף המגמה: אומדן חסום לפני העסקה הראשונה
 
@@ -445,7 +462,9 @@ src/lib/seo.ts           כותרות, canonical ו-JSON-LD (schema.org)
 src/lib/analytics.ts     קליטת אירועי אנליטיקה בצד השרת (hash מבקר, סינון בוטים, מחיקה לפי מדיניות)
 src/lib/stats.ts         כל שאילתות הדוחות של לוח הניהול והבאנדל
 src/lib/bundle.ts        בניית באנדל הנתונים (JSON + דוח Markdown)
+src/lib/gtag.ts          Google Analytics: הפעלה לפי מזהה המדידה, צפיות בעמוד ואירועים
 src/components/Analytics.tsx  המעקב בצד הדפדפן (sendBeacon)
+src/components/GoogleAnalytics.tsx  טעינת gtag.js ודיווח צפיות ל-GA4
 src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה, וחתימת עוגיית ההזמנה על /i/<code>
 src/app/admin/           לוח הניהול: סקירה, תנועה, שווקים, משתמשים, שאלה חדשה, תיבה, באנדל
 src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /invite, /i/[code], /about, /login, /admin, /onboarding, /suggest, /contact
@@ -459,6 +478,25 @@ src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /p
 - **נתונים מובנים**: `Organization` + `WebSite` (עם SearchAction) בכל דף, `Article` + `BreadcrumbList` בדף שוק, `CollectionPage` בדפי רשימה ו-`FAQPage` ב-`/about` (השאלות נמצאות ב-`FAQ` ב-`src/lib/seo.ts` ומוצגות גם בדף עצמו — אין להוסיף שאלה ל-JSON-LD בלי להציג אותה).
 - **קודי סטטוס**: שלד הטעינה (`loading.tsx`) חי רק תחת קבוצת הראוט `(listing)`. אם מוסיפים `loading.tsx` מעל דפי שוק/קטגוריה, ה-404 שלהם יהפוך ל-200 רך (soft 404).
 - **אימות Search Console**: הגדירו `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` והתג ייווצר לבד.
+
+## Google Analytics
+
+בנוסף למדידה העצמית שלמעלה, האתר מדווח ל-GA4. הרכיב `src/components/GoogleAnalytics.tsx` נטען פעם אחת
+מה־layout הראשי — כך שכל דף מכוסה ואי אפשר לשכוח דף חדש. שתי המערכות מודדות את אותו אתר ואף אחת מהן
+לא תלויה בשנייה: `src/lib/analytics.ts` הוא הלוג הפנימי שמזין את `/admin`, ו-`src/lib/gtag.ts` הוא הדיווח לגוגל.
+
+- **הפעלה**: `NEXT_PUBLIC_GA_MEASUREMENT_ID` = מזהה המדידה של זרם הנתונים ב־GA4
+  (`Admin → Data streams → Measurement ID`), בפורמט `G-XXXXXXXXXX`. בלי הערך הזה **לא נטען שום
+  סקריפט של גוגל** — זה המצב הרגיל בפיתוח וב־CI.
+- **בזמן בילד, לא בזמן ריצה**: Next צורב משתני `NEXT_PUBLIC_*` לתוך הבאנדל. בפריסה לשרת הערך מגיע
+  מהמשתנה `GA_MEASUREMENT_ID` כ־build arg (‏`Dockerfile` + `.github/workflows/deploy.yml`); הוספה שלו
+  ל־`.env` של השרת בלבד לא תעשה כלום. שינוי הערך מחייב בילד מחדש.
+- **צפיות בעמוד**: פקודת ה־`config` מדווחת על העמוד שנחתו בו, ו־`GoogleAnalyticsPageViews` מדווחת על כל ניווט
+  צד־לקוח אחריו (כולל שינוי בשאילתה — מיון, חיפוש ו"הצגת עוד"). בלי החלק השני היה נרשם רק העמוד הראשון,
+  כי ב־App Router כל השאר הוא ניווט רך שלא טוען מחדש את הדף.
+- **אירועים** (`gaEvent` ב־`src/lib/gtag.ts`): `trade` (קנייה/מכירה בדף שוק), `rapid_answer`
+  (תשובה במצב זריז) ו־`comment_post`. הסכום נשלח כפרמטר `amount` ולא כ־`value` עם `currency`: הכסף כאן
+  וירטואלי, ו־`value` היה מכניס אותו לדוחות ההכנסות של GA כאילו אינו.
 
 ## גילוי נאות
 
