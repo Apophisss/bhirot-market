@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
  *
  * Same engine as /api/trade, but the stake band lives on the endpoint rather than
  * in the request, so the client cannot opt out of it, and `action` is pinned to
- * BUY — rapid mode can never sell. The engine's own MIN_TRADE/MAX_TRADE bounds
- * stay untouched; they still serve the full trade panel.
+ * BUY — rapid mode can never sell. The upper end of the band is the site-wide bet
+ * cap (`MAX_BET`), the same one the full trade panel and `executeTrade()` enforce.
  */
 const Body = z.object({
   marketId: z.string().min(1),

@@ -38,8 +38,10 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
     return s ? `/rapid?${s}` : "/rapid";
   };
 
+  // from lg the deck puts the stake panel in a column of its own, so the page needs
+  // the extra width to keep the card itself as wide as it is on a phone
   return (
-    <div className="deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 sm:gap-3">
+    <div className="deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 sm:gap-3 lg:max-w-6xl">
       <div className="scrollbar-none swipe-x -mx-3 flex shrink-0 items-center gap-1 px-3 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
         <div className="flex shrink-0 items-center gap-1">
           <h1 className="me-1 inline-flex items-center gap-1 font-black text-text-strong"><BoltIcon /> מצב זריז</h1>

@@ -19,6 +19,7 @@ delete process.env.DATABASE_AUTH_TOKEN;
 
 import { getDb, schema } from "../src/lib/db";
 import { executeTrade, settleMarket, TradeError, MIN_TRADE, MAX_TRADE } from "../src/lib/trade";
+import { MAX_BET } from "../src/lib/limits";
 import { initialState, maxBuyAmount, PRICE_BAND, priceYes } from "../src/lib/lmsr";
 import { getPortfolio } from "../src/lib/portfolio";
 
@@ -69,18 +70,28 @@ const getMarket = async (id: string) => (await db.query.markets.findFirst({ wher
 const getPos = async (userId: string, marketId: string) =>
   await db.query.positions.findFirst({ where: and(eq(positions.userId, userId), eq(positions.marketId, marketId)) });
 
-/** Buys are band-capped, so hammering a side takes several orders. Returns the ₪ spent. */
+/**
+ * Stakes more than one order can carry: a buy is capped both by the ₪MAX_BET bet
+ * limit and by the price band, so any real position is built up over many orders.
+ * Returns the ₪ actually spent.
+ */
 async function push(userId: string, marketId: string, side: "YES" | "NO", budget: number) {
   let spent = 0;
-  for (let i = 0; i < 60 && spent < budget; i++) {
+  for (let i = 0; i < 600 && spent < budget; i++) {
     const mk = await getMarket(marketId);
     const cap = maxBuyAmount({ qYes: mk.qYes, qNo: mk.qNo, b: mk.liquidity }, side);
-    const amount = Math.min(cap, budget - spent);
+    const amount = Math.min(cap, MAX_TRADE, budget - spent);
     if (amount < MIN_TRADE) break;
     await executeTrade({ userId, marketId, side, action: "BUY", quantity: amount });
     spent += amount;
   }
   return spent;
+}
+
+/** Shares held of one side. */
+async function heldShares(userId: string, marketId: string, side: "YES" | "NO") {
+  const pos = await getPos(userId, marketId);
+  return !pos ? 0 : side === "YES" ? pos.yesShares : pos.noShares;
 }
 
 async function expectError(code: string, fn: () => Promise<unknown>) {
@@ -133,7 +144,7 @@ async function main() {
   await test("buying NO lowers the YES price and holds a separate position", async () => {
     const u = await makeUser();
     const m = await makeMarket({ p: 0.5 });
-    await executeTrade({ userId: u, marketId: m, side: "NO", action: "BUY", quantity: 250 });
+    await executeTrade({ userId: u, marketId: m, side: "NO", action: "BUY", quantity: 100 });
     const pos = (await getPos(u, m))!;
     assert.ok(pos.noShares > 0 && pos.yesShares === 0, "NO shares only");
     assert.ok((await getMarket(m)).probability < 0.5, "YES price must fall");
@@ -152,9 +163,9 @@ async function main() {
   });
 
   await test("a buy of the whole balance is allowed (spend it all)", async () => {
-    const u = await makeUser(500);
+    const u = await makeUser(MAX_BET);
     const m = await makeMarket();
-    await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 500 });
+    await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: MAX_BET });
     close((await getUser(u)).balance, 0, 1e-9, "balance drained to zero");
   });
 
@@ -174,11 +185,27 @@ async function main() {
   });
 
   await test("out-of-range amounts are rejected", async () => {
-    const u = await makeUser(MAX_TRADE * 2);
+    const u = await makeUser();
     const m = await makeMarket();
-    for (const q of [0, -5, MIN_TRADE / 2, MAX_TRADE + 1, Number.NaN, Number.POSITIVE_INFINITY]) {
+    for (const q of [0, -5, MIN_TRADE / 2, Number.NaN, Number.POSITIVE_INFINITY]) {
       await expectError("BAD_REQUEST", () => executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: q }));
     }
+    // a buy over the site-wide bet cap has its own code, so the client can say why
+    await expectError("AMOUNT_TOO_LARGE", () =>
+      executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: MAX_TRADE + 1 }),
+    );
+  });
+
+  await test("the bet cap does not apply to selling: a big position closes in one order", async () => {
+    const u = await makeUser();
+    const m = await makeMarket({ p: 0.5, b: 300 });
+    // many capped buys, one sale — the sale is measured in shares, not ₪
+    await push(u, m, "YES", 5_000);
+    const held = await heldShares(u, m, "YES");
+    assert.ok(held > MAX_TRADE, `setup: expected more shares than the ₪ cap, got ${held}`);
+    const sell = await executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: held });
+    close(sell.quote.shares, held, 1e-6, "the whole holding sold at once");
+    close((await getPos(u, m))!.yesShares, 0, 1e-9, "position emptied");
   });
 
   /* ------------------------------- selling ------------------------------ */
@@ -186,10 +213,10 @@ async function main() {
   await test("selling everything right back returns the money and the price", async () => {
     const u = await makeUser();
     const m = await makeMarket({ p: 0.35 });
-    const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 400 });
+    const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 100 });
     const sell = await executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: buy.quote.shares });
 
-    close(sell.quote.amount, 400, 1e-6, "round-trip proceeds");
+    close(sell.quote.amount, 100, 1e-6, "round-trip proceeds");
     close((await getUser(u)).balance, 10_000, 1e-6, "balance restored");
     const pos = (await getPos(u, m))!;
     close(pos.yesShares, 0, 1e-9, "position emptied");
@@ -201,26 +228,26 @@ async function main() {
   await test("a partial sell splits the cost basis and books realized P&L", async () => {
     const u = await makeUser();
     const m = await makeMarket({ p: 0.5 });
-    const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 1000 });
+    const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 100 });
     const half = buy.quote.shares / 2;
     const sell = await executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: half });
 
     const pos = (await getPos(u, m))!;
     close(pos.yesShares, half, 1e-6, "half the shares left");
-    close(pos.yesCost, 500, 1e-6, "half the cost basis left");
-    close(pos.realizedPnl, sell.quote.amount - 500, 1e-6, "realized P&L = proceeds - cost sold");
-    assert.ok(sell.quote.amount < 1000, "selling back into your own impact returns less than you paid");
+    close(pos.yesCost, 50, 1e-6, "half the cost basis left");
+    close(pos.realizedPnl, sell.quote.amount - 50, 1e-6, "realized P&L = proceeds - cost sold");
+    assert.ok(sell.quote.amount < 100, "selling back into your own impact returns less than you paid");
   });
 
   await test("selling a winning position books a profit", async () => {
     const seller = await makeUser();
     const pusher = await makeUser(50_000);
     const m = await makeMarket({ p: 0.3 });
-    const buy = await executeTrade({ userId: seller, marketId: m, side: "YES", action: "BUY", quantity: 200 });
+    const buy = await executeTrade({ userId: seller, marketId: m, side: "YES", action: "BUY", quantity: 100 });
     await push(pusher, m, "YES", 20_000);
     const sell = await executeTrade({ userId: seller, marketId: m, side: "YES", action: "SELL", quantity: buy.quote.shares });
-    assert.ok(sell.quote.amount > 200, `expected a profit, sold for ${sell.quote.amount}`);
-    close((await getPos(seller, m))!.realizedPnl, sell.quote.amount - 200, 1e-6, "profit booked");
+    assert.ok(sell.quote.amount > 100, `expected a profit, sold for ${sell.quote.amount}`);
+    close((await getPos(seller, m))!.realizedPnl, sell.quote.amount - 100, 1e-6, "profit booked");
   });
 
   await test("selling shares you do not have is rejected", async () => {
@@ -246,7 +273,7 @@ async function main() {
     const holder = await makeUser();
     const whale = await makeUser(1_000_000);
     const m = await makeMarket({ p: 0.5, b: 2000 });
-    const buy = await executeTrade({ userId: holder, marketId: m, side: "YES", action: "BUY", quantity: 500 });
+    const buy = await executeTrade({ userId: holder, marketId: m, side: "YES", action: "BUY", quantity: 100 });
 
     // the other side hammers the market until YES is worthless
     await push(whale, m, "NO", 500_000);
@@ -255,7 +282,7 @@ async function main() {
     const sell = await executeTrade({ userId: holder, marketId: m, side: "YES", action: "SELL", quantity: buy.quote.shares });
     close((await getPos(holder, m))!.yesShares, 0, 1e-9, "position fully liquidated");
     assert.ok(sell.quote.amount >= 0, "proceeds are never negative");
-    assert.ok((await getUser(holder)).balance >= 9500 - 1e-9, "the loss is bounded by what was staked");
+    assert.ok((await getUser(holder)).balance >= 9900 - 1e-9, "the loss is bounded by what was staked");
   });
 
   await test("the whole position is sellable in one order at any price", async () => {
@@ -263,7 +290,7 @@ async function main() {
       const holder = await makeUser();
       const whale = await makeUser(1_000_000);
       const m = await makeMarket({ p, b: 500 });
-      const buy = await executeTrade({ userId: holder, marketId: m, side: "YES", action: "BUY", quantity: 300 });
+      const buy = await executeTrade({ userId: holder, marketId: m, side: "YES", action: "BUY", quantity: 100 });
       await push(whale, m, "NO", 50_000);
       await executeTrade({ userId: holder, marketId: m, side: "YES", action: "SELL", quantity: buy.quote.shares });
       close((await getPos(holder, m))!.yesShares, 0, 1e-9, `p=${p}: position fully liquidated`);
@@ -283,27 +310,34 @@ async function main() {
 
   await test("a buy that would break the price ceiling is rejected with the largest size that fits", async () => {
     const u = await makeUser(1_000_000);
-    const m = await makeMarket({ p: 0.5, b: 500 });
+    const m = await makeMarket({ p: 0.5, b: 200 });
+    // walk the price up until the band leaves less headroom than one full bet
+    await push(u, m, "YES", 100_000);
     const mk = await getMarket(m);
     const cap = maxBuyAmount({ qYes: mk.qYes, qNo: mk.qNo, b: mk.liquidity }, "YES");
-    await expectError("BAD_REQUEST", () => executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: cap * 2 }));
-    await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: Math.floor(cap) });
+    assert.ok(cap < MAX_TRADE, `setup: expected the band to bite first, cap=${cap}`);
+    await expectError("BAD_REQUEST", () => executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: MAX_TRADE }));
     const after = await getMarket(m);
     assert.ok(after.probability <= PRICE_BAND.max + 1e-9, `price left the band: ${after.probability}`);
+    // and the holder can still get out in full
+    const held = await heldShares(u, m, "YES");
+    await executeTrade({ userId: u, marketId: m, side: "YES", action: "SELL", quantity: held });
+    close((await getPos(u, m))!.yesShares, 0, 1e-9, "position emptied at the ceiling");
   });
 
   await test("a market a sale pushed under the floor still trades normally", async () => {
     const holder = await makeUser(200_000);
     const whale = await makeUser(1_000_000);
     const m = await makeMarket({ p: 0.5, b: 1000 });
-    const buy = await executeTrade({ userId: holder, marketId: m, side: "YES", action: "BUY", quantity: 3000 });
+    await push(holder, m, "YES", 3000);
+    const held = await heldShares(holder, m, "YES");
     await push(whale, m, "NO", 300_000);
-    await executeTrade({ userId: holder, marketId: m, side: "YES", action: "SELL", quantity: buy.quote.shares });
+    await executeTrade({ userId: holder, marketId: m, side: "YES", action: "SELL", quantity: held });
 
     const low = await getMarket(m);
     assert.ok(low.probability > 0 && low.probability < 1, `price left (0,1): ${low.probability}`);
     // the cheap side is still buyable, and buying it walks the price back up
-    await executeTrade({ userId: holder, marketId: m, side: "YES", action: "BUY", quantity: 1000 });
+    await executeTrade({ userId: holder, marketId: m, side: "YES", action: "BUY", quantity: 100 });
     assert.ok((await getMarket(m)).probability > low.probability, "the cheap side must be buyable back up");
   });
 
@@ -335,17 +369,17 @@ async function main() {
     const winner = await makeUser();
     const loser = await makeUser();
     const m = await makeMarket({ p: 0.5 });
-    const w = await executeTrade({ userId: winner, marketId: m, side: "YES", action: "BUY", quantity: 300 });
-    await executeTrade({ userId: loser, marketId: m, side: "NO", action: "BUY", quantity: 300 });
+    const w = await executeTrade({ userId: winner, marketId: m, side: "YES", action: "BUY", quantity: 100 });
+    await executeTrade({ userId: loser, marketId: m, side: "NO", action: "BUY", quantity: 100 });
 
     const res = await settleMarket(m, "YES", "בדיקה", new Date());
     assert.equal(res.settled, 2);
-    close((await getUser(winner)).balance, 10_000 - 300 + w.quote.shares, 1e-6, "winner paid ₪1 per share");
-    close((await getUser(loser)).balance, 9700, 1e-6, "loser keeps only the cash left");
+    close((await getUser(winner)).balance, 10_000 - 100 + w.quote.shares, 1e-6, "winner paid ₪1 per share");
+    close((await getUser(loser)).balance, 9900, 1e-6, "loser keeps only the cash left");
     const wp = (await getPos(winner, m))!;
     assert.equal(wp.settled, true);
-    close(wp.realizedPnl, w.quote.shares - 300, 1e-6, "winner P&L");
-    close((await getPos(loser, m))!.realizedPnl, -300, 1e-6, "loser P&L");
+    close(wp.realizedPnl, w.quote.shares - 100, 1e-6, "winner P&L");
+    close((await getPos(loser, m))!.realizedPnl, -100, 1e-6, "loser P&L");
     const mk = await getMarket(m);
     assert.equal(mk.status, "resolved");
     assert.equal(mk.resolution, "YES");
@@ -356,19 +390,19 @@ async function main() {
     const yes = await makeUser();
     const no = await makeUser();
     const m = await makeMarket({ p: 0.5 });
-    await executeTrade({ userId: yes, marketId: m, side: "YES", action: "BUY", quantity: 300 });
-    const n = await executeTrade({ userId: no, marketId: m, side: "NO", action: "BUY", quantity: 300 });
+    await executeTrade({ userId: yes, marketId: m, side: "YES", action: "BUY", quantity: 100 });
+    const n = await executeTrade({ userId: no, marketId: m, side: "NO", action: "BUY", quantity: 100 });
     await settleMarket(m, "NO", undefined, new Date());
-    close((await getUser(no)).balance, 9700 + n.quote.shares, 1e-6, "NO holder paid");
-    close((await getUser(yes)).balance, 9700, 1e-6, "YES holder gets nothing");
+    close((await getUser(no)).balance, 9900 + n.quote.shares, 1e-6, "NO holder paid");
+    close((await getUser(yes)).balance, 9900, 1e-6, "YES holder gets nothing");
   });
 
   await test("a cancelled market refunds every shekel and books no P&L", async () => {
     const a = await makeUser();
     const b = await makeUser();
     const m = await makeMarket({ p: 0.6 });
-    await executeTrade({ userId: a, marketId: m, side: "YES", action: "BUY", quantity: 700 });
-    await executeTrade({ userId: b, marketId: m, side: "NO", action: "BUY", quantity: 250 });
+    await push(a, m, "YES", 700);
+    await push(b, m, "NO", 250);
     await settleMarket(m, "CANCELLED", "בוטל", new Date());
     close((await getUser(a)).balance, 10_000, 1e-6, "full refund");
     close((await getUser(b)).balance, 10_000, 1e-6, "full refund");
@@ -402,16 +436,16 @@ async function main() {
   await test("the portfolio mirrors the position and its P&L", async () => {
     const u = await makeUser();
     const m = await makeMarket({ p: 0.4 });
-    const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 200 });
+    const buy = await executeTrade({ userId: u, marketId: m, side: "YES", action: "BUY", quantity: 100 });
     const { openHoldings, positionsValue, unrealized } = await getPortfolio(u);
     const h = openHoldings.find((x) => x.market.id === m)!;
     assert.ok(h, "holding is listed");
     close(h.shares, buy.quote.shares, 1e-9, "shares");
-    close(h.cost, 200, 1e-9, "cost");
-    close(h.avgPrice, 200 / buy.quote.shares, 1e-9, "average price");
+    close(h.cost, 100, 1e-9, "cost");
+    close(h.avgPrice, 100 / buy.quote.shares, 1e-9, "average price");
     close(h.value, buy.quote.shares * (await getMarket(m)).probability, 1e-9, "market value");
     close(positionsValue, h.value, 1e-9, "portfolio value");
-    close(unrealized, h.value - 200, 1e-9, "unrealized P&L");
+    close(unrealized, h.value - 100, 1e-9, "unrealized P&L");
   });
 
   await test("cash + position value is conserved across a busy market", async () => {
@@ -422,7 +456,7 @@ async function main() {
     for (let i = 0; i < 12; i++) {
       const u = traders[i % traders.length];
       const side = i % 3 === 0 ? "NO" : "YES";
-      await executeTrade({ userId: u, marketId: m, side, action: "BUY", quantity: 100 + i * 37 });
+      await executeTrade({ userId: u, marketId: m, side, action: "BUY", quantity: Math.min(MAX_TRADE, 10 + i * 7) });
       if (i % 4 === 3) {
         const pos = (await getPos(u, m))!;
         const held = side === "YES" ? pos.yesShares : pos.noShares;

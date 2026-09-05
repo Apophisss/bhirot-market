@@ -12,11 +12,11 @@
 import fs from "node:fs";
 import { MarketsFileSchema, type MarketContent } from "../src/lib/content";
 import { verdict } from "../src/lib/elasticity";
+import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 /** merge-markets.ts refuses a new question whose title overlaps an existing one this much. */
-const MERGE_REJECT = 0.62;
 
 /** Outlets AGENT.md accepts as decisive sources, plus the reference sites the seed markets cite. */
 const KNOWN_SOURCES = new Set([
@@ -66,18 +66,6 @@ const hoursOut = (m: MarketContent) => (new Date(m.closesAt).getTime() - now) / 
 const isShort = (m: MarketContent) => hoursOut(m) <= 72;
 const hosts = (m: MarketContent) => m.sources.map((s) => new URL(s.url).hostname.replace(/^www\./, ""));
 
-function words(s: string): Set<string> {
-  return new Set(s.replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter((w) => w.length > 2));
-}
-/** The same word-overlap measure merge-markets.ts de-duplicates with. */
-function similar(a: string, b: string): number {
-  const A = words(a);
-  const B = words(b);
-  if (!A.size || !B.size) return 0;
-  let hit = 0;
-  for (const w of A) if (B.has(w)) hit++;
-  return hit / Math.min(A.size, B.size);
-}
 
 console.log(`board audit — ${file.markets.length} markets (${open.length} open), updated ${file.updatedAt}`);
 
@@ -141,22 +129,22 @@ for (const m of boldShort) {
 if (!boldShort.length && open.some(isShort)) ok("short-horizon markets are priced below 50%, as the base rate suggests");
 
 // ── duplicate risk ─────────────────────────────────────────────────────────
-section(`duplicate risk (merge-markets.ts rejects a new title at ${MERGE_REJECT})`);
+section(`duplicate risk (merge-markets.ts rejects a new title at ${DUPLICATE_THRESHOLD}; titles only — read the criteria)`);
 const pairs: { a: string; b: string; s: number }[] = [];
 for (let i = 0; i < open.length; i++) {
   for (let j = i + 1; j < open.length; j++) {
     const s = similar(open[i].title, open[j].title);
-    if (s >= 0.5) pairs.push({ a: open[i].slug, b: open[j].slug, s });
+    if (s >= 0.65) pairs.push({ a: open[i].slug, b: open[j].slug, s });
   }
 }
 pairs.sort((x, y) => y.s - x.s);
-const blocking = pairs.filter((p) => p.s >= MERGE_REJECT);
-for (const p of blocking.slice(0, 6)) {
+const blocking = pairs.filter((p) => p.s >= DUPLICATE_THRESHOLD);
+for (const p of blocking.slice(0, 15)) {
   warn(`${p.s.toFixed(2)} title overlap: ${p.a} ↔ ${p.b} — check they really ask different things, and expect merge to reject anything close to them`);
 }
-if (blocking.length > 6) info(`...and ${blocking.length - 6} more pairs above ${MERGE_REJECT}`);
+if (blocking.length > 15) info(`...and ${blocking.length - 15} more pairs above ${DUPLICATE_THRESHOLD}`);
 const watch = pairs.length - blocking.length;
-if (watch) info(`${watch} further pair(s) between 0.50 and ${MERGE_REJECT} — near the rejection line`);
+if (watch) info(`${watch} further pair(s) between 0.65 and ${DUPLICATE_THRESHOLD} — near the rejection line`);
 if (!pairs.length) ok("no open pair overlaps by half its words");
 
 // ── sources ────────────────────────────────────────────────────────────────

@@ -86,8 +86,10 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   const cat = getCategory(market.category);
   const people = market.people.map((id) => getPerson(id)).filter(Boolean);
 
+  // The single column is capped explicitly: an implicit `auto` track grows to its widest
+  // item's min-content (the comment input), which scrolls the whole document on a phone.
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6">
       <JsonLd data={marketGraph(market)} />
       <div className="space-y-4 sm:space-y-5">
         <nav className="-my-1 text-xs text-muted" aria-label="פירורי לחם">

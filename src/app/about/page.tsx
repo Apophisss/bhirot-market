@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE } from "@/lib/rapid";
+import { MAX_BET } from "@/lib/limits";
 import { fmtDate } from "@/lib/format";
 import { getLastAgentRun } from "@/lib/markets";
 import { timeAgo } from "@/lib/format";
@@ -61,6 +62,10 @@ export default async function AboutPage() {
         <p>
           כל משתמש/ת שמתחבר/ת עם Google מקבל/ת <strong>₪10,000 וירטואליים</strong>. אין דרך להפקיד או למשוך כסף, ואין שום ערך כספי לנקודות.
           לוח המובילים מדרג לפי שווי כולל (יתרה + שווי הפוזיציות במחירי השוק).
+        </p>
+        <p>
+          יש <strong>תקרה של ₪{MAX_BET} לכל עסקת קנייה</strong> — בפאנל המסחר וגם במצב זריז — כדי שאף אחד לא יוכל להזיז שוק
+          במכה אחת. אפשר כמובן לקנות שוב באותו שוק, והמכירה של פוזיציה קיימת לא מוגבלת בסכום.
         </p>
       </Section>
 

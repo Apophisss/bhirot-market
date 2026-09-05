@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
+import { MAX_BET } from "@/lib/limits";
 import { money, pct, shares as fmtShares, agora } from "@/lib/format";
 
 export interface TradePanelProps {
@@ -52,18 +53,27 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
     [side, market.qYes, market.qNo, market.liquidity],
   );
   const sellCap = held;
-  const limit = action === "BUY" ? Math.min(buyCap, balance ?? buyCap) : sellCap;
+  // a single bet is capped at ₪MAX_BET site-wide; the market band and the user's
+  // balance can only lower that, never raise it
+  const buyLimit = Math.min(MAX_BET, buyCap, balance ?? Infinity);
+  const limit = action === "BUY" ? buyLimit : sellCap;
   const overLimit = qty > limit + 1e-6;
   const buyBlocked = action === "BUY" && buyCap <= 0;
+  const buyLimitNote =
+    MAX_BET <= Math.min(buyCap, balance ?? Infinity)
+      ? `אפשר להמר עד ${money(MAX_BET)} בעסקה אחת`
+      : buyCap <= (balance ?? Infinity)
+        ? `הסכום המרבי לעסקה כרגע הוא ${money(buyLimit)} — מעבר לזה השוק יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
+        : `היתרה שלך מאפשרת עד ${money(buyLimit)}`;
 
   const quote = useMemo(() => {
     if (qty <= 0) return null;
-    const capped = Math.min(qty, action === "BUY" ? buyCap : sellCap);
+    const capped = Math.min(qty, action === "BUY" ? buyLimit : sellCap);
     if (capped <= 0) return null;
     if (action === "BUY") return quoteBuy(state, side, capped);
     return quoteSell(state, side, capped);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [action, side, qty, market.qYes, market.qNo, market.liquidity, buyCap, sellCap]);
+  }, [action, side, qty, market.qYes, market.qNo, market.liquidity, buyLimit, sellCap]);
 
   const sidePrice = side === "YES" ? market.probability : 1 - market.probability;
 
@@ -126,7 +136,8 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
     );
   }
 
-  const quick = action === "BUY" ? [10, 50, 100, 500] : [0.25, 0.5, 0.75, 1];
+  // buy shortcuts add to the amount, so they stay inside the ₪MAX_BET cap
+  const quick = action === "BUY" ? [10, 25, 50, MAX_BET] : [0.25, 0.5, 0.75, 1];
 
   return (
     <div className="card p-4 sm:p-5">
@@ -167,7 +178,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
 
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between text-xs text-muted">
-          <span>{action === "BUY" ? "סכום (₪ וירטואלי)" : `מניות למכירה (יש לך ${fmtShares(held)})`}</span>
+          <span>{action === "BUY" ? `סכום (₪ וירטואלי · עד ${money(MAX_BET)})` : `מניות למכירה (יש לך ${fmtShares(held)})`}</span>
           {balance != null && action === "BUY" && <span className="tabular">יתרה: {money(balance)}</span>}
         </div>
         {buyBlocked ? (
@@ -177,11 +188,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
         ) : (
           overLimit && (
             <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
-              {action === "BUY"
-                ? balance != null && qty > balance
-                  ? `היתרה שלך היא ${money(balance)}`
-                  : `הסכום המרבי לעסקה כרגע הוא ${money(limit)} — מעבר לזה השוק יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
-                : `יש לך ${fmtShares(limit)} מניות למכירה`}
+              {action === "BUY" ? buyLimitNote : `יש לך ${fmtShares(limit)} מניות למכירה`}
             </p>
           )
         )}

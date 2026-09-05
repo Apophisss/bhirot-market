@@ -16,6 +16,7 @@
 | התחברות | Auth.js v5 — Google OAuth (+ כניסת פיתוח מהירה ללא סיסמה) |
 | מסד נתונים | libSQL / SQLite (קובץ מקומי בפיתוח, [Turso](https://turso.tech) בפרודקשן) דרך Drizzle ORM |
 | מנוע שוק | LMSR בינארי (`src/lib/lmsr.ts`) — ₪10,000 וירטואליים לכל משתמש, תשלום ₪1 למניה מנצחת |
+| תקרת הימור | **עד ₪100 לעסקה, בכל מקום באתר** (`src/lib/limits.ts`) — גם בפאנל המסחר המלא וגם במצב זריז |
 | מצב זריז | פיד שאלות ב־`/rapid`: תשובת ״כן״/״לא״ = קנייה מחייבת בטווח ₪5–₪100 דרך אותו LMSR |
 | תוכן | `data/markets.json` — מקור האמת לשאלות; מסונכרן למסד הנתונים אוטומטית |
 | תמונות | תמונות אישי ציבור מוורדות מ־Wikimedia Commons אל `public/people/` (`npm run people:fetch`) — האתר לא מקשר החוצה — + עטיפות SVG לכל קטגוריה ותמונת שיתוף (`public/og.png`) |
@@ -33,7 +34,7 @@
 - שאלות שכבר ענית עליהן לא חוזרות בפיד (אפשר להחזיר אותן עם `?all=1`), ובסוף הרצף מוצג סיכום: כמה נענו, כמה הושקע, וכמה ישולם אם צדקת בהכל.
 
 הטווח נאכף פעמיים: בסליידר, ושוב ב־`POST /api/rapid/answer` — שם הוא תכונה של ה־endpoint, כך שהלקוח לא יכול לוותר עליו.
-`MIN_TRADE`/`MAX_TRADE` של מנוע המסחר לא השתנו; הם עדיין משרתים את פאנל המסחר המלא.
+הקצה העליון שלו הוא **תקרת ההימור הכללית** (`MAX_BET` ב־`src/lib/limits.ts`), אותה תקרה שחלה גם על פאנל המסחר המלא.
 
 ## הרצה מקומית
 
@@ -130,7 +131,7 @@ npm run dev                       # http://localhost:3000
 |---|---|
 | `GET /api/markets?status=open&category=polls&q=…&sort=trending` | רשימת שווקים (ציבורי) |
 | `GET /api/markets/:slug` | שוק + היסטוריית מחירים אמיתית (`history`) + סדרת הגרף עם האומדן (`chartHistory`, `chartHistoryMeta`) + עסקאות אחרונות |
-| `POST /api/trade` `{marketId, side, action, quantity}` | קנייה/מכירה (דורש התחברות) |
+| `POST /api/trade` `{marketId, side, action, quantity}` | קנייה/מכירה (דורש התחברות) — בקנייה `quantity` הוא ₪ ומוגבל ל־₪100; במכירה הוא מספר מניות |
 | `POST /api/rapid/answer` `{marketId, side, stake}` | תשובה במצב זריז — קנייה מחייבת של ₪5–₪100 בצד שנבחר (דורש התחברות) |
 | `POST /api/comments` | תגובה לשוק |
 | `POST /api/admin/markets` `{markets:[…], note, source}` | Upsert/הכרעה של שווקים (Bearer `ADMIN_TOKEN`) |

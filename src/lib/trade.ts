@@ -1,5 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
+import { MAX_BET, MIN_BET } from "./limits";
 import { maxBuyAmount, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
 
 const { markets, positions, trades, priceHistory, users } = schema;
@@ -12,7 +13,8 @@ export type TradeErrorCode =
   | "USER_NOT_FOUND"
   | "INSUFFICIENT_BALANCE"
   | "NO_SHARES"
-  | "AMOUNT_TOO_SMALL";
+  | "AMOUNT_TOO_SMALL"
+  | "AMOUNT_TOO_LARGE";
 
 export class TradeError extends Error {
   constructor(message: string, public status = 400, public code: TradeErrorCode = "BAD_REQUEST") {
@@ -56,9 +58,9 @@ export interface TradeRequest {
   quantity: number;
 }
 
-/** ₪ bounds of a single buy. Selling is bounded by the position itself, not by these. */
-export const MIN_TRADE = 1;
-export const MAX_TRADE = 100_000;
+/** ₪ bounds of a single buy. A BUY is a bet, so it is capped by the site-wide limit. */
+export const MIN_TRADE = MIN_BET;
+export const MAX_TRADE = MAX_BET;
 
 /**
  * A leftover smaller than this is written off instead of being left in the
@@ -74,10 +76,14 @@ export async function executeTrade(req: TradeRequest) {
   if (!Number.isFinite(req.quantity) || req.quantity <= 0) {
     throw new TradeError(req.action === "BUY" ? "סכום לא תקין" : "כמות לא תקינה");
   }
-  // the ₪ bounds are a buy-side guard. A sale is capped by the shares actually
-  // held (below), so any position can always be closed in a single order.
-  if (req.action === "BUY" && (req.quantity < MIN_TRADE || req.quantity > MAX_TRADE)) {
-    throw new TradeError("סכום לא תקין");
+  // The ₪ bounds are a buy-side guard: a bet is capped site-wide. A sale is not a
+  // bet — it is capped by the shares actually held (below), and by nothing else, so
+  // a position can always be closed in a single order however large it grew.
+  if (req.action === "BUY") {
+    if (req.quantity < MIN_TRADE) throw new TradeError("סכום לא תקין");
+    if (req.quantity > MAX_TRADE) {
+      throw new TradeError(`אפשר להמר עד ₪${MAX_TRADE} בעסקה אחת`, 400, "AMOUNT_TOO_LARGE");
+    }
   }
 
   return withBusyRetry(() => db.transaction(async (tx) => {
