@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { LEGAL_UPDATED, SITE_NAME } from "@/lib/config";
 import { fmtDate } from "@/lib/format";
 import { JsonLd } from "@/components/JsonLd";
-import { breadcrumbs } from "@/lib/seo";
+import { breadcrumbs, shareCard } from "@/lib/seo";
 import { LegalSection } from "@/components/LegalSection";
 import { analyticsEnabled } from "@/lib/analytics";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "מדיניות פרטיות",
   description: DESCRIPTION,
   alternates: { canonical: "/privacy" },
-  openGraph: { url: "/privacy", title: `מדיניות פרטיות | ${SITE_NAME}`, description: DESCRIPTION },
+  ...shareCard({ title: `מדיניות פרטיות | ${SITE_NAME}`, description: DESCRIPTION, path: "/privacy" }),
 };
 
 export default function PrivacyPage() {

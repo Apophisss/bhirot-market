@@ -5,7 +5,7 @@ import { STARTING_BALANCE } from "@/lib/db/schema";
 import { MAX_BET } from "@/lib/limits";
 import { fmtDate, money } from "@/lib/format";
 import { JsonLd } from "@/components/JsonLd";
-import { breadcrumbs } from "@/lib/seo";
+import { breadcrumbs, shareCard } from "@/lib/seo";
 import { LegalSection } from "@/components/LegalSection";
 
 const DESCRIPTION = `תנאי השימוש של ${SITE_NAME}: משחק חיזויים בכסף וירטואלי בלבד, ללא הימורים, ללא כסף אמיתי וללא פרסים.`;
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "תנאי שימוש",
   description: DESCRIPTION,
   alternates: { canonical: "/terms" },
-  openGraph: { url: "/terms", title: `תנאי שימוש | ${SITE_NAME}`, description: DESCRIPTION },
+  ...shareCard({ title: `תנאי שימוש | ${SITE_NAME}`, description: DESCRIPTION, path: "/terms" }),
 };
 
 export default function TermsPage() {

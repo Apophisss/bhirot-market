@@ -6,8 +6,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "lh3.googleusercontent.com" }],
   },
   serverExternalPackages: ["@libsql/client", "libsql"],
-  // drizzle migrations are read from disk at runtime (see src/lib/db/index.ts) — ship them with every serverless function
-  outputFileTracingIncludes: { "/**": ["./drizzle/**/*"] },
+  // drizzle migrations are read from disk at runtime (see src/lib/db/index.ts) — ship them
+  // with every serverless function, and the share-card fonts with the route that draws them
+  outputFileTracingIncludes: {
+    "/**": ["./drizzle/**/*"],
+    "/market/[slug]/og": ["./public/fonts/*.ttf"],
+  },
   // Deployment is a Docker image on our own server (see Dockerfile): standalone
   // emits a server.js with only the traced dependencies beside it, so the image
   // does not have to carry node_modules.

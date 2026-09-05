@@ -6,7 +6,7 @@ import { SuggestQuestionForm } from "@/components/SuggestQuestionForm";
 import { listUserSuggestions } from "@/lib/inbox";
 import { fmtDate, timeAgo } from "@/lib/format";
 import { getCategory } from "@/lib/categories";
-import { breadcrumbs } from "@/lib/seo";
+import { breadcrumbs, shareCard } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "הצעת שאלה חדשה",
   description: DESCRIPTION,
   alternates: { canonical: "/suggest" },
-  openGraph: { url: "/suggest", title: `הצעת שאלה חדשה | ${SITE_NAME}`, description: DESCRIPTION },
+  ...shareCard({ title: `הצעת שאלה חדשה | ${SITE_NAME}`, description: DESCRIPTION, path: "/suggest" }),
 };
 
 const STATUS_LABEL: Record<string, { label: string; className: string }> = {

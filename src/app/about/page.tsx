@@ -10,7 +10,7 @@ import { getLastAgentRun } from "@/lib/markets";
 import { timeAgo } from "@/lib/format";
 import { displayUpdatedAt } from "@/lib/display-stats";
 import { JsonLd } from "@/components/JsonLd";
-import { FAQ, breadcrumbs, faqGraph } from "@/lib/seo";
+import { FAQ, breadcrumbs, faqGraph, shareCard } from "@/lib/seo";
 import { CATEGORIES } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "איך זה עובד — שאלות ותשובות",
   description: DESCRIPTION,
   alternates: { canonical: "/about" },
-  openGraph: { url: "/about", title: `איך זה עובד | ${SITE_NAME}`, description: DESCRIPTION },
+  ...shareCard({ title: `איך זה עובד | ${SITE_NAME}`, description: DESCRIPTION, path: "/about" }),
 };
 
 export default async function AboutPage() {

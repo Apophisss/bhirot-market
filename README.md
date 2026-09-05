@@ -469,7 +469,9 @@ src/lib/admin-stats.ts   כל הסטטיסטיקות של לוח הניהול, �
 src/lib/inbox.ts         הצעות שאלה ופניות: סכמות הקלט, שמירה, תיבה ועדכון סטטוס
 src/lib/il-time.ts       תרגום מועד סגירה בין שעון ישראל ל-ISO (כולל שעון קיץ)
 src/lib/rate-limit.ts    חסם קצב בזיכרון לטפסים הציבוריים
-src/lib/seo.ts           כותרות, canonical ו-JSON-LD (schema.org)
+src/lib/seo.ts           כותרות, canonical, כרטיס השיתוף (shareCard) ו-JSON-LD (schema.org)
+src/lib/og.ts            הפונטים, הצבעים והתמונות של כרטיסי השיתוף המצוירים
+src/app/market/[slug]/og/  ציור כרטיס השיתוף של שוק בודד (next/og)
 src/lib/analytics.ts     קליטת אירועי אנליטיקה בצד השרת (hash מבקר, סינון בוטים, מחיקה לפי מדיניות)
 src/lib/stats.ts         כל שאילתות הדוחות של לוח הניהול והבאנדל
 src/lib/bundle.ts        בניית באנדל הנתונים (JSON + דוח Markdown)
@@ -485,8 +487,11 @@ src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /p
 
 - **כתובת האתר**: `NEXT_PUBLIC_SITE_URL` חייבת להיות הדומיין הפומבי המלא. כל ה-canonical, ה-sitemap וה-JSON-LD נגזרים ממנה.
 - **דפי קטגוריה**: לכל קטגוריה יש דף אינדוקס משלה ב-`/category/<id>` עם `h1`, תיאור ייחודי (`description` ב-`src/lib/categories.ts`) ו-`CollectionPage` + `ItemList`. קישורים ישנים בסגנון `/?category=x` מקבלים 308 מ-`src/middleware.ts`.
-- **מה נכנס לאינדקס**: דף הבית, `/?status=resolved`, דפי הקטגוריות, דפי השווקים, `/about` ו-`/invite`. תוצאות חיפוש, מיון ו"הצגת עוד" מסומנים `noindex, follow`; `/portfolio`, `/login` ודפי הנחיתה של ההזמנות (`/i/<code>` — עמוד זהה לכל קוד) חסומים.
-- **נתונים מובנים**: `Organization` + `WebSite` (עם SearchAction) בכל דף, `Article` + `BreadcrumbList` בדף שוק, `CollectionPage` בדפי רשימה ו-`FAQPage` ב-`/about` (השאלות נמצאות ב-`FAQ` ב-`src/lib/seo.ts` ומוצגות גם בדף עצמו — אין להוסיף שאלה ל-JSON-LD בלי להציג אותה).
+- **מה נכנס לאינדקס**: דף הבית, `/?status=resolved`, `/rapid`, דפי הקטגוריות, דפי השווקים, `/about` ו-`/invite`. תוצאות חיפוש, מיון, "הצגת עוד" והמסננים של המצב הזריז מסומנים `noindex, follow`; `/portfolio`, `/login` ודפי הנחיתה של ההזמנות (`/i/<code>` — עמוד זהה לכל קוד) חסומים.
+- **כרטיס השיתוף**: Next ממזג מטא־דאטה בשכבה אחת בלבד — דף שכותב `openGraph` או `twitter` משלו **מחליף** את האובייקט של ה-layout ולא מוסיף אליו, וכך נעלמים ממנו `og:image`, `og:site_name`, `og:locale` ו-`og:type`. לכן אף דף לא כותב את שני המפתחות האלה בעצמו: כולם עוברים דרך `shareCard()` ב-`src/lib/seo.ts`, ו-`npm run test:seo` נכשל אם דף חדש כותב אותם ידנית.
+- **תמונת שיתוף לכל שוק**: `/market/<slug>/og` מצייר כרטיס 1200×630 עם השאלה, המחיר הנוכחי ותמונת האדם (`next/og` + satori). הפונט חייב להיות TrueType — satori לא קורא woff2 — ולכן `public/fonts/heebo-*.ttf` מגיעים עם המאגר. עטיפות הקטגוריה הן SVG, שאף רשת חברתית לא מציגה כ-og:image, וזו הסיבה שהכרטיס מצויר ולא נשלח כקובץ.
+- **אייקונים**: `npm run icons` מרנדר את `public/logo.svg` ל-`icon-192.png`, `icon-512.png`, `apple-touch-icon.png` ו-`src/app/favicon.ico`. הריצו אותו אחרי כל שינוי בלוגו.
+- **נתונים מובנים**: `Organization` (עם `ContactPoint`) + `WebSite` (עם SearchAction) בכל דף, `Article` + `BreadcrumbList` בדף שוק, `CollectionPage` בדפי רשימה ו-`FAQPage` ב-`/about` (השאלות נמצאות ב-`FAQ` ב-`src/lib/seo.ts` ומוצגות גם בדף עצמו — אין להוסיף שאלה ל-JSON-LD בלי להציג אותה).
 - **קודי סטטוס**: שלד הטעינה (`loading.tsx`) חי רק תחת קבוצת הראוט `(listing)`. אם מוסיפים `loading.tsx` מעל דפי שוק/קטגוריה, ה-404 שלהם יהפוך ל-200 רך (soft 404).
 - **אימות Search Console**: הגדירו `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` והתג ייווצר לבד.
 

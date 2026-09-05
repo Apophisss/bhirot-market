@@ -9,6 +9,7 @@ import { money, timeAgo } from "@/lib/format";
 import { InviteCard } from "@/components/InviteCard";
 import { Avatar } from "@/components/Avatar";
 import { StatTile } from "@/components/StatTile";
+import { shareCard } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
   title: "הזמינו חברים",
   description: DESCRIPTION,
   alternates: { canonical: "/invite" },
-  openGraph: { url: "/invite", title: `הזמינו חברים | ${SITE_NAME}`, description: DESCRIPTION },
+  ...shareCard({ title: `הזמינו חברים | ${SITE_NAME}`, description: DESCRIPTION, path: "/invite" }),
 };
 
 const STEPS = [

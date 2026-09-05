@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { daysUntil, money } from "@/lib/format";
+import { shareCard } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +19,15 @@ export const dynamic = "force-dynamic";
  * home page that exists to be linked from an ad, and letting Google index both
  * would split the ranking of the real one.
  */
+const DESCRIPTION = `משחק חיזויים חינמי בכסף וירטואלי על בחירות 2026. ${money(STARTING_BALANCE)} וירטואליים למתחילים, בלי הימורים ובלי כסף אמיתי.`;
+
 export const metadata: Metadata = {
   title: "נחשו מה יקרה בפוליטיקה הישראלית",
-  description: `משחק חיזויים חינמי בכסף וירטואלי על בחירות 2026. ${money(STARTING_BALANCE)} וירטואליים למתחילים, בלי הימורים ובלי כסף אמיתי.`,
+  description: DESCRIPTION,
   robots: { index: false, follow: true },
+  // noindex, but this is the page an ad links to and the one people forward: the
+  // inherited card would name the home page instead of the pitch they are reading
+  ...shareCard({ title: `נחשו מה יקרה בפוליטיקה הישראלית | ${SITE_NAME}`, description: DESCRIPTION, path: "/welcome" }),
 };
 
 /** The single destination every button on this page points at. */
