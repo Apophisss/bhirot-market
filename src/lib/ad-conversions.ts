@@ -81,7 +81,13 @@ export async function claimAdAttribution(userId: string, cookieValue: string | u
     const db = await getDb();
     await db
       .update(users)
-      .set({ gclid: attr.gclid ?? null, utmSource: attr.utmSource ?? null, utmCampaign: attr.utmCampaign ?? null })
+      .set({
+        gclid: attr.gclid ?? null,
+        utmSource: attr.utmSource ?? null,
+        utmMedium: attr.utmMedium ?? null,
+        utmCampaign: attr.utmCampaign ?? null,
+        utmContent: attr.utmContent ?? null,
+      })
       .where(and(eq(users.id, userId), isNull(users.gclid), isNull(users.utmSource)));
   } catch (err) {
     console.error("[ads] attribution claim failed", err);

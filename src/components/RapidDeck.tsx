@@ -19,6 +19,7 @@ import { MarketImage } from "./MarketImage";
 import { RapidSpark } from "./RapidSpark";
 import { gaEvent } from "@/lib/gtag";
 import { checkAdConversions } from "@/components/AdConversions";
+import { savePendingAnswer, takePendingAnswer } from "@/lib/pending-answer";
 
 type AnswerStatus = "pending" | "ok" | "error";
 
@@ -29,6 +30,8 @@ interface Answer {
   status: AnswerStatus;
   shares?: number;
   error?: string;
+  /** set only on an answer given before logging in: the question's title, for the receipt */
+  fromLogin?: string;
 }
 
 interface AnswerResult {
@@ -47,6 +50,11 @@ const DRAG_COMMIT = 96;
 const WHEEL_STEP = 42;
 /** how long the deck ignores the wheel after a step, so one flick moves one card */
 const WHEEL_COOLDOWN_MS = 380;
+/** when a smooth scroll has gone nowhere by now, it is never going to — see `goTo` */
+const SETTLE_MS = 650;
+
+/** Where the logged-out visitor is sent to keep the answer they just gave. */
+const LOGIN_HREF = "/login?callbackUrl=%2Frapid";
 
 /**
  * Does anything between `from` and `stopAt` still have room to scroll by `dy`?
@@ -152,6 +160,7 @@ export function RapidDeck({
   const target = useRef<number | null>(null);
   const targetTimer = useRef(0);
   const advanceTimer = useRef(0);
+  const settleTimer = useRef(0);
 
   const stake = useStake();
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
@@ -168,6 +177,7 @@ export function RapidDeck({
       alive.current = false;
       window.clearTimeout(targetTimer.current);
       window.clearTimeout(advanceTimer.current);
+      window.clearTimeout(settleTimer.current);
     };
   }, []);
 
@@ -181,6 +191,7 @@ export function RapidDeck({
 
   const okCount = answered.filter((a) => a.status === "ok").length;
   const failedCount = answered.filter((a) => a.status === "error").length;
+  const redeemed = answered.find((a) => a.fromLogin);
 
   const goTo = useCallback(
     (i: number, delay = 0) => {
@@ -190,7 +201,20 @@ export function RapidDeck({
         const el = scroller.current;
         if (!el) return;
         target.current = clamped;
-        el.scrollTo({ top: clamped * el.clientHeight, behavior: reduceMotion ? "auto" : "smooth" });
+        const top = clamped * el.clientHeight;
+        const from = el.scrollTop;
+        el.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
+        // A smooth scrollTo issued from a timer — which is exactly what the advance
+        // after an answer is — is sometimes dropped inside a mandatory-snap container,
+        // and then the run simply stops: the answered card stays on screen and the
+        // second and third trades never happen. If nothing has moved by now, finish
+        // the move without the animation. Only when nothing moved at all: a visitor who
+        // scrolled somewhere themselves in the meantime must not be yanked back.
+        window.clearTimeout(settleTimer.current);
+        settleTimer.current = window.setTimeout(() => {
+          if (target.current !== clamped || Math.abs(el.scrollTop - from) > 2) return;
+          el.scrollTo({ top, behavior: "auto" });
+        }, SETTLE_MS);
         window.clearTimeout(targetTimer.current);
         targetTimer.current = window.setTimeout(() => {
           // the landing scroll event can go missing (interrupted scroll, or a
@@ -253,7 +277,11 @@ export function RapidDeck({
   const answer = useCallback(
     (card: RapidCard, side: Side) => {
       if (!loggedIn) {
-        router.push("/login?callbackUrl=%2Frapid");
+        // the answer is kept and executed on the way back, so the trip to Google is
+        // "sign in to keep this" rather than "sign in before you may try anything"
+        savePendingAnswer({ marketId: card.id, side, stake, title: card.title });
+        gaEvent("rapid_answer_pending", { market_id: card.id, side, stake });
+        router.push(LOGIN_HREF);
         return;
       }
       if (answers[card.id] || claimed.current.has(card.id) || broke) return; // answered already, or nothing left to bet
@@ -267,6 +295,28 @@ export function RapidDeck({
     },
     [answers, broke, feed, drain, goTo, loggedIn, router, stake],
   );
+
+  /* An answer given before there was an account. It is executed here rather than on the
+   * page that collected it because the deck already owns the one-request-at-a-time queue
+   * every answer goes through, and because this is where the run continues.
+   * `takePendingAnswer()` clears as it reads, so a refresh cannot spend the money twice.
+   * The queue paints the result when the server confirms it — the market is normally
+   * still in this feed, since it was answered after the server rendered it, so the card
+   * shows the same confirmation every other answer gets. */
+  useEffect(() => {
+    if (!loggedIn) return;
+    const p = takePendingAnswer();
+    if (!p) return;
+    claimed.current.add(p.marketId);
+    queue.current.push({
+      marketId: p.marketId,
+      side: p.side,
+      stake: clampStake(p.stake),
+      status: "pending",
+      fromLogin: p.title,
+    });
+    void drain();
+  }, [drain, loggedIn]);
 
   /* the active card follows the scroll position — every panel is exactly one viewport tall */
   useEffect(() => {
@@ -417,6 +467,8 @@ export function RapidDeck({
     // exactly what the card was missing.
     <section className="flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5 lg:flex-row lg:items-stretch lg:gap-4">
       <div className="flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5">
+        {redeemed && <RedeemedNote answer={redeemed} />}
+
         {/* On a short phone this row is the first thing to go: the tape below it already
             shows where the run stands, and the balance moves into the stake strip. */}
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs short:hidden">
@@ -495,6 +547,37 @@ export function RapidDeck({
         />
       </aside>
     </section>
+  );
+}
+
+/**
+ * The receipt for an answer given before logging in. It is the only place that says
+ * out loud that the answer survived the trip to Google — without it the visitor is
+ * left guessing whether the thing they did before signing in counted.
+ *
+ * Hidden on a short screen along with the rest of the chrome: there the answered card
+ * carries its own confirmation, and a row here would cost the deck a row of the card.
+ */
+function RedeemedNote({ answer }: { answer: Answer }) {
+  const failed = answer.status === "error";
+  return (
+    <p
+      className={`shrink-0 truncate rounded-xl border px-3 py-1.5 text-[13px] leading-snug short:hidden sm:text-sm ${
+        failed ? "border-no/40 bg-no/10 text-no" : "border-yes/40 bg-yes/10 text-text"
+      }`}
+    >
+      {failed ? (
+        <>התשובה שנתתם לפני ההתחברות לא נקלטה: {answer.error}</>
+      ) : (
+        <>
+          <strong className="font-bold text-text-strong">התשובה שלכם נשמרה</strong>{" "}
+          <span className="tabular">
+            {answer.side === "YES" ? "כן" : "לא"} · {money(answer.stake)}
+          </span>{" "}
+          על ״{answer.fromLogin}״
+        </>
+      )}
+    </p>
   );
 }
 
@@ -778,7 +861,7 @@ function RapidCardView({
                 ? "היתרה לא מספיקה לסכום הזה"
                 : loggedIn
                   ? "הסכום מחייב · מספר המניות משוער"
-                  : "התחברו כדי שהתשובות ייספרו"}
+                  : "נשמור את התשובה ונבצע אותה מיד אחרי ההתחברות"}
           </span>
         </div>
       </div>
@@ -879,7 +962,9 @@ function StakeBar({
             <button
               key={p}
               onClick={() => writeStake(p)}
-              className={`tabular shrink-0 rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
+              /* 25px high was below every touch-target guideline there is, on the one
+                 screen where the first trade actually happens */
+              className={`tap tabular inline-flex shrink-0 items-center rounded-lg border px-3 text-xs font-bold transition ${
                 stake === p
                   ? "border-accent bg-accent/15 text-accent-2"
                   : "border-border bg-surface-2 text-muted hover:text-text-strong"

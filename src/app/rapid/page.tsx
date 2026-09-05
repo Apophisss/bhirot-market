@@ -98,14 +98,20 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         className={`shrink-0 ${category === "all" ? "short:hidden" : ""}`}
       />
 
+      {/* A logged-out visitor answers first and connects an account afterwards, to keep
+          what they answered — the deck stores it and executes it on the way back
+          (src/lib/pending-answer.ts). Asking for the account first was asking a stranger
+          to pay before they had seen a single price move. */}
       {!loggedIn && (
-        <p className="shrink-0 rounded-xl border border-warn/40 bg-warn/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
-          אתם בתצוגה בלבד.{" "}
+        <p className="shrink-0 rounded-xl border border-accent/40 bg-accent-soft px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
+          <span className="font-bold text-text-strong">ענו על השאלה הראשונה.</span>{" "}
+          <span className="hidden sm:inline">
+            נשמור לכם אותה, ונהפוך אותה לפוזיציה אמיתית בכסף הווירטואלי ברגע שתתחברו.
+          </span>
+          <span className="sm:hidden">נשמור אותה ונבצע אותה כשתתחברו.</span>{" "}
           <Link href="/login?callbackUrl=%2Frapid" className="font-bold text-accent-2 hover:underline">
-            התחברו
-          </Link>{" "}
-          <span className="hidden sm:inline">כדי שכל תשובה תהפוך לפוזיציה אמיתית בכסף הווירטואלי שלכם.</span>
-          <span className="sm:hidden">כדי שכל תשובה תהפוך לפוזיציה אמיתית.</span>
+            להתחברות
+          </Link>
         </p>
       )}
 

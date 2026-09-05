@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CATEGORY_IDS } from "@/lib/categories";
 import { REFERRAL_COOKIE, REFERRAL_COOKIE_MAX_AGE, normalizeReferralCode } from "@/lib/referral";
-import { AD_COOKIE, AD_COOKIE_MAX_AGE, readAdParams, serializeAdAttribution } from "@/lib/ad-attribution";
+import { AD_COOKIE, AD_COOKIE_MAX_AGE, AD_LANDING_COOKIE, readAdParams, serializeAdAttribution } from "@/lib/ad-attribution";
 
 /**
  * An invite link (`/i/<code>`) has to leave something behind: the visitor lands, reads the
@@ -49,18 +49,25 @@ function categoryRedirect(req: NextRequest) {
  * created. Stamped here rather than in the browser so an ad-blocker cannot hide
  * it, and set only on the first campaign visit — overwriting would credit the
  * last click instead of the one that actually earned the account.
+ *
+ * The second cookie is the opposite: it is about the visit rather than the
+ * account, so it is rewritten on every paid landing and dies with the browser
+ * session. See `AD_LANDING_COOKIE`.
  */
 function stampAdClick(req: NextRequest, res: NextResponse): NextResponse {
-  if (req.cookies.has(AD_COOKIE)) return res;
   const attr = readAdParams(req.nextUrl.searchParams);
   if (!attr) return res;
-  res.cookies.set(AD_COOKIE, serializeAdAttribution(attr), {
+  const base = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
-    maxAge: AD_COOKIE_MAX_AGE,
     secure: process.env.NODE_ENV === "production",
-  });
+  };
+  // "this visit came from an ad", refreshed on every paid landing and gone when the
+  // browser closes: it decides what the next few screens look like, not who gets credit
+  res.cookies.set(AD_LANDING_COOKIE, "1", base);
+  if (req.cookies.has(AD_COOKIE)) return res;
+  res.cookies.set(AD_COOKIE, serializeAdAttribution(attr), { ...base, maxAge: AD_COOKIE_MAX_AGE });
   return res;
 }
 
