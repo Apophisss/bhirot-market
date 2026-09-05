@@ -132,6 +132,10 @@ export async function getPriceHistory(slug: string, since?: Date) {
   return rows.map((r) => ({ p: r.probability, t: r.ts.getTime() }));
 }
 
+/**
+ * Recent trades WITHOUT any trader identity: the site deliberately does not expose
+ * who bet on what, so no caller may join the users table here.
+ */
 export async function getRecentTrades(slug: string | null, limit = 30) {
   const db = await getDb();
   const rows = await db
@@ -145,12 +149,8 @@ export async function getRecentTrades(slug: string | null, limit = 30) {
       createdAt: trades.createdAt,
       marketId: trades.marketId,
       marketTitle: markets.title,
-      userName: users.name,
-      userImage: users.image,
-      userId: users.id,
     })
     .from(trades)
-    .innerJoin(users, eq(trades.userId, users.id))
     .innerJoin(markets, eq(trades.marketId, markets.id))
     .where(slug ? eq(trades.marketId, slug) : undefined)
     .orderBy(desc(trades.createdAt))
