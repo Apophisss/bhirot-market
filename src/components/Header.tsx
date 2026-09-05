@@ -88,6 +88,7 @@ export async function Header() {
                     הזמינו חברים
                     <span className="tabular shrink-0 rounded-full bg-yes/15 px-2 py-0.5 text-[11px] font-bold text-yes">{money(REFERRAL_BONUS)}</span>
                   </Link>
+                  <Link href="/onboarding?edit=1" className="block px-4 py-3 text-sm hover:bg-surface-2">ההעדפות שלי</Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
                   <form action={doSignOut}>
                     <button className="block w-full px-4 py-3 text-right text-sm text-no hover:bg-surface-2">התנתקות</button>
