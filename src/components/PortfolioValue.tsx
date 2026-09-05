@@ -7,15 +7,17 @@ import { STARTING_BALANCE } from "@/lib/db/schema";
 /**
  * The number in the header.
  *
- * It used to be net worth — cash plus the mark-to-market value of open positions —
- * while the trade panel three centimetres below it showed available cash under the
- * word "יתרה". Two different figures, in the same typeface, on the same screen: a
- * ₪5 purchase moved one from ₪9,105 to ₪9,100 and left the other on ₪10,000, so
- * the header looked stuck.
+ * It is the whole portfolio — available cash plus what the open positions would
+ * fetch if they were sold now — the same "שווי כולל" the portfolio page and the
+ * leaderboard rank by. Available cash alone made a purchase read as a loss: ₪5
+ * spent took the header from ₪10,000 to ₪9,995 with nothing on screen to show
+ * what the ₪5 bought.
  *
- * It is now the same available balance the trade panel spends from, labelled, with
- * the overall P&L beside it in green or red — the header's job is to say what can
- * be bet and whether it is going well, and both change on every trade.
+ * The two figures were once confused with one another (the header said one number
+ * under the word "יתרה" while the trade panel said another under the same word),
+ * so the label here is explicit — "שווי כולל", never "יתרה" — and the trade panel
+ * keeps "יתרה" for the cash it actually spends from. The P&L sits beside it in
+ * green or red from `sm` up, where there is room for it.
  */
 export async function PortfolioValue() {
   const user = await currentUser();
@@ -27,10 +29,12 @@ export async function PortfolioValue() {
       href="/portfolio"
       data-evt="header-balance"
       className="tap flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 text-[13px] font-semibold hover:border-border-2 sm:gap-2 sm:px-3 sm:text-sm"
-      title={`יתרה זמינה ${money(user.balance)} · שווי כולל (יתרה + פוזיציות פתוחות) ${money(netWorth)}`}
+      title={`שווי כולל (יתרה + פוזיציות פתוחות) ${money(netWorth)} · יתרה זמינה ${money(user.balance)}`}
     >
-      <span className="text-[10px] font-medium text-muted-2 sm:text-[11px]">יתרה</span>
-      <span className="tabular text-text-strong">{money(user.balance)}</span>
+      {/* the full label needs room the phone header does not have */}
+      <span className="text-[10px] font-medium text-muted-2 sm:hidden">שווי</span>
+      <span className="hidden text-[11px] font-medium text-muted-2 sm:inline">שווי כולל</span>
+      <span className="tabular text-text-strong">{money(netWorth)}</span>
       <span className={`tabular hidden text-[11px] sm:inline ${pnlTone(pnl)}`}>{signedMoney(pnl)}</span>
     </Link>
   );
