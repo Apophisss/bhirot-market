@@ -85,9 +85,9 @@ export default async function WelcomePage() {
         </p>
 
         <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">
-          כמה טוב אתם מכירים
+          משחק ידע חינם:
           <br />
-          את הפוליטיקה הישראלית?
+          כמה טוב אתם מכירים את הפוליטיקה הישראלית?
         </h1>
         {/* The one piece of urgency on this page that is not invented: there is a real
             election on a real date. It used to sit in small grey type halfway down the

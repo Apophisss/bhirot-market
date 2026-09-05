@@ -10,14 +10,19 @@ export const SITE_NAME = "בחירות מרקט";
  * product to its visitors and files it under a category it does not belong to. The
  * tagline, the description and the keywords are the first thing that gets read —
  * by a person and by a crawler — so they are the first thing that has to be right.
+ *
+ * Second pass, for the same reason one step further: "משחק ניחושים" — a guessing
+ * game about what will happen — is the framing Google's ad review rejected asset by
+ * asset. These three fields reach every page through the JSON-LD graph and the
+ * manifest, the landing page included, so they say what the game actually is: a
+ * knowledge game in play-money points, with the disclosure in the sentence itself.
  */
-export const SITE_TAGLINE = "משחק הניחושים של בחירות 2026";
+export const SITE_TAGLINE = "משחק הידע על בחירות 2026";
 /** One-line site description, shared by <meta name="description">, the manifest and the JSON-LD graph. */
 export const SITE_DESCRIPTION =
-  "משחק ניחושים חינמי על בחירות 2026 לכנסת: סקרים, קואליציה, משפט נתניהו, חוק הגיוס ועוד. עונים כן או לא, צוברים נקודות, והשאלות נכתבות ומוכרעות על ידי צוות המערכת.";
+  "משחק ידע חינמי על הפוליטיקה הישראלית: סקרים, קואליציה, משפט נתניהו, חוק הגיוס ובחירות 2026. בנקודות משחק בלבד — אין כסף אמיתי, אין פרסים ואין תשלום.";
 export const SITE_KEYWORDS = [
   "בחירות 2026",
-  "משחק ניחושים",
   "משחק ידע",
   "חידון פוליטי",
   "סקרים",
