@@ -9,6 +9,7 @@ import { REFERRAL_COOKIE } from "./referral";
 import { claimReferral } from "./referral-program";
 import { AD_COOKIE } from "./ad-attribution";
 import { claimAdAttribution } from "./ad-conversions";
+import { AUTH_SIGNAL_COOKIE, AUTH_SIGNAL_MAX_AGE, serializeAuthSignal, type AuthSignalEvent } from "./auth-signal";
 import { track } from "./analytics";
 import { EVENTS } from "./events";
 
@@ -40,6 +41,35 @@ async function claimPendingReferral(userId: string) {
     }
   } catch (err) {
     console.error("[referral] claim failed", err);
+  }
+}
+
+/**
+ * Leaves the crumb `<AuthAnalytics>` turns into GA4's `login` / `sign_up`.
+ *
+ * The site's own tracker records the same moment server-side a few lines below;
+ * this exists because GA4 only counts what gtag.js sends from the browser, and
+ * the browser cannot tell a new account from a returning one on its own.
+ *
+ * Never fatal: measurement must not be able to fail a sign-in. `cookies()` is
+ * writable here — the sign-in flow always runs inside the auth route handler or
+ * a server action — but the same guard the referral cookie uses stays, because
+ * the cost of being wrong about that is the whole login.
+ */
+async function markAuthForAnalytics(event: AuthSignalEvent, provider: string | undefined) {
+  try {
+    const value = serializeAuthSignal({ event, method: provider ?? "unknown" });
+    if (!value) return;
+    (await cookies()).set(AUTH_SIGNAL_COOKIE, value, {
+      // read and deleted by the browser: httpOnly would hide it from the only code that wants it
+      httpOnly: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: AUTH_SIGNAL_MAX_AGE,
+      secure: process.env.NODE_ENV === "production",
+    });
+  } catch (err) {
+    console.error("[ga] auth signal failed", err);
   }
 }
 
@@ -89,8 +119,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
       if (user.id) await claimAdAttribution(user.id, (await cookies()).get(AD_COOKIE)?.value);
       await track(EVENTS.signup, { userId: user.id, path: "/login" });
     },
-    async signIn({ user, isNewUser }) {
+    // fires for every provider and after createUser, so it is the one place that
+    // sees both halves of the answer: which provider, and new account or not
+    async signIn({ user, account, isNewUser }) {
       if (!isNewUser && user.id) await track(EVENTS.login, { userId: user.id, path: "/login" });
+      // `isNewUser` is undefined for the credentials provider (the adapter is not in
+      // its loop), so a first dev login reports `login` — exactly like `track()` above,
+      // and only ever in development, where devLoginEnabled is the only way in.
+      await markAuthForAnalytics(isNewUser ? "sign_up" : "login", account?.provider);
     },
   },
   callbacks: {
