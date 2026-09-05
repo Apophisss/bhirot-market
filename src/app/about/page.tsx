@@ -15,7 +15,7 @@ import { CATEGORIES } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
-const DESCRIPTION = `איך עובד ${SITE_NAME}: משחק ניחושים חינמי על בחירות 2026 לכנסת — תשובות "כן" ו"לא", מנוע התמחור LMSR, 10,000 נקודות לכל שחקן, והכרעת שאלות לפי מקורות פומביים.`;
+const DESCRIPTION = `איך עובד ${SITE_NAME}: משחק ידע חינמי על הפוליטיקה הישראלית, בנקודות משחק בלבד — אין כסף אמיתי, אין פרסים ואין תשלום. מנוע התמחור LMSR והכרעת שאלות לפי מקורות פומביים.`;
 
 export const metadata: Metadata = {
   title: "איך זה עובד — שאלות ותשובות",
