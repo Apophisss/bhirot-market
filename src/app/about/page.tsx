@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE } from "@/lib/rapid";
 import { MAX_BET } from "@/lib/limits";
+import { MAX_REFERRALS, REFERRAL_BONUS } from "@/lib/referral";
+import { money } from "@/lib/format";
 import { fmtDate } from "@/lib/format";
 import { getLastAgentRun } from "@/lib/markets";
 import { timeAgo } from "@/lib/format";
@@ -77,7 +79,19 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      <Section title="4. מצב זריז — לענות על שאלות ברצף" id="rapid">
+      <Section title="4. הזמנת חברים — בונוס על כל הרשמה" id="invite">
+        <p>
+          לכל משתמש/ת יש <Link href="/invite" className="text-accent-2 hover:underline">קישור אישי להזמנת חברים</Link>.
+          כל מי שנרשם לאתר דרך הקישור הזה מזכה אתכם ב<strong>{money(REFERRAL_BONUS)} וירטואליים</strong> שנכנסים ליתרה
+          מיד — עד {MAX_REFERRALS} חברים. אחר כך הקישור ממשיך לעבוד, פשוט בלי בונוס.
+        </p>
+        <p>
+          הבונוס נספר בשווי הכולל שלכם אבל <strong>לא ברווח/הפסד</strong>: הוא כסף שקיבלתם, לא כסף שהרווחתם מחיזוי, ולכן
+          לוח המובילים ממשיך למדוד את מה שהוא אמור למדוד. הזמנה של עצמכם, או של חשבון שכבר נרשם בעבר, לא מזכה.
+        </p>
+      </Section>
+
+      <Section title="5. מצב זריז — לענות על שאלות ברצף" id="rapid">
         <p>
           ב<Link href="/rapid" className="text-accent-2 hover:underline">מצב זריז</Link> השאלות עוברות אחת אחרי השנייה בפיד
           שנפתח על מסך שלם: גוללים (או מחליקים) לשאלה הבאה, קוראים אותה, ועונים ״כן״ או ״לא״ בלחיצה אחת. בוחרים פעם אחת סכום
@@ -97,7 +111,7 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      <Section title="5. מי כותב את השאלות" id="updates">
+      <Section title="6. מי כותב את השאלות" id="updates">
         <p>
           מאחורי האתר עומד <strong>{SITE_TEAM}</strong> של {SITE_NAME}. אנחנו עוקבים לאורך היום אחרי החדשות הפוליטיות
           בישראל: סקרים חדשים, מהלכים של המפלגות, משפט נתניהו, חוק הגיוס, עימותים ותביעות. מכל אלה אנחנו מנסחים שאלות חיזוי
@@ -117,7 +131,7 @@ export default async function AboutPage() {
         )}
       </Section>
 
-      <Section title="6. שאלות של היום ומחר">
+      <Section title="7. שאלות של היום ומחר">
         <p>
           חלק גדול מהשאלות באתר נסגרות תוך <strong>24 עד 72 שעות</strong>: סקר שיפורסם במהדורה של הערב, הכרזת מיזוג לפני
           מועד הגשת הרשימות, החלטה בישיבת הממשלה של יום ראשון, דיון בבג״ץ. אפשר לקנות, לראות את ההכרעה תוך יום־יומיים,
@@ -129,14 +143,14 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      <Section title="7. הכרעת שווקים">
+      <Section title="8. הכרעת שווקים">
         <p>
           כל שוק מגדיר במפורש מה נחשב ״כן״, מה נחשב ״לא״ ואיזה מקור מכריע (למשל: סקר שפורסם בערוץ מסוים, החלטת בית משפט, הודעה רשמית).
           שוק שהתברר כלא ניתן להכרעה מבוטל וכל ההשקעות מוחזרות. אם נראה לכם שהכרעה שגויה — כתבו בתגובות של השוק.
         </p>
       </Section>
 
-      <Section title="8. הגרף ההיסטורי — אומדן, לא מסחר" id="estimate">
+      <Section title="9. הגרף ההיסטורי — אומדן, לא מסחר" id="estimate">
         <p>
           שוק חדש נפתח עם נקודת מחיר אחת בלבד, ולכן הגרף שלו היה שטוח לגמרי עד לעסקה הראשונה. כדי שיהיה מה לראות,
           האתר מצייר לפני מועד הפתיחה <strong>קו מקווקו של אומדן</strong> — מגמה משוחזרת ולא מסחר שקרה באמת.
@@ -150,7 +164,7 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      <Section title="9. גילוי נאות">
+      <Section title="10. גילוי נאות">
         <p>
           האתר הוא פרויקט קהילתי/הדגמתי ואינו קשור לאף מפלגה, מועמד או גוף תקשורת. השאלות מבוססות על פרסומים פומביים ואינן מהוות עמדה.
           תמונות של אישי ציבור מגיעות מ־Wikimedia Commons תחת רישיונות חופשיים. אין כאן ייעוץ, הימורים או כסף אמיתי.
