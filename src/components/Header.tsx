@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth, signOut } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
-import { UserBalance } from "./UserBalance";
+import { PortfolioValue } from "./PortfolioValue";
 import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
@@ -72,7 +72,7 @@ export async function Header() {
           <div className="ms-auto flex shrink-0 items-center gap-2 lg:ms-0">
             {user ? (
               <>
-                <UserBalance />
+                <PortfolioValue />
                 <UserMenu
                   trigger={
                     <>
