@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-05T14:43:08+03:00",
-  "lastUpdateNote": "ביקורת מקיפה של הלוח: 1 שאלות בוטלו והכסף הוחזר, כי אי אפשר להכריע אותן ממקורות פומביים; 126 שאלות תוקנו — כותרות מקוצרות, מקרה שלילה מפורש ומקור מכריע בשם.",
+  "updatedAt": "2026-09-05T16:40:00+03:00",
+  "lastUpdateNote": "דירוג עורך לכל 327 השאלות הפתוחות: appeal 1-5 לפי כמה השאלה מגניבה ומעניינת, האות שמנוע ההמלצות שוקל לצד הטעם האישי והפופולריות.",
   "markets": [
     {
       "slug": "golan-sues-sara-netanyahu-oct7",
@@ -23,6 +23,7 @@
       "closesAt": "2026-12-31T23:59:00+02:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": true,
       "status": "open",
       "sources": [
@@ -64,6 +65,7 @@
       "closesAt": "2026-12-31T23:59:00+02:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -98,6 +100,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.04,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -133,6 +136,7 @@
       "closesAt": "2026-09-15T23:59:00+03:00",
       "initialProbability": 0.72,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": true,
       "status": "open",
       "sources": [
@@ -170,6 +174,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -208,6 +213,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 5,
       "featured": true,
       "status": "open",
       "sources": [
@@ -246,6 +252,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -280,6 +287,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -315,6 +323,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -348,6 +357,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -383,6 +393,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.85,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -415,6 +426,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -450,6 +462,7 @@
       "closesAt": "2026-09-25T23:59:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -488,6 +501,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.38,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -526,6 +540,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": true,
       "status": "open",
       "sources": [
@@ -565,6 +580,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -604,6 +620,7 @@
       "closesAt": "2026-10-26T21:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 5,
       "featured": false,
       "status": "open",
       "sources": [
@@ -639,6 +656,7 @@
       "closesAt": "2026-10-26T21:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -675,6 +693,7 @@
       "closesAt": "2026-10-26T21:00:00+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 5,
       "featured": false,
       "status": "open",
       "sources": [
@@ -707,6 +726,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.8,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -775,6 +795,7 @@
       "closesAt": "2026-10-26T21:00:00+03:00",
       "initialProbability": 0.03,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -809,6 +830,7 @@
       "closesAt": "2026-09-10T20:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -846,6 +868,7 @@
       "closesAt": "2026-10-15T23:59:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -881,6 +904,7 @@
       "closesAt": "2026-10-23T23:59:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -912,6 +936,7 @@
       "closesAt": "2026-10-27T22:00:00+02:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": true,
       "status": "open",
       "sources": [
@@ -945,6 +970,7 @@
       "closesAt": "2026-10-27T22:00:00+02:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 5,
       "featured": true,
       "status": "open",
       "sources": [
@@ -985,6 +1011,7 @@
       "closesAt": "2026-11-20T23:59:00+02:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": true,
       "status": "open",
       "sources": [
@@ -1021,6 +1048,7 @@
       "closesAt": "2026-09-06T02:00:00+03:00",
       "initialProbability": 0.65,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1067,6 +1095,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1145,6 +1174,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1182,6 +1212,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1222,6 +1253,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1261,6 +1293,7 @@
       "closesAt": "2026-09-06T22:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1301,6 +1334,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1337,6 +1371,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1375,6 +1410,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1410,6 +1446,7 @@
       "closesAt": "2026-09-07T12:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1445,6 +1482,7 @@
       "closesAt": "2026-09-06T17:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1480,6 +1518,7 @@
       "closesAt": "2026-09-06T21:00:00+03:00",
       "initialProbability": 0.05,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1518,6 +1557,7 @@
       "closesAt": "2026-09-08T09:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1558,6 +1598,7 @@
       "closesAt": "2026-09-06T18:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1599,6 +1640,7 @@
       "closesAt": "2026-09-07T12:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1639,6 +1681,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.05,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1674,6 +1717,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1709,6 +1753,7 @@
       "closesAt": "2026-09-07T20:00:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 5,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1745,6 +1790,7 @@
       "closesAt": "2026-09-07T23:59:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1781,6 +1827,7 @@
       "closesAt": "2026-09-06T20:00:00+03:00",
       "initialProbability": 0.85,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": true,
       "status": "open",
       "sources": [
@@ -1820,6 +1867,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1859,6 +1907,7 @@
       "closesAt": "2026-09-07T08:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1899,6 +1948,7 @@
       "closesAt": "2026-09-06T22:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1934,6 +1984,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1975,6 +2026,7 @@
       "closesAt": "2026-09-07T22:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2015,6 +2067,7 @@
       "closesAt": "2026-09-08T09:00:00+03:00",
       "initialProbability": 0.09,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2051,6 +2104,7 @@
       "closesAt": "2026-09-07T20:00:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2088,6 +2142,7 @@
       "closesAt": "2026-09-06T00:00:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2122,6 +2177,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.27,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2159,6 +2215,7 @@
       "closesAt": "2026-09-09T20:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2199,6 +2256,7 @@
       "closesAt": "2026-09-10T12:00:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2236,6 +2294,7 @@
       "closesAt": "2026-09-09T18:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2275,6 +2334,7 @@
       "closesAt": "2026-09-10T12:00:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2314,6 +2374,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2355,6 +2416,7 @@
       "closesAt": "2026-09-09T14:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2394,6 +2456,7 @@
       "closesAt": "2026-10-26T20:00:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2432,6 +2495,7 @@
       "closesAt": "2026-10-23T23:59:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2511,6 +2575,7 @@
       "closesAt": "2026-10-27T07:00:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2551,6 +2616,7 @@
       "closesAt": "2026-11-04T20:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2640,6 +2706,7 @@
       "closesAt": "2026-09-10T21:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2680,6 +2747,7 @@
       "closesAt": "2026-09-11T14:00:00+03:00",
       "initialProbability": 0.68,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2719,6 +2787,7 @@
       "closesAt": "2026-09-11T18:00:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2757,6 +2826,7 @@
       "closesAt": "2026-09-14T20:00:00+03:00",
       "initialProbability": 0.48,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2842,6 +2912,7 @@
       "closesAt": "2026-10-13T20:00:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2882,6 +2953,7 @@
       "closesAt": "2026-10-16T23:59:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2922,6 +2994,7 @@
       "closesAt": "2026-10-23T22:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2963,6 +3036,7 @@
       "closesAt": "2026-11-04T23:59:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3046,6 +3120,7 @@
       "closesAt": "2026-11-20T20:00:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3084,6 +3159,7 @@
       "closesAt": "2026-09-30T21:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3123,6 +3199,7 @@
       "closesAt": "2026-11-20T21:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3162,6 +3239,7 @@
       "closesAt": "2026-10-31T21:00:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3200,6 +3278,7 @@
       "closesAt": "2026-10-27T20:00:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3238,6 +3317,7 @@
       "closesAt": "2026-10-25T21:00:00+03:00",
       "initialProbability": 0.33,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3278,6 +3358,7 @@
       "closesAt": "2026-11-20T21:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3320,6 +3401,7 @@
       "closesAt": "2026-11-18T21:00:00+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3358,6 +3440,7 @@
       "closesAt": "2026-11-20T21:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3396,6 +3479,7 @@
       "closesAt": "2026-11-10T21:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3437,6 +3521,7 @@
       "closesAt": "2026-11-20T21:00:00+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3480,6 +3565,7 @@
       "closesAt": "2026-10-27T20:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3523,6 +3609,7 @@
       "closesAt": "2026-10-26T21:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3567,6 +3654,7 @@
       "closesAt": "2026-11-18T21:00:00+03:00",
       "initialProbability": 0.27,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3606,6 +3694,7 @@
       "closesAt": "2026-11-10T21:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3647,6 +3736,7 @@
       "closesAt": "2026-11-05T21:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3686,6 +3776,7 @@
       "closesAt": "2026-10-25T21:00:00+03:00",
       "initialProbability": 0.14,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3726,6 +3817,7 @@
       "closesAt": "2026-09-30T21:00:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3765,6 +3857,7 @@
       "closesAt": "2026-11-12T21:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3805,6 +3898,7 @@
       "closesAt": "2026-10-27T20:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3918,6 +4012,7 @@
       "closesAt": "2026-10-05T20:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3958,6 +4053,7 @@
       "closesAt": "2026-10-12T20:00:00+03:00",
       "initialProbability": 0.82,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3998,6 +4094,7 @@
       "closesAt": "2026-09-19T22:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4039,6 +4136,7 @@
       "closesAt": "2026-10-26T22:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4074,6 +4172,7 @@
       "closesAt": "2026-10-27T20:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4110,6 +4209,7 @@
       "closesAt": "2026-11-20T22:00:00+03:00",
       "initialProbability": 0.38,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4148,6 +4248,7 @@
       "closesAt": "2026-09-14T22:00:00+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4188,6 +4289,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.7,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4228,6 +4330,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.65,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4308,6 +4411,7 @@
       "closesAt": "2026-09-17T23:59:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4347,6 +4451,7 @@
       "closesAt": "2026-09-11T18:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4386,6 +4491,7 @@
       "closesAt": "2026-09-17T23:00:00+03:00",
       "initialProbability": 0.7,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4426,6 +4532,7 @@
       "closesAt": "2026-09-17T23:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4464,6 +4571,7 @@
       "closesAt": "2026-09-17T23:59:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4509,6 +4617,7 @@
       "closesAt": "2026-09-29T23:59:00+03:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4554,6 +4663,7 @@
       "closesAt": "2026-09-29T23:59:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4595,6 +4705,7 @@
       "closesAt": "2026-10-05T20:00:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4635,6 +4746,7 @@
       "closesAt": "2026-10-05T22:00:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4681,6 +4793,7 @@
       "closesAt": "2026-10-05T22:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4720,6 +4833,7 @@
       "closesAt": "2026-10-04T18:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4760,6 +4874,7 @@
       "closesAt": "2026-10-05T20:00:00+03:00",
       "initialProbability": 0.7,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4800,6 +4915,7 @@
       "closesAt": "2026-09-25T14:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4840,6 +4956,7 @@
       "closesAt": "2026-09-25T14:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4884,6 +5001,7 @@
       "closesAt": "2026-10-05T22:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4924,6 +5042,7 @@
       "closesAt": "2026-10-05T22:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4964,6 +5083,7 @@
       "closesAt": "2026-10-02T13:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5004,6 +5124,7 @@
       "closesAt": "2026-11-19T21:00:00+03:00",
       "initialProbability": 0.27,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5043,6 +5164,7 @@
       "closesAt": "2026-10-30T21:00:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5082,6 +5204,7 @@
       "closesAt": "2026-11-05T21:00:00+03:00",
       "initialProbability": 0.38,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5118,6 +5241,7 @@
       "closesAt": "2026-11-04T21:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5158,6 +5282,7 @@
       "closesAt": "2026-11-04T21:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5197,6 +5322,7 @@
       "closesAt": "2026-10-26T23:00:00+03:00",
       "initialProbability": 0.74,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5235,6 +5361,7 @@
       "closesAt": "2026-10-13T21:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5274,6 +5401,7 @@
       "closesAt": "2026-10-27T22:00:00+03:00",
       "initialProbability": 0.72,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5313,6 +5441,7 @@
       "closesAt": "2026-10-18T21:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5354,6 +5483,7 @@
       "closesAt": "2026-11-08T22:00:00+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5394,6 +5524,7 @@
       "closesAt": "2026-11-06T22:00:00+03:00",
       "initialProbability": 0.75,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5433,6 +5564,7 @@
       "closesAt": "2026-11-09T22:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5473,6 +5605,7 @@
       "closesAt": "2026-11-10T22:00:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5513,6 +5646,7 @@
       "closesAt": "2026-11-11T22:00:00+03:00",
       "initialProbability": 0.72,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5548,6 +5682,7 @@
       "closesAt": "2026-11-05T22:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5587,6 +5722,7 @@
       "closesAt": "2026-11-12T22:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5627,6 +5763,7 @@
       "closesAt": "2026-11-13T22:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5667,6 +5804,7 @@
       "closesAt": "2026-10-27T22:00:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5750,6 +5888,7 @@
       "closesAt": "2026-10-04T23:59:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5790,6 +5929,7 @@
       "closesAt": "2026-10-23T23:59:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5835,6 +5975,7 @@
       "closesAt": "2026-11-04T23:59:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5879,6 +6020,7 @@
       "closesAt": "2026-11-20T23:59:00+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5919,6 +6061,7 @@
       "closesAt": "2026-09-27T23:59:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5960,6 +6103,7 @@
       "closesAt": "2026-10-26T23:59:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6004,6 +6148,7 @@
       "closesAt": "2026-10-28T03:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6045,6 +6190,7 @@
       "closesAt": "2026-10-24T23:59:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6084,6 +6230,7 @@
       "closesAt": "2026-09-25T20:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6126,6 +6273,7 @@
       "closesAt": "2026-09-30T20:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6164,6 +6312,7 @@
       "closesAt": "2026-10-08T20:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6207,6 +6356,7 @@
       "closesAt": "2026-10-26T20:00:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6241,6 +6391,7 @@
       "closesAt": "2026-10-26T20:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6280,6 +6431,7 @@
       "closesAt": "2026-10-27T07:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6318,6 +6470,7 @@
       "closesAt": "2026-10-27T12:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6358,6 +6511,7 @@
       "closesAt": "2026-11-08T20:00:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6397,6 +6551,7 @@
       "closesAt": "2026-11-18T20:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6436,6 +6591,7 @@
       "closesAt": "2026-11-20T20:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6479,6 +6635,7 @@
       "closesAt": "2026-10-21T15:30:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6522,6 +6679,7 @@
       "closesAt": "2026-09-15T17:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6607,6 +6765,7 @@
       "closesAt": "2026-11-17T20:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6697,6 +6856,7 @@
       "closesAt": "2026-10-07T20:00:00+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6741,6 +6901,7 @@
       "closesAt": "2026-10-26T16:25:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6785,6 +6946,7 @@
       "closesAt": "2026-10-26T17:20:00+03:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6825,6 +6987,7 @@
       "closesAt": "2026-11-15T20:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6864,6 +7027,7 @@
       "closesAt": "2026-11-12T20:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6907,6 +7071,7 @@
       "closesAt": "2026-09-10T21:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6947,6 +7112,7 @@
       "closesAt": "2026-09-11T09:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6986,6 +7152,7 @@
       "closesAt": "2026-09-11T20:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7025,6 +7192,7 @@
       "closesAt": "2026-09-12T18:00:00+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7064,6 +7232,7 @@
       "closesAt": "2026-09-13T12:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7103,6 +7272,7 @@
       "closesAt": "2026-09-15T12:00:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7143,6 +7313,7 @@
       "closesAt": "2026-10-15T20:00:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7179,6 +7350,7 @@
       "closesAt": "2026-10-23T20:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7214,6 +7386,7 @@
       "closesAt": "2026-11-05T12:00:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7253,6 +7426,7 @@
       "closesAt": "2026-11-06T15:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7288,6 +7462,7 @@
       "closesAt": "2026-11-08T12:00:00+03:00",
       "initialProbability": 0.38,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7327,6 +7502,7 @@
       "closesAt": "2026-09-30T23:59:59+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7367,6 +7543,7 @@
       "closesAt": "2026-10-20T23:59:59+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7410,6 +7587,7 @@
       "closesAt": "2026-11-04T23:59:59+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7453,6 +7631,7 @@
       "closesAt": "2026-11-04T23:59:59+03:00",
       "initialProbability": 0.8,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7537,6 +7716,7 @@
       "closesAt": "2026-11-06T23:59:59+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7583,6 +7763,7 @@
       "closesAt": "2026-11-04T23:59:59+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7625,6 +7806,7 @@
       "closesAt": "2026-11-12T23:59:59+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7665,6 +7847,7 @@
       "closesAt": "2026-11-08T23:59:59+03:00",
       "initialProbability": 0.8,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7704,6 +7887,7 @@
       "closesAt": "2026-11-18T23:59:59+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7746,6 +7930,7 @@
       "closesAt": "2026-11-06T22:00:00+03:00",
       "initialProbability": 0.56,
       "liquidity": 2000,
+      "appeal": 5,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7792,6 +7977,7 @@
       "closesAt": "2026-11-07T22:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7838,6 +8024,7 @@
       "closesAt": "2026-11-05T22:00:00+03:00",
       "initialProbability": 0.82,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7885,6 +8072,7 @@
       "closesAt": "2026-11-12T22:00:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7975,6 +8163,7 @@
       "closesAt": "2026-11-10T22:00:00+03:00",
       "initialProbability": 0.85,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8020,6 +8209,7 @@
       "closesAt": "2026-10-24T22:00:00+03:00",
       "initialProbability": 0.87,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8065,6 +8255,7 @@
       "closesAt": "2026-11-14T22:00:00+03:00",
       "initialProbability": 0.46,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8107,6 +8298,7 @@
       "closesAt": "2026-11-16T22:00:00+03:00",
       "initialProbability": 0.33,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8153,6 +8345,7 @@
       "closesAt": "2026-10-16T22:00:00+03:00",
       "initialProbability": 0.72,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8200,6 +8393,7 @@
       "closesAt": "2026-10-25T22:00:00+03:00",
       "initialProbability": 0.11,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8287,6 +8481,7 @@
       "closesAt": "2026-11-07T22:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8328,6 +8523,7 @@
       "closesAt": "2026-11-08T22:00:00+03:00",
       "initialProbability": 0.53,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8369,6 +8565,7 @@
       "closesAt": "2026-11-12T22:00:00+03:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8408,6 +8605,7 @@
       "closesAt": "2026-11-09T22:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8447,6 +8645,7 @@
       "closesAt": "2026-11-06T22:00:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8486,6 +8685,7 @@
       "closesAt": "2026-11-10T22:00:00+03:00",
       "initialProbability": 0.82,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8526,6 +8726,7 @@
       "closesAt": "2026-11-14T22:00:00+03:00",
       "initialProbability": 0.16,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8564,6 +8765,7 @@
       "closesAt": "2026-10-24T21:00:00+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8603,6 +8805,7 @@
       "closesAt": "2026-09-26T21:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8645,6 +8848,7 @@
       "closesAt": "2026-10-27T21:00:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8686,6 +8890,7 @@
       "closesAt": "2026-11-15T21:00:00+03:00",
       "initialProbability": 0.13,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8726,6 +8931,7 @@
       "closesAt": "2026-10-26T21:00:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8767,6 +8973,7 @@
       "closesAt": "2026-11-20T21:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8806,6 +9013,7 @@
       "closesAt": "2026-10-25T21:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8842,6 +9050,7 @@
       "closesAt": "2026-10-31T21:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8882,6 +9091,7 @@
       "closesAt": "2026-11-10T21:00:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8922,6 +9132,7 @@
       "closesAt": "2026-10-27T07:00:00+03:00",
       "initialProbability": 0.15,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8962,6 +9173,7 @@
       "closesAt": "2026-09-30T21:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9002,6 +9214,7 @@
       "closesAt": "2026-09-24T22:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9041,6 +9254,7 @@
       "closesAt": "2026-10-06T22:00:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9076,6 +9290,7 @@
       "closesAt": "2026-10-08T22:00:00+03:00",
       "initialProbability": 0.85,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9116,6 +9331,7 @@
       "closesAt": "2026-10-15T22:00:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9156,6 +9372,7 @@
       "closesAt": "2026-10-18T22:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9196,6 +9413,7 @@
       "closesAt": "2026-10-27T06:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9236,6 +9454,7 @@
       "closesAt": "2026-10-27T20:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9279,6 +9498,7 @@
       "closesAt": "2026-11-04T22:00:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9318,6 +9538,7 @@
       "closesAt": "2026-11-10T22:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9357,6 +9578,7 @@
       "closesAt": "2026-11-20T22:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9397,6 +9619,7 @@
       "closesAt": "2026-09-30T17:30:00+03:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9437,6 +9660,7 @@
       "closesAt": "2026-10-26T20:00:00+03:00",
       "initialProbability": 0.27,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9478,6 +9702,7 @@
       "closesAt": "2026-11-03T09:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9519,6 +9744,7 @@
       "closesAt": "2026-11-04T20:00:00+03:00",
       "initialProbability": 0.38,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9555,6 +9781,7 @@
       "closesAt": "2026-11-10T21:00:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9592,6 +9819,7 @@
       "closesAt": "2026-11-19T21:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9633,6 +9861,7 @@
       "closesAt": "2026-11-19T17:30:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9672,6 +9901,7 @@
       "closesAt": "2026-09-22T22:00:00+03:00",
       "initialProbability": 0.8,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9711,6 +9941,7 @@
       "closesAt": "2026-10-20T22:00:00+03:00",
       "initialProbability": 0.57,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9747,6 +9978,7 @@
       "closesAt": "2026-10-27T20:00:00+03:00",
       "initialProbability": 0.68,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9786,6 +10018,7 @@
       "closesAt": "2026-11-20T22:00:00+03:00",
       "initialProbability": 0.33,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9825,6 +10058,7 @@
       "closesAt": "2026-11-19T22:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9863,6 +10097,7 @@
       "closesAt": "2026-11-17T22:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9901,6 +10136,7 @@
       "closesAt": "2026-11-12T22:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9940,6 +10176,7 @@
       "closesAt": "2026-11-05T22:00:00+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9979,6 +10216,7 @@
       "closesAt": "2026-10-31T22:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10020,6 +10258,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.4,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10064,6 +10303,7 @@
       "closesAt": "2026-09-06T02:00:00+03:00",
       "initialProbability": 0.38,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10105,6 +10345,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.09,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10146,6 +10387,7 @@
       "closesAt": "2026-09-07T08:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10186,6 +10428,7 @@
       "closesAt": "2026-09-05T23:59:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10225,6 +10468,7 @@
       "closesAt": "2026-09-07T18:00:00+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10264,6 +10508,7 @@
       "closesAt": "2026-09-06T20:00:00+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10304,6 +10549,7 @@
       "closesAt": "2026-09-07T18:00:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10349,6 +10595,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10389,6 +10636,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10434,6 +10682,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10475,6 +10724,7 @@
       "closesAt": "2026-09-07T09:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10518,6 +10768,7 @@
       "closesAt": "2026-09-06T23:59:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10563,6 +10814,7 @@
       "closesAt": "2026-09-05T23:59:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10647,6 +10899,7 @@
       "closesAt": "2026-09-10T23:59:59+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10687,6 +10940,7 @@
       "closesAt": "2026-09-30T23:59:59+03:00",
       "initialProbability": 0.85,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10722,6 +10976,7 @@
       "closesAt": "2026-10-15T23:59:59+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10762,6 +11017,7 @@
       "closesAt": "2026-10-20T23:59:59+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10801,6 +11057,7 @@
       "closesAt": "2026-10-23T23:59:59+03:00",
       "initialProbability": 0.17,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10841,6 +11098,7 @@
       "closesAt": "2026-10-26T23:59:59+03:00",
       "initialProbability": 0.22,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10882,6 +11140,7 @@
       "closesAt": "2026-11-13T23:59:59+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10917,6 +11176,7 @@
       "closesAt": "2026-11-16T23:59:59+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10956,6 +11216,7 @@
       "closesAt": "2026-11-18T23:59:59+03:00",
       "initialProbability": 0.87,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10992,6 +11253,7 @@
       "closesAt": "2026-11-20T23:59:59+03:00",
       "initialProbability": 0.06,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11031,6 +11293,7 @@
       "closesAt": "2026-10-27T21:00:00+03:00",
       "initialProbability": 0.5,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11070,6 +11333,7 @@
       "closesAt": "2026-10-18T22:00:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11109,6 +11373,7 @@
       "closesAt": "2026-10-26T22:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11144,6 +11409,7 @@
       "closesAt": "2026-11-20T22:00:00+03:00",
       "initialProbability": 0.08,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11187,6 +11453,7 @@
       "closesAt": "2026-10-20T20:00:00+03:00",
       "initialProbability": 0.72,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11226,6 +11493,7 @@
       "closesAt": "2026-11-10T20:00:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11265,6 +11533,7 @@
       "closesAt": "2026-10-22T22:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11304,6 +11573,7 @@
       "closesAt": "2026-11-15T22:00:00+03:00",
       "initialProbability": 0.07,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11343,6 +11613,7 @@
       "closesAt": "2026-09-30T22:00:00+03:00",
       "initialProbability": 0.16,
       "liquidity": 2000,
+      "appeal": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11383,6 +11654,7 @@
       "closesAt": "2026-10-27T07:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11424,6 +11696,7 @@
       "closesAt": "2026-10-20T22:00:00+03:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11465,6 +11738,7 @@
       "closesAt": "2026-10-13T20:00:00+03:00",
       "initialProbability": 0.52,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11505,6 +11779,7 @@
       "closesAt": "2026-11-03T20:00:00+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11544,6 +11819,7 @@
       "closesAt": "2026-10-11T20:00:00+03:00",
       "initialProbability": 0.75,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11583,6 +11859,7 @@
       "closesAt": "2026-10-18T21:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11623,6 +11900,7 @@
       "closesAt": "2026-10-26T20:00:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11662,6 +11940,7 @@
       "closesAt": "2026-11-09T12:00:00+03:00",
       "initialProbability": 0.87,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11698,6 +11977,7 @@
       "closesAt": "2026-09-28T20:00:00+03:00",
       "initialProbability": 0.35,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11737,6 +12017,7 @@
       "closesAt": "2026-09-13T23:59:00+03:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11776,6 +12057,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11816,6 +12098,7 @@
       "closesAt": "2026-09-27T23:59:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11855,6 +12138,7 @@
       "closesAt": "2026-10-11T23:59:00+03:00",
       "initialProbability": 0.38,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11895,6 +12179,7 @@
       "closesAt": "2026-10-18T23:59:00+03:00",
       "initialProbability": 0.58,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11934,6 +12219,7 @@
       "closesAt": "2026-10-15T23:59:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11973,6 +12259,7 @@
       "closesAt": "2026-10-20T23:59:00+03:00",
       "initialProbability": 0.26,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12013,6 +12300,7 @@
       "closesAt": "2026-10-20T23:59:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12052,6 +12340,7 @@
       "closesAt": "2026-10-23T14:00:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12093,6 +12382,7 @@
       "closesAt": "2026-10-23T14:00:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12132,6 +12422,7 @@
       "closesAt": "2026-10-27T07:00:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12171,6 +12462,7 @@
       "closesAt": "2026-11-10T23:59:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12211,6 +12503,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12251,6 +12544,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12290,6 +12584,7 @@
       "closesAt": "2026-09-20T23:59:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12329,6 +12624,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12368,6 +12664,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.2,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12407,6 +12704,7 @@
       "closesAt": "2026-10-15T23:59:00+03:00",
       "initialProbability": 0.25,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12446,6 +12744,7 @@
       "closesAt": "2026-10-15T23:59:00+03:00",
       "initialProbability": 0.28,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12485,6 +12784,7 @@
       "closesAt": "2026-10-15T23:59:00+03:00",
       "initialProbability": 0.48,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12524,6 +12824,7 @@
       "closesAt": "2026-10-23T23:59:00+03:00",
       "initialProbability": 0.3,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12562,6 +12863,7 @@
       "closesAt": "2026-10-23T23:59:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12602,6 +12904,7 @@
       "closesAt": "2026-10-23T23:59:00+03:00",
       "initialProbability": 0.14,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12641,6 +12944,7 @@
       "closesAt": "2026-11-10T23:59:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12680,6 +12984,7 @@
       "closesAt": "2026-09-11T21:00:00+03:00",
       "initialProbability": 0.88,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12720,6 +13025,7 @@
       "closesAt": "2026-09-11T21:00:00+03:00",
       "initialProbability": 0.92,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12759,6 +13065,7 @@
       "closesAt": "2026-09-11T21:00:00+03:00",
       "initialProbability": 0.7,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12794,6 +13101,7 @@
       "closesAt": "2026-09-11T21:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12833,6 +13141,7 @@
       "closesAt": "2026-09-20T22:00:00+03:00",
       "initialProbability": 0.42,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12873,6 +13182,7 @@
       "closesAt": "2026-10-15T22:00:00+03:00",
       "initialProbability": 0.6,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12913,6 +13223,7 @@
       "closesAt": "2026-10-17T12:00:00+03:00",
       "initialProbability": 0.88,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12952,6 +13263,7 @@
       "closesAt": "2026-10-17T12:00:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12992,6 +13304,7 @@
       "closesAt": "2026-10-24T12:00:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13032,6 +13345,7 @@
       "closesAt": "2026-10-27T22:00:00+03:00",
       "initialProbability": 0.05,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13113,6 +13427,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13154,6 +13469,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.57,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13193,6 +13509,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.62,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13229,6 +13546,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13268,6 +13586,7 @@
       "closesAt": "2026-09-10T23:59:00+03:00",
       "initialProbability": 0.1,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13305,6 +13624,7 @@
       "closesAt": "2026-10-15T23:59:00+03:00",
       "initialProbability": 0.48,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13346,6 +13666,7 @@
       "closesAt": "2026-09-30T23:59:00+03:00",
       "initialProbability": 0.32,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13385,6 +13706,7 @@
       "closesAt": "2026-10-16T23:59:00+03:00",
       "initialProbability": 0.45,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13421,6 +13743,7 @@
       "closesAt": "2026-10-16T23:59:00+03:00",
       "initialProbability": 0.55,
       "liquidity": 2000,
+      "appeal": 2,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13458,6 +13781,7 @@
       "closesAt": "2026-10-26T23:59:00+03:00",
       "initialProbability": 0.12,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13494,6 +13818,7 @@
       "closesAt": "2026-11-06T23:59:00+03:00",
       "initialProbability": 0.78,
       "liquidity": 2000,
+      "appeal": 3,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13534,6 +13859,7 @@
       "closesAt": "2026-11-08T23:59:00+03:00",
       "initialProbability": 0.52,
       "liquidity": 2000,
+      "appeal": 5,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13572,6 +13898,7 @@
       "closesAt": "2026-11-12T23:59:00+03:00",
       "initialProbability": 0.18,
       "liquidity": 2000,
+      "appeal": 4,
       "featured": false,
       "status": "open",
       "sources": [
