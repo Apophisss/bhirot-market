@@ -11,6 +11,8 @@ import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
 import { InviteCard } from "@/components/InviteCard";
 import { BoltIcon } from "@/components/BoltIcon";
+import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -31,12 +33,14 @@ function sellHint(h: HoldingView): string {
 export default async function PortfolioPage() {
   const user = await currentUser();
   if (!user) redirect("/login?callbackUrl=/portfolio");
-  const [{ holdings, openHoldings, positionsValue, unrealized, realized }, trades, referrals, ranked] = await Promise.all([
-    getPortfolio(user.id),
-    getUserTrades(user.id),
-    getReferralSummary(user.id),
-    getLeaderboard(),
-  ]);
+  const [{ holdings, openHoldings, positionsValue, unrealized, realized }, trades, referrals, ranked, askSurvey] =
+    await Promise.all([
+      getPortfolio(user.id),
+      getUserTrades(user.id),
+      getReferralSummary(user.id),
+      getLeaderboard(),
+      shouldOfferSurvey(user.id),
+    ]);
   // the leaderboard is not in the site navigation — the profile is the way in,
   // so the link carries the one number that makes it worth following
   const board = buildBoard(ranked, { meId: user.id });
@@ -66,6 +70,9 @@ export default async function PortfolioPage() {
           </Link>
         </div>
       </div>
+      {/* משתמש ותיק מגיע לכאן גם כשהוא לא עובר בדף הבית — ההצעה למלא את השאלון הולכת אחריו */}
+      {askSurvey && <SurveyPrompt next="/portfolio" />}
+
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <StatTile
           label="שווי כולל"

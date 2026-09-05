@@ -20,7 +20,7 @@ import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
 import { getRecommendations } from "@/lib/recommendations";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
-import { needsSurvey } from "@/lib/preferences-store";
+import { shouldOfferSurvey } from "@/lib/survey-offer";
 import { BoltIcon } from "@/components/BoltIcon";
 import { displayOpenCount } from "@/lib/display-stats";
 
@@ -95,7 +95,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
     !filtered ? getRecommendations({ userId: session?.user?.id, limit: 12 }) : Promise.resolve(null),
-    !filtered ? needsSurvey(session?.user?.id) : Promise.resolve(false),
+    !filtered ? shouldOfferSurvey(session?.user?.id) : Promise.resolve(false),
   ]);
 
   // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
