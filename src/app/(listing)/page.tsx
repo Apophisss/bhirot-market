@@ -8,6 +8,7 @@ import { MarketBrowser, PAGE, browseHref, parseSort } from "@/components/MarketB
 import { AgentBadge } from "@/components/AgentBadge";
 import { Countdown } from "@/components/Countdown";
 import { HowToPlay } from "@/components/HowToPlay";
+import { InvitePromo } from "@/components/InvitePromo";
 import { PmCandidates } from "@/components/PmCandidates";
 import { RecommendationSection } from "@/components/Recommendations";
 import { JsonLd } from "@/components/JsonLd";
@@ -18,6 +19,8 @@ import { findCategory } from "@/lib/categories";
 import { collectionPage } from "@/lib/seo";
 import { auth } from "@/lib/auth";
 import { getRecommendations } from "@/lib/recommendations";
+import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { needsSurvey } from "@/lib/preferences-store";
 import { BoltIcon } from "@/components/BoltIcon";
 import { displayOpenCount } from "@/lib/display-stats";
 
@@ -84,7 +87,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // only the two canonical listings (/ and /?status=resolved) carry the ItemList
   const indexable = !q && !person && !sp.sort && !sp.show;
 
-  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended] = await Promise.all([
+  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended, askSurvey] = await Promise.all([
     listMarkets({ category: "all", q, sort, status, person: person?.id, limit: 600 }),
     getMarketStats(),
     getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
@@ -92,6 +95,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 6 }) : Promise.resolve([]),
     !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
     !filtered ? getRecommendations({ userId: session?.user?.id, limit: 12 }) : Promise.resolve(null),
+    !filtered ? needsSurvey(session?.user?.id) : Promise.resolve(false),
   ]);
 
   // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
@@ -216,9 +220,19 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {!filtered && !session?.user && <HowToPlay />}
 
+      {/* the survey is what the recommendations right below have to go on until this user trades */}
+      {askSurvey && <SurveyPrompt />}
+
       {recommendations.length > 0 && (
-        <RecommendationSection items={recommendations} personalized={Boolean(recommended?.personalized)} loggedIn={Boolean(session?.user)} />
+        <RecommendationSection
+          items={recommendations}
+          personalized={Boolean(recommended?.personalized)}
+          loggedIn={Boolean(session?.user)}
+          surveyOnly={Boolean(recommended?.profile.survey) && (recommended?.profile.markets ?? 0) === 0}
+        />
       )}
+
+      {!filtered && <InvitePromo loggedIn={Boolean(session?.user)} />}
 
       {closingSoon.length > 0 && (
         <section className="space-y-3">

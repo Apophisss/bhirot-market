@@ -12,6 +12,8 @@
  * moment, and a reload does not reshuffle it.
  */
 
+import { hash32, unit } from "./hash";
+
 const MINUTE = 60_000;
 
 /** the hero counts the open questions this many times over */
@@ -25,20 +27,6 @@ export const DISPLAY_UPDATE_PERIOD_MS = 30 * MINUTE;
 export const DISPLAY_UPDATE_MAX_OFFSET_MIN = 25;
 /** never claim an update from the last couple of minutes */
 export const DISPLAY_UPDATE_MIN_AGE_MS = 2 * MINUTE;
-
-function hash32(seed: number, i: number): number {
-  let h = (seed ^ Math.imul(i | 0, 0x9e3779b1)) >>> 0;
-  h ^= h >>> 16;
-  h = Math.imul(h, 0x85ebca6b) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 0xc2b2ae35) >>> 0;
-  return (h ^ (h >>> 16)) >>> 0;
-}
-
-/** hash → [0, 1) */
-function unit(h: number): number {
-  return h / 0x1_0000_0000;
-}
 
 /**
  * The number of open questions the hero advertises: the real count inflated by a

@@ -133,6 +133,37 @@ export async function getPriceHistory(slug: string, since?: Date) {
 }
 
 /**
+ * The same rows as `getPriceHistory`, for a whole list of markets, in one round trip.
+ * The rapid feed draws a curve on every card it ships, and sixty separate queries per
+ * page view is latency the deck cannot afford.
+ *
+ * Ordered by market and then by time, so if the row guard ever truncates, whole
+ * markets drop out (and simply lose their curve) instead of every market silently
+ * losing its newest prices.
+ */
+export async function getPriceHistoryMany(ids: string[]): Promise<Map<string, { t: number; p: number }[]>> {
+  const out = new Map<string, { t: number; p: number }[]>();
+  const unique = [...new Set(ids)];
+  if (!unique.length) return out;
+  for (const id of unique) out.set(id, []);
+
+  const db = await getDb();
+  // SQLite binds one parameter per id and caps the statement at 999 of them
+  const CHUNK = 300;
+  for (let i = 0; i < unique.length; i += CHUNK) {
+    const slice = unique.slice(i, i + CHUNK);
+    const rows = await db
+      .select({ marketId: priceHistory.marketId, probability: priceHistory.probability, ts: priceHistory.ts })
+      .from(priceHistory)
+      .where(inArray(priceHistory.marketId, slice))
+      .orderBy(asc(priceHistory.marketId), asc(priceHistory.ts))
+      .limit(Math.min(20_000, slice.length * 400));
+    for (const r of rows) out.get(r.marketId)?.push({ p: r.probability, t: r.ts.getTime() });
+  }
+  return out;
+}
+
+/**
  * Recent trades WITHOUT any trader identity: the site deliberately does not expose
  * who bet on what, so no caller may join the users table here.
  */

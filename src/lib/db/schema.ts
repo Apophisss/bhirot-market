@@ -23,6 +23,10 @@ export const users = sqliteTable("user", {
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
   balance: real("balance").notNull().default(STARTING_BALANCE),
+  /** personal invite code, minted on first visit to /invite (see `referral-program.ts`) */
+  referralCode: text("referralCode").unique(),
+  /** id of the user whose invite link brought this one in. Deliberately not a foreign key: an inviter who deletes their account must not take their invitees' rows with them. */
+  referredBy: text("referredBy"),
   createdAt: integer("createdAt", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -204,6 +208,65 @@ export const comments = sqliteTable(
   },
   (c) => [index("comment_market_idx").on(c.marketId, c.createdAt)],
 );
+
+/**
+ * One row per accepted invite: who invited whom, and what the inviter was paid for it.
+ * The row is the ledger — `referral.bonus` is what separates gifted capital from
+ * trading profit everywhere a P&L is shown.
+ */
+export const referrals = sqliteTable(
+  "referral",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    referrerId: text("referrerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** the invited user — unique, so an account can only ever be credited once */
+    invitedId: text("invitedId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** ₪ paid to the inviter for this signup; 0 once they pass MAX_REFERRALS */
+    bonus: real("bonus").notNull().default(0),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (r) => [
+    uniqueIndex("referral_invited_idx").on(r.invitedId),
+    index("referral_referrer_idx").on(r.referrerId, r.createdAt),
+  ],
+);
+
+/* ---------- Onboarding survey / personalization ---------- */
+
+export type SurveyStatus = "completed" | "skipped";
+/** How far out a user likes their questions to close. */
+export type Horizon = "fast" | "mixed" | "long";
+
+/**
+ * What the short political survey learned about a user, and the fact that they
+ * were already asked. One row per user: its existence (whatever its `status`) is
+ * what stops the site from asking again.
+ */
+export const userPreferences = sqliteTable("user_preference", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** JSON string[] of category ids (see src/lib/categories.ts) */
+  topics: text("topics").notNull().default("[]"),
+  /** JSON string[] of people ids (see data/people.json) */
+  people: text("people").notNull().default("[]"),
+  horizon: text("horizon").$type<Horizon>().notNull().default("mixed"),
+  status: text("status").$type<SurveyStatus>().notNull().default("completed"),
+  /** which revision of the survey they answered, so a future one can re-ask */
+  version: integer("version").notNull().default(1),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
 
 /** Log of editorial content updates (hourly routine / cron / admin API). */
 export const agentRuns = sqliteTable("agent_run", {
