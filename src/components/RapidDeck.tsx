@@ -18,6 +18,7 @@ import {
   clampStake,
   type RapidCard,
 } from "@/lib/rapid";
+import { addSkips, openSkipSnapshot, serverSkipSnapshot, skipSnapshot, subscribeSkipSnapshot } from "@/lib/rapid-skips";
 import {
   GUEST_LIMIT,
   addGuestAnswer,
@@ -70,6 +71,18 @@ const ADVANCE_MS = 420;
  * answer stands, it was only ever the *sending* that was deferred.
  */
 const UNDO_MS = 5000;
+/**
+ * How long skips are gathered before they are sent.
+ *
+ * A skip is not money and nobody is waiting for it, so the deck collects them and
+ * sends one request rather than one per card — a fast run passes a card every
+ * couple of seconds. Whatever is still waiting goes out when the deck unmounts or
+ * the page is hidden, so a skip is never lost to leaving.
+ */
+const SKIP_FLUSH_MS = 2500;
+/** how many skips one request carries — the endpoint's own cap (api/rapid/skip) */
+const SKIP_BATCH = 60;
+
 /** horizontal drag distance (px) that commits an answer */
 const DRAG_COMMIT = 96;
 /** wheel distance (px) that counts as one deliberate "next card" gesture */
@@ -167,8 +180,9 @@ export function RapidDeck({
   cards: RapidCard[];
   loggedIn: boolean;
   balance: number | null;
-  /** the "כולל שאלות שכבר עניתי" switch — for a guest it is the only thing that keeps
-   *  an already-answered question in the queue, since the server cannot filter for them */
+  /** the "כולל שאלות שכבר ראיתי" switch — it puts back both what was answered and what
+   *  was skipped, and for a guest it is the only thing that keeps an already-answered
+   *  question in the queue, since the server cannot filter for them */
   includeAnswered?: boolean;
   /** shown instead of the deck when the feed came back empty */
   children: React.ReactNode;
@@ -196,6 +210,11 @@ export function RapidDeck({
    *  releasing one has to enqueue a network job, and a state updater must stay pure
    *  (React runs it twice in development, which would send the answer twice) */
   const holdJobs = useRef(new Map<string, Answer>());
+  /** skips waiting to be sent, and the timer that will send them */
+  const pendingSkips = useRef<string[]>([]);
+  const skipTimer = useRef(0);
+  /** the furthest card the run has already judged — everything before it was answered or skipped */
+  const judged = useRef(0);
 
   const stake = useStake();
   const guestAnswers = useGuestAnswers();
@@ -208,6 +227,17 @@ export function RapidDeck({
   const [halted, setHalted] = useState(false);
   /** the answer currently inside its undo window, and when the window closes */
   const [held, setHeld] = useState<{ card: RapidCard; side: Side; until: number } | null>(null);
+  /**
+   * The questions this browser skipped *before* this run.
+   *
+   * Taken once, when the deck mounts, and frozen there: a skip made now must not
+   * take its own card out of the deck while the user is looking at it — the run
+   * would renumber itself under their finger. Skipping is a message to the next
+   * visit. (`localStorage` also does not exist on the server, hence the store —
+   * see src/lib/rapid-skips.ts.)
+   */
+  const hiddenSkips = useSyncExternalStore(subscribeSkipSnapshot, skipSnapshot, serverSkipSnapshot);
+  useEffect(() => openSkipSnapshot(), []);
 
   /*
     The queue, minus what this browser has already answered.
@@ -221,7 +251,7 @@ export function RapidDeck({
     An answer given *during this run* keeps its card: `answers` holds it, and the
     card is what the answered overlay and the undo bar are pointing at. Only an
     answer carried in from an earlier screen takes its question out of the queue —
-    and "כולל שאלות שכבר עניתי" puts them all back, for a guest exactly as it does
+    and "כולל שאלות שכבר ראיתי" puts them all back, for a guest exactly as it does
     for an account.
   */
   const carried = useMemo(() => {
@@ -231,9 +261,19 @@ export function RapidDeck({
     return m;
   }, [answers, guestAnswers, loggedIn]);
 
+  /*
+    What is left to answer: the deck minus what this browser already settled.
+
+    Two subtractions, and only the first one is the server's. `carried` is a guest's
+    own answers; `hiddenSkips` is every question — guest or signed in — that was
+    skipped in an earlier run. For a signed-in user the server has already dropped
+    both (positions and `rapid_skip`), so this filter only catches the skips of the
+    last few seconds, the ones made after this page was rendered. "כולל שאלות שכבר
+    ראיתי" puts everything back.
+  */
   const feed = useMemo(
-    () => (includeAnswered ? allCards : allCards.filter((c) => !(c.id in carried))),
-    [allCards, carried, includeAnswered],
+    () => (includeAnswered ? allCards : allCards.filter((c) => !(c.id in carried) && !hiddenSkips.has(c.id))),
+    [allCards, carried, hiddenSkips, includeAnswered],
   );
 
   useEffect(() => {
@@ -404,6 +444,91 @@ export function RapidDeck({
   // every held job is released here, and `drain` keeps sending after the unmount
   // (it checks `alive` only before painting, never before posting).
   useEffect(() => flushHeld, [flushHeld]);
+
+  /* ------------------------------------------------------------- the skips --
+   * A card the run moves past without answering it was skipped — by the "דלג"
+   * button, by the space bar, by a swipe or by the wheel, it makes no difference:
+   * the user was shown the question and moved on. That is written down, so the
+   * next visit opens on a question they have not seen instead of on the one they
+   * just waved away.
+   */
+
+  /** what the deck knows about every card right now, for the effect below */
+  const answersRef = useRef(shownAnswers);
+  useEffect(() => {
+    answersRef.current = shownAnswers;
+  }, [shownAnswers]);
+
+  /** Hands skips to the account, in the batches the endpoint accepts. */
+  const postSkips = useCallback((ids: string[]) => {
+    for (let i = 0; i < ids.length; i += SKIP_BATCH) {
+      void fetch("/api/rapid/skip", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ marketIds: ids.slice(i, i + SKIP_BATCH) }),
+        // this also fires while the page is going away, where a plain fetch is cancelled
+        keepalive: true,
+      }).catch(() => {
+        // the browser's own list already has them, and nothing here is money:
+        // a lost skip is not worth a retry
+      });
+    }
+  }, []);
+
+  const flushSkips = useCallback(() => {
+    window.clearTimeout(skipTimer.current);
+    const ids = pendingSkips.current.splice(0);
+    if (ids.length) postSkips(ids);
+  }, [postSkips]);
+
+  const noteSkips = useCallback(
+    (ids: string[]) => {
+      // the browser's copy first — it is what a reload two seconds from now reads,
+      // and it is all a signed-out visitor has
+      const fresh = addSkips(ids);
+      if (!fresh.length || !loggedIn) return;
+      pendingSkips.current.push(...fresh);
+      window.clearTimeout(skipTimer.current);
+      skipTimer.current = window.setTimeout(flushSkips, SKIP_FLUSH_MS);
+    },
+    [flushSkips, loggedIn],
+  );
+
+  /* every card the run leaves behind unanswered, once, in the order it left them */
+  useEffect(() => {
+    if (index <= judged.current) return; // going back over the run judges nothing again
+    const ids: string[] = [];
+    for (let i = judged.current; i < index && i < feed.length; i++) {
+      const card = feed[i];
+      if (card && !answersRef.current[card.id]) ids.push(card.id);
+    }
+    judged.current = index;
+    if (ids.length) noteSkips(ids);
+  }, [feed, index, noteSkips]);
+
+  /*
+    The skips the account has not heard about.
+
+    A card that is both on this browser's list and in the deck the server served
+    is exactly that: the server drops what it knows was skipped, so anything that
+    survived its filter and is on the list was skipped somewhere it could not be
+    written down — before signing in, or in a request that never landed. Mounting
+    is the moment to hand those over, and it costs at most one request, because
+    the deck is only sixty cards long.
+  */
+  useEffect(() => {
+    if (!loggedIn || includeAnswered) return;
+    const unknown = allCards.filter((c) => hiddenSkips.has(c.id)).map((c) => c.id);
+    if (unknown.length) postSkips(unknown);
+  }, [allCards, hiddenSkips, includeAnswered, loggedIn, postSkips]);
+
+  // leaving the deck, or hiding the page, sends whatever is still gathering
+  useEffect(() => flushSkips, [flushSkips]);
+  useEffect(() => {
+    const onHide = () => flushSkips();
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, [flushSkips]);
 
   /** Takes an answer back while its window is still open, and scrolls back to the card. */
   const undo = useCallback(
@@ -857,7 +982,7 @@ function RapidCardView({
    * Kept apart from `answer` on purpose. An answer given in this run is finished —
    * it is on its way to the server and the card is closed over it. An answer
    * carried in from `/welcome` is a decision that can still be changed, and it is
-   * only on screen at all under "כולל שאלות שכבר עניתי", which is a request to
+   * only on screen at all under "כולל שאלות שכבר ראיתי", which is a request to
    * revisit it. So the card is marked rather than sealed, and answering again
    * replaces the stored answer (see addGuestAnswer).
    */

@@ -24,13 +24,12 @@
     "markets:duplicates": "tsx scripts/duplicates.ts",
     "markets:liquidity": "tsx scripts/liquidity.ts",
     "resolve": "tsx scripts/resolve.ts",
-    "test": "tsx scripts/test-similarity.ts && tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-sell.ts && tsx scripts/test-referrals.ts && tsx scripts/test-friends.ts && tsx scripts/test-leagues.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-ad-conversions.ts && tsx scripts/test-display-stats.ts && tsx scripts/test-fake-market-stats.ts && tsx scripts/test-format.ts && tsx scripts/test-letter-avatar.ts && tsx scripts/test-leaderboard.ts && tsx scripts/test-admin.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/test-resolution.ts && tsx scripts/test-seo.ts && tsx scripts/validate-markets.ts",
+    "test": "tsx scripts/test-similarity.ts && tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-sell.ts && tsx scripts/test-referrals.ts && tsx scripts/test-friends.ts && tsx scripts/test-leagues.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-ad-conversions.ts && tsx scripts/test-rapid-skips.ts && tsx scripts/test-auth-signal.ts && NEXT_PUBLIC_GA_MEASUREMENT_ID=G-TEST12345 tsx scripts/test-ga-bridge.ts && tsx scripts/test-display-stats.ts && tsx scripts/test-fake-market-stats.ts && tsx scripts/test-format.ts && tsx scripts/test-letter-avatar.ts && tsx scripts/test-leaderboard.ts && tsx scripts/test-admin.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/test-resolution.ts && tsx scripts/test-seo.ts && tsx scripts/validate-markets.ts",
+    "test:rapid": "tsx scripts/test-rapid-skips.ts",
     "test:lmsr": "tsx scripts/test-lmsr.ts",
     "test:trade": "tsx scripts/test-trade.ts",
     "test:sell": "tsx scripts/test-sell.ts",
     "test:referrals": "tsx scripts/test-referrals.ts",
-    "test:friends": "tsx scripts/test-friends.ts",
-    "test:leagues": "tsx scripts/test-leagues.ts",
     "test:display": "tsx scripts/test-display-stats.ts",
     "test:fakes": "tsx scripts/test-fake-market-stats.ts",
     "test:format": "tsx scripts/test-format.ts",
@@ -39,7 +38,11 @@
     "test:resolution": "tsx scripts/test-resolution.ts",
     "test:seo": "tsx scripts/test-seo.ts",
     "ads:creatives": "tsx scripts/ads-creatives.ts",
-    "test:ads": "tsx scripts/test-ad-conversions.ts"
+    "test:ads": "tsx scripts/test-ad-conversions.ts",
+    "test:auth": "tsx scripts/test-auth-signal.ts",
+    "test:ga": "NEXT_PUBLIC_GA_MEASUREMENT_ID=G-TEST12345 tsx scripts/test-ga-bridge.ts",
+    "test:friends": "tsx scripts/test-friends.ts",
+    "test:leagues": "tsx scripts/test-leagues.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

@@ -2,6 +2,7 @@ import Script from "next/script";
 import { Suspense } from "react";
 import { ADS_ID, GA_MEASUREMENT_ID, adsEnabled, gaEnabled } from "@/lib/gtag";
 import { GoogleAnalyticsPageViews } from "./GoogleAnalyticsPageViews";
+import { AuthAnalytics } from "./AuthAnalytics";
 
 /**
  * Google Analytics 4 and Google Ads for the whole site — rendered once by the
@@ -44,9 +45,13 @@ ${adsEnabled ? `gtag('config', ${JSON.stringify(ADS_ID)});` : ""}`}
       {/* useSearchParams needs a boundary; a bare fallback is right here
           because the component renders nothing either way. */}
       {gaEnabled && (
-        <Suspense fallback={null}>
-          <GoogleAnalyticsPageViews />
-        </Suspense>
+        <>
+          <Suspense fallback={null}>
+            <GoogleAnalyticsPageViews />
+          </Suspense>
+          {/* the sign-in that just happened, reported on the page it landed on */}
+          <AuthAnalytics />
+        </>
       )}
     </>
   );

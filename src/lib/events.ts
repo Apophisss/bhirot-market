@@ -41,6 +41,16 @@ export const EVENTS = {
   webVital: "web_vital",
   /** an uncaught browser error or rejected promise (props.message) */
   clientError: "client_error",
+  /** a question was proposed from /suggest — recorded server-side (props.loggedIn) */
+  suggestion: "suggestion",
+  /** a message was sent from /contact — recorded server-side (props.loggedIn) */
+  contactMessage: "contact_message",
+  /** the preferences survey was answered or skipped (props.status, props.topics/people counts) */
+  survey: "survey",
+  /** an invite link actually paid out — recorded server-side (props.result) */
+  referralClaimed: "referral_claimed",
+  /** a user signed out — recorded server-side */
+  logout: "logout",
   /** the analysis bundle was downloaded from the admin area */
   bundleDownload: "bundle_download",
   /** the add-to-home-screen offer (props.action = shown/prompted/accepted/dismissed/instructions/installed, props.platform) */
@@ -69,6 +79,11 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.login]: "התחברות",
   [EVENTS.webVital]: "מדד ביצועים",
   [EVENTS.clientError]: "שגיאת דפדפן",
+  [EVENTS.suggestion]: "הצעת שאלה",
+  [EVENTS.contactMessage]: "הודעה ליצירת קשר",
+  [EVENTS.survey]: "שאלון העדפות",
+  [EVENTS.referralClaimed]: "הזמנה שנפדתה",
+  [EVENTS.logout]: "יציאה",
   [EVENTS.bundleDownload]: "הורדת באנדל נתונים",
   [EVENTS.installApp]: "הוספה למסך הבית",
 };

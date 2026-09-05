@@ -113,7 +113,8 @@ export default async function AboutPage() {
           במחשב אפשר לענות רק עם המקלדת: <kbd className="rounded bg-surface-2 px-1">→</kbd> כן,{" "}
           <kbd className="rounded bg-surface-2 px-1">←</kbd> לא, <kbd className="rounded bg-surface-2 px-1">רווח</kbd> דילוג,{" "}
           <kbd className="rounded bg-surface-2 px-1">+</kbd>/<kbd className="rounded bg-surface-2 px-1">−</kbd> שינוי הסכום.
-          בטלפון אפשר גם להחליק את הכרטיס ימינה ל״כן״ ושמאלה ל״לא״. שאלות שכבר עניתם עליהן לא חוזרות בפיד.
+          בטלפון אפשר גם להחליק את הכרטיס ימינה ל״כן״ ושמאלה ל״לא״. שאלות שכבר עניתם עליהן — וגם שאלות שדילגתם עליהן — לא
+          חוזרות בפיד; הכפתור ״כולל שאלות שכבר ראיתי״ מחזיר אותן.
         </p>
       </Section>
 

@@ -171,6 +171,35 @@ export const positions = sqliteTable(
   ],
 );
 
+/**
+ * A question the user passed on in "מצב זריז" — one row per skip.
+ *
+ * A skip is a decision, exactly like an answer: "לא עכשיו" about this question.
+ * Answered questions leave the deck because a `position` row exists (see
+ * `unanswered()` in rapid-feed.ts) — a skip had nowhere to be written at all, so
+ * the very question the user waved away was handed back on the next visit, first
+ * card, every time. This table is the missing half: the deck subtracts both.
+ *
+ * Nothing here is money, and nothing here is irreversible — "כולל שאלות שכבר
+ * ראיתי" puts every one of them back on the table.
+ */
+export const rapidSkips = sqliteTable(
+  "rapid_skip",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    marketId: text("marketId")
+      .notNull()
+      .references(() => markets.id, { onDelete: "cascade" }),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  // the pair is the row: skipping the same question twice is still one skip
+  (s) => [primaryKey({ columns: [s.userId, s.marketId] }), index("rapid_skip_user_idx").on(s.userId)],
+);
+
 export const trades = sqliteTable(
   "trade",
   {
