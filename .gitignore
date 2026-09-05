@@ -11,3 +11,8 @@ data/local.db-*
 tsconfig.tsbuildinfo
 next-env.d.ts
 screenshots/
+
+# נוצרים מחדש ע"י `next dev` בכל הרצה (generate-agent-files.js) ואינם חלק מהתדריך של הריפו —
+# הנוהל שלנו נמצא ב-AGENT.md וב-.claude/skills.
+AGENTS.md
+CLAUDE.md
