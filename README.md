@@ -28,6 +28,7 @@
 | עדכון שעתי | (א) **רוטינת העדכון** של צוות המערכת, שעורכת את `data/markets.json` לפי `AGENT.md`; (ב) מחולל השאלות המובנה `/api/cron/refresh` (Vercel Cron) עם חיפוש באינטרנט |
 | אנליטיקה | מעקב עצמי (first-party) בלי קוקיז ובלי צד שלישי — צפיות, זמן שהייה, גלילה, לחיצות, חיפושים, עסקאות, Core Web Vitals ושגיאות דפדפן |
 | ניהול | `/admin` — לוח סטטיסטיקות (תנועה, משפך, שווקים, משתמשים) + הורדת **באנדל נתונים** לניתוח |
+| קלט ממשתמשים | `/suggest` (הצעת שאלה חדשה) ו-`/contact` (פנייה לצוות) — פתוחים לכולם; ההצעות והפניות מטופלות בלשוניות ״תיבה״ ו״שאלה חדשה״ שבלוח הניהול |
 
 ## מצב זריז (`/rapid`)
 
@@ -250,6 +251,30 @@ SITE_URL=https://<domain> ADMIN_TOKEN=... npm run bundle -- --days 90
 # → bhirot-market-2026-09-05.json  (העבירו לסוכן יחד עם הפרומפט מ-/admin/bundle)
 ```
 
+
+## הקלט מהמשתמשים: `/suggest` ו-`/contact`
+
+שני טפסים ציבוריים, פתוחים לכולם גם בלי התחברות, שנפגשים בלוח הניהול:
+
+| דף | מה עושים בו |
+|---|---|
+| `/suggest` | מציעים שאלה חדשה: ניסוח, קטגוריה, מועד יעד, הערכת הסתברות, תמונה וקישור למקור — עם תצוגה מקדימה של הכרטיס כפי שייראה בלוח. מי שמחובר רואה בתחתית הדף את ההצעות שלו ומה קרה להן. |
+| `/contact` | פנייה לצוות: שאלה, דיווח על טעות בשוק, באג או רעיון. |
+
+הצעה של משתמש **לעולם לא הופכת לשוק לבדה**. היא נכנסת לטבלה `question_suggestion`, ומשם:
+
+- **`/admin/inbox`** — תיבת ההצעות והפניות: סטטוס לכל פריט (ממתינה/אושרה/נדחתה, חדש/בטיפול/טופל), הערה פנימית,
+  קישור `mailto` למענה, וכפתור ״פרסום כשאלה״.
+- **`/admin/questions`** — טופס פרסום שאלה חדשה: ניסוח, רקע, כללי הכרעה, קטגוריה, אנשים (מספקים את התמונה),
+  תמונה חלופית, תגיות, מקורות, מועד סגירה בשעון ישראל, מחיר פתיחה ונזילות — עם תצוגה מקדימה חיה. הכפתור בתיבה
+  פותח את הטופס כשהוא כבר מלא בפרטי ההצעה, והפרסום מסמן אותה כאושרה ומקשר אותה לשוק שנפתח.
+
+הפרסום נכנס למסד הנתונים מיד ופותח מסחר, ומחזיר את אובייקט ה-JSON להוספה ל-`data/markets.json` — שנשאר
+מקור האמת, בדיוק כמו בכל שאלה של רוטינת העדכון.
+
+שני הטפסים ציבוריים, ולכן מוגנים בחסם קצב בזיכרון לכל שולח (5 פניות ו-10 הצעות בשעה) ובסכמות zod
+שדוחות כתובת תמונה שאינה `https://` או נתיב מקומי.
+
 ## API
 
 | נתיב | תיאור |
@@ -260,6 +285,10 @@ SITE_URL=https://<domain> ADMIN_TOKEN=... npm run bundle -- --days 90
 | `POST /api/rapid/answer` `{marketId, side, stake}` | תשובה במצב זריז — קנייה מחייבת של ₪5–₪100 בצד שנבחר (דורש התחברות) |
 | `GET /api/recommendations?limit=12&category=…&all=1` | המלצות למשתמש המחובר (או פופולריות למבקר), עם הנימוק לכל שוק |
 | `POST /api/comments` | תגובה לשוק |
+| `POST /api/contact` `{name?, email, topic, body}` | פנייה לצוות (ציבורי, מוגבל ל-5 בשעה לכל שולח) |
+| `POST /api/suggestions` `{title, category, description?, resolutionCriteria?, closesAt?, probability?, imageUrl?, sourceUrl?}` | הצעת שאלה חדשה (ציבורי, מוגבל ל-10 בשעה לכל שולח) |
+| `POST /api/admin/questions` | פרסום שאלה חדשה מלוח הניהול (הרשאת ניהול או Bearer `ADMIN_TOKEN`) |
+| `GET /api/admin/inbox` · `PATCH /api/admin/inbox` | קריאת תיבת ההצעות והפניות ועדכון סטטוס/הערה (הרשאת ניהול או Bearer `ADMIN_TOKEN`) |
 | `POST /api/admin/markets` `{markets:[…], note, source}` | Upsert/הכרעה של שווקים (Bearer `ADMIN_TOKEN`) |
 | `GET /api/admin/markets` | ייצוא מלא של השווקים (Bearer `ADMIN_TOKEN`) |
 | `POST /api/sync` | סנכרון `data/markets.json` → DB (Bearer `ADMIN_TOKEN`) |
@@ -317,6 +346,7 @@ npm run markets:generate   # הרצת המחולל המובנה (דורש ANTHRO
 npm run history:verify     # בדיקת החסמים של גרף האומדן (--sparklines להצגת העקומות)
 npm run test:trade         # בדיקות קצה-לקצה של נתיב הכסף (קנייה, מכירה, הנזלה, הכרעה) מול DB זמני
 npm run test:referrals     # בדיקות תוכנית ההזמנות (קודים, תשלום יחיד, תקרה, הפרדת בונוס מרווח) מול DB זמני
+npm run test:admin         # הרשאות לוח הניהול, מועדים בשעון ישראל, slugים, חסם קצב וסכמות הטפסים
 npm run db:generate        # יצירת מיגרציה אחרי שינוי בסכמה
 npm run bundle             # הורדת באנדל הנתונים לקובץ (דורש SITE_URL + ADMIN_TOKEN)
 ```
@@ -345,14 +375,19 @@ src/lib/fake-leaderboard.ts   לוח המובילים האנונימי: כינו
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)
+src/lib/admin.ts         רשימת ההרשאות ללוח הניהול (ADMIN_EMAILS) ובדיקת בקשה מנהלתית
+src/lib/admin-stats.ts   כל הסטטיסטיקות של לוח הניהול, בסבב שאילתות אחד
+src/lib/inbox.ts         הצעות שאלה ופניות: סכמות הקלט, שמירה, תיבה ועדכון סטטוס
+src/lib/il-time.ts       תרגום מועד סגירה בין שעון ישראל ל-ISO (כולל שעון קיץ)
+src/lib/rate-limit.ts    חסם קצב בזיכרון לטפסים הציבוריים
 src/lib/seo.ts           כותרות, canonical ו-JSON-LD (schema.org)
 src/lib/analytics.ts     קליטת אירועי אנליטיקה בצד השרת (hash מבקר, סינון בוטים, מחיקה לפי מדיניות)
 src/lib/stats.ts         כל שאילתות הדוחות של לוח הניהול והבאנדל
 src/lib/bundle.ts        בניית באנדל הנתונים (JSON + דוח Markdown)
 src/components/Analytics.tsx  המעקב בצד הדפדפן (sendBeacon)
 src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה, וחתימת עוגיית ההזמנה על /i/<code>
-src/app/admin/           לוח הניהול: סקירה, תנועה, שווקים, משתמשים, באנדל
-src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /invite, /i/[code], /about, /login, /admin, /onboarding
+src/app/admin/           לוח הניהול: סקירה, תנועה, שווקים, משתמשים, שאלה חדשה, תיבה, באנדל
+src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /invite, /i/[code], /about, /login, /admin, /onboarding, /suggest, /contact
 ```
 
 ## SEO
