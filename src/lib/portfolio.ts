@@ -91,10 +91,14 @@ export async function getUserTrades(userId: string, limit = 50) {
     .limit(limit);
 }
 
+/**
+ * One trader's standing. There is no name and no avatar here on purpose: the
+ * leaderboard is anonymous, and the identity is not fetched rather than fetched
+ * and hidden. `userId` stays server-side — it never reaches the page, which
+ * receives the pseudonymous rows built by `src/lib/fake-leaderboard.ts`.
+ */
 export interface LeaderRow {
   userId: string;
-  name: string | null;
-  image: string | null;
   balance: number;
   positionsValue: number;
   netWorth: number;
@@ -105,9 +109,24 @@ export interface LeaderRow {
   tradeCount: number;
 }
 
-export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
+/**
+ * The same ranking with the account names attached, for the admin dashboard
+ * only. It is a separate function on purpose: the public board must not be able
+ * to reach a name by accident, so the identity is fetched exactly where someone
+ * decided it should be — here — and nowhere else.
+ */
+export async function getTopTradersForAdmin(limit = 15): Promise<(LeaderRow & { name: string | null })[]> {
   const db = await getDb();
-  const allUsers = await db.select().from(users);
+  const rows = await getLeaderboard(limit);
+  const named = await db.select({ id: users.id, name: users.name }).from(users);
+  const byId = new Map(named.map((u) => [u.id, u.name]));
+  return rows.map((r) => ({ ...r, name: byId.get(r.userId) ?? null }));
+}
+
+/** Every ranked trader, best first. The board is small enough to rank whole. */
+export async function getLeaderboard(limit = 5_000): Promise<LeaderRow[]> {
+  const db = await getDb();
+  const allUsers = await db.select({ id: users.id, balance: users.balance }).from(users);
   const openPositions = await db
     .select({ p: positions, prob: markets.probability })
     .from(positions)
@@ -130,8 +149,6 @@ export async function getLeaderboard(limit = 50): Promise<LeaderRow[]> {
       const bonus = referralBonus.get(u.id) ?? 0;
       return {
         userId: u.id,
-        name: u.name,
-        image: u.image,
         balance: u.balance,
         positionsValue: pv,
         netWorth: net,
