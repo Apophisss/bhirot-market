@@ -5,7 +5,7 @@
  * and tags they actually traded on) and what the board as a whole is doing right
  * now (recent money, recent traders, comments, lifetime volume). A signed-out
  * visitor gets pure popularity; the personal half fades in as the taste profile
- * fills up, so the section is never empty and never stale.
+ * fills up, so the list is never empty and never stale.
  *
  * A signed-in user who has not traded yet used to be in the same boat as a visitor.
  * The short survey (`preferences.ts`) is what fills that gap: its answers are folded
@@ -13,11 +13,14 @@
  * decay, capped well under a real trading history — so the very first board is
  * already theirs, and dilutes on its own as real trades accumulate.
  *
+ * One ranking feeds both places the picks surface: the block on the home page
+ * (`RecommendationSection`) and the default deck of rapid mode (`rapid-feed.ts`).
+ *
  * The scoring itself is pure: `buildTaste`, `popularityScores`, `scoreCandidate`
  * and `diversify` take plain data and are covered by scripts/test-recommendations.ts.
  * Only the `get*` functions at the bottom touch the database.
  */
-import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { getCategory } from "./categories";
 import { getPerson } from "./content";
@@ -626,21 +629,10 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
   };
 }
 
-/** The user's own top categories, for the "why these" line on /for-you. */
+/** The user's own top categories, reported by GET /api/recommendations. */
 export function topCategories(profile: TasteProfile, limit = 3): { id: string; label: string; weight: number }[] {
   return Object.entries(profile.categories)
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
     .map(([id, weight]) => ({ id, label: getCategory(id).label, weight }));
-}
-
-/** Markets the user holds, used by /for-you to explain what the profile was built from. */
-export async function getTradedCategories(userId: string): Promise<string[]> {
-  const db = await getDb();
-  const rows = await db
-    .select({ category: markets.category })
-    .from(positions)
-    .innerJoin(markets, eq(positions.marketId, markets.id))
-    .where(and(eq(positions.userId, userId), inArray(markets.status, ["open", "resolved", "cancelled"])));
-  return [...new Set(rows.map((r) => r.category))];
 }

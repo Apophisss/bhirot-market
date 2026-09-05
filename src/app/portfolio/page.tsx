@@ -32,12 +32,6 @@ export default async function PortfolioPage() {
         <h1 className="min-w-0 truncate text-xl font-extrabold text-text-strong sm:text-2xl">התיק של {user.name}</h1>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/for-you"
-            className="pressable inline-flex items-center rounded-xl border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-accent hover:text-accent-2"
-          >
-            מומלץ בשבילי
-          </Link>
-          <Link
             href="/rapid"
             className="pressable inline-flex items-center gap-1.5 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-sm font-bold text-accent-2 hover:bg-accent/20"
           >

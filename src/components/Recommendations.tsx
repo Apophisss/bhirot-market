@@ -36,8 +36,8 @@ export function RecommendationSection({
     <section className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 className="text-base font-bold text-text-strong sm:text-lg">{personalized ? "מומלץ בשבילכם" : "מה כולם סוחרים עכשיו"}</h2>
-        <Link href="/for-you" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
-          עוד המלצות
+        <Link href="/rapid" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
+          לענות עליהן במצב זריז
         </Link>
       </div>
       <p className="-mt-1 text-[13px] text-muted sm:text-sm">
