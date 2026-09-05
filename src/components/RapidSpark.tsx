@@ -54,10 +54,14 @@ export function RapidSpark({ spark, tradeCount }: { spark: Spark; tradeCount: nu
   const change = tradeCount > 0 && real.length > 1 ? real[real.length - 1].p - real[0].p : null;
 
   return (
-    <figure className="flex min-h-0 flex-1 flex-col gap-1">
+    // The floor lives on the figure, not on the plot inside it: a `min-h-0` figure
+    // shrinks to nothing under a long question while its plot keeps its own height,
+    // and a stretched SVG then paints straight over the price bar and the answer
+    // buttons. With the floor here the card body scrolls instead, which is the deal.
+    <figure className="flex min-h-[72px] flex-1 flex-col gap-1 short:min-h-[62px]">
       {/* the padding is the room the end marker needs: it sits on the very last point,
           which is the top, the bottom or the right edge of the plot itself */}
-      <div className="min-h-[64px] flex-1 py-1 pr-1.5">
+      <div className="min-h-0 flex-1 py-1 pr-1.5">
         <div className="relative h-full w-full">
           <svg
             viewBox="0 0 100 100"

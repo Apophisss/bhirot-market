@@ -46,7 +46,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   // from lg the deck puts the stake panel in a column of its own, so the page needs
   // the extra width to keep the card itself as wide as it is on a phone
   return (
-    <div className="deck-page deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 sm:gap-3 lg:max-w-6xl">
+    <div className="deck-page deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 short:gap-1.5 sm:gap-3 lg:max-w-6xl">
       <div className="scrollbar-none swipe-x -mx-3 flex shrink-0 items-center gap-1 px-3 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
         <div className="flex shrink-0 items-center gap-1">
           <h1 className="me-1 inline-flex items-center gap-1 font-black text-text-strong"><BoltIcon /> מצב זריז</h1>
@@ -75,10 +75,18 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         </div>
       </div>
 
-      <CategoryTabs active={category} params={{ sort: sp.sort, all: sp.all }} basePath="/rapid" className="shrink-0" />
+      {/* A short phone cannot afford a row that says nothing: with no category chosen the
+          tabs step aside, but once one is active they stay — otherwise the deck would look
+          like the whole board while quietly serving a single category, with no way back. */}
+      <CategoryTabs
+        active={category}
+        params={{ sort: sp.sort, all: sp.all }}
+        basePath="/rapid"
+        className={`shrink-0 ${category === "all" ? "short:hidden" : ""}`}
+      />
 
       {!loggedIn && (
-        <p className="shrink-0 rounded-xl border border-warn/40 bg-warn/10 px-3 py-1.5 text-[13px] leading-snug text-text sm:py-2 sm:text-sm">
+        <p className="shrink-0 rounded-xl border border-warn/40 bg-warn/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
           אתם בתצוגה בלבד.{" "}
           <Link href="/login?callbackUrl=%2Frapid" className="font-bold text-accent-2 hover:underline">
             התחברו

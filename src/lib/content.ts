@@ -10,8 +10,11 @@ import peopleJson from "../../data/people.json";
  */
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{231A}\u{231B}\u{23E9}-\u{23FF}]/u;
 
+/** Exported so a pipeline can fail on an emoji before the schema does (see ./resolution). */
+export const hasEmoji = (v: string) => EMOJI.test(v);
+
 function noEmoji<T extends z.ZodType<string>>(schema: T) {
-  return schema.refine((v) => !EMOJI.test(v), "must not contain emoji");
+  return schema.refine((v) => !hasEmoji(v), "must not contain emoji");
 }
 
 export const SourceSchema = z.object({

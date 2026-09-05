@@ -413,9 +413,11 @@ export function RapidDeck({
     // On a phone everything stacks. From lg the stake panel moves into a column of
     // its own: a laptop window is wide and short, so the height it gives back is
     // exactly what the card was missing.
-    <section className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row lg:items-stretch lg:gap-4">
-      <div className="flex min-h-0 flex-1 flex-col gap-2">
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs">
+    <section className="flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5 lg:flex-row lg:items-stretch lg:gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5">
+        {/* On a short phone this row is the first thing to go: the tape below it already
+            shows where the run stands, and the balance moves into the stake strip. */}
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs short:hidden">
           <div className="flex items-center gap-2">
             <span className="tabular rounded-full border border-border bg-surface px-2.5 py-1 font-bold text-text-strong">
               {Math.min(index + 1, feed.length)} / {feed.length}
@@ -678,7 +680,7 @@ function RapidCardView({
           the two answers. The meta row, the question and the price bar take exactly what
           they need, and the chart takes whatever is left over — down to a floor it stays
           readable at, below which the body scrolls rather than squeezing the curve flat. */}
-      <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 sm:gap-3 sm:p-5">
+      <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 short:gap-2 short:p-3 sm:gap-3 sm:p-5">
         <div className="flex shrink-0 flex-wrap items-center gap-2 text-[11px] text-muted">
           <span
             className="rounded-md px-1.5 py-0.5 font-semibold"
@@ -709,7 +711,11 @@ function RapidCardView({
           />
           <div className="min-w-0">
             <h2 className="text-lg font-extrabold leading-tight text-text-strong sm:text-2xl">{card.title}</h2>
-            {card.subtitle && <p className="mt-1 line-clamp-2 text-xs text-muted sm:text-sm">{card.subtitle}</p>}
+            {/* The subtitle is context, not the question: AGENT.md requires every title to
+                stand on its own, so on a short screen it is the line that gives way. */}
+            {card.subtitle && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted short:hidden sm:text-sm">{card.subtitle}</p>
+            )}
           </div>
         </div>
 
@@ -733,7 +739,7 @@ function RapidCardView({
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-border p-2.5 sm:p-4">
+      <div className="shrink-0 border-t border-border p-2.5 short:p-2 sm:p-4">
         <div className="grid grid-cols-2 gap-2">
           <AnswerButton
             side="YES"
@@ -865,7 +871,8 @@ function StakeBar({
       {/* the presets and the range note share a line while there is width for it, and
           wrap onto two in the narrow lg column */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 lg:mt-2">
-        <div className="scrollbar-none flex gap-1.5 overflow-x-auto">
+        {/* on a short screen the slider carries the whole range on its own */}
+        <div className="scrollbar-none flex gap-1.5 overflow-x-auto short:hidden">
           {RAPID_STAKE_PRESETS.map((p) => (
             <button
               key={p}
@@ -888,9 +895,16 @@ function StakeBar({
             טווח ₪{RAPID_MIN_STAKE}–₪{RAPID_MAX_STAKE} · יורד מהיתרה מיד{available != null ? " · " : ""}
           </span>
           {available != null && (
-            <span className={broke ? "text-no" : ""}>
-              {outOfMoney ? "נגמרה היתרה" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
-            </span>
+            <>
+              {/* the deck's balance chip is hidden on a short screen — this is where it lands */}
+              <span className={`hidden short:inline ${outOfMoney ? "text-no" : "text-yes"}`}>
+                יתרה {money(Math.max(0, available))}
+                {" · "}
+              </span>
+              <span className={broke ? "text-no" : ""}>
+                {outOfMoney ? "נגמרה היתרה" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
+              </span>
+            </>
           )}
         </p>
       </div>
