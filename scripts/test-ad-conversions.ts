@@ -63,11 +63,23 @@ async function main() {
   /* ---------------- reading the click ---------------- */
 
   await test("campaign params are read off the query string", () => {
-    assert.deepEqual(readAdParams("?gclid=abc&utm_source=google&utm_campaign=generic"), {
-      gclid: "abc",
-      utmSource: "google",
-      utmCampaign: "generic",
-    });
+    assert.deepEqual(
+      readAdParams("?gclid=abc&utm_source=google&utm_medium=demandgen&utm_campaign=generic&utm_content=12345"),
+      {
+        gclid: "abc",
+        utmSource: "google",
+        utmMedium: "demandgen",
+        utmCampaign: "generic",
+        // Google substitutes {adgroupid} here — this is the field that answers "which creative"
+        utmContent: "12345",
+      },
+    );
+  });
+
+  await test("utm_medium and utm_content alone are not a campaign", () => {
+    // they say nothing about who sent the visitor; stamping an account off them would
+    // credit a campaign that never brought anyone in
+    assert.equal(readAdParams("?utm_medium=demandgen&utm_content=12345"), null);
   });
 
   await test("an ordinary query string leaves nothing to store", () => {
@@ -79,7 +91,13 @@ async function main() {
   });
 
   await test("attribution survives a serialize/parse round trip", () => {
-    const attr = { gclid: "abc123", utmSource: "google", utmCampaign: "קמפיין" };
+    const attr = {
+      gclid: "abc123",
+      utmSource: "google",
+      utmMedium: "demandgen",
+      utmCampaign: "קמפיין",
+      utmContent: "98765",
+    };
     assert.deepEqual(parseAdAttribution(serializeAdAttribution(attr)), attr);
   });
 
@@ -149,10 +167,22 @@ async function main() {
 
   await test("the click that brought a user in is stamped on them", async () => {
     const id = await newUser();
-    await claimAdAttribution(id, serializeAdAttribution({ gclid: "click-1", utmSource: "google", utmCampaign: "generic" }));
+    await claimAdAttribution(
+      id,
+      serializeAdAttribution({
+        gclid: "click-1",
+        utmSource: "google",
+        utmMedium: "demandgen",
+        utmCampaign: "generic",
+        utmContent: "adgroup-7",
+      }),
+    );
     const row = await db.query.users.findFirst({ where: eq(users.id, id) });
     assert.equal(row?.gclid, "click-1");
     assert.equal(row?.utmCampaign, "generic");
+    assert.equal(row?.utmMedium, "demandgen");
+    // without this the board can report a CPA but never "which ad group earned it"
+    assert.equal(row?.utmContent, "adgroup-7");
   });
 
   await test("a later click never overwrites the one that earned the account", async () => {

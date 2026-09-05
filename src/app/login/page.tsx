@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { cookies } from "next/headers";
 import { signIn, devLoginEnabled, googleEnabled, auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SITE_NAME } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
-import { AD_CHECK_PARAM } from "@/lib/ad-attribution";
+import { AD_CHECK_PARAM, AD_LANDING_COOKIE } from "@/lib/ad-attribution";
 import { shareCard } from "@/lib/seo";
 
 const LOGIN_DESCRIPTION = "התחברו וקבלו ₪10,000 וירטואליים למסחר בשוקי החיזוי של בחירות 2026.";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * Tells `<AdConversions>` to ask for the sign_up conversion on the way back from the
+ * login provider. Wherever the post-login destination moves to, the marker moves with
+ * it — a destination that loses it reports no signup, and says nothing about it.
+ */
+function withAdCheck(path: string): string {
+  return `${path}${path.includes("?") ? "&" : "?"}${AD_CHECK_PARAM}=1`;
+}
+
 export const metadata: Metadata = {
   title: "התחברות",
   description: LOGIN_DESCRIPTION,
@@ -24,11 +35,20 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const redirectTo = callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
   const session = await auth();
   if (session?.user) redirect(redirectTo);
-  // everyone lands on the short survey first; it forwards to `redirectTo` immediately
-  // for anyone who already answered it, so a returning user never sees it twice
-  const onboarding = redirectTo.startsWith("/onboarding") ? redirectTo : `/onboarding?next=${encodeURIComponent(redirectTo)}`;
-  // the marker tells <AdConversions> to ask for the sign_up conversion on the way back
-  const afterLogin = `${onboarding}${onboarding.includes("?") ? "&" : "?"}${AD_CHECK_PARAM}=1`;
+
+  // Organic visitors land on the short survey first; it forwards to `redirectTo`
+  // immediately for anyone who already answered it, so a returning user never sees
+  // it twice.
+  //
+  // Paid traffic skips it. The survey asks before it gives, and someone who clicked
+  // an ad thirty seconds ago has no reason to spend a whole screen on preferences
+  // before seeing that the product works at all — every screen between the click and
+  // the first trade is paid for. Nothing is lost by skipping: the deck offers the same
+  // survey on arrival (`shouldOfferSurvey()` → `<SurveyPrompt>` in app/rapid/page.tsx).
+  const fromAd = (await cookies()).has(AD_LANDING_COOKIE);
+  const afterLogin = withAdCheck(
+    fromAd || redirectTo.startsWith("/onboarding") ? redirectTo : `/onboarding?next=${encodeURIComponent(redirectTo)}`,
+  );
 
   async function google() {
     "use server";

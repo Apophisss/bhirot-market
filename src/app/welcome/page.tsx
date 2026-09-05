@@ -1,13 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { listMarkets } from "@/lib/markets";
+import { getCategoryCounts, listMarkets } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
-import { MarketCard } from "@/components/MarketCard";
+import { WelcomeQuestions, type WelcomeQuestion } from "@/components/WelcomeQuestions";
+import { getCategory } from "@/lib/categories";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { daysUntil, money } from "@/lib/format";
+import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { shareCard } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -33,13 +35,42 @@ export const metadata: Metadata = {
 /** The single destination every button on this page points at. */
 const CTA = "/login?callbackUrl=%2Frapid";
 
+/**
+ * Below this, the number of open questions is not a sign of scale — it is a
+ * confession. A small number is worse than no number, so the board's size is
+ * quoted only once it argues for itself.
+ */
+const MIN_QUESTIONS_TO_QUOTE = 40;
+
 export default async function WelcomePage() {
   const session = await auth();
   // someone who already has an account does not need the pitch
   if (session?.user) redirect("/rapid");
 
   await ensureSynced();
-  const markets = (await listMarkets({ status: "open", sort: "trending", limit: 3 })).slice(0, 3);
+  const [markets, counts] = await Promise.all([
+    listMarkets({ status: "open", sort: "trending", limit: 3 }),
+    getCategoryCounts("open"),
+  ]);
+  const questions: WelcomeQuestion[] = markets.slice(0, 3).map((m) => {
+    const cat = getCategory(m.category);
+    return {
+      id: m.id,
+      title: m.title,
+      probability: m.probability,
+      qYes: m.qYes,
+      qNo: m.qNo,
+      liquidity: m.liquidity,
+      image: m.image,
+      fallbackImage: cat.cover,
+      personName: m.personName ?? null,
+      categoryLabel: m.categoryLabel,
+      categoryAccent: cat.accent,
+      categoryAccentDark: cat.accentDark,
+    };
+  });
+  const openCount = counts.all ?? 0;
+  const days = daysUntil(`${ELECTION_DATE}T00:00:00+03:00`);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 sm:space-y-12">
@@ -59,6 +90,15 @@ export default async function WelcomePage() {
           <br />
           מה יקרה בבחירות?
         </h1>
+        {/* The one piece of urgency on this page that is not invented: there is a real
+            election on a real date. It used to sit in small grey type halfway down the
+            page; next to the headline it is the reason to answer today. */}
+        {days > 0 && (
+          <p className="mt-3 inline-flex items-baseline gap-2 text-white/90">
+            <span className="tabular text-2xl font-black text-white sm:text-3xl">{days}</span>
+            <span className="text-sm font-semibold sm:text-base">ימים ליום הבחירות</span>
+          </p>
+        )}
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-lg">
           {SITE_NAME} הוא שוק חיזויים על הפוליטיקה הישראלית. מקבלים {money(STARTING_BALANCE)} וירטואליים, עונים ״כן״ או ״לא״
           על שאלות שמתעדכנות כל שעה לפי החדשות, ומגלים אם קראתם את המפה טוב יותר מכולם.
@@ -75,6 +115,29 @@ export default async function WelcomePage() {
         </div>
       </section>
 
+      {questions.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענו על שאלה אחת עכשיו</h2>
+            {/* A new Israeli site asking for a Google account meets a wall of distrust, and
+                one honest number is the cheapest answer to it — but only while it is a
+                number worth quoting. See MIN_QUESTIONS_TO_QUOTE. */}
+            {openCount >= MIN_QUESTIONS_TO_QUOTE && (
+              <p className="text-sm text-muted">
+                <span className="tabular font-bold text-text">{openCount}</span> שאלות פתוחות כרגע
+              </p>
+            )}
+          </div>
+          <p className="text-sm leading-relaxed text-muted">
+            שאלות אמיתיות מהלוח, במחיר שלהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
+            ונהפוך אותה לפוזיציה אמיתית ב-{money(RAPID_DEFAULT_STAKE)} וירטואליים ברגע שתתחברו.
+          </p>
+          {/* Real, current markets that answer back — a static card is a screenshot,
+              a card that responds is a demonstration. */}
+          <WelcomeQuestions questions={questions} />
+        </section>
+      )}
+
       <section className="grid gap-3 sm:grid-cols-3">
         <Step n="1" title="עונים על שאלה">
           ״האם הכנסת תתפזר עד מרץ?״ — כן או לא. כל תשובה היא קנייה של מניות בכסף וירטואלי.
@@ -86,21 +149,6 @@ export default async function WelcomePage() {
           {SITE_TEAM} מכריע כל שאלה לפי מקורות פומביים, והתיק שלכם מתעדכן.
         </Step>
       </section>
-
-      {markets.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-black text-text-strong sm:text-2xl">שאלות פתוחות ממש עכשיו</h2>
-            <p className="text-sm text-muted">{daysUntil(`${ELECTION_DATE}T00:00:00+03:00`)} ימים לבחירות</p>
-          </div>
-          {/* Real, current markets — a screenshot of the product beats any description of it. */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {markets.map((m) => (
-              <MarketCard key={m.id} m={m} />
-            ))}
-          </div>
-        </section>
-      )}
 
       <section className="card space-y-3 p-5 text-[15px] leading-relaxed text-text sm:p-6">
         <h2 className="text-lg font-bold text-text-strong">רגע, זה הימורים?</h2>

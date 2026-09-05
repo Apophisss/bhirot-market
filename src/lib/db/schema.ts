@@ -37,7 +37,10 @@ export const users = sqliteTable("user", {
   /** Google click id, so a signup can later be tied back to the click that paid for it. */
   gclid: text("gclid"),
   utmSource: text("utmSource"),
+  utmMedium: text("utmMedium"),
   utmCampaign: text("utmCampaign"),
+  /** Google substitutes `{adgroupid}` into `utm_content`, so this is the column that answers "which creative earned this user". */
+  utmContent: text("utmContent"),
   /** Set the moment the sign_up conversion is handed to gtag, so it is reported exactly once. */
   signupReportedAt: integer("signupReportedAt", { mode: "timestamp_ms" }),
   /** Same, for the first trade — the conversion the campaign actually bids on. */
