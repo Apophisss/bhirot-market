@@ -15,6 +15,19 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#ffffff",
     theme_color: "#0d2a6b",
     categories: ["news", "politics", "games"],
+    /*
+      Long-press shortcuts on an installed icon. They are also what Android's
+      install prompt reads as evidence that this is an app and not a bookmark —
+      alongside the service worker registered by <ServiceWorker />.
+
+      The three destinations are the three things someone opens the app to do:
+      answer the next questions, look at their positions, see where they stand.
+    */
+    shortcuts: [
+      { name: "מצב זריז", short_name: "זריז", description: "לענות על שאלות ברצף", url: "/rapid" },
+      { name: "התיק שלי", short_name: "התיק", description: "הפוזיציות והרווח/הפסד שלי", url: "/portfolio" },
+      { name: "לוח המובילים", short_name: "מובילים", description: "מי מוביל בחיזוי", url: "/leaderboard" },
+    ],
     // an installable manifest needs square 192 and 512 rasters; the 1200x630 share
     // picture that used to sit here is neither square nor an icon
     icons: [

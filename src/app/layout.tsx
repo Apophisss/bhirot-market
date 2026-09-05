@@ -8,10 +8,18 @@ import { Analytics } from "@/components/Analytics";
 import { JsonLd } from "@/components/JsonLd";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AdConversions } from "@/components/AdConversions";
+import { ServiceWorker } from "@/components/ServiceWorker";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "@/lib/config";
 import { siteGraph } from "@/lib/seo";
 
-const heebo = Heebo({ subsets: ["hebrew", "latin"], variable: "--font-heebo", display: "swap" });
+// the site uses regular / medium / bold / extrabold and nothing else; pinning the
+// weights lets next/font subset the file instead of shipping the whole axis
+const heebo = Heebo({
+  subsets: ["hebrew", "latin"],
+  weight: ["400", "500", "700", "800"],
+  variable: "--font-heebo",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -65,8 +73,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   // draw under the notch/home indicator; the safe-area utilities keep content clear
   viewportFit: "cover",
-  themeColor: "#0d2a6b",
-  colorScheme: "light",
+  // the browser chrome follows the theme: the deep brand blue on a light page, the
+  // page's own near-black in dark mode, where a bright band above the content is
+  // exactly what a reader on dark mode is trying to avoid
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0d2a6b" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1020" },
+  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -84,6 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <GoogleAnalytics />
         <AdConversions />
+        <ServiceWorker />
       </body>
     </html>
   );

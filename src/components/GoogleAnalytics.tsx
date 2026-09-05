@@ -22,9 +22,15 @@ export function GoogleAnalytics() {
   const loader = gaEnabled ? GA_MEASUREMENT_ID : ADS_ID;
   return (
     <>
-      {/* afterInteractive, not beforeInteractive: analytics must never sit in
-          front of the first paint. */}
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(loader)}`} strategy="afterInteractive" />
+      {/* lazyOnload, not afterInteractive: gtag.js is ~564KB — larger than the whole
+          application bundle — and it competes with hydration for the main thread on a
+          phone. `lazyOnload` defers it past `window.load` (Next schedules it in an
+          idle callback), which costs nothing in reporting: the `config` line below
+          still sends the landing page view, just a moment later. */}
+      <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(loader)}`} strategy="lazyOnload" />
+      {/* the snippet itself stays early, and only the library is deferred: it seeds
+          `dataLayer` with `js` and `config` so those are the first commands gtag.js
+          drains, ahead of any event a component queued while it was still loading */}
       <Script id="ga-init" strategy="afterInteractive">
         {`window.dataLayer = window.dataLayer || [];
 function gtag(){window.dataLayer.push(arguments);}

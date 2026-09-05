@@ -3,7 +3,15 @@ export interface Category {
   label: string;
   /** default cover image under /public/covers */
   cover: string;
+  /** the category's colour on a light background */
   accent: string;
+  /**
+   * The same colour, lightened until it clears 4.5:1 on the dark theme's card
+   * surface. The light-mode accents are 600-800 tones — correct on white, and
+   * unreadable as text on `#121a2e` — so dark mode needs its own value rather
+   * than a filter over this one.
+   */
+  accentDark: string;
   /** one-liner shown on /category/<id> and used as its meta description */
   description: string;
 }
@@ -14,6 +22,7 @@ export const CATEGORIES: Category[] = [
     label: "סקרים",
     cover: "/covers/polls.svg",
     accent: "#1d4ed8",
+    accentDark: "#5c80e3",
     description:
       "שוקי חיזוי על סקרי הבחירות 2026: כמה מנדטים ייתן הסקר הבא לליכוד, לדמוקרטים ולמפלגות הימין והמרכז, ומה יפרסמו ערוץ 12, ערוץ 13, כאן וערוץ 14.",
   },
@@ -22,6 +31,7 @@ export const CATEGORIES: Category[] = [
     label: "קואליציה וגושים",
     cover: "/covers/coalition.svg",
     accent: "#5b21b6",
+    accentDark: "#9873d1",
     description:
       "שוקי חיזוי על הרכבת הממשלה הבאה: גודל הגושים, מי ימליץ על מי, אילו מפלגות יתחייבו לשבת יחד ומי יוביל את הקואליציה אחרי הבחירות לכנסת ה־26.",
   },
@@ -30,6 +40,7 @@ export const CATEGORIES: Category[] = [
     label: "מפלגות ופריימריז",
     cover: "/covers/parties.svg",
     accent: "#b45309",
+    accentDark: "#c17033",
     description:
       "שוקי חיזוי על מיזוגים, פילוגים, רשימות משותפות, פריימריז וראשי מפלגות — מי ירוץ, מי יפרוש ומי יעמוד בראש הרשימה בבחירות 2026.",
   },
@@ -38,6 +49,7 @@ export const CATEGORIES: Category[] = [
     label: "נתניהו",
     cover: "/covers/netanyahu.svg",
     accent: "#0369a1",
+    accentDark: "#3d8cb7",
     description:
       "שוקי חיזוי סביב בנימין נתניהו: הופעות ועדויות, ריאיונות, מהלכים פוליטיים, מיקומו בסקרים וסיכוייו להרכיב את הממשלה הבאה.",
   },
@@ -46,6 +58,7 @@ export const CATEGORIES: Category[] = [
     label: "משפט ותביעות",
     cover: "/covers/legal.svg",
     accent: "#7e22ce",
+    accentDark: "#a667dd",
     description:
       "שוקי חיזוי על ההליכים המשפטיים של הקמפיין: משפט נתניהו, עתירות לבג״ץ, תביעות דיבה, החלטות היועצת המשפטית וועדת הבחירות המרכזית.",
   },
@@ -54,6 +67,7 @@ export const CATEGORIES: Category[] = [
     label: "תקשורת",
     cover: "/covers/media.svg",
     accent: "#be185d",
+    accentDark: "#d15b8c",
     description:
       "שוקי חיזוי על התקשורת הישראלית בקמפיין: עימותים באולפן, ריאיונות, מהלכים בערוצי החדשות ומה יתפרסם עד מועד היעד.",
   },
@@ -62,6 +76,7 @@ export const CATEGORIES: Category[] = [
     label: "ביטחון ומדיניות",
     cover: "/covers/security.svg",
     accent: "#047857",
+    accentDark: "#369379",
     description:
       "שוקי חיזוי על ביטחון ומדיניות חוץ: החלטות קבינט, מינויים בכירים, מהלכים מול השכנים ומול וושינגטון, וכיצד הם ישפיעו על מערכת הבחירות.",
   },
@@ -70,6 +85,7 @@ export const CATEGORIES: Category[] = [
     label: "חרדים וגיוס",
     cover: "/covers/haredi.svg",
     accent: "#a16207",
+    accentDark: "#af7a2c",
     description:
       "שוקי חיזוי על חוק הגיוס והמפלגות החרדיות: קריאות בכנסת, פסיקות בג״ץ, הנחיות מועצות גדולי התורה ומיקום ש״ס ויהדות התורה בסקרים.",
   },
@@ -78,6 +94,7 @@ export const CATEGORIES: Category[] = [
     label: "כנסת וחקיקה",
     cover: "/covers/knesset.svg",
     accent: "#0e7490",
+    accentDark: "#3c8ea5",
     description:
       "שוקי חיזוי על הכנסת: הצעות חוק, הצבעות אי־אמון, פיזור הכנסת, ועדות ומועדי המושבים — מה יעבור ומה ייפול עד מועד היעד.",
   },
@@ -86,6 +103,7 @@ export const CATEGORIES: Category[] = [
     label: "יום הבחירות",
     cover: "/covers/election-day.svg",
     accent: "#c2410c",
+    accentDark: "#ce673d",
     description:
       "שוקי חיזוי על יום הבחירות עצמו: מועד הבחירות לכנסת ה־26, אחוזי ההצבעה, מדגמי המוצא ותוצאות הספירה.",
   },
@@ -94,6 +112,7 @@ export const CATEGORIES: Category[] = [
     label: "כללי",
     cover: "/covers/general.svg",
     accent: "#475569",
+    accentDark: "#7b8593",
     description:
       "שוקי חיזוי נוספים על הפוליטיקה הישראלית לקראת בחירות 2026 — כל מה שלא נכנס לקטגוריות האחרות.",
   },

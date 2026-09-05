@@ -24,7 +24,13 @@ export function LetterAvatar({
   return (
     <span
       className="flex shrink-0 items-center justify-center rounded-full font-bold text-white"
-      style={{ width: size, height: size, fontSize: size * 0.4, background: `hsl(${hue} 60% 45%)` }}
+      /*
+        The lightness is 30%, not the 45% it was: the letter is white, and at 45%
+        the worst hue (yellow, around 60deg) gave it 2.1:1 — the initials on a
+        leaderboard row were the least readable text on the page. At 30% the
+        worst hue is 4.53:1, so every disc the generator can produce clears AA.
+      */
+      style={{ width: size, height: size, fontSize: size * 0.4, background: `hsl(${hue} 60% 30%)` }}
       aria-hidden
     >
       {letters}

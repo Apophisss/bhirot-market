@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect } from "react";
 import { adsConversion, adsEnabled } from "@/lib/gtag";
+import { AD_CHECK_PARAM } from "@/lib/ad-attribution";
 
 /** Any client code can ask for a re-check after an action that might have produced a conversion. */
 export const AD_CONVERSION_EVENT = "bm:ad-conversion";
-/** Marker on the post-login redirect, so the trip back from Google always re-checks. */
-export const AD_CHECK_PARAM = "_c";
+// declared in a plain module so the server can read it too; re-exported here
+// because the browser-side code has always imported it from this file
+export { AD_CHECK_PARAM } from "@/lib/ad-attribution";
 
 const SESSION_FLAG = "bm_ads_checked";
 /** Rapid mode lands an answer every couple of seconds; one check per window is plenty. */

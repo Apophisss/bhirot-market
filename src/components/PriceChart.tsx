@@ -179,7 +179,7 @@ export function PriceChart({
               role="tab"
               aria-selected={range === r.id}
               onClick={() => setRange(r.id)}
-              className={`pressable rounded-md px-3 py-2 text-xs font-semibold transition ${range === r.id ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
+              className={`tap pressable min-w-11 rounded-md px-3 text-xs font-semibold transition ${range === r.id ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
             >
               {r.label}
             </button>

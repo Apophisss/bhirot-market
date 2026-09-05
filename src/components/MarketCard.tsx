@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { MarketView } from "@/lib/markets";
 import { money, pct, closesLabel, hoursUntil } from "@/lib/format";
-import { ProbabilityGauge } from "./ProbabilityGauge";
+import { THIN_MARKET_TRADES } from "@/lib/limits";
 import { getCategory } from "@/lib/categories";
 import { SITE_TEAM, isTeamAuthored } from "@/lib/config";
 import { PeopleStack } from "./PeopleStack";
+import type { CSSProperties } from "react";
 
 export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
   const href = `/market/${m.id}`;
@@ -21,24 +22,29 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
         </Link>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
-            <span className="rounded-md px-1.5 py-0.5" style={{ background: `${cat.accent}22`, color: cat.accent }}>
+            <span className="cat-chip rounded-md px-1.5 py-0.5" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
               {cat.label}
             </span>
             {isTeamAuthored(m.createdBy) && <span className="text-muted-2">{SITE_TEAM}</span>}
             {urgent && <span className="rounded-md bg-no/15 px-1.5 py-0.5 font-semibold text-no">{closesLabel(m.closesAt)}</span>}
             {soon && <span className="rounded-md bg-warn/15 px-1.5 py-0.5 font-semibold text-warn">נסגר בקרוב</span>}
           </div>
+          {/*
+            The half-circle gauge that used to sit here said "1% סיכוי" beside a
+            "כן 1%" button one row below it: the same number twice in one card, at
+            the cost of ~58px of the width the question itself needs. Percentages
+            are the site's price language; the buttons already speak it.
+          */}
           <Link
             href={href}
             data-evt="market-card"
             data-evt-market={m.id}
-            className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2"
+            className="line-clamp-3 py-0.5 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2"
           >
             {m.title}
           </Link>
           {note && <p className="mt-1 text-[11px] font-medium text-accent-2 sm:text-xs">{note}</p>}
         </div>
-        <ProbabilityGauge p={m.probability} size={58} />
       </div>
 
       {resolved ? (
@@ -70,8 +76,22 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
         </div>
       )}
 
+      {/*
+        A question nobody has answered yet used to advertise "₪0 נפח · 0 עסקאות" —
+        a scoreboard reading zero, which is an argument against joining. It is the
+        same fact either way, so it may as well be the invitation it actually is.
+        A price that only one or two trades put there is flagged for what it is:
+        an opening estimate, not a crowd's answer.
+      */}
       <footer className="mt-auto flex items-center justify-between gap-2 text-[11px] text-muted sm:text-xs">
-        <span className="tabular truncate">{money(m.volume, { compact: true })} נפח · {m.tradeCount} עסקאות</span>
+        {m.tradeCount === 0 ? (
+          <span className="truncate font-semibold text-accent-2">עדיין אין תשובות · היו הראשונים</span>
+        ) : (
+          <span className="tabular truncate">
+            {money(m.volume, { compact: true })} נפח · {m.tradeCount} עסקאות
+            {!resolved && m.tradeCount < THIN_MARKET_TRADES && <span className="text-muted-2"> · מחיר ראשוני</span>}
+          </span>
+        )}
         <span className="shrink-0">{resolved || urgent ? "" : closesLabel(m.closesAt)}</span>
       </footer>
     </article>

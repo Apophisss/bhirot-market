@@ -17,7 +17,7 @@ export async function Footer() {
               href={`/category/${c.id}`}
               data-evt="footer-category"
               data-evt-label={c.label}
-              className="inline-flex items-center py-1.5 hover:text-white"
+              className="tap inline-flex min-w-11 items-center justify-center hover:text-white"
             >
               {c.label}
             </Link>
@@ -29,16 +29,16 @@ export async function Footer() {
             השאלות נכתבות ומתעדכנות על ידי {SITE_TEAM} ומבוססות על פרסומים פומביים.
           </p>
           <nav className="-my-1 flex shrink-0 flex-wrap gap-x-4">
-            <Link href="/about" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">איך זה עובד</Link>
-            <Link href="/invite" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">הזמינו חברים</Link>
-            <Link href="/about#faq" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">שאלות ותשובות</Link>
-            <Link href="/about#updates" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">מי כותב את השאלות</Link>
-            <Link href="/suggest" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">הצעת שאלה</Link>
-            <Link href="/contact" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">יצירת קשר</Link>
-            <Link href="/privacy" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">פרטיות</Link>
-            <Link href="/terms" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">תנאי שימוש</Link>
+            <Link href="/about" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">איך זה עובד</Link>
+            <Link href="/invite" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">הזמינו חברים</Link>
+            <Link href="/about#faq" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">שאלות ותשובות</Link>
+            <Link href="/about#updates" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">מי כותב את השאלות</Link>
+            <Link href="/suggest" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">הצעת שאלה</Link>
+            <Link href="/contact" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">יצירת קשר</Link>
+            <Link href="/privacy" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">פרטיות</Link>
+            <Link href="/terms" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">תנאי שימוש</Link>
             {admin && (
-              <Link href="/admin" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">ניהול</Link>
+              <Link href="/admin" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">ניהול</Link>
             )}
           </nav>
         </div>

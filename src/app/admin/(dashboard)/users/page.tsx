@@ -1,6 +1,6 @@
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { getTopTradersForAdmin } from "@/lib/portfolio";
-import { money, signedMoney } from "@/lib/format";
+import { money, signedMoney, pnlTone } from "@/lib/format";
 import { getDailyBusiness, getRetention, getTradingStats, getUserStats, range } from "@/lib/stats";
 import { BarSeries, Card, Kpi, fmt, shortDay } from "@/components/admin/Charts";
 
@@ -112,7 +112,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                     <td className="tabular px-3 py-2 text-muted">{i + 1}</td>
                     <td className="px-3 py-2">{l.name ?? "אנונימי"}</td>
                     <td className="tabular px-3 py-2 font-semibold">{money(l.netWorth)}</td>
-                    <td className={`tabular px-3 py-2 ${l.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(l.pnl)}</td>
+                    <td className={`tabular px-3 py-2 ${pnlTone(l.pnl)}`}>{signedMoney(l.pnl)}</td>
                     <td className="tabular px-3 py-2 text-muted">{l.tradeCount}</td>
                   </tr>
                 ))}

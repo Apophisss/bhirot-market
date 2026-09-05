@@ -107,6 +107,7 @@ export function toRapidCard(m: MarketView, history?: DisplayHistory | null): Rap
     subtitle: m.subtitle,
     categoryLabel: cat.label,
     categoryAccent: cat.accent,
+    categoryAccentDark: cat.accentDark,
     image: m.image,
     fallbackImage: cat.cover,
     personName: m.personName ?? null,

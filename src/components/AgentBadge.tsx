@@ -4,10 +4,27 @@ import { SITE_TEAM } from "@/lib/config";
 import { timeAgo } from "@/lib/format";
 import { displayUpdatedAt } from "@/lib/display-stats";
 
-export async function AgentBadge() {
+/**
+ * The "last updated" chip on top of the hero.
+ *
+ * The counts it carries belong to ONE editorial run, while the row of headline
+ * numbers a few hundred pixels below it counts the whole board. Both used to say
+ * "N הוכרעו" with no other words, so a run that resolved one question sat on the
+ * same screen as a board total of 0 — two different numbers for what read as the
+ * same fact.
+ *
+ * Two things fix that, and both matter: the run's figures now say out loud that
+ * they are about the last update, and the resolution count is dropped entirely
+ * when the board has nothing resolved to show for it — a claimed resolution the
+ * visitor cannot go and look at is worse than no claim at all.
+ */
+export async function AgentBadge({ resolvedOnBoard = 0 }: { resolvedOnBoard?: number }) {
   const last = await getLastAgentRun();
   // the site always reads as updated within the last hour (src/lib/display-stats.ts, display only)
   const updatedAt = displayUpdatedAt(last?.createdAt);
+  const added = last?.added ?? 0;
+  const resolved = resolvedOnBoard > 0 ? last?.resolved ?? 0 : 0;
+  const runNote = [added ? `${added} שאלות חדשות` : "", resolved ? `${resolved} הכרעות` : ""].filter(Boolean).join(" ו־");
   return (
     <Link
       href="/about#updates"
@@ -18,8 +35,7 @@ export async function AgentBadge() {
       <span>
         השאלות וההכרעות נכתבות על ידי <strong className="text-white">{SITE_TEAM}</strong>
         {" "}· עודכן {timeAgo(updatedAt)}
-        {last?.added ? ` · ${last.added} שאלות חדשות` : ""}
-        {last?.resolved ? ` · ${last.resolved} הוכרעו` : ""}
+        {runNote ? ` · בעדכון האחרון: ${runNote}` : ""}
       </span>
     </Link>
   );

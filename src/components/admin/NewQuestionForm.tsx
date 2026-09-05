@@ -10,6 +10,7 @@ import { MarketImage } from "@/components/MarketImage";
 import { ProbabilityGauge } from "@/components/ProbabilityGauge";
 import { suggestSlug } from "@/lib/slug";
 import { pct } from "@/lib/format";
+import type { CSSProperties } from "react";
 
 export interface PersonOption {
   id: string;
@@ -367,7 +368,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
             <div className="flex items-start gap-2.5">
               <MarketImage src={previewImage} fallback={cat.cover} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
-                <span className="rounded-md px-1.5 py-0.5 text-[11px]" style={{ background: `${cat.accent}22`, color: cat.accent }}>
+                <span className="cat-chip rounded-md px-1.5 py-0.5 text-[11px]" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
                   {cat.label}
                 </span>
                 <p className="mt-1 line-clamp-3 text-[14px] font-semibold leading-snug text-text-strong">{title.trim() || "האם …?"}</p>
