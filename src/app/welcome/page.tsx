@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
  * home page that exists to be linked from an ad, and letting Google index both
  * would split the ranking of the real one.
  */
-const DESCRIPTION = `משחק חיזויים חינמי בכסף וירטואלי על בחירות 2026. ${money(STARTING_BALANCE)} וירטואליים למתחילים, בלי הימורים ובלי כסף אמיתי.`;
+const DESCRIPTION = `משחק ניחושים חינמי על בחירות 2026. ${money(STARTING_BALANCE)} לכל שחקן חדש — אין כסף אמיתי, אין פרסים ואין תשלום.`;
 
 export const metadata: Metadata = {
   title: "נחשו מה יקרה בפוליטיקה הישראלית",
@@ -78,11 +78,11 @@ export default async function WelcomePage() {
         {/* The disclosure sits above the headline on purpose: it is the first thing
             an ad reviewer looks for, and the first thing a sceptical visitor asks. */}
         <p className="inline-flex flex-wrap items-center gap-x-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold sm:text-sm">
-          <span>כסף וירטואלי בלבד</span>
+          <span>נקודות משחק בלבד</span>
           <span aria-hidden className="text-white/40">·</span>
-          <span>ללא הימורים</span>
+          <span>אין כסף אמיתי</span>
           <span aria-hidden className="text-white/40">·</span>
-          <span>ללא תשלום</span>
+          <span>אין פרסים ואין תשלום</span>
         </p>
 
         <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">
@@ -100,7 +100,7 @@ export default async function WelcomePage() {
           </p>
         )}
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-lg">
-          {SITE_NAME} הוא שוק חיזויים על הפוליטיקה הישראלית. מקבלים {money(STARTING_BALANCE)} וירטואליים, עונים ״כן״ או ״לא״
+          {SITE_NAME} הוא משחק ניחושים על הפוליטיקה הישראלית. מקבלים {money(STARTING_BALANCE)}, עונים ״כן״ או ״לא״
           על שאלות שמתעדכנות כל שעה לפי החדשות, ומגלים אם קראתם את המפה טוב יותר מכולם.
         </p>
 
@@ -129,8 +129,8 @@ export default async function WelcomePage() {
             )}
           </div>
           <p className="text-sm leading-relaxed text-muted">
-            שאלות אמיתיות מהלוח, במחיר שלהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
-            ונהפוך אותה לפוזיציה אמיתית ב-{money(RAPID_DEFAULT_STAKE)} וירטואליים ברגע שתתחברו.
+            שאלות אמיתיות מהלוח, עם מד הניחושים שלהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
+            ונהפוך אותה לתשובה שנספרת בניקוד, ב-{money(RAPID_DEFAULT_STAKE)}, ברגע שתתחברו.
           </p>
           {/* Real, current markets that answer back — a static card is a screenshot,
               a card that responds is a demonstration. */}
@@ -140,21 +140,21 @@ export default async function WelcomePage() {
 
       <section className="grid gap-3 sm:grid-cols-3">
         <Step n="1" title="עונים על שאלה">
-          ״האם הכנסת תתפזר עד מרץ?״ — כן או לא. כל תשובה היא קנייה של מניות בכסף וירטואלי.
+          ״האם הכנסת תתפזר עד מרץ?״ — כן או לא. כל תשובה עולה נקודות משחק, לפי כמה היא בטוחה.
         </Step>
-        <Step n="2" title="המחיר זז">
-          המחיר הוא ההסתברות שהשוק נותן. אם קניתם צד זול והוא התברר כנכון — הרווחתם.
+        <Step n="2" title="המד זז">
+          תשובה זולה שווה יותר נקודות אם צדקתם. ככל שפחות שחקנים בחרו את הצד שלכם — כך המד נמוך יותר והתשובה משתלמת יותר.
         </Step>
         <Step n="3" title="עולים בטבלה">
-          {SITE_TEAM} מכריע כל שאלה לפי מקורות פומביים, והתיק שלכם מתעדכן.
+          {SITE_TEAM} מכריע כל שאלה לפי מקורות פומביים, והניקוד שלכם מתעדכן.
         </Step>
       </section>
 
       <section className="card space-y-3 p-5 text-[15px] leading-relaxed text-text sm:p-6">
-        <h2 className="text-lg font-bold text-text-strong">רגע, זה הימורים?</h2>
+        <h2 className="text-lg font-bold text-text-strong">רגע, משחקים כאן על כסף?</h2>
         <p>
-          לא. המטבע באתר וירטואלי לחלוטין ואין לו שום שווי — אי אפשר להפקיד, אי אפשר למשוך, ואין פרס כספי למי שמנצח.
-          זה משחק ידע על פוליטיקה, בדיוק כמו טוטו דמה בין חברים. השימוש מגיל 18 ומעלה.
+          לא. הניקוד באתר הוא נקודות משחק בלבד ואין לו שום שווי — אין מה להפקיד, אין מה למשוך, ואין פרס למי שמנצח.
+          זה משחק ידע על פוליטיקה: עונים כן או לא, וצוברים נקודות אם צדקתם. השימוש מגיל 18 ומעלה.
         </p>
         <p className="text-sm text-muted">
           <Link href="/about" className="text-accent hover:underline">איך זה עובד</Link>
@@ -170,7 +170,7 @@ export default async function WelcomePage() {
           href={CTA}
           className="tap pressable inline-flex items-center justify-center rounded-xl bg-accent px-8 py-4 text-base font-extrabold text-white hover:bg-accent-2 sm:text-lg"
         >
-          קבלו {money(STARTING_BALANCE)} וירטואליים והתחילו
+          קבלו {money(STARTING_BALANCE)} והתחילו לשחק
         </Link>
       </section>
     </div>

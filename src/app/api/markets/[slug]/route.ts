@@ -32,7 +32,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       recordedCount: chart.recordedCount,
       maxDeviation: chart.maxDeviation,
       generator: chart.generator,
-      note: "נקודות עם synthetic=true הן אומדן לתצוגה בלבד ואינן מסחר אמיתי",
+      note: "נקודות עם synthetic=true הן אומדן לתצוגה בלבד ואינן תשובות אמיתיות",
     },
   });
 }

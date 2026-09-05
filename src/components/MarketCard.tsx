@@ -77,7 +77,7 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
       )}
 
       {/*
-        A question nobody has answered yet used to advertise "₪0 נפח · 0 עסקאות" —
+        A question nobody has answered yet used to advertise "0 נק׳ · 0 תשובות" —
         a scoreboard reading zero, which is an argument against joining. It is the
         same fact either way, so it may as well be the invitation it actually is.
         A price that only one or two trades put there is flagged for what it is:
@@ -88,7 +88,7 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
           <span className="truncate font-semibold text-accent-2">עדיין אין תשובות · היו הראשונים</span>
         ) : (
           <span className="tabular truncate">
-            {money(m.volume, { compact: true })} נפח · {m.tradeCount} עסקאות
+            {money(m.volume, { compact: true })} · {m.tradeCount} תשובות
             {!resolved && m.tradeCount < THIN_MARKET_TRADES && <span className="text-muted-2"> · מחיר ראשוני</span>}
           </span>
         )}

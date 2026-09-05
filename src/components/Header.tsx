@@ -18,7 +18,7 @@ import { needsSurvey } from "@/lib/preferences-store";
 // The leaderboard is deliberately absent: it hangs off the profile (the user menu
 // below and /portfolio), not off the main navigation.
 const NAV = [
-  { href: "/", label: "שווקים", evt: "nav-markets" },
+  { href: "/", label: "שאלות", evt: "nav-markets" },
   { href: "/rapid", label: "מצב זריז", evt: "nav-rapid" },
   { href: "/activity", label: "פעילות", evt: "nav-activity" },
   { href: "/about", label: "איך זה עובד", evt: "nav-about" },
@@ -98,7 +98,7 @@ export async function Header() {
                     </>
                   }
                 >
-                  <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
+                  <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">הניקוד שלי</Link>
                   <Link href="/leaderboard" data-evt="menu-leaderboard" className="block px-4 py-3 text-sm hover:bg-surface-2">לוח המובילים</Link>
                   <Link href="/invite" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
                     הזמינו חברים

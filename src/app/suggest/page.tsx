@@ -34,7 +34,7 @@ export default async function SuggestPage() {
     <div className="mx-auto max-w-5xl space-y-4">
       <JsonLd
         data={breadcrumbs([
-          { name: "שווקים", path: "/" },
+          { name: "שאלות", path: "/" },
           { name: "הצעת שאלה", path: "/suggest" },
         ])}
       />

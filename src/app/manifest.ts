@@ -25,8 +25,8 @@ export default function manifest(): MetadataRoute.Manifest {
     */
     shortcuts: [
       { name: "מצב זריז", short_name: "זריז", description: "לענות על שאלות ברצף", url: "/rapid" },
-      { name: "התיק שלי", short_name: "התיק", description: "הפוזיציות והרווח/הפסד שלי", url: "/portfolio" },
-      { name: "לוח המובילים", short_name: "מובילים", description: "מי מוביל בחיזוי", url: "/leaderboard" },
+      { name: "הניקוד שלי", short_name: "ניקוד", description: "התשובות והרווח/הפסד שלי", url: "/portfolio" },
+      { name: "לוח המובילים", short_name: "מובילים", description: "מי מוביל בניחושים", url: "/leaderboard" },
     ],
     // an installable manifest needs square 192 and 512 rasters; the 1200x630 share
     // picture that used to sit here is neither square nor an icon

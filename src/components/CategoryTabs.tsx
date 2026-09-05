@@ -25,7 +25,7 @@ export function CategoryTabs({
     const qs = sp.toString();
     return qs ? `${base}?${qs}` : base;
   };
-  const items = [{ id: "all", label: "כל השווקים", accent: "#1d4ed8" }, ...CATEGORIES];
+  const items = [{ id: "all", label: "כל השאלות", accent: "#1d4ed8" }, ...CATEGORIES];
   return (
     // full-bleed on phones so the strip reads as a swipeable carousel
     <div className={`scrollbar-none swipe-x -mx-3 flex gap-2 px-3 pb-1 sm:mx-0 sm:px-0 ${className}`}>

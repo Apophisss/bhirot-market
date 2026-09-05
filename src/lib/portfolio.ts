@@ -26,7 +26,7 @@ export interface HoldingView {
   /** the market's marginal price for this side — what the NEXT share costs */
   currentPrice: number;
   /**
-   * ₪ the holding fetches if it is sold right now, straight out of `holdingValue`.
+   * Points the holding fetches if it is sold right now, straight out of `holdingValue`.
    * NOT `shares × currentPrice`: see the valuation note in `lmsr.ts`.
    */
   value: number;
@@ -54,7 +54,7 @@ export async function getPortfolio(userId: string) {
     const resolved = m.status === "resolved";
     const finalYes = resolved ? (m.resolution === "YES" ? 1 : 0) : m.probability;
     // an open market is marked at what the market maker would pay for the holding;
-    // a resolved one at the ₪1-per-winning-share payout it is waiting to receive
+    // a resolved one at the one-point-per-winning-answer payout it is waiting to receive
     const state: MarketState = { qYes: m.qYes, qNo: m.qNo, b: m.liquidity };
     const exit = resolved || p.settled ? null : holdingValue(state, p.yesShares, p.noShares);
     for (const side of ["YES", "NO"] as const) {
@@ -118,7 +118,7 @@ export interface LeaderRow {
   netWorth: number;
   /** worth minus the capital the house handed over — the starting balance and any invite bonuses */
   pnl: number;
-  /** ₪ earned from invites; part of net worth, deliberately not part of P&L */
+  /** points earned from invites; part of net worth, deliberately not part of P&L */
   referralBonus: number;
   tradeCount: number;
 }
@@ -204,7 +204,7 @@ export async function getNetWorth(userId: string, balance: number): Promise<numb
   let value = 0;
   for (const r of rows) {
     if (r.status === "resolved") {
-      // waiting to be paid out: ₪1 per winning share
+      // waiting to be paid out: one point per winning answer
       const yes = r.resolution === "YES" ? 1 : 0;
       value += r.yesShares * yes + r.noShares * (1 - yes);
     } else {

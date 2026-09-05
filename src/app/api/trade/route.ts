@@ -17,7 +17,7 @@ const Body = z.object({
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ ok: false, error: "צריך להתחבר כדי לסחור" }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "צריך להתחבר כדי לענות" }, { status: 401 });
   }
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
@@ -51,6 +51,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: err.message }, { status: err.status });
     }
     console.error("[trade] failed", err);
-    return NextResponse.json({ ok: false, error: "שגיאה בביצוע העסקה" }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "שגיאה בקליטת התשובה" }, { status: 500 });
   }
 }

@@ -23,7 +23,7 @@ export default async function ContactPage() {
     <div className="mx-auto max-w-2xl space-y-4">
       <JsonLd
         data={breadcrumbs([
-          { name: "שווקים", path: "/" },
+          { name: "שאלות", path: "/" },
           { name: "יצירת קשר", path: "/contact" },
         ])}
       />
@@ -42,7 +42,7 @@ export default async function ContactPage() {
       </header>
       <ContactForm defaultName={user?.name} defaultEmail={user?.email} />
       <p className="text-[12px] leading-relaxed text-muted-2">
-        ההודעה נשמרת אצלנו יחד עם האימייל שהשארתם, ומשמשת רק כדי לחזור אליכם בנוגע לפנייה. {SITE_NAME} הוא משחק בכסף וירטואלי
+        ההודעה נשמרת אצלנו יחד עם האימייל שהשארתם, ומשמשת רק כדי לחזור אליכם בנוגע לפנייה. {SITE_NAME} הוא משחק בנקודות
         בלבד — אין כאן חשבונות אמיתיים, כסף אמיתי או ייעוץ.
       </p>
     </div>

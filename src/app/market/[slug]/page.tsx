@@ -41,14 +41,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     m.status === "resolved"
       ? `הוכרע: ${m.resolution === "YES" ? "כן" : "לא"}.`
       : m.status === "cancelled"
-        ? "השוק בוטל."
+        ? "השאלה בוטלה."
         : `${odds} · נסגר ${fmtDateTime(m.closesAt)}.`;
   const description = clamp(`${state} ${m.subtitle ?? m.description}`, 165);
 
   return {
     title: m.title,
     description,
-    keywords: [...m.tags, cat.label, "שוק חיזויים", "בחירות 2026"],
+    keywords: [...m.tags, cat.label, "משחק ניחושים", "בחירות 2026"],
     alternates: { canonical: url },
     // a cancelled question keeps its page for anyone holding a link, but adds nothing to the index
     ...(m.status === "cancelled" ? { robots: { index: false, follow: true } } : {}),
@@ -105,7 +105,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
       <JsonLd data={marketGraph(market)} />
       <div className="space-y-4 sm:space-y-5">
         <nav className="-my-1 text-xs text-muted" aria-label="פירורי לחם">
-          <Link href="/" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-text">שווקים</Link> ‹{" "}
+          <Link href="/" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-text">שאלות</Link> ‹{" "}
           <Link href={`/category/${cat.id}`} className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-text">{cat.label}</Link>
         </nav>
 
@@ -117,7 +117,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
                 {cat.label}
               </span>
               <span className="tabular">
-                {market.tradeCount === 0 ? "עדיין אין עסקאות" : `${money(market.volume, { compact: true })} נפח · ${market.tradeCount} עסקאות`}
+                {market.tradeCount === 0 ? "עדיין אין תשובות" : `${money(market.volume, { compact: true })} · ${market.tradeCount} תשובות`}
               </span>
               <span>·</span>
               <span>{market.status === "open" ? closesLabel(market.closesAt) : market.status === "resolved" ? `הוכרע ${market.resolvedAt ? timeAgo(market.resolvedAt) : ""}` : "בוטל"}</span>
@@ -125,13 +125,13 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             </div>
             <h1 className="text-lg font-extrabold leading-tight text-text-strong sm:text-2xl">{market.title}</h1>
             {/*
-              A price that one or two trades put there is an opening estimate, not a
+              A price that one or two answers put there is an opening estimate, not a
               crowd's answer, and presenting it as the latter is what let a single
-              ₪7,110 order read as "the market says 1%".
+              7,110-point answer read as "the players say 1%".
             */}
             {market.status === "open" && market.tradeCount < THIN_MARKET_TRADES && (
               <p className="mt-1.5 inline-flex rounded-md bg-warn/10 px-2 py-1 text-[11px] font-semibold text-warn">
-                מחיר ראשוני · מעט מסחר — התשובות הראשונות הן שיקבעו אותו
+                מד ראשוני · עוד כמעט לא ענו — התשובות הראשונות הן שיקבעו אותו
               </p>
             )}
             {market.subtitle && <p className="mt-1 text-sm text-muted">{market.subtitle}</p>}
@@ -158,7 +158,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             }`}
           >
             <div className={`text-lg font-extrabold ${market.status === "cancelled" ? "text-muted" : market.resolution === "YES" ? "text-yes" : "text-no"}`}>
-              {market.status === "cancelled" ? "השוק בוטל" : `התוצאה: ${market.resolution === "YES" ? "כן" : "לא"}`}
+              {market.status === "cancelled" ? "השאלה בוטלה" : `התוצאה: ${market.resolution === "YES" ? "כן" : "לא"}`}
             </div>
             {market.resolutionNote && <p className="mt-1 whitespace-pre-wrap text-sm text-text">{market.resolutionNote}</p>}
           </div>
@@ -192,7 +192,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           <div className="prose-he whitespace-pre-line text-sm leading-relaxed text-text">{market.description}</div>
           <h2 className="mb-2 mt-5 font-bold text-text-strong">כללי הכרעה</h2>
           <div className="prose-he whitespace-pre-line rounded-lg border border-border bg-surface-2 p-3 text-sm leading-relaxed text-text">{market.resolutionCriteria}</div>
-          <div className="mt-3 text-xs text-muted-2">סגירת המסחר: {fmtDateTime(market.closesAt)} · נוצר {fmtDateTime(market.createdAt)}</div>
+          <div className="mt-3 text-xs text-muted-2">התשובה תיוודע: {fmtDateTime(market.closesAt)} · נוצר {fmtDateTime(market.createdAt)}</div>
           {market.sources.length > 0 && (
             <>
               <h3 className="mb-1 mt-4 text-sm font-bold text-text-strong">מקורות</h3>
@@ -228,7 +228,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
         </section>
 
         <section className="card p-3.5 sm:p-5">
-          <h2 className="mb-2 font-bold text-text-strong">עסקאות אחרונות</h2>
+          <h2 className="mb-2 font-bold text-text-strong">תשובות אחרונות</h2>
           <TradeList trades={recent} />
         </section>
 
@@ -236,7 +236,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
 
         {related.length > 0 && (
           <section className="space-y-3">
-            <h2 className="font-bold text-text-strong">שווקים קשורים</h2>
+            <h2 className="font-bold text-text-strong">שאלות קשורות</h2>
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
               {related.map((r) => (
                 <MarketCard key={r.id} m={r} />
@@ -260,8 +260,8 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             initialAmount={prefill}
           />
           <div className="card p-4 text-xs leading-relaxed text-muted">
-            <strong className="text-text">איך זה עובד?</strong> כל מניית ״כן״ משלמת ₪1 וירטואלי אם התשובה היא כן, ו־₪0 אחרת (ולהפך למניית ״לא״).
-            המחיר משקף את ההסתברות שהשוק מייחס לתוצאה. <Link href="/about" className="text-accent-2 hover:underline">עוד</Link>
+            <strong className="text-text">איך זה עובד?</strong> כל תשובת ״כן״ שווה נקודה אם התשובה היא כן, ואפס אחרת (ולהפך לתשובת ״לא״).
+            המד מראה כמה בטוחים בה השחקנים כרגע. <Link href="/about" className="text-accent-2 hover:underline">עוד</Link>
           </div>
         </div>
       </aside>

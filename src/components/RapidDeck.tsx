@@ -271,7 +271,7 @@ export function RapidDeck({
           patch =
             res.ok && data?.ok
               ? { ...job, status: "ok", shares: data.shares }
-              : { ...job, status: "error", error: data?.error ?? "לא הצלחנו לבצע את העסקה" };
+              : { ...job, status: "error", error: data?.error ?? "לא הצלחנו לקלוט את התשובה" };
         } catch {
           patch = { ...job, status: "error", error: "שגיאת רשת" };
         }
@@ -286,7 +286,7 @@ export function RapidDeck({
         if (stranded.length || data?.code === "INSUFFICIENT_BALANCE") setHalted(true);
         setAnswers((prev) => {
           const next = { ...prev, [job.marketId]: patch };
-          for (const s of stranded) next[s.marketId] = { ...s, status: "error", error: "נגמרה היתרה" };
+          for (const s of stranded) next[s.marketId] = { ...s, status: "error", error: "נגמרו הנקודות" };
           return next;
         });
       }
@@ -574,7 +574,7 @@ export function RapidDeck({
             <span
               className={`tabular rounded-full border border-border bg-surface px-2.5 py-1 font-semibold ${outOfMoney ? "text-no" : "text-yes"}`}
             >
-              יתרה {money(Math.max(0, available ?? liveBalance))}
+              ניקוד {money(Math.max(0, available ?? liveBalance))}
             </span>
           )}
         </header>
@@ -655,7 +655,7 @@ export function RapidDeck({
  *
  * It is deliberately built out of what they just did rather than out of what the
  * site wants: the four questions are listed with the side they picked, because
- * "you have already answered four questions — sign in and they become positions"
+ * "you have already answered four questions — sign in and they start counting"
  * is an entirely different proposition from "sign in to continue".
  */
 function GuestGate({ answers }: { answers: GuestAnswer[] }) {
@@ -664,7 +664,7 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
       <div className="card max-h-full w-full max-w-md overflow-y-auto p-4 text-center sm:p-6">
         <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענית על {answers.length} שאלות</h2>
         <p className="mt-1.5 text-sm text-muted">
-          התחברו והן יהפכו לפוזיציות אמיתיות בתיק שלכם, יחד עם {money(STARTING_BALANCE)} וירטואליים להמשך.
+          התחברו והן ייכנסו לניקוד שלכם, יחד עם {money(STARTING_BALANCE)} להמשך.
         </p>
 
         <ul className="mt-4 space-y-1.5 text-right">
@@ -687,7 +687,7 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
           התחברות · והתשובות נשמרות
         </Link>
         <p className="mt-2 text-[11px] text-muted-2">
-          התשובות שמורות בדפדפן שלכם עד ההתחברות. כסף וירטואלי בלבד.
+          התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
         </p>
       </div>
     </div>
@@ -910,11 +910,11 @@ function RapidCardView({
             <p className="tabular text-sm text-muted">
               {money(answer.stake)} ·{" "}
               {answer.status === "ok"
-                ? `${fmtShares(answer.shares ?? 0)} מניות`
+                ? `${fmtShares(answer.shares ?? 0)} תשובות`
                 : answer.status === "held"
                   ? "אפשר עוד לבטל"
                   : answer.status === "guest"
-                    ? "נשמר · יהפוך לפוזיציה אחרי התחברות"
+                    ? "נשמר · ייכנס לניקוד אחרי התחברות"
                     : "נשלח…"}
             </p>
           )}
@@ -974,7 +974,7 @@ function RapidCardView({
         <div className="shrink-0 space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="tabular font-semibold text-yes">כן {pct(card.probability)}</span>
-            <span className="text-muted-2">מחיר השוק כרגע</span>
+            <span className="text-muted-2">מד הניחושים כרגע</span>
             <span className="tabular font-semibold text-no">לא {pct(1 - card.probability)}</span>
           </div>
           <div className="flex h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden>
@@ -1016,12 +1016,12 @@ function RapidCardView({
           </button>
           <span className="line-clamp-2 text-end">
             {outOfMoney
-              ? "נגמרה היתרה — אפשר למכור פוזיציות בדף השוק"
+              ? "נגמרו הנקודות — אפשר להחזיר תשובות בדף השאלה"
               : locked
-                ? "היתרה לא מספיקה לסכום הזה"
+                ? "אין מספיק נקודות לסכום הזה"
                 : loggedIn
-                  ? "הסכום מחייב · מספר המניות משוער"
-                  : "התשובות נשמרות · ההתחברות הופכת אותן לפוזיציות"}
+                  ? "הסכום מחייב · מספר התשובות משוער"
+                  : "התשובות נשמרות · ההתחברות מכניסה אותן לניקוד"}
           </span>
         </div>
       </div>
@@ -1051,7 +1051,7 @@ function AnswerButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      aria-label={`${yes ? "כן" : "לא"} ב־${stake} שקלים וירטואליים`}
+      aria-label={`${yes ? "כן" : "לא"} ב־${stake} נקודות`}
       className={`cursor-pointer rounded-2xl py-2.5 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 sm:py-3 ${
         yes ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
       }`}
@@ -1128,7 +1128,7 @@ function StakeBar({
                   : "border-border bg-surface-2 text-muted hover:text-text-strong"
               }`}
             >
-              ₪{p}
+              {p}
             </button>
           ))}
         </div>
@@ -1137,17 +1137,17 @@ function StakeBar({
             column it takes a line of its own and says everything. */}
         <p id="rapid-stake-range" className="tabular min-w-0 flex-1 truncate text-[11px] text-muted-2 lg:basis-full">
           <span className="hidden lg:inline">
-            טווח ₪{RAPID_MIN_STAKE}–₪{RAPID_MAX_STAKE} · יורד מהיתרה מיד{available != null ? " · " : ""}
+            טווח {RAPID_MIN_STAKE}–{RAPID_MAX_STAKE} נקודות · יורד מהניקוד מיד{available != null ? " · " : ""}
           </span>
           {available != null && (
             <>
               {/* the deck's balance chip is hidden on a short screen — this is where it lands */}
               <span className={`hidden short:inline ${outOfMoney ? "text-no" : "text-yes"}`}>
-                יתרה {money(Math.max(0, available))}
+                נותרו {money(Math.max(0, available))}
                 {" · "}
               </span>
               <span className={broke ? "text-no" : ""}>
-                {outOfMoney ? "נגמרה היתרה" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
+                {outOfMoney ? "נגמרו הנקודות" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
               </span>
             </>
           )}
@@ -1211,23 +1211,23 @@ function RunSummary({
           </dl>
           {failed > 0 && (
             <p className="rounded-lg bg-no/10 px-3 py-2 text-sm text-no">
-              {failed} תשובות לא נקלטו{firstError ? ` (${firstError})` : ""}. אפשר לנסות אותן שוב בעמוד השוק.
+              {failed} תשובות לא נקלטו{firstError ? ` (${firstError})` : ""}. אפשר לנסות אותן שוב בעמוד השאלה.
             </p>
           )}
         </>
       ) : (
-        <p className="max-w-sm text-muted">גללו למעלה כדי לחזור לשאלות, או עברו לרשימת השווקים המלאה.</p>
+        <p className="max-w-sm text-muted">גללו למעלה כדי לחזור לשאלות, או עברו לרשימת השאלות המלאה.</p>
       )}
       {showActions && (
         <div className="flex flex-wrap justify-center gap-2">
           <Link href="/portfolio" className="rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">
-            לתיק שלי
+            לניקוד שלי
           </Link>
           <button onClick={onRestart} className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
             חזרה לשאלות
           </button>
           <Link href="/" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
-            לכל השווקים
+            לכל השאלות
           </Link>
         </div>
       )}

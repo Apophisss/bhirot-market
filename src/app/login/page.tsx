@@ -9,7 +9,7 @@ import { money } from "@/lib/format";
 import { AD_CHECK_PARAM, AD_LANDING_COOKIE } from "@/lib/ad-attribution";
 import { shareCard } from "@/lib/seo";
 
-const LOGIN_DESCRIPTION = "התחברו וקבלו ₪10,000 וירטואליים למסחר בשוקי החיזוי של בחירות 2026.";
+const LOGIN_DESCRIPTION = "התחברו וקבלו 10,000 נקודות למשחק הניחושים של בחירות 2026.";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Image src="/logo.svg" alt="" width={44} height={44} />
           <div>
             <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">התחברות ל{SITE_NAME}</h1>
-            <p className="text-sm text-muted">מקבלים {money(STARTING_BALANCE)} וירטואליים ומתחילים לחזות</p>
+            <p className="text-sm text-muted">מקבלים {money(STARTING_BALANCE)} ומתחילים לנחש</p>
           </div>
         </div>
 
@@ -111,8 +111,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
 
         <p className="mt-6 text-xs leading-relaxed text-muted-2">
-          בהתחברות אתם מאשרים שזהו משחק בכסף וירטואלי בלבד, ללא כל ערך כספי. אנחנו שומרים רק שם, אימייל ותמונת פרופיל
-          לצורך הצגת הדירוג והתיק שלכם.
+          בהתחברות אתם מאשרים שזהו משחק בנקודות בלבד, ללא כל ערך כספי. אנחנו שומרים רק שם, אימייל ותמונת פרופיל
+          לצורך הצגת הדירוג והניקוד שלכם.
         </p>
       </div>
     </div>

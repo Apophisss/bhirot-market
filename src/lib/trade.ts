@@ -54,11 +54,11 @@ export interface TradeRequest {
   marketId: string;
   side: Side;
   action: "BUY" | "SELL";
-  /** for BUY: amount of ₪ to spend. for SELL: number of shares to sell */
+  /** for BUY: points to put on the answer. for SELL: number of answers held to give back */
   quantity: number;
 }
 
-/** ₪ bounds of a single buy. A BUY is a bet, so it is capped by the site-wide limit. */
+/** Point bounds of a single answer. Answering is capped by the site-wide limit. */
 export const MIN_TRADE = MIN_BET;
 export const MAX_TRADE = MAX_BET;
 
@@ -76,25 +76,25 @@ export async function executeTrade(req: TradeRequest) {
   if (!Number.isFinite(req.quantity) || req.quantity <= 0) {
     throw new TradeError(req.action === "BUY" ? "סכום לא תקין" : "כמות לא תקינה");
   }
-  // The ₪ bounds are a buy-side guard: a bet is capped site-wide. A sale is not a
+  // The point bounds are an answer-side guard: an answer is capped site-wide. Giving one back is not a
   // bet — it is capped by the shares actually held (below), and by nothing else, so
   // a position can always be closed in a single order however large it grew.
   if (req.action === "BUY") {
     if (req.quantity < MIN_TRADE) throw new TradeError("סכום לא תקין");
     if (req.quantity > MAX_TRADE) {
-      throw new TradeError(`אפשר להמר עד ₪${MAX_TRADE} בעסקה אחת`, 400, "AMOUNT_TOO_LARGE");
+      throw new TradeError(`אפשר לשים עד ${MAX_TRADE} נקודות על תשובה אחת`, 400, "AMOUNT_TOO_LARGE");
     }
   }
 
   return withBusyRetry(() => db.transaction(async (tx) => {
     const market = await tx.query.markets.findFirst({ where: eq(markets.id, req.marketId) });
-    if (!market) throw new TradeError("השוק לא נמצא", 404, "MARKET_NOT_FOUND");
+    if (!market) throw new TradeError("השאלה לא נמצאה", 404, "MARKET_NOT_FOUND");
     const now = new Date();
     if (market.status !== "open" || market.closesAt.getTime() <= now.getTime()) {
-      throw new TradeError("המסחר בשוק הזה סגור", 400, "MARKET_CLOSED");
+      throw new TradeError("השאלה הזו סגורה", 400, "MARKET_CLOSED");
     }
     const user = await tx.query.users.findFirst({ where: eq(users.id, req.userId) });
-    if (!user) throw new TradeError("משתמש לא נמצא", 401, "USER_NOT_FOUND");
+    if (!user) throw new TradeError("שחקן לא נמצא", 401, "USER_NOT_FOUND");
 
     let position = await tx.query.positions.findFirst({
       where: and(eq(positions.userId, req.userId), eq(positions.marketId, req.marketId)),
@@ -119,13 +119,13 @@ export async function executeTrade(req: TradeRequest) {
     let realized = 0;
 
     if (req.action === "BUY") {
-      if (req.quantity > user.balance + 1e-9) throw new TradeError("אין מספיק יתרה", 400, "INSUFFICIENT_BALANCE");
+      if (req.quantity > user.balance + 1e-9) throw new TradeError("אין מספיק נקודות", 400, "INSUFFICIENT_BALANCE");
       const cap = maxBuyAmount(state, req.side);
       if (cap <= 0) {
-        throw new TradeError(`המחיר של הצד הזה כבר הגיע לתקרה (${Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לקנות עוד`);
+        throw new TradeError(`הצד הזה כבר הגיע לתקרה (${Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לענות עוד`);
       }
       if (req.quantity > cap + 1e-6) {
-        throw new TradeError(`העסקה גדולה מדי ותדחוף את השוק מעבר ל-${Math.round(PRICE_BAND.max * 100)}%. המקסימום כרגע: ₪${Math.floor(cap)}`);
+        throw new TradeError(`התשובה גדולה מדי ותדחוף את המד מעבר ל-${Math.round(PRICE_BAND.max * 100)}%. המקסימום כרגע: ${Math.floor(cap)} נקודות`);
       }
       quote = quoteBuy(state, req.side, req.quantity);
       if (!(quote.shares > 0) || !Number.isFinite(quote.shares)) throw new TradeError("הסכום קטן מדי", 400, "AMOUNT_TOO_SMALL");
@@ -219,7 +219,7 @@ export async function executeTrade(req: TradeRequest) {
   }));
 }
 
-/** Settle all positions of a market. Pays 1 ₪ per winning share; refunds cost basis on cancel. */
+/** Settle all positions of a question. Pays one point per winning answer; refunds what was put in on cancel. */
 export async function settleMarket(
   marketId: string,
   outcome: "YES" | "NO" | "CANCELLED",

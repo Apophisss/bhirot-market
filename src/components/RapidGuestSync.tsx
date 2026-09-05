@@ -72,7 +72,7 @@ export function RapidGuestSync({ loggedIn, stake }: { loggedIn: boolean; stake: 
     <div className="pb-safe fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-3 lg:pb-4" role="status" aria-live="polite">
       <div className="card slide-up flex max-w-md items-center gap-3 p-3 shadow-lg shadow-ink/20">
         <div className="min-w-0 flex-1 text-[13px]">
-          <strong className="text-text-strong">{result.ok} מהתשובות שלך הפכו לפוזיציות.</strong>
+          <strong className="text-text-strong">{result.ok} מהתשובות שלך נכנסו לניקוד.</strong>
           {result.skipped > 0 && <span className="text-muted-2"> {result.skipped} כבר לא היו זמינות.</span>}
         </div>
         <Link
@@ -80,7 +80,7 @@ export function RapidGuestSync({ loggedIn, stake }: { loggedIn: boolean; stake: 
           onClick={dismiss}
           className="tap pressable inline-flex shrink-0 items-center rounded-lg bg-accent px-3 text-xs font-bold text-white hover:bg-accent-2"
         >
-          לתיק
+          לניקוד
         </Link>
         <button onClick={dismiss} aria-label="סגירה" className="tap shrink-0 px-1 text-muted-2 hover:text-text-strong">
           ✕

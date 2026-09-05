@@ -49,8 +49,8 @@ export function SurveyPrompt({ next = "/", compact = false }: { next?: string; c
       <div className="min-w-0 flex-1">
         <h2 className="text-[15px] font-bold text-text-strong sm:text-base">שאלון קצר — ונדע מה להמליץ לכם</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-muted sm:text-sm">
-          שלוש שאלות כלליות: אילו נושאים, אילו מתמודדים ואיזה קצב. לפי זה נסדר לכם את השאלות וההימורים
-          המומלצים בלוח ובמצב הזריז. פחות מדקה, ואפשר לדלג.
+          שלוש שאלות כלליות: אילו נושאים, אילו מתמודדים ואיזה קצב. לפי זה נסדר לכם את השאלות המומלצות
+          בלוח ובמצב הזריז. פחות מדקה, ואפשר לדלג.
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">

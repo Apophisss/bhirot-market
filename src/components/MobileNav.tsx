@@ -30,7 +30,7 @@ type Item = { href: string; label: string; icon: keyof typeof ICONS; stroke?: bo
     single page, so the tab-bar copy was the third "התחברות" on one screen.
 */
 const BASE: Item[] = [
-  { href: "/", label: "שווקים", icon: "markets" },
+  { href: "/", label: "שאלות", icon: "markets" },
   { href: "/rapid", label: "מצב זריז", icon: "bolt" },
   { href: "/leaderboard", label: "המובילים", icon: "trophy" },
 ];
@@ -42,7 +42,7 @@ const BASE: Item[] = [
  */
 export function MobileNav({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname();
-  const items: Item[] = loggedIn ? [...BASE, { href: "/portfolio", label: "התיק שלי", icon: "wallet" }] : BASE;
+  const items: Item[] = loggedIn ? [...BASE, { href: "/portfolio", label: "הניקוד שלי", icon: "wallet" }] : BASE;
 
   return (
     <nav

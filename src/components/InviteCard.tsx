@@ -120,7 +120,7 @@ export function InviteCard({
         </div>
 
         <p className="text-xs leading-relaxed text-muted">
-          כל חבר/ה שנרשמים דרך הקישור מזכים אתכם ב{money(REFERRAL_BONUS)} וירטואליים, ישירות ליתרה.
+          כל חבר/ה שנרשמים דרך הקישור מזכים אתכם ב{money(REFERRAL_BONUS)}, ישירות לניקוד.
           {remaining > 0 ? (
             <> נותרו לכם עוד {remaining} הזמנות מזכות.</>
           ) : (
