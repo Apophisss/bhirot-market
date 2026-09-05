@@ -53,6 +53,7 @@ npm run markets:audit              # מה כבר יש, איפה חורים, ומ
    `appeal` ו-`topicality` לפי הסעיף הבא.
 5. **הרכיבו ומזגו:**
    ```bash
+   npm run markets:duplicates -- --batch /tmp/batch.json   # שער 6 — לפני המיזוג
    npx tsx scripts/merge-markets.ts /tmp/batch.json --note "<תקציר בעברית של מה נוסף>"
    npm run people:fetch          # רק אם נוספו אנשים
    npm run markets:validate      # סכמה — חייב לעבור
@@ -60,7 +61,9 @@ npm run markets:audit              # מה כבר יש, איפה חורים, ומ
    npm test                      # אינווריאנטות של מנוע השוק
    ```
    דחייה של `merge-markets.ts` (slug כפול, כותרת דומה מדי, `closesAt` קרוב מדי) היא תשובה, לא
-   תקלה. אל תעקפו אותה בשינוי מילה בכותרת.
+   תקלה. אל תעקפו אותה בשינוי מילה בכותרת. שאלה שנדחתה כ-`looks like ...` היא שאלה ששכחתם
+   לקרוא את השכנה שלה: פתחו את ה-`resolutionCriteria` שלה, ואז או שהשאלה יורדת, או שהיא מקבלת
+   `notDuplicateOf` עם משפט שאומר מה מכריע כל אחת מהן.
 6. **commit ו-push לענף משלכם, ואז PR:**
    ```bash
    git checkout -b claude/questions-<YYYY-MM-DD-HHMM>
