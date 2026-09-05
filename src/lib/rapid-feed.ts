@@ -3,7 +3,9 @@ import { getDb, schema } from "./db";
 import { getCategory } from "./categories";
 import { isTeamAuthored } from "./config";
 import { toView, type MarketView } from "./markets";
-import type { RapidCard, RapidSort } from "./rapid";
+import { getChartHistories } from "./display-history";
+import { buildRapidSpark, type RapidCard, type RapidSort } from "./rapid";
+import type { DisplayHistory } from "./synthetic-history";
 
 const { markets, positions } = schema;
 
@@ -56,7 +58,16 @@ export async function listRapidFeed(opts: RapidFeedOptions = {}): Promise<Market
   return orderFeed(rows.map((r) => toView(r, now.getTime())), sort, now.getTime()).slice(0, limit);
 }
 
-export function toRapidCard(m: MarketView): RapidCard {
+/** The feed the deck is mounted with: the questions, each with the curve behind it. */
+export async function listRapidCards(opts: RapidFeedOptions = {}): Promise<RapidCard[]> {
+  const feed = await listRapidFeed(opts);
+  // one clock for the whole deck, and one query for the whole feed's history
+  const now = Date.now();
+  const history = await getChartHistories(feed, now);
+  return feed.map((m) => toRapidCard(m, history.get(m.id) ?? null));
+}
+
+export function toRapidCard(m: MarketView, history?: DisplayHistory | null): RapidCard {
   const cat = getCategory(m.category);
   return {
     id: m.id,
@@ -75,6 +86,14 @@ export function toRapidCard(m: MarketView): RapidCard {
     volume: m.volume,
     tradeCount: m.tradeCount,
     byTeam: isTeamAuthored(m.createdBy),
+    spark: history
+      ? buildRapidSpark(history.points, {
+          now: history.now,
+          current: m.probability,
+          isOpen: m.status === "open",
+          band: history.synthetic ? history.maxDeviation : null,
+        })
+      : null,
   };
 }
 
