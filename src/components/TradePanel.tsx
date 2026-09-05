@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
 import { otherSide, sellPrefill, sellSide, sharesOn } from "@/lib/sell";
 import { MAX_BET } from "@/lib/limits";
-import { money, pct, shares as fmtShares, sharePrice } from "@/lib/format";
+import { money, pct, shares as fmtShares, sharePrice, signedMoney } from "@/lib/format";
 import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
 import { gaEvent } from "@/lib/gtag";
@@ -331,7 +331,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
             <Row label="תקבל/י" value={quote ? money(quote.amount, { decimals: true }) : "—"} strong />
             <Row
               label="רווח/הפסד על החלק הנמכר"
-              value={quote && held > 0 ? money(quote.amount - heldCost * (Math.min(qty, held) / held), { decimals: true }) : "—"}
+              value={quote && held > 0 ? signedMoney(quote.amount - heldCost * (Math.min(qty, held) / held)) : "—"}
               muted
             />
           </>
