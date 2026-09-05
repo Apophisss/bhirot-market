@@ -17,7 +17,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
-function Row({ r, canRemove, leagueId }: { r: LeagueStanding; canRemove: boolean; leagueId: number }) {
+/**
+ * One line of the table, on a phone as much as on a desktop.
+ *
+ * There is deliberately no management control in here. The owner's "remove" button
+ * used to be a sixth column, and on a 390px screen it took the width the names needed:
+ * a board of "יונ…", "או…" and "נו…" is not a board. Managing the league lives in its
+ * own section below, where a row has room for a name and a button both.
+ */
+function Row({ r }: { r: LeagueStanding }) {
   return (
     <tr className={r.isMe ? "bg-accent/10" : "hover:bg-surface-2/60"}>
       <td className={`tabular px-3 py-2.5 sm:px-4 ${r.rank <= 3 ? "font-bold text-text-strong" : "text-muted"}`}>
@@ -30,25 +38,12 @@ function Row({ r, canRemove, leagueId }: { r: LeagueStanding; canRemove: boolean
           {r.isMe && (
             <span className="shrink-0 rounded-full bg-accent/20 px-2 py-0.5 text-[13px] font-bold text-accent-2">את/ה</span>
           )}
-          {r.isOwner && !r.isMe && <span className="shrink-0 text-[13px] text-muted-2">מנהל/ת</span>}
+          {r.isOwner && !r.isMe && <span className="hidden shrink-0 text-[13px] text-muted-2 sm:inline">מנהל/ת</span>}
         </div>
       </td>
       <td className="tabular px-2 py-2.5 font-semibold sm:px-3">{money(r.netWorth)}</td>
       <td className={`tabular px-2 py-2.5 font-semibold sm:px-3 ${pnlTone(r.pnl)}`}>{signedMoney(r.pnl)}</td>
       <td className="tabular hidden px-3 py-2.5 text-muted sm:table-cell">{r.openPositions}</td>
-      {canRemove && (
-        <td className="px-2 py-2.5 text-left sm:px-3">
-          {!r.isMe && (
-            <PostButton
-              endpoint="/api/leagues"
-              body={{ action: "remove", leagueId, userId: r.userId }}
-              label="הסרה"
-              tone="danger"
-              confirm={`להסיר את ${r.name ?? "המשתתף/ת"} מהליגה?`}
-            />
-          )}
-        </td>
-      )}
     </tr>
   );
 }
@@ -133,12 +128,11 @@ export default async function LeaguePage({ params }: { params: Promise<{ id: str
               <th className="hidden px-3 py-2 text-right font-medium sm:table-cell" title="כמה שאלות פתוחות הם מחזיקים — לא אילו">
                 תשובות פתוחות
               </th>
-              {isOwner && <th className="px-2 py-2 text-right font-medium sm:px-3" />}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {board.map((r) => (
-              <Row key={r.userId} r={r} canRemove={isOwner} leagueId={leagueId} />
+              <Row key={r.userId} r={r} />
             ))}
           </tbody>
         </table>
@@ -170,6 +164,30 @@ export default async function LeaguePage({ params }: { params: Promise<{ id: str
           )}
         </div>
       </section>
+
+      {isOwner && board.length > 1 && (
+        <section className="card overflow-hidden">
+          <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">ניהול המשתתפים</h2>
+          <ul className="divide-y divide-border">
+            {board
+              .filter((r) => !r.isMe)
+              .map((r) => (
+                <li key={r.userId} className="flex items-center gap-3 px-4 py-2.5">
+                  <Avatar name={r.name} image={r.image} size={30} seed={r.userId} />
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text">{r.name ?? "אנונימי"}</span>
+                  <PostButton
+                    endpoint="/api/leagues"
+                    body={{ action: "remove", leagueId, userId: r.userId }}
+                    label="הסרה"
+                    tone="danger"
+                    confirm={`להסיר את ${r.name ?? "המשתתף/ת"} מהליגה?`}
+                    className="shrink-0"
+                  />
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
 
       <p className="text-[13px] leading-relaxed text-muted-2">
         הטבלה מציגה ניקוד, רווח/הפסד ומספר התשובות הפתוחות של כל משתתף/ת. <span className="text-muted">אילו</span> שאלות
