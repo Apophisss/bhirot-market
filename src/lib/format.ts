@@ -9,14 +9,26 @@ export function pct(p: number, digits = 0): string {
   return `${digits ? nf1.format(v) : nf0.format(v)}%`;
 }
 
-/** virtual shekels */
+/**
+ * virtual shekels. Amounts here are real numbers, not whole shekels: a sale, a
+ * payout and a P&L line all land on agorot, and a win of ₪0.37 is a win — so the
+ * agorot are shown whenever the amount has any, and dropped when it has none
+ * (₪10,000 stays ₪10,000). `decimals` pins them on even for a round amount;
+ * `compact` keeps the short overview form for volume and only falls back to
+ * agorot below ₪1, where rounding would erase the amount to "₪0" altogether.
+ */
 export function money(v: number, opts: { compact?: boolean; decimals?: boolean } = {}): string {
   const abs = Math.abs(v);
   if (opts.compact) {
     if (abs >= 1_000_000) return `₪${nf1.format(v / 1_000_000)}M`;
     if (abs >= 10_000) return `₪${nf1.format(v / 1_000)}K`;
+    if (abs >= 1) return `₪${nf0.format(v)}`;
   }
-  return `₪${opts.decimals ? nf2.format(v) : nf0.format(v)}`;
+  // round to agorot first, so the shekels and the agorot never disagree.
+  // `|| 0` turns -0 (anything under half an agora, negative) back into 0.
+  const agorot = Math.round(v * 100) || 0;
+  const value = agorot / 100;
+  return `₪${opts.decimals || agorot % 100 !== 0 ? nf2.format(value) : nf0.format(value)}`;
 }
 
 export function signedMoney(v: number): string {
