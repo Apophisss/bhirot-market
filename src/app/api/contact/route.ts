@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { ContactInputSchema, createContactMessage } from "@/lib/inbox";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
+import { track } from "@/lib/analytics";
+import { EVENTS } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 
@@ -36,5 +38,6 @@ export async function POST(req: Request) {
   }
 
   const message = await createContactMessage(parsed.data, user);
+  await track(EVENTS.contactMessage, { req, userId, path: "/contact", props: { loggedIn: userId ? 1 : 0 } });
   return NextResponse.json({ ok: true, id: message.id });
 }

@@ -32,7 +32,13 @@ async function claimPendingReferral(userId: string) {
     const jar = await cookies();
     const code = jar.get(REFERRAL_COOKIE)?.value;
     if (!code) return;
-    await claimReferral(userId, code);
+    const result = await claimReferral(userId, code);
+    // only a claim that actually landed: "none" is the far more common outcome
+    // (a stale cookie, a second sign-in, someone's own link) and counting it as
+    // a redeemed invite would make the programme look like it works when it does not
+    if (result !== "none") {
+      await track(EVENTS.referralClaimed, { userId, path: "/login", props: { result } });
+    }
     // the cookie has done its job; a stale one would follow the user around for a month
     try {
       jar.delete(REFERRAL_COOKIE);
@@ -118,6 +124,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
       if (user.id) await claimPendingReferral(user.id);
       if (user.id) await claimAdAttribution(user.id, (await cookies()).get(AD_COOKIE)?.value);
       await track(EVENTS.signup, { userId: user.id, path: "/login" });
+    },
+    // fires for every provider and after createUser, so it is the one place that
+    // sees both halves of the answer: which provider, and new account or not
+    async signOut(message) {
+      const userId = "token" in message ? (message.token?.id as string | undefined) : undefined;
+      await track(EVENTS.logout, { userId, path: "/" });
     },
     // fires for every provider and after createUser, so it is the one place that
     // sees both halves of the answer: which provider, and new account or not
