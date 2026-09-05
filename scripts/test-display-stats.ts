@@ -2,10 +2,12 @@
  * Property-checks the display-only homepage numbers (src/lib/display-stats.ts).
  *
  * Three promises are worth a test in a repo with no test runner:
- *   1. every advertised headline is never *smaller* than the real number behind
+ *   1. the open-question count is not a display number at all — it is the real
+ *      one, because the board underneath it is countable (see displayOpenCount);
+ *   2. every advertised headline is never *smaller* than the real number behind
  *      it, and the cumulative ones (traders, volume, resolutions) never shrink
  *      while the real number grows;
- *   2. the "updated" moment the site shows is always inside the last hour,
+ *   3. the "updated" moment the site shows is always inside the last hour,
  *      and never walks backwards as the clock advances.
  *
  *   npm run test:display                    # 200,000 random moments
@@ -14,8 +16,6 @@
  * Exits 1 on the first violation and prints the failing case.
  */
 import {
-  DISPLAY_OPEN_DRIFT,
-  DISPLAY_OPEN_MULTIPLIER,
   DISPLAY_RESOLVED_MULTIPLIER,
   DISPLAY_UPDATE_MIN_AGE_MS,
   DISPLAY_UPDATE_PERIOD_MS,
@@ -51,29 +51,17 @@ function check(name: string, ok: boolean, detail?: unknown) {
 // ---- displayOpenCount -------------------------------------------------------
 
 check("empty board stays empty", displayOpenCount(0) === 0);
-check("a negative count is not inflated", displayOpenCount(-5) === 0);
+check("a negative count is not a count", displayOpenCount(-5) === 0);
+check("a broken number is not a count", displayOpenCount(NaN) === 0 && displayOpenCount(Infinity) === 0);
 
+// The one headline that is not a display number. The hero, /welcome, the category
+// filter and the listing all print "שאלות פתוחות" beside a board the reader can
+// count, so the count has to BE the board — not a multiple of it, and not a
+// function of the clock.
 for (let i = 0; i < CASES; i++) {
-  const now = START + Math.floor(Math.random() * 400 * DAY);
   const real = 1 + Math.floor(Math.random() * 900);
-  const shown = displayOpenCount(real, now);
-  check("never undersells the real board", shown >= real, { real, shown, now });
-  check("stays under the advertised ceiling", shown <= Math.round(real * DISPLAY_OPEN_MULTIPLIER) + DISPLAY_OPEN_DRIFT, {
-    real,
-    shown,
-  });
-  check("deterministic for the same moment", shown === displayOpenCount(real, now), { real, now });
-  const sameHour = now - (now % HOUR) + Math.floor(Math.random() * HOUR);
-  check("constant inside one hour", displayOpenCount(real, sameHour) === displayOpenCount(real, now - (now % HOUR)), {
-    real,
-    now,
-  });
+  check("the open count is the real one", displayOpenCount(real) === real, { real, shown: displayOpenCount(real) });
 }
-
-// the drift has to actually move, or the "alive board" is a constant
-const hours = new Set<number>();
-for (let h = 0; h < 400; h++) hours.add(displayOpenCount(344, START + h * HOUR));
-check("the count drifts across hours", hours.size > 5, { distinct: hours.size });
 
 // ---- the cumulative headlines: traders, volume, resolutions -----------------
 

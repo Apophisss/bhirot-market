@@ -9,6 +9,7 @@ import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 import { getMarketStats } from "@/lib/markets";
 import { ensureSynced } from "@/lib/sync";
 import { money } from "@/lib/format";
+import { displayOpenCount } from "@/lib/display-stats";
 import { Avatar } from "@/components/Avatar";
 import { Countdown } from "@/components/Countdown";
 import { BoltIcon } from "@/components/BoltIcon";
@@ -64,7 +65,7 @@ export default async function InviteLandingPage({ params }: { params: Promise<{ 
           </div>
           <h1 className="mt-4 text-[25px] font-black leading-tight text-white sm:text-4xl">{SITE_TAGLINE}</h1>
           <p className="mt-2 text-sm leading-relaxed text-white/75 sm:text-lg">
-            {stats.open} שאלות פתוחות על הקמפיין — סקרים, קואליציה, משפט נתניהו ומה שיקרה עד יום הבחירות. נרשמים,
+            {displayOpenCount(stats.open)} שאלות פתוחות על הקמפיין — סקרים, קואליציה, משפט נתניהו ומה שיקרה עד יום הבחירות. נרשמים,
             מקבלים <strong className="text-white">{money(STARTING_BALANCE)}</strong>, ומתחילים לנחש.
           </p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row">

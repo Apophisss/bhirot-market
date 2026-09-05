@@ -117,7 +117,7 @@ export function ContactForm({ defaultName, defaultEmail }: { defaultName?: strin
           placeholder="מה רציתם לספר לנו? אם זה נוגע לשוק מסוים — צרפו את הקישור אליו."
           className="inp resize-y"
         />
-        <p className="mt-1 text-left text-[11px] text-muted-2">{body.length}/4000</p>
+        <p className="mt-1 text-left text-[13px] text-muted-2">{body.length}/4000</p>
       </Field>
 
       {err && <p className="rounded-lg bg-no/10 px-3 py-2 text-sm font-medium text-no">{err}</p>}
@@ -139,7 +139,7 @@ export function Field({ label, required, hint, children }: { label: string; requ
         {label}
         {required && <span className="text-no"> *</span>}
       </span>
-      {hint && <span className="mb-1.5 block text-[12px] leading-snug text-muted">{hint}</span>}
+      {hint && <span className="mb-1.5 block text-[13px] leading-snug text-muted">{hint}</span>}
       {children}
     </label>
   );

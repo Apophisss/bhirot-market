@@ -6,12 +6,13 @@ import { getPortfolio, getUserTrades, getLeaderboard, type HoldingView } from "@
 import { getReferralSummary } from "@/lib/referral-program";
 import { buildBoard } from "@/lib/fake-leaderboard";
 import { STARTING_BALANCE } from "@/lib/db/schema";
-import { money, signedMoney, signedPct, pct, shares as fmtShares, sharePrice, closesLabel, pnlSign, pnlTone } from "@/lib/format";
+import { money, signedMoney, signedPct, pct, shares as fmtShares, units, sharePrice, closesLabel, pnlSign, pnlTone } from "@/lib/format";
 import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
 import { InviteCard } from "@/components/InviteCard";
 import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
+import { InstallPrompt } from "@/components/InstallApp";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
  * price down, and the average the sale actually gets is the honest number.
  */
 function sellHint(h: HoldingView): string {
-  return `מכירה של ${fmtShares(h.shares)} תשובות עכשיו מזכה ב־${money(h.value, { decimals: true })} — ${sharePrice(h.exitPrice)} לתשובה בממוצע. המחיר הנוכחי (${pct(h.currentPrice, 1)}) הוא מחיר התשובה הבאה; מכירה גדולה מורידה אותו תוך כדי.`;
+  return `החזרה של ${units(h.shares)} עכשיו מזכה ב־${money(h.value)} — ${sharePrice(h.exitPrice)} ליחידה בממוצע. המחיר הנוכחי (${pct(h.currentPrice, 1)}) הוא מחיר היחידה הבאה; החזרה גדולה מורידה אותו תוך כדי.`;
 }
 
 export default async function PortfolioPage() {
@@ -107,8 +108,22 @@ export default async function PortfolioPage() {
 
       <InviteCard code={referrals.code} invited={referrals.invited} earned={referrals.earned} remaining={referrals.remaining} />
 
+      {/* מי שהגיע לעמוד הניקוד הוא בדיוק מי ששווה לו קיצור במסך הבית — הוא כבר חוזר */}
+      <InstallPrompt />
+
       <section className="card overflow-hidden">
         <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">תשובות פתוחות ({openHoldings.length})</h2>
+        {/*
+          Everything in this table is a valuation, not a result: the profit column is
+          what the position would fetch if it were returned right now, on a board where
+          most questions have not been decided yet. Saying so once, here, is the
+          difference between a score and a guess about a score.
+        */}
+        {openHoldings.length > 0 && (
+          <p className="border-b border-border bg-surface-2 px-4 py-2 text-[13px] leading-snug text-muted">
+            הרווח/הפסד כאן הוא שערוך לפי המד הנוכחי — הוא נהיה סופי רק כשהשאלה מוכרעת. לכל שורה מופיע מועד ההכרעה.
+          </p>
+        )}
         {openHoldings.length ? (
           <>
             <ul className="divide-y divide-border sm:hidden">
@@ -119,13 +134,13 @@ export default async function PortfolioPage() {
                   </Link>
                   <div className="mt-2 flex items-center justify-between gap-2 text-xs">
                     <span className={`rounded-md px-2 py-1 font-bold ${h.side === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}>
-                      {h.side === "YES" ? "כן" : "לא"} · {fmtShares(h.shares)} תשובות
+                      {h.side === "YES" ? "כן" : "לא"} · {money(h.shares)} אם צדקת
                     </span>
                     <span className={`tabular font-bold ${pnlTone(h.pnl)}`}>{signedMoney(h.pnl)}</span>
                   </div>
                   <div className="tabular mt-2 flex items-center justify-between gap-2 text-xs text-muted">
                     <span title={sellHint(h)}>
-                      ממוצע {sharePrice(h.avgPrice)} · נוכחי {pct(h.currentPrice, 1)} · במכירה {money(h.value, { decimals: true })}
+                      ממוצע {sharePrice(h.avgPrice)} · נוכחי {pct(h.currentPrice, 1)} · בהחזרה {money(h.value)}
                       {/* when the question decides is what brings a holder back to it */}
                       {h.market.status === "open" && <span className="text-muted-2"> · {closesLabel(h.market.closesAt)}</span>}
                     </span>
@@ -146,11 +161,14 @@ export default async function PortfolioPage() {
                 <tr>
                   <th className="px-4 py-2 text-right font-medium">שאלה</th>
                   <th className="px-3 py-2 text-right font-medium">צד</th>
-                  <th className="px-3 py-2 text-right font-medium">תשובות</th>
+                  <th className="px-3 py-2 text-right font-medium" title="מספר היחידות שמוחזקות — כל יחידה שווה נקודה אחת אם התשובה נכונה">יחידות</th>
                   <th className="px-3 py-2 text-right font-medium">מחיר ממוצע</th>
                   <th className="px-3 py-2 text-right font-medium">מחיר נוכחי</th>
-                  <th className="px-3 py-2 text-right font-medium" title="מה שתקבלו אם תמכרו את התשובות עכשיו">שווי במכירה</th>
+                  <th className="px-3 py-2 text-right font-medium" title="מה שתקבלו אם תחזירו את התשובות עכשיו">שווי בהחזרה</th>
                   <th className="px-3 py-2 text-right font-medium">רווח/הפסד</th>
+                  {/* until a question is decided its profit is a valuation, not a result —
+                      so the date it stops being one is a column, not a footnote */}
+                  <th className="px-3 py-2 text-right font-medium">מוכרע</th>
                   <th className="px-3 py-2"></th>
                 </tr>
               </thead>
@@ -164,8 +182,9 @@ export default async function PortfolioPage() {
                     <td className="tabular px-3 py-2.5">{fmtShares(h.shares)}</td>
                     <td className="tabular px-3 py-2.5">{sharePrice(h.avgPrice)}</td>
                     <td className="tabular px-3 py-2.5">{pct(h.currentPrice, 1)}</td>
-                    <td className="tabular px-3 py-2.5 font-semibold" title={sellHint(h)}>{money(h.value, { decimals: true })}</td>
+                    <td className="tabular px-3 py-2.5 font-semibold" title={sellHint(h)}>{money(h.value)}</td>
                     <td className={`tabular px-3 py-2.5 font-semibold ${pnlTone(h.pnl)}`}>{signedMoney(h.pnl)}</td>
+                    <td className="px-3 py-2.5 text-muted">{h.market.status === "open" ? closesLabel(h.market.closesAt) : "ממתין להכרעה"}</td>
                     <td className="px-3 py-2.5">
                       <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}&action=sell#trade`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">לשאלה</Link>
                     </td>
@@ -193,7 +212,7 @@ export default async function PortfolioPage() {
                 <li key={`${h.market.id}-${h.side}-s`} className="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <Link href={`/market/${h.market.id}`} className="line-clamp-2 text-text hover:text-accent-2 sm:line-clamp-1">{h.market.title}</Link>
                   <span className="shrink-0 text-xs text-muted">
-                    <span className={h.side === "YES" ? "text-yes" : "text-no"}>{fmtShares(h.shares)} {h.side === "YES" ? "כן" : "לא"}</span> · תוצאה:{" "}
+                    <span className={h.side === "YES" ? "text-yes" : "text-no"}>{units(h.shares)} {h.side === "YES" ? "כן" : "לא"}</span> · תוצאה:{" "}
                     {h.market.status === "cancelled" ? "בוטל" : h.market.resolution === "YES" ? "כן" : "לא"} ·{" "}
                     <span className={`tabular font-semibold ${pnlTone(h.realizedPnl)}`}>{signedMoney(h.realizedPnl)}</span>
                   </span>

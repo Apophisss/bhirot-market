@@ -7,8 +7,8 @@ import { money, pct } from "@/lib/format";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import {
-  GUEST_LIMIT,
   addGuestAnswer,
+  guestAnswerFor,
   readGuestAnswers,
   serverGuestAnswers,
   subscribeGuestAnswers,
@@ -61,35 +61,43 @@ export function WelcomeQuestions({ questions }: { questions: WelcomeQuestion[] }
     (q: WelcomeQuestion, side: Side) => {
       if (chosen) return; // the trip to login is already under way
       setChosen({ id: q.id, side });
-      if (saved.length < GUEST_LIMIT) {
-        addGuestAnswer({
-          marketSlug: q.id,
-          side,
-          priceAtAnswer: side === "YES" ? q.probability : 1 - q.probability,
-          title: q.title,
-          ts: Date.now(),
-        });
-      }
+      // Always written, including the answer that goes past the free run: the store
+      // keeps one more than the limit precisely so the tap that raises the wall is
+      // not the one that gets thrown away (see GUEST_STORE_LIMIT), and the sign-in
+      // screen lists it with the rest.
+      addGuestAnswer({
+        marketSlug: q.id,
+        side,
+        priceAtAnswer: side === "YES" ? q.probability : 1 - q.probability,
+        title: q.title,
+        ts: Date.now(),
+      });
       gaEvent("welcome_answer", { market_id: q.id, side });
       if (typeof navigator.vibrate === "function") navigator.vibrate(12);
       // the confirmation is the point of the pause: it is the first time the visitor sees
       // that answering does something, and it is what the login is now asking to preserve
       timer.current = window.setTimeout(() => router.push("/login?callbackUrl=%2Frapid"), HANDOFF_MS);
     },
-    [chosen, router, saved.length],
+    [chosen, router],
   );
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {questions.map((q) => (
-        <QuestionCard
-          key={q.id}
-          q={q}
-          side={chosen?.id === q.id ? chosen.side : null}
-          dimmed={Boolean(chosen) && chosen?.id !== q.id}
-          onAnswer={(side) => choose(q, side)}
-        />
-      ))}
+      {questions.map((q) => {
+        // an answer this browser already gave — on an earlier visit, or in the deck —
+        // is shown back rather than asked again: the card and the store never disagree
+        const stored = guestAnswerFor(saved, q.id);
+        return (
+          <QuestionCard
+            key={q.id}
+            q={q}
+            side={chosen?.id === q.id ? chosen.side : stored?.side ?? null}
+            handingOff={chosen?.id === q.id}
+            dimmed={Boolean(chosen) && chosen?.id !== q.id}
+            onAnswer={(side) => choose(q, side)}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -97,11 +105,14 @@ export function WelcomeQuestions({ questions }: { questions: WelcomeQuestion[] }
 function QuestionCard({
   q,
   side,
+  handingOff,
   dimmed,
   onAnswer,
 }: {
   q: WelcomeQuestion;
   side: Side | null;
+  /** true only for the card just tapped — the one the trip to the sign-in screen is for */
+  handingOff: boolean;
   dimmed: boolean;
   onAnswer: (side: Side) => void;
 }) {
@@ -120,7 +131,7 @@ function QuestionCard({
         />
         <div className="min-w-0 flex-1">
           <span
-            className="cat-chip inline-block rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
+            className="cat-chip inline-block rounded-md px-1.5 py-0.5 text-[13px] font-semibold"
             style={{ "--cat": q.categoryAccent, "--cat-dark": q.categoryAccentDark } as CSSProperties}
           >
             {q.categoryLabel}
@@ -134,10 +145,12 @@ function QuestionCard({
           className={`mt-auto rounded-xl px-3 py-2.5 text-center ${side === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}
         >
           <p className="text-sm font-black">ענית {side === "YES" ? "כן" : "לא"}</p>
-          <p className="tabular mt-0.5 text-[12px] font-semibold text-text">
+          <p className="tabular mt-0.5 text-[13px] font-semibold text-text">
             {money(RAPID_DEFAULT_STAKE)} ← ≈{money(payout)} אם צדקתם
           </p>
-          <p className="mt-1 text-[11px] text-muted">שומרים לכם את התשובה…</p>
+          <p className="mt-1 text-[13px] text-muted">
+            {handingOff ? "שומרים לכם את התשובה…" : "התשובה שמורה · התחברות מכניסה אותה לניקוד"}
+          </p>
         </div>
       ) : (
         <div className="mt-auto grid grid-cols-2 gap-2">

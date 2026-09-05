@@ -16,6 +16,27 @@
 
 @theme {
   --font-sans: var(--font-heebo), "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+
+  /*
+    The floor under every size on the site.
+
+    Measured on the home page at 375px: 160 of 238 text elements were under 14px —
+    84 of them at 11px, 38 at 12px, 13 at 10px — and the largest type anywhere on
+    the page was 22px. None of that is decoration: 11px is where the closing time,
+    the volume and the number of answers live, which is to say everything a reader
+    uses to choose a question. Hebrew has no ascenders and descenders to fall back
+    on at that size, and a phone is held at arm's length.
+
+    So the two smallest steps in the scale move up, and every hard-coded 10, 11 and
+    12px in the components moves with them: `text-xs` is the floor for operational
+    text at 13px, `text-sm` is body copy at 15px. Anything that still needs to be
+    smaller than the floor has to say so explicitly, which is the point.
+  */
+  --text-xs: 0.8125rem; /* 13px — closing times, volumes, counts, chips */
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.9375rem; /* 15px — body copy */
+  --text-sm--line-height: 1.375rem;
+
   /* Light, white-first surfaces with a faint blue cast */
   --color-bg: #ffffff;
   --color-surface: #ffffff;
@@ -257,6 +278,27 @@
     scroll-snap-align: start;
   }
 
+  /* The add-to-home-screen instructions, as a real <dialog>: showModal() is what
+     brings the scrim, the focus trap and Esc with it. The element sits outside the
+     page flow, so it takes the page's own surface tokens rather than inheriting
+     anything from the card that opened it. */
+  .install-sheet {
+    margin: auto;
+    padding: 0;
+    width: min(28rem, calc(100vw - 2rem));
+    max-height: min(85dvh, 42rem);
+    overflow-y: auto;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: 0 24px 60px -20px rgba(10, 16, 32, 0.45);
+  }
+  .install-sheet::backdrop {
+    background: rgba(10, 16, 32, 0.55);
+    backdrop-filter: blur(2px);
+  }
+
   /* safe areas: iPhone notch and home indicator */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -444,6 +486,23 @@
   already carries. Both are set as custom properties on the element and this picks
   one; see `Category.accentDark`.
 */
+/*
+  The category chip: a label in its category's colour, on a tint of the same colour.
+
+  That pairing is the tightest contrast on the site, and it was failing. A chip is
+  a word in `var(--cat)` on a tint OF `var(--cat)`, so every percent of tint moves
+  the background towards the text: #c2410c on its own 13% tint measured 4.28:1,
+  #b45309 4.21:1, and in dark mode three chips sat at 3.86–3.90:1 — all under the
+  4.5:1 that 11-13px text needs, and all of them by construction rather than by
+  accident, which is why picking better accents one at a time would not have held.
+
+  So the two are pushed apart instead: the label is mixed 20% towards black in
+  light mode and 35% towards white in dark, away from the tint behind it, while
+  the tint itself stays where it was. The hue is the category's either way — this
+  is the same colour, further from its own background. Worst case across all
+  eleven categories, on cards, on `surface-2` and on `surface-3`: 4.83:1 light,
+  4.78:1 dark.
+*/
 .cat-chip {
   /* the tint is an upgrade, never a requirement: a browser without color-mix would
      otherwise be handed `background: var(--cat)` behind `color: var(--cat)` — the
@@ -453,6 +512,7 @@
 }
 @supports (color: color-mix(in srgb, red, red)) {
   .cat-chip {
+    color: color-mix(in srgb, var(--cat) 80%, black);
     background: color-mix(in srgb, var(--cat) 13%, transparent);
   }
 }
@@ -462,7 +522,8 @@
   }
   @supports (color: color-mix(in srgb, red, red)) {
     .cat-chip {
-      background: color-mix(in srgb, var(--cat-dark) 16%, transparent);
+      color: color-mix(in srgb, var(--cat-dark) 65%, white);
+      background: color-mix(in srgb, var(--cat-dark) 12%, transparent);
     }
   }
 }

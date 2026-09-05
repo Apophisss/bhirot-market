@@ -34,7 +34,7 @@ function Row({ r, muteRank = false }: { r: BoardRow; muteRank?: boolean }) {
         <div className="flex min-w-0 items-center gap-2">
           <Avatar name={r.handle} seed={r.handle} size={28} />
           <span className="truncate font-semibold text-text">{r.handle}</span>
-          {r.isMe ? <span className="shrink-0 rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-bold text-accent-2">את/ה</span> : null}
+          {r.isMe ? <span className="shrink-0 rounded-full bg-accent/20 px-2 py-0.5 text-[13px] font-bold text-accent-2">את/ה</span> : null}
         </div>
       </td>
       <td className="tabular px-2 py-2.5 font-semibold sm:px-3">{money(r.netWorth)}</td>
@@ -126,7 +126,7 @@ export default async function LeaderboardPage() {
               {mePinned ? (
                 <>
                   <tr className="bg-surface-2/60">
-                    <td colSpan={5} className="px-3 py-1.5 text-center text-[11px] text-muted sm:px-4">
+                    <td colSpan={5} className="px-3 py-1.5 text-center text-[13px] text-muted sm:px-4">
                       ⋯ המקום שלך מתוך {board.length} שחקנים ⋯
                     </td>
                   </tr>
@@ -139,7 +139,7 @@ export default async function LeaderboardPage() {
           <p className="p-8 text-center text-sm text-muted">עדיין אין שחקנים בדירוג.</p>
         )}
       </div>
-      <p className="text-[12px] text-muted">
+      <p className="text-[13px] text-muted">
         מוצגים {rows.length} המקומות הראשונים מתוך {board.length} שחקנים בלוח. הדירוג מתעדכן בכל טעינה של הדף.
       </p>
 

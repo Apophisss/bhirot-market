@@ -28,56 +28,60 @@ export function pct(p: number, digits = 0): string {
  * to both a visitor and an ad reviewer as money changing hands. Points are what it
  * actually is: a score you cannot deposit, withdraw or cash out.
  *
- * Amounts are real numbers, not whole points: a sale, a payout and a profit/loss
- * line all land on hundredths, and a win of 0.37 is a win — so the fraction is
- * shown whenever the amount has one, and dropped when it has none (10,000 stays
- * 10,000). `decimals` pins it on even for a round amount; `compact` keeps the
- * short overview form for volume and only falls back to hundredths below 1,
- * where rounding would erase the amount to "0" altogether.
+ * Whole points, always.
+ *
+ * The engine works in real numbers — a sale, a payout and a profit/loss line all
+ * land on hundredths — and the formatter used to print every one of them: a
+ * header reading "שווי 10,000.05 נק׳", a portfolio reading "8,905.09" beside
+ * "ממומש +0.09 נק׳ · לא ממומש -0.04 נק׳", and twenty-two open positions each
+ * showing "0.00 נק׳". Two decimal places of a play-money score are not
+ * information; they are the accounting of a game that has none, and they made
+ * every number on the page harder to read in order to say nothing.
+ *
+ * So the hundredths stay in the engine and stop at the screen. Rounding, never
+ * truncation — a score is never quietly shaved — and `|| 0` folds -0 (a negative
+ * sliver) back to plain zero, because zero has no sign.
+ *
+ * `compact` keeps the short K/M overview form volume needs.
  */
-export function money(v: number, opts: { compact?: boolean; decimals?: boolean } = {}): string {
+export function money(v: number, opts: { compact?: boolean } = {}): string {
   const abs = Math.abs(v);
   if (opts.compact) {
     if (abs >= 1_000_000) return `${nf1.format(v / 1_000_000)}M ${POINTS_SHORT}`;
     if (abs >= 10_000) return `${nf1.format(v / 1_000)}K ${POINTS_SHORT}`;
-    if (abs >= 1) return `${nf0.format(v)} ${POINTS_SHORT}`;
   }
-  // round to hundredths first, so the whole points and the fraction never disagree.
-  // `|| 0` turns -0 (anything under half a hundredth, negative) back into 0.
-  const agorot = Math.round(v * 100) || 0;
-  const value = agorot / 100;
-  return `${opts.decimals || agorot % 100 !== 0 ? nf2.format(value) : nf0.format(value)} ${POINTS_SHORT}`;
+  return `${nf0.format(points(v))} ${POINTS_SHORT}`;
 }
 
 /**
  * A profit/loss amount with its sign — and only when it has one.
  *
  * The rounding happens BEFORE the sign is chosen, which is the whole point: a
- * round trip that cost a fraction of a hundredth is displayed as "0.00", and
- * "-0.00" is a number wearing a sign it does not have. Below half a hundredth in
- * either direction the amount is simply zero, and zero is unsigned.
+ * position that moved by two hundredths of a point is displayed as "0", and "-0"
+ * is a number wearing a sign it does not have. Below half a point in either
+ * direction the amount is simply zero, and zero is unsigned.
  */
 export function signedMoney(v: number): string {
-  const s = money(Math.abs(pnlAgorot(v)) / 100, { decimals: true });
+  const s = money(Math.abs(points(v)));
   const sign = pnlSign(v);
   return sign > 0 ? `+${s}` : sign < 0 ? `-${s}` : s;
 }
 
-/** A profit/loss rounded to whole hundredths. `|| 0` folds -0 (a negative sliver) back to 0. */
-function pnlAgorot(v: number): number {
-  return (Number.isFinite(v) ? Math.round(v * 100) : 0) || 0;
+/** An amount as the screen shows it: whole points. `|| 0` folds -0 (a negative sliver) back to 0. */
+function points(v: number): number {
+  return (Number.isFinite(v) ? Math.round(v) : 0) || 0;
 }
 
 /**
  * The direction a profit/loss should be *shown* in, after rounding: 1, -1 or 0.
  *
  * Every green/red decision goes through this rather than `v >= 0`, so a value
- * the formatter prints as "0.00" is never painted as a win or as a loss — the two
+ * the formatter prints as "0" is never painted as a win or as a loss — the two
  * would otherwise disagree on the same line.
  */
 export function pnlSign(v: number): -1 | 0 | 1 {
-  const agorot = pnlAgorot(v);
-  return agorot > 0 ? 1 : agorot < 0 ? -1 : 0;
+  const whole = points(v);
+  return whole > 0 ? 1 : whole < 0 ? -1 : 0;
 }
 
 /** Tailwind text colour for a profit/loss: muted at a displayed zero, never green or red. */
@@ -90,16 +94,40 @@ export function pnlTone(v: number): "text-yes" | "text-no" | "text-muted" {
  * A profit/loss as a signed percentage of the points behind it (0.0123 -> "+1.2%").
  *
  * Rounds before choosing the sign, exactly as `signedMoney` does — a return the
- * page prints as 0.0% must not be shown as a gain or a loss.
+ * page prints as 0.0% must not be shown as a gain or a loss. And a return smaller
+ * than a tenth of a percent is not shown as a number at all: "0%" beside a
+ * profit is a claim about performance that the digit cannot support, so it
+ * becomes an em dash — nothing has happened yet.
  */
 export function signedPct(ratio: number): string {
   const tenths = (Number.isFinite(ratio) ? Math.round(ratio * 1000) : 0) || 0;
+  if (tenths === 0) return "—";
   const body = `${nf1.format(Math.abs(tenths) / 10)}%`;
-  return tenths > 0 ? `+${body}` : tenths < 0 ? `-${body}` : body;
+  return tenths > 0 ? `+${body}` : `-${body}`;
 }
 
 export function shares(v: number): string {
   return nf1.format(v);
+}
+
+/**
+ * What a quantity of a holding is called.
+ *
+ * It used to be called "תשובות", because a share on this board is bought by
+ * answering — and the result was a portfolio row reading "לא · 141.4 תשובות" for
+ * a single tap on a single question, a panel asking for "תשובות להחזרה (יש לך
+ * 141.4)", and a confirm button offering "20 נק׳ · 27.9 תשובות". A player who
+ * answered once was told they held a hundred and forty-one answers.
+ *
+ * So the word "תשובה" is kept for the act — one question, one answer — and the
+ * quantity behind it gets a name of its own. Wherever the quantity is really a
+ * payout (what the holding pays if the answer was right, which on this board is
+ * the same number), the screen says points instead and skips the unit entirely.
+ */
+export const UNITS_LABEL = "יחידות";
+
+export function units(v: number): string {
+  return `${nf1.format(v)} ${UNITS_LABEL}`;
 }
 
 /** what one answer costs, in points (0.42 -> "0.42 נק׳") — the same unit as every other amount on the site */

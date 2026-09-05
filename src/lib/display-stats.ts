@@ -12,26 +12,21 @@
  * function of that slot alone — so every visitor sees the same number at the same
  * moment, and a reload does not reshuffle it.
  *
- * Two shapes live here, and the difference matters:
+ * The **cumulative** headlines — traders, volume, resolved questions — only ever
+ * grow in reality. A wobble on those would show a visitor a number going
+ * *backwards* between two page loads, which reads as a bug, so they are plain
+ * multiples of the real number and move only when it moves.
  *
- *   - the **open question count** rises and falls in reality (questions open,
- *     questions close), so it carries an hourly drift that makes the board look
- *     alive;
- *   - the **cumulative** headlines — traders, volume, resolved questions — only
- *     ever grow in reality. A wobble on those would show a visitor a number
- *     going *backwards* between two page loads, which reads as a bug, so they
- *     are plain multiples of the real number and move only when it moves.
+ * The **open question count** is the one headline that is not inflated at all,
+ * and `displayOpenCount` is here to be the single place that says so. See its
+ * note: a number the board itself contradicts is not a headline, it is an error
+ * message with a marketing budget.
  */
 
 import { hash32, unit } from "./hash";
 import { FAKE_TRADER_COUNT } from "./fake-leaderboard";
 
 const MINUTE = 60_000;
-
-/** the hero counts the open questions this many times over */
-export const DISPLAY_OPEN_MULTIPLIER = 2.5;
-/** hourly wobble on top of the multiplied count, so the board looks alive */
-export const DISPLAY_OPEN_DRIFT = 48;
 
 /** a fresh "updated" moment is picked once every half hour */
 export const DISPLAY_UPDATE_PERIOD_MS = 30 * MINUTE;
@@ -40,17 +35,33 @@ export const DISPLAY_UPDATE_MAX_OFFSET_MIN = 25;
 /** never claim an update from the last couple of minutes */
 export const DISPLAY_UPDATE_MIN_AGE_MS = 2 * MINUTE;
 
+/** a real number as the inflators are willing to read it: finite and non-negative */
+function positive(n: number): number {
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 /**
- * The number of open questions the hero advertises: the real count inflated by a
- * fixed multiplier plus a drift that changes once an hour. Always at least the
- * real count — the headline must never undersell the actual board — and an empty
- * board stays empty rather than growing questions out of nothing.
+ * The number of open questions the site advertises: the real one.
+ *
+ * This used to be the real count times 2.5, plus an hourly drift — and the number
+ * it produced was contradicted by the site's own board, on the same screen. The
+ * home page promised "894 שאלות פתוחות על הקמפיין" and "מצב זריז · 894 שאלות ברצף"
+ * directly above a category filter reading "כל השאלות 339" and a list reading
+ * "12 מתוך 339"; `/welcome` said 339 as well. A visitor arriving from an ad met a
+ * headline that the first scroll disproved.
+ *
+ * The argument is the same one that gives `displayUserCount` its floor, only
+ * sharper: an inflated count of *countable, listed things* is not a headline a
+ * fabricated number can carry, because the reader can count them. So the open
+ * count is real everywhere, and this function is the one place that decides it —
+ * every "שאלות פתוחות" on the site comes through here or through the same
+ * `count(status='open')` that feeds it (`getMarketStats`, `getCategoryCounts`).
+ *
+ * The cumulative headlines below are a different case and are still inflated:
+ * nobody can count the site's historical volume by scrolling.
  */
-export function displayOpenCount(realOpen: number, now = Date.now()): number {
-  if (!Number.isFinite(realOpen) || realOpen <= 0) return 0;
-  const hour = Math.floor(now / 3_600_000);
-  const drift = Math.round(unit(hash32(hour, 0x11)) * DISPLAY_OPEN_DRIFT);
-  return Math.round(realOpen * DISPLAY_OPEN_MULTIPLIER) + drift;
+export function displayOpenCount(realOpen: number): number {
+  return Math.round(positive(realOpen));
 }
 
 /** the hero counts every registered trader this many times over... */
@@ -63,11 +74,6 @@ export const DISPLAY_VOLUME_MULTIPLIER = 3.4;
 
 /** the hero counts the resolved questions this many times over */
 export const DISPLAY_RESOLVED_MULTIPLIER = 2.5;
-
-/** a real number as the inflators are willing to read it: finite and non-negative */
-function positive(n: number): number {
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
 
 /**
  * The number of players the hero advertises: the real signups inflated by a

@@ -530,6 +530,8 @@ src/lib/analytics.ts     קליטת אירועי אנליטיקה בצד השר�
 src/lib/stats.ts         כל שאילתות הדוחות של לוח הניהול והבאנדל
 src/lib/bundle.ts        בניית באנדל הנתונים (JSON + דוח Markdown)
 src/lib/gtag.ts          Google Analytics: הפעלה לפי מזהה המדידה, צפיות בעמוד ואירועים
+src/lib/install.ts       זיהוי הפלטפורמה, חניית אירוע ההתקנה של כרומיום ודחיית ההצעה — ללא תלויות, נטען גם בדפדפן
+src/components/InstallApp.tsx  ההמלצה להוסיף למסך הבית: הכרטיס בלוח, שורת הפוטר וחלון ההוראות לכל פלטפורמה
 src/components/RapidCta.tsx   ה-CTA המשותף למצב זריז — הבאנר והשורה שכל דף שנגמר בלי שאלה מסיים בהם
 src/components/Analytics.tsx  המעקב בצד הדפדפן (sendBeacon)
 src/components/GoogleAnalytics.tsx  טעינת gtag.js ודיווח צפיות ל-GA4
@@ -550,6 +552,24 @@ src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /p
 - **קודי סטטוס**: שלד הטעינה (`loading.tsx`) חי רק תחת קבוצת הראוט `(listing)`. אם מוסיפים `loading.tsx` מעל דפי שוק/קטגוריה, ה-404 שלהם יהפוך ל-200 רך (soft 404).
 - **אימות Search Console**: הגדירו `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` והתג ייווצר לבד.
 - **`/llms.txt`**: הלוח כולו כקובץ Markdown אחד, לפי המוסכמה של [llmstxt.org](https://llmstxt.org) — עוזרי AI קוראים אותו במקום לרנדר את האתר. ה-sitemap אומר *אילו כתובות קיימות*; הקובץ הזה אומר *מה האתר ומה הוא אומר עכשיו*: שהכול בנקודות משחק, שהמד הוא מד ניחושים ולא סקר, מי כותב ומי מכריע, ואז השאלות הפתוחות עם המד, מועד הסגירה וקריטריון ההכרעה. נבנה בכל בקשה מהנתונים החיים (`src/lib/llms-txt.ts` מחליט מה נכנס, `src/app/llms.txt/route.ts` מגיש). **המספרים בו הם אלה שבלוח** — המד, מועד הסגירה, הנקודות ומספר התשובות זהים לאלה שמופיעים בעמוד השאלה שהשורה מקשרת אליו (`MarketView.displayVolume`/`displayTradeCount`), כי מספר שמודל עשוי לצטט למישהו חייב להיות זה שרואים באתר. מונה השאלות המנופח של ההירו וזרם הפעילות ב-`/activity` (`display-stats.ts`, `fake-activity.ts`) לא נכנסים לשם: אין להם עמוד מקביל שאפשר להצביע עליו.
+
+## הוספה למסך הבית
+
+לאתר כבר היה מניפסט תקין (`src/app/manifest.ts`) ו-service worker רשום (`src/components/ServiceWorker.tsx`) —
+כלומר הוא היה **ניתן להתקנה** ואף אחד לא ידע. מה שנוסף הוא ההמלצה עצמה:
+
+- **הכרטיס** (`InstallPrompt`) — בדף הבית ובעמוד הניקוד, אחרי השאלות ולא לפניהן. מוצג רק בטלפון, רק מחוץ
+  לאפליקציה המותקנת, ורק אם לא נלחץ "לא עכשיו" ב-30 הימים האחרונים (`bm_install_snoozed` ב-localStorage).
+- **שורת הפוטר** (`InstallLink`) — בכל עמוד ובכל פלטפורמה, גם למי שדחה את הכרטיס. נעלמת רק כשהאתר באמת מותקן.
+- **אנדרואיד ודסקטופ**: דיאלוג ההתקנה האמיתי של מערכת ההפעלה, בלחיצה אחת. `beforeinstallprompt` נורה לפני
+  ש-React עשה hydrate, ולכן סקריפט קטן ב-`src/app/layout.tsx` תופס אותו ומחנה אותו על `window.__bmInstallPrompt`;
+  בלעדיו האירוע אבוד וכל מה שנשאר זה הוראות.
+- **iPhone**: אין API להתקנה, ולכן שם מוצגים הצעדים. ב-iOS 26 ספארי כבר לא מציג כפתור שיתוף בפריסה הקומפקטית —
+  ההוראות פותחות בתפריט "⋯" שבקצה שורת הכתובת, וכפתור השיתוף נשאר בהערה לפריסות הישנות ולכרום באייפון.
+- **מדידה**: `install_app` עם `props.action` (`shown` / `prompted` / `accepted` / `dismissed` / `instructions` / `installed`)
+  ו-`props.platform`, כך שאפשר לראות ב-`/admin/traffic` כמה ראו, כמה נכנסו להוראות וכמה באמת התקינו.
+
+הלוגיקה כולה ב-`src/lib/install.ts`, ה-UI ב-`src/components/InstallApp.tsx`.
 
 ## Google Analytics
 

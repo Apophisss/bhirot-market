@@ -82,7 +82,7 @@ export function BarSeries({ data, height = 120, unit = "" }: { data: Point[]; he
           />
         ))}
       </div>
-      <div dir="ltr" className="mt-1 flex justify-between text-[11px] text-muted-2">
+      <div dir="ltr" className="mt-1 flex justify-between text-[13px] text-muted-2">
         <span>{data[0]?.label}</span>
         <span className="tabular">
           שיא {fmt(max)}

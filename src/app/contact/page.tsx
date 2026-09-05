@@ -41,7 +41,7 @@ export default async function ContactPage() {
         </p>
       </header>
       <ContactForm defaultName={user?.name} defaultEmail={user?.email} />
-      <p className="text-[12px] leading-relaxed text-muted-2">
+      <p className="text-[13px] leading-relaxed text-muted-2">
         ההודעה נשמרת אצלנו יחד עם האימייל שהשארתם, ומשמשת רק כדי לחזור אליכם בנוגע לפנייה. {SITE_NAME} הוא משחק בנקודות
         בלבד — אין כאן חשבונות אמיתיים, כסף אמיתי או ייעוץ.
       </p>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { BoltIcon } from "./BoltIcon";
 import { useRouter } from "next/navigation";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
-import { money, pct, sharePrice, shares as fmtShares, closesLabel } from "@/lib/format";
+import { money, pct, closesLabel } from "@/lib/format";
 import { SITE_TEAM } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/limits";
 import {
@@ -21,6 +21,7 @@ import {
 import {
   GUEST_LIMIT,
   addGuestAnswer,
+  guestGateReached,
   readGuestAnswers,
   serverGuestAnswers,
   subscribeGuestAnswers,
@@ -160,11 +161,15 @@ export function RapidDeck({
   cards,
   loggedIn,
   balance,
+  includeAnswered = false,
   children,
 }: {
   cards: RapidCard[];
   loggedIn: boolean;
   balance: number | null;
+  /** the "כולל שאלות שכבר עניתי" switch — for a guest it is the only thing that keeps
+   *  an already-answered question in the queue, since the server cannot filter for them */
+  includeAnswered?: boolean;
   /** shown instead of the deck when the feed came back empty */
   children: React.ReactNode;
 }) {
@@ -174,7 +179,7 @@ export function RapidDeck({
   // run would otherwise pull every card — and the summary — out from under the
   // user. Changing a filter navigates with a new key, which remounts with fresh
   // cards; see the key on <RapidDeck> in app/rapid/page.tsx.
-  const [feed] = useState(cards);
+  const [allCards] = useState(cards);
   const scroller = useRef<HTMLDivElement>(null);
   const queue = useRef<Answer[]>([]);
   /** ids already sent or waiting to be sent — the ref is a render ahead of `answers` */
@@ -204,6 +209,33 @@ export function RapidDeck({
   /** the answer currently inside its undo window, and when the window closes */
   const [held, setHeld] = useState<{ card: RapidCard; side: Side; until: number } | null>(null);
 
+  /*
+    The queue, minus what this browser has already answered.
+    ------------------------------------------------------------------------
+    For a signed-in user the server does this: `listRapidCards` drops what the
+    account has answered. A guest has no account, so three answers given on
+    `/welcome` came back as three unanswered cards — the deck said "נענו 0",
+    offered them all again, and the answer given the second time was thrown away
+    by a store that only ever inserted (see addGuestAnswer).
+
+    An answer given *during this run* keeps its card: `answers` holds it, and the
+    card is what the answered overlay and the undo bar are pointing at. Only an
+    answer carried in from an earlier screen takes its question out of the queue —
+    and "כולל שאלות שכבר עניתי" puts them all back, for a guest exactly as it does
+    for an account.
+  */
+  const carried = useMemo(() => {
+    const m: Record<string, Side> = {};
+    if (loggedIn) return m;
+    for (const a of guestAnswers) if (!answers[a.marketSlug]) m[a.marketSlug] = a.side;
+    return m;
+  }, [answers, guestAnswers, loggedIn]);
+
+  const feed = useMemo(
+    () => (includeAnswered ? allCards : allCards.filter((c) => !(c.id in carried))),
+    [allCards, carried, includeAnswered],
+  );
+
   useEffect(() => {
     alive.current = true;
     const timers = holdTimers.current;
@@ -215,7 +247,20 @@ export function RapidDeck({
     };
   }, []);
 
-  const answered = useMemo(() => Object.values(answers), [answers]);
+  /**
+   * Every answer this browser has on the board: the ones given here, over the ones
+   * carried in from `/welcome` or from an earlier run. The counter, the tape and the
+   * cards all read this — "נענו 0" beside a question the visitor answered a minute
+   * ago is the deck telling them their answer was not kept.
+   */
+  const shownAnswers = useMemo(() => {
+    if (loggedIn || !guestAnswers.length) return answers;
+    const merged: Record<string, Answer> = {};
+    for (const a of guestAnswers) merged[a.marketSlug] = { marketId: a.marketSlug, side: a.side, stake, status: "guest" };
+    return { ...merged, ...answers };
+  }, [answers, guestAnswers, loggedIn, stake]);
+
+  const answered = useMemo(() => Object.values(shownAnswers), [shownAnswers]);
   const pendingCount = answered.filter((a) => a.status === "pending" || a.status === "held").length;
   /** money committed by answers the server has not confirmed yet — held ones included */
   const pendingSpend = answered.reduce((s, a) => s + (a.status === "pending" || a.status === "held" ? a.stake : 0), 0);
@@ -225,7 +270,7 @@ export function RapidDeck({
 
   const okCount = answered.filter((a) => a.status === "ok" || a.status === "guest").length;
   /** a signed-out visitor has used up the free run and the next tap is the sign-in gate */
-  const guestGate = !loggedIn && guestAnswers.length >= GUEST_LIMIT;
+  const guestGate = !loggedIn && guestGateReached(guestAnswers);
   const failedCount = answered.filter((a) => a.status === "error").length;
 
   const goTo = useCallback(
@@ -236,6 +281,12 @@ export function RapidDeck({
         const el = scroller.current;
         if (!el) return;
         target.current = clamped;
+        // The counter moves with the intent, not with the animation. A mandatory
+        // snap container can swallow a smooth `scrollTo` outright, and when it did
+        // the deck answered the question, counted it, and then sat on the same card
+        // under "1 / 60" — an answer that goes nowhere reads as an answer that was
+        // not taken, which is the one thing rapid mode may not do.
+        setIndex(clamped);
         el.scrollTo({ top: clamped * el.clientHeight, behavior: reduceMotion ? "auto" : "smooth" });
         window.clearTimeout(targetTimer.current);
         targetTimer.current = window.setTimeout(() => {
@@ -243,7 +294,16 @@ export function RapidDeck({
           // scrollTo that was already a no-op) — re-derive rather than leaving
           // `index` pointing at a card that is not on screen
           target.current = null;
-          if (el.clientHeight) setIndex(Math.round(el.scrollTop / el.clientHeight));
+          if (!el.clientHeight) return;
+          const landed = Math.round(el.scrollTop / el.clientHeight);
+          if (landed === clamped) {
+            setIndex(landed);
+            return;
+          }
+          // the animation never arrived: put the deck where it was asked to go,
+          // without one. Better an abrupt card than the previous one.
+          el.scrollTo({ top: clamped * el.clientHeight, behavior: "auto" });
+          setIndex(clamped);
         }, 900);
       };
       if (delay) advanceTimer.current = window.setTimeout(run, delay);
@@ -370,14 +430,12 @@ export function RapidDeck({
   const answer = useCallback(
     (card: RapidCard, side: Side) => {
       if (!loggedIn) {
-        // the free run: the answer is kept in the browser and becomes a real
-        // position on the way back from Google. Past the limit the gate below is
-        // already up, and the only thing left to do is sign in.
-        if (guestAnswers.length >= GUEST_LIMIT) {
-          router.push("/login?callbackUrl=%2Frapid");
-          return;
-        }
-        if (answers[card.id]) return;
+        // The free run: the answer is kept in the browser and becomes a real position
+        // on the way back from Google. Answering a question again replaces the earlier
+        // answer rather than being dropped — the card shows the new side either way,
+        // and a card that says "כן · נשמר" over a stored "לא" is a lie the store used
+        // to tell (see addGuestAnswer).
+        const known = guestAnswers.some((a) => a.marketSlug === card.id);
         addGuestAnswer({
           marketSlug: card.id,
           side,
@@ -387,6 +445,12 @@ export function RapidDeck({
         });
         setAnswers((prev) => ({ ...prev, [card.id]: { marketId: card.id, side, stake, status: "guest" } }));
         if (typeof navigator.vibrate === "function") navigator.vibrate(12);
+        // Past the limit the answer is still taken — it is kept with the others and
+        // listed on the sign-in screen — and the wall is what comes next.
+        if (!known && guestAnswers.length >= GUEST_LIMIT) {
+          router.push("/login?callbackUrl=%2Frapid");
+          return;
+        }
         goTo(feed.indexOf(card) + 1, ADVANCE_MS);
         return;
       }
@@ -406,7 +470,7 @@ export function RapidDeck({
       if (typeof navigator.vibrate === "function") navigator.vibrate(12);
       goTo(feed.indexOf(card) + 1, ADVANCE_MS);
     },
-    [answers, broke, feed, goTo, guestAnswers.length, loggedIn, release, router, stake],
+    [answers, broke, feed, goTo, guestAnswers, loggedIn, release, router, stake],
   );
 
   /* the active card follows the scroll position — every panel is exactly one viewport tall */
@@ -580,7 +644,7 @@ export function RapidDeck({
           )}
         </header>
 
-        <RunTape cards={feed} answers={answers} index={index} />
+        <RunTape cards={feed} answers={shownAnswers} index={index} />
 
         <div
           ref={scroller}
@@ -592,6 +656,7 @@ export function RapidDeck({
                 card={card}
                 stake={stake}
                 answer={answers[card.id]}
+                previously={carried[card.id] ?? null}
                 locked={broke && !answers[card.id]}
                 outOfMoney={outOfMoney}
                 loggedIn={loggedIn}
@@ -675,7 +740,7 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
                 {a.side === "YES" ? "כן" : "לא"}
               </span>
               <span className="line-clamp-2 min-w-0 flex-1 text-[13px] leading-snug text-text">{a.title}</span>
-              <span className="tabular shrink-0 text-[11px] text-muted-2">{pct(a.priceAtAnswer)}</span>
+              <span className="tabular shrink-0 text-[13px] text-muted-2">{pct(a.priceAtAnswer)}</span>
             </li>
           ))}
         </ul>
@@ -687,7 +752,7 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
         >
           התחברות · והתשובות נשמרות
         </Link>
-        <p className="mt-2 text-[11px] text-muted-2">
+        <p className="mt-2 text-[13px] text-muted-2">
           התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
         </p>
       </div>
@@ -774,6 +839,7 @@ function RapidCardView({
   card,
   stake,
   answer,
+  previously = null,
   locked,
   outOfMoney,
   loggedIn,
@@ -785,6 +851,17 @@ function RapidCardView({
   card: RapidCard;
   stake: number;
   answer?: Answer;
+  /**
+   * The side this browser answered on an earlier screen, if any.
+   *
+   * Kept apart from `answer` on purpose. An answer given in this run is finished —
+   * it is on its way to the server and the card is closed over it. An answer
+   * carried in from `/welcome` is a decision that can still be changed, and it is
+   * only on screen at all under "כולל שאלות שכבר עניתי", which is a request to
+   * revisit it. So the card is marked rather than sealed, and answering again
+   * replaces the stored answer (see addGuestAnswer).
+   */
+  previously?: Side | null;
   locked: boolean;
   outOfMoney: boolean;
   loggedIn: boolean;
@@ -911,7 +988,7 @@ function RapidCardView({
             <p className="tabular text-sm text-muted">
               {money(answer.stake)} ·{" "}
               {answer.status === "ok"
-                ? `${fmtShares(answer.shares ?? 0)} תשובות`
+                ? `${money(answer.shares ?? 0)} אם צדקת`
                 : answer.status === "held"
                   ? "אפשר עוד לבטל"
                   : answer.status === "guest"
@@ -927,7 +1004,14 @@ function RapidCardView({
           they need, and the chart takes whatever is left over — down to a floor it stays
           readable at, below which the body scrolls rather than squeezing the curve flat. */}
       <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 short:gap-2 short:p-3 sm:gap-3 sm:p-5">
-        <div className="flex shrink-0 flex-wrap items-center gap-2 text-[11px] text-muted">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 text-[13px] text-muted">
+          {previously && (
+            <span
+              className={`rounded-md px-1.5 py-0.5 font-semibold ${previously === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}
+            >
+              ענית {previously === "YES" ? "כן" : "לא"} · אפשר לשנות
+            </span>
+          )}
           <span
             className="cat-chip rounded-md px-1.5 py-0.5 font-semibold"
             style={{ "--cat": card.categoryAccent, "--cat-dark": card.categoryAccentDark } as CSSProperties}
@@ -935,7 +1019,10 @@ function RapidCardView({
             {card.categoryLabel}
           </span>
           <span>{closesLabel(card.closesAt)}</span>
-          {card.byTeam && <span className="text-muted-2">{SITE_TEAM}</span>}
+          {/* The byline is on the question's own page, one tap away through "פרטים".
+              At the 13px floor it was the word that tipped this row onto a second
+              line, and the line it cost was the subtitle — the card's own context. */}
+          {card.byTeam && <span className="hidden text-muted-2 sm:inline">{SITE_TEAM}</span>}
           <Link
             href={`/market/${card.id}`}
             target="_blank"
@@ -975,7 +1062,7 @@ function RapidCardView({
         <div className="shrink-0 space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="tabular font-semibold text-yes">כן {pct(card.probability)}</span>
-            <span className="text-muted-2">מד הניחושים כרגע</span>
+            <span className="text-muted-2">מד הביטחון כרגע</span>
             <span className="tabular font-semibold text-no">לא {pct(1 - card.probability)}</span>
           </div>
           <div className="flex h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden>
@@ -993,6 +1080,7 @@ function RapidCardView({
             price={card.probability}
             payout={payouts.YES}
             disabled={done || locked}
+            chosen={previously === "YES"}
             hint={showKeys ? "→" : undefined}
             onClick={() => onAnswer("YES")}
           />
@@ -1002,11 +1090,12 @@ function RapidCardView({
             price={1 - card.probability}
             payout={payouts.NO}
             disabled={done || locked}
+            chosen={previously === "NO"}
             hint={showKeys ? "←" : undefined}
             onClick={() => onAnswer("NO")}
           />
         </div>
-        <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-2 sm:mt-2">
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-[13px] text-muted-2 sm:mt-2">
           <button
             onClick={onSkip}
             data-evt="rapid-skip"
@@ -1036,6 +1125,7 @@ function AnswerButton({
   price,
   payout,
   disabled,
+  chosen,
   hint,
   onClick,
 }: {
@@ -1044,6 +1134,8 @@ function AnswerButton({
   price: number;
   payout: number;
   disabled: boolean;
+  /** this browser's standing answer on the question — the card is being revisited */
+  chosen?: boolean;
   hint?: string;
   onClick: () => void;
 }) {
@@ -1053,9 +1145,10 @@ function AnswerButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={`${yes ? "כן" : "לא"} ב־${stake} נקודות`}
+      aria-pressed={chosen || undefined}
       className={`cursor-pointer rounded-2xl py-2.5 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 sm:py-3 ${
         yes ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
-      }`}
+      } ${chosen ? "ring-2 ring-text-strong ring-offset-2 ring-offset-surface" : ""}`}
     >
       <span className="flex items-center justify-center gap-2 text-xl font-black leading-none sm:text-2xl">
         {hint && (
@@ -1064,9 +1157,11 @@ function AnswerButton({
           </span>
         )}
         {yes ? "כן" : "לא"}
-        <span className="tabular text-sm font-bold opacity-80">{sharePrice(price)}</span>
+        {/* the meter, not a second price in points: "כן 0.21 נק׳" made the button
+            speak a third language beside the gauge above it and the payout below */}
+        <span className="tabular text-[15px] font-bold opacity-80">{pct(price)}</span>
       </span>
-      <span className="tabular mt-1 block text-[11px] font-semibold opacity-90">
+      <span className="tabular mt-1 block text-[13px] font-semibold opacity-90">
         {money(stake)} ← ≈{money(payout)} אם צדקת
       </span>
     </button>
@@ -1097,7 +1192,7 @@ function StakeBar({
     <div className={`card shrink-0 p-2.5 transition-opacity lg:p-3 ${dimmed ? "opacity-50" : ""}`}>
       <div className="flex items-center gap-3 lg:block">
         <div className="flex shrink-0 items-baseline justify-between gap-2 lg:w-full">
-          <label htmlFor="rapid-stake" className="text-[11px] font-semibold text-text lg:text-xs">
+          <label htmlFor="rapid-stake" className="text-[13px] font-semibold text-text lg:text-xs">
             סכום מחייב לכל תשובה
           </label>
           <span className="tabular text-xl font-black text-text-strong lg:text-2xl">{money(stake)}</span>
@@ -1136,7 +1231,7 @@ function StakeBar({
         {/* One line on the phone strip, where it has room for one fact only — how far the
             balance stretches, the fact the slider itself does not already carry. In the lg
             column it takes a line of its own and says everything. */}
-        <p id="rapid-stake-range" className="tabular min-w-0 flex-1 truncate text-[11px] text-muted-2 lg:basis-full">
+        <p id="rapid-stake-range" className="tabular min-w-0 flex-1 truncate text-[13px] text-muted-2 lg:basis-full">
           <span className="hidden lg:inline">
             טווח {RAPID_MIN_STAKE}–{RAPID_MAX_STAKE} נקודות · יורד מהניקוד מיד{available != null ? " · " : ""}
           </span>
@@ -1155,7 +1250,7 @@ function StakeBar({
         </p>
       </div>
       {showKeys && (
-        <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-2">
+        <p className="mt-2 border-t border-border pt-2 text-[13px] text-muted-2">
           מקלדת: <Kbd>→</Kbd> כן · <Kbd>←</Kbd> לא · <Kbd>רווח</Kbd> דלג · <Kbd>+</Kbd>/<Kbd>−</Kbd> סכום ·{" "}
           <Kbd>1</Kbd>–<Kbd>5</Kbd> סכום קבוע
         </p>

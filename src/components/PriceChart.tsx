@@ -161,13 +161,13 @@ export function PriceChart({
               </span>
             )}
             {!hoverPt && !traded && (
-              <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] font-semibold text-muted-2">טרם נענתה</span>
+              <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[13px] font-semibold text-muted-2">טרם נענתה</span>
             )}
             {hoverPt && (
               <span className="flex items-center gap-1.5 text-xs text-muted">
                 {/* a fabricated point must never read as "5 בספט 14:30 — 61%" */}
                 {hoverPt.synthetic ? fmtAxisDay.format(hoverPt.t) : fmtTip.format(hoverPt.t)}
-                {hoverPt.synthetic && <span className="rounded bg-surface-2 px-1 py-0.5 text-[10px] text-muted-2">אומדן</span>}
+                {hoverPt.synthetic && <span className="rounded bg-surface-2 px-1 py-0.5 text-[13px] text-muted-2">אומדן</span>}
               </span>
             )}
           </div>
@@ -282,7 +282,7 @@ export function PriceChart({
         )}
       </svg>
       {traded && (
-        <p className="mt-1 text-center text-[11px] text-muted-2 lg:hidden">החליקו על הגרף כדי לראות מחיר בזמן מסוים</p>
+        <p className="mt-1 text-center text-[13px] text-muted-2 lg:hidden">החליקו על הגרף כדי לראות מחיר בזמן מסוים</p>
       )}
       {!traded && (
         <p className="mt-2 text-center text-xs text-muted-2">

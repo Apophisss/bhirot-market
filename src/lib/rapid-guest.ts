@@ -30,6 +30,19 @@ const KEY = "bhirot:rapid:guest";
  */
 export const GUEST_LIMIT = 4;
 
+/**
+ * How many answers the browser will actually hold: the free run, plus the one
+ * that hit the wall.
+ *
+ * The fifth tap is a decision the visitor made — they answered the question and
+ * only then were asked to sign in. Throwing it away meant the sign-in screen
+ * asked for an account in order to keep four answers while quietly discarding the
+ * fifth, and coming back from Google landed on a deck that had never heard of it.
+ * It is kept and redeemed with the rest; the *limit* is about when the wall goes
+ * up, not about what is remembered.
+ */
+export const GUEST_STORE_LIMIT = GUEST_LIMIT + 1;
+
 export interface GuestAnswer {
   marketSlug: string;
   side: "YES" | "NO";
@@ -76,7 +89,7 @@ export function readGuestAnswers(): GuestAnswer[] {
     // private browsing, a disabled store, or a value someone else wrote — all the
     // same thing here: this visitor has no saved answers
   }
-  cache = Array.isArray(parsed) ? parsed.filter(isAnswer).slice(0, GUEST_LIMIT) : EMPTY;
+  cache = Array.isArray(parsed) ? parsed.filter(isAnswer).slice(0, GUEST_STORE_LIMIT) : EMPTY;
   return cache;
 }
 
@@ -91,11 +104,47 @@ function commit(next: GuestAnswer[]) {
   for (const l of listeners) l();
 }
 
-/** Records one answer. Answering the same question twice keeps the first answer. */
+/**
+ * Records one answer, replacing any earlier answer to the same question.
+ *
+ * The write used to be insert-if-absent, and the two screens that write here
+ * (`/welcome` and the deck) offer overlapping questions — so answering "לא" on
+ * the landing page and then "כן" on the same card in rapid mode left "NO" in the
+ * store while the card said "כן · נשמר". The visitor was shown a confirmation of
+ * a decision the browser had not kept, and the one that was redeemed after
+ * signing in was the one they had changed their mind about.
+ *
+ * An answer that changes an existing one is therefore an update — of the side,
+ * of the price it was taken at, and of the moment — and it never counts against
+ * the limit, because it is not a new question.
+ */
 export function addGuestAnswer(answer: GuestAnswer): void {
   const current = readGuestAnswers();
-  if (current.length >= GUEST_LIMIT || current.some((a) => a.marketSlug === answer.marketSlug)) return;
+  const at = current.findIndex((a) => a.marketSlug === answer.marketSlug);
+  if (at >= 0) {
+    const next = [...current];
+    next[at] = answer;
+    commit(next);
+    return;
+  }
+  if (current.length >= GUEST_STORE_LIMIT) return;
   commit([...current, answer]);
+}
+
+/** The side this browser answered on a question, or null. */
+export function guestAnswerFor(answers: GuestAnswer[], marketSlug: string): GuestAnswer | null {
+  return answers.find((a) => a.marketSlug === marketSlug) ?? null;
+}
+
+/**
+ * Is the sign-in wall up?
+ *
+ * The free run is `GUEST_LIMIT` questions; the answer that hits the wall is kept
+ * (see `GUEST_STORE_LIMIT`), so this asks about the count, not about whether the
+ * store is full.
+ */
+export function guestGateReached(answers: GuestAnswer[]): boolean {
+  return answers.length >= GUEST_LIMIT;
 }
 
 /** Drops everything — called the moment the answers are claimed for an account. */

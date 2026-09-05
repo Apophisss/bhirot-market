@@ -86,7 +86,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
           <dl className="space-y-2 text-sm">
             <Row label="עסקאות" value={fmt(trading.trades)} />
             <Row label="נפח" value={money(trading.volume)} />
-            <Row label="עסקה ממוצעת" value={money(trading.avgSize, { decimals: true })} />
+            <Row label="עסקה ממוצעת" value={money(trading.avgSize)} />
             <Row label="העסקה הגדולה" value={money(trading.biggest)} />
             <Row label="קנייה / מכירה" value={`${fmt(trading.buys)} / ${fmt(trading.sells)}`} />
             <Row label="כן / לא" value={`${fmt(trading.yes)} / ${fmt(trading.no)}`} />

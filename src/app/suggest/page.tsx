@@ -73,17 +73,17 @@ export default async function SuggestPage() {
               const badge = STATUS_LABEL[s.status] ?? STATUS_LABEL.pending;
               return (
                 <li key={s.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
-                  <span className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${badge.className}`}>{badge.label}</span>
+                  <span className={`rounded-md px-2 py-0.5 text-[13px] font-semibold ${badge.className}`}>{badge.label}</span>
                   <span className="min-w-0 flex-1 text-sm font-medium text-text">{s.title}</span>
-                  <span className="text-[11px] text-muted-2">{getCategory(s.category).label}</span>
-                  <span className="text-[11px] text-muted-2">{timeAgo(s.createdAt)}</span>
+                  <span className="text-[13px] text-muted-2">{getCategory(s.category).label}</span>
+                  <span className="text-[13px] text-muted-2">{timeAgo(s.createdAt)}</span>
                   {s.publishedSlug && (
-                    <Link href={`/market/${s.publishedSlug}`} className="text-[12px] font-semibold text-accent-2 hover:underline">
+                    <Link href={`/market/${s.publishedSlug}`} className="text-[13px] font-semibold text-accent-2 hover:underline">
                       לשוק שנפתח
                     </Link>
                   )}
-                  {s.adminNote && <p className="w-full text-[12px] text-muted">הערת המערכת: {s.adminNote}</p>}
-                  {s.closesAt && <span className="w-full text-[11px] text-muted-2">מועד יעד שהוצע: {fmtDate(s.closesAt)}</span>}
+                  {s.adminNote && <p className="w-full text-[13px] text-muted">הערת המערכת: {s.adminNote}</p>}
+                  {s.closesAt && <span className="w-full text-[13px] text-muted-2">מועד יעד שהוצע: {fmtDate(s.closesAt)}</span>}
                 </li>
               );
             })}

@@ -86,6 +86,19 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
+      <head>
+        <script
+          // כרומיום יורה beforeinstallprompt מוקדם — בדרך כלל לפני ש-React עשה hydrate —
+          // והאירוע שווה משהו רק אם נעשה עליו preventDefault והוא נשמר. החניה שלו כאן היא
+          // מה שמאפשר לכרטיס "הוספה למסך הבית" (src/components/InstallApp.tsx) להציע
+          // התקנה אמיתית בלחיצה אחת במקום עמוד הוראות.
+          dangerouslySetInnerHTML={{
+            __html:
+              "window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();" +
+              "window.__bmInstallPrompt=e;window.dispatchEvent(new Event('bm:installable'))})",
+          }}
+        />
+      </head>
       {/* lg:pb-0 drops the room the tab bar reserves once the header nav takes over */}
       <body className="flex min-h-dvh flex-col lg:pb-0">
         <JsonLd data={siteGraph()} />

@@ -46,7 +46,7 @@ export async function Header() {
           <Link href="/" className="tap flex shrink-0 items-center gap-2 sm:gap-2.5">
             <Image src="/logo.svg" alt="" width={32} height={32} priority className="h-8 w-8 sm:h-9 sm:w-9" />
             <span className="text-base font-extrabold tracking-tight text-text-strong sm:text-lg">{SITE_NAME}</span>
-            <span className="hidden rounded-full border border-border-2 bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent md:inline">
+            <span className="hidden rounded-full border border-border-2 bg-accent-soft px-2 py-0.5 text-[13px] font-semibold text-accent md:inline">
               בחירות 2026
             </span>
           </Link>
@@ -65,7 +65,7 @@ export async function Header() {
               <input
                 name="q"
                 type="search"
-                placeholder="חיפוש שוק: נתניהו, סקר, בנט…"
+                placeholder="חיפוש שאלה: נתניהו, סקר, בנט…"
                 className="w-full rounded-xl border border-border bg-surface-2 py-2 pr-10 pl-3 text-sm outline-none placeholder:text-muted-2 focus:border-accent focus:bg-surface"
               />
             </label>
@@ -94,7 +94,7 @@ export async function Header() {
                     <>
                       <Avatar name={user.name} image={user.image} size={30} />
                       <span className="hidden max-w-28 truncate text-sm font-medium sm:inline">{user.name}</span>
-                      <span aria-hidden className="text-[10px] text-muted-2">▾</span>
+                      <span aria-hidden className="text-[13px] text-muted-2">▾</span>
                     </>
                   }
                 >
@@ -102,12 +102,12 @@ export async function Header() {
                   <Link href="/leaderboard" data-evt="menu-leaderboard" className="block px-4 py-3 text-sm hover:bg-surface-2">לוח המובילים</Link>
                   <Link href="/invite" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
                     הזמינו חברים
-                    <span className="tabular shrink-0 rounded-full bg-yes/15 px-2 py-0.5 text-[11px] font-bold text-yes">{money(REFERRAL_BONUS)}</span>
+                    <span className="tabular shrink-0 rounded-full bg-yes/15 px-2 py-0.5 text-[13px] font-bold text-yes">{money(REFERRAL_BONUS)}</span>
                   </Link>
                   <Link href="/onboarding?edit=1" data-evt="menu-preferences" className="flex items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface-2">
                     ההעדפות שלי
                     {askSurvey && (
-                      <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-bold text-accent-2">שאלון קצר</span>
+                      <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[13px] font-bold text-accent-2">שאלון קצר</span>
                     )}
                   </Link>
                   <Link href="/suggest" className="block px-4 py-3 text-sm hover:bg-surface-2">הצעת שאלה</Link>

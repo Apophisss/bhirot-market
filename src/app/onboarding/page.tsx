@@ -81,7 +81,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
     <div className="mx-auto mt-2 max-w-3xl sm:mt-8">
       <form action={save} className="card space-y-7 p-5 sm:p-8">
         <header className="space-y-2">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-accent-2">
+          <p className="text-[13px] font-bold uppercase tracking-wide text-accent-2">
             {editing ? "ההעדפות שלי" : "שאלון קצר · פחות מדקה"}
           </p>
           <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">
@@ -142,7 +142,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                 />
                 <span className="min-w-0">
                   <span className="block truncate text-[13px] font-bold leading-tight text-text-strong">{c.name}</span>
-                  <span className="block truncate text-[11px] text-muted">{c.list}</span>
+                  <span className="block truncate text-[13px] text-muted">{c.list}</span>
                 </span>
               </label>
             ))}
@@ -165,7 +165,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                   className="sr-only"
                 />
                 <span className="block text-sm font-bold text-text-strong">{h.label}</span>
-                <span className="mt-0.5 block text-[12px] leading-snug text-muted">{h.note}</span>
+                <span className="mt-0.5 block text-[13px] leading-snug text-muted">{h.note}</span>
               </label>
             ))}
           </div>
