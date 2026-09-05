@@ -233,6 +233,38 @@
     }
   }
 
+  /* Shared form control for the long forms (contact, suggest a question, the
+     dashboard's publisher). 16px on phones so iOS does not zoom the page in when a
+     field takes focus — the base layer rule cannot reach a component class. */
+  .inp {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-2);
+    padding: 0.6rem 0.75rem;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--color-text);
+    outline: none;
+  }
+  .inp::placeholder {
+    color: var(--color-muted-2);
+  }
+  .inp:focus {
+    border-color: var(--color-accent);
+    background: var(--color-surface);
+  }
+  .inp:disabled {
+    opacity: 0.6;
+  }
+  @media (min-width: 640px) {
+    .inp {
+      font-size: 0.875rem;
+    }
+  }
+
   .tabular {
     font-variant-numeric: tabular-nums;
   }
