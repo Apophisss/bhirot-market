@@ -13,7 +13,8 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { SITE_DESCRIPTION, SITE_NAME } from "../src/lib/config";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "../src/lib/config";
+import { LLMS_RESOLVED_LIMIT, renderLlmsTxt, type LlmsMarket } from "../src/lib/llms-txt";
 import { absUrl, clamp, shareCard } from "../src/lib/seo";
 import { fit } from "../src/lib/og";
 
@@ -170,6 +171,99 @@ test("fit clamps card text the same way", () => {
   const out = fit("א".repeat(200), 130);
   assert.ok(out.length <= 131, `got ${out.length}`);
   assert.ok(out.endsWith("…"));
+});
+
+/* ---------- the machine-readable files at the root ---------- */
+
+function market(over: Partial<LlmsMarket> & { id: string; title: string }): LlmsMarket {
+  return {
+    category: "polls",
+    probability: 0.34,
+    volume: 1234,
+    tradeCount: 7,
+    closesAt: new Date("2026-09-15T20:59:59+03:00"),
+    status: "open",
+    resolution: null,
+    resolutionNote: null,
+    resolvedAt: null,
+    isTradable: true,
+    ...over,
+  };
+}
+
+test("llms.txt opens the way the convention says: an h1, then a one-blockquote summary", () => {
+  const lines = renderLlmsTxt({ open: [], resolved: [] }).split("\n").filter((l) => l.trim());
+  assert.match(lines[0], new RegExp(`^# ${SITE_NAME}`));
+  assert.equal(lines[1], `> ${SITE_DESCRIPTION}`);
+});
+
+test("llms.txt says the money is virtual and that a price is not a poll", () => {
+  const txt = renderLlmsTxt({ open: [], resolved: [] });
+  assert.match(txt, /הכסף וירטואלי/);
+  assert.match(txt, /לא סקר/);
+  // the model is told how to attribute a number before it is given any
+  assert.ok(txt.indexOf("איך לצטט") < txt.indexOf("## שאלות פתוחות"));
+});
+
+test("an open question is listed with its price, its deadline in Israel time and its own URL", () => {
+  const txt = renderLlmsTxt({ open: [market({ id: "poll-likud-30", title: "האם הליכוד יקבל 30 מנדטים?" })], resolved: [] });
+  assert.match(txt, /## שאלות פתוחות \(1\)/);
+  assert.match(txt, /### סקרים/);
+  assert.match(txt, new RegExp(`\\[האם הליכוד יקבל 30 מנדטים\\?\\]\\(${SITE_URL}/market/poll-likud-30\\)`));
+  assert.match(txt, /34% כן/);
+  assert.match(txt, /נסגר 2026-09-15 20:59/);
+});
+
+test("a question nobody traded yet says so rather than showing a volume", () => {
+  const txt = renderLlmsTxt({ open: [market({ id: "x", title: "שאלה", tradeCount: 0, volume: 0 })], resolved: [] });
+  assert.match(txt, /טרם נסחר/);
+});
+
+test("a question past its deadline is not offered as open", () => {
+  const txt = renderLlmsTxt({ open: [market({ id: "x", title: "שאלה שנסגרה", isTradable: false })], resolved: [] });
+  assert.match(txt, /## שאלות פתוחות \(0\)/);
+  assert.doesNotMatch(txt, /שאלה שנסגרה/);
+});
+
+test("a category with nothing open in it is not listed", () => {
+  const txt = renderLlmsTxt({ open: [market({ id: "x", title: "שאלה", category: "polls" })], resolved: [] });
+  assert.match(txt, /\[סקרים\]/);
+  assert.doesNotMatch(txt, /\[נתניהו\]/);
+});
+
+test("resolutions are the newest ones, in order, and a cancelled market is not a result", () => {
+  const resolved: LlmsMarket[] = [
+    market({ id: "old", title: "ישנה", status: "resolved", resolution: "NO", resolvedAt: new Date("2026-08-01T10:00:00Z"), resolutionNote: "לא קרה.\n\nמקור: https://example.com" }),
+    market({ id: "new", title: "חדשה", status: "resolved", resolution: "YES", resolvedAt: new Date("2026-09-01T10:00:00Z") }),
+    market({ id: "gone", title: "בוטלה", status: "cancelled", resolvedAt: new Date("2026-09-02T10:00:00Z") }),
+  ];
+  const txt = renderLlmsTxt({ open: [], resolved });
+  assert.ok(txt.indexOf("חדשה") < txt.indexOf("ישנה"), "resolutions are not newest-first");
+  assert.doesNotMatch(txt, /בוטלה/);
+  // only the first line of the note travels: the rest is the source link, already on the page
+  assert.match(txt, /  לא קרה\.$/m);
+});
+
+test("llms.txt keeps the resolution list short", () => {
+  const resolved = Array.from({ length: LLMS_RESOLVED_LIMIT + 5 }, (_, i) =>
+    market({ id: `m${i}`, title: `הכרעה ${i}`, status: "resolved", resolution: "YES", resolvedAt: new Date(2026, 0, i + 1) }),
+  );
+  const listed = renderLlmsTxt({ open: [], resolved }).match(/^- \[הכרעה /gm) ?? [];
+  assert.equal(listed.length, LLMS_RESOLVED_LIMIT);
+});
+
+test("ads.txt declares that nobody may sell this domain's inventory", () => {
+  const lines = readFileSync(path.join(process.cwd(), "public", "ads.txt"), "utf8")
+    .split("\n")
+    .map((l) => l.replace(/#.*$/, "").trim())
+    .filter(Boolean);
+  assert.equal(lines.length, 1, `ads.txt should hold exactly one record, got ${lines.length}`);
+  // <exchange domain>, <publisher id>, DIRECT|RESELLER[, <certification id>]
+  for (const line of lines) {
+    const fields = line.split(",").map((f) => f.trim());
+    assert.ok(fields.length === 3 || fields.length === 4, `malformed ads.txt record: ${line}`);
+    assert.match(fields[2], /^(DIRECT|RESELLER)$/, `field 3 must be DIRECT or RESELLER: ${line}`);
+  }
 });
 
 console.log(`seo: ${passed} tests passed`);
