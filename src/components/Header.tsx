@@ -82,6 +82,7 @@ export async function Header() {
                   }
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
+                  <Link href="/onboarding?edit=1" className="block px-4 py-3 text-sm hover:bg-surface-2">ההעדפות שלי</Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
                   <form action={doSignOut}>
                     <button className="block w-full px-4 py-3 text-right text-sm text-no hover:bg-surface-2">התנתקות</button>
