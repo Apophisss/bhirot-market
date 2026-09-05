@@ -653,6 +653,15 @@
       "image": "/people/avi-maoz.jpg",
       "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Avi_Maoz_%28SHL_7964%29.jpg/330px-Avi_Maoz_%28SHL_7964%29.jpg",
       "imageCredit": "Wikimedia Commons — Avi Maoz"
+    },
+    {
+      "id": "yaakov-asher",
+      "name": "יעקב אשר",
+      "role": "ח\"כ, דגל התורה; ראש עיריית בני ברק לשעבר",
+      "wiki": "Yaakov Asher",
+      "image": "/people/yaakov-asher.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Yaakev_asher.jpg/330px-Yaakev_asher.jpg",
+      "imageCredit": "Wikimedia Commons — Yaakov Asher"
     }
   ]
 }
