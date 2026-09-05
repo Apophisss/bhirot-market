@@ -4,11 +4,13 @@ description: >-
   Question pipeline for the בחירות מרקט prediction board — find candidate questions in the Israeli
   political news, verify they are decidable and not duplicates, set the opening probability
   (initialProbability), choose how elastic the market should be (liquidity), rate how good the
-  question is (appeal, 1-5, which the recommendation engine weighs), then merge, audit and
+  question is (appeal, 1-5) and how tied to today's news it is (topicality, 1-5, which decays from
+  the creation date) — both of which the recommendation engine weighs — then merge, audit and
   commit them into data/markets.json. Also covers resolving markets whose deadline passed. Use for
   "שאלות חדשות", "להוסיף שאלות לאתר", "לתמחר שאלה", "כמה אחוזים לתת", "כמה גמיש השוק",
-  "liquidity/b של שוק", "כמה השאלה מגניבה", "appeal/דירוג של שאלה", "להכריע שווקים", the hourly editorial routine, or any edit to
-  data/markets.json.
+  "liquidity/b של שוק", "כמה השאלה מגניבה", "appeal/דירוג של שאלה", "כמה השאלה אקטואלית",
+  "topicality/דירוג אקטואליה", "שאלה מהחדשות של עכשיו", "להכריע שווקים", the scheduled editorial
+  routine, or any edit to data/markets.json.
 ---
 
 # צינור השאלות של בחירות מרקט
@@ -25,9 +27,10 @@ description: >-
 3. תמחור    → initialProbability מתוך בסיס־שכיחות + התאמות
 4. גמישות   → liquidity לפי npm run markets:liquidity
 5. דירוג     → appeal: כמה השאלה מגניבה, 1–5. נכנס ישירות למנוע ההמלצות
-6. הרכבה    → batch.json → markets:merge → markets:validate → markets:audit
-7. הכרעות   → שווקים שמועד היעד שלהם עבר (npm run resolve)
-8. commit + push (+ דחיפה ל-API אם יש SITE_URL ו-ADMIN_TOKEN)
+6. אקטואליות → topicality: כמה השאלה צמודה לחדשות של עכשיו, 1–5. דועך מרגע הפרסום
+7. הרכבה    → batch.json → markets:merge → markets:validate → markets:audit
+8. הכרעות   → שווקים שמועד היעד שלהם עבר (npm run resolve)
+9. commit + push (+ דחיפה ל-API אם יש SITE_URL ו-ADMIN_TOKEN)
 ```
 
 היעד בכל ריצה: **2–6 שאלות חדשות**, לפחות שליש מהן נסגרות תוך 24–72 שעות. פחות שאלות טובות
@@ -154,7 +157,38 @@ npm run markets:liquidity -- --audit                 # כל השווקים הפ�
 `sync.ts` מעדכן אותו בשוק פתוח קיים), ושאלה בלי `appeal` נשארת על 3 ומדורגת בדיוק כאילו השדה
 לא קיים.
 
-## 6. הרכבה, מיזוג ובדיקה
+## 6. האקטואליות — `topicality`
+
+`appeal` אומר כמה השאלה **טובה**, וזה נשאר נכון כל עוד היא פתוחה. `topicality` אומר משהו עם תאריך
+תפוגה: **כמה זה מה שמדברים עליו עכשיו.** שאלה שנכתבה עשרים דקות אחרי שהסקר התפרסם צריכה להיות
+הדבר הראשון שרואים באתר — ואחרי שלושה ימים היא סתם עוד שאלה טובה על הלוח, בלי ששום דבר בה השתנה.
+
+| topicality | מה זה אומר | מתי |
+|---|---|---|
+| 1 כללית | לא תלויה בחדשות של היום. תהיה זהה בעוד חודש. | ברירת המחדל. שאלה על יום הבחירות, על סף חוקי, על מועד עתידי קבוע |
+| 2 רקע | נשענת על סיפור מתגלגל, לא על כותרת של היום. | המשך לסיפור שרץ שבועיים |
+| 3 בחדשות | הנושא היה בחדשות השבוע, אבל לא היום. | סקר של אתמול, החלטה מלפני יומיים |
+| 4 כותרת היום | זה בעמוד הראשי של ynet עכשיו. | הודעת מיזוג של הבוקר, עתירה שהוגשה היום |
+| 5 מבזק | קרה בשעות האחרונות, וכולם מדברים על זה. | לכל היותר אחת בריצה, ורק אם באמת |
+
+**איך זה עובד במנוע** (`src/lib/topicality.ts`): הדירוג נקרא יחד עם ה-`createdAt` של השוק. 5 טרי
+הוא האיבר הכי כבד בניקוד כולו (1.5 — מעל הפופולריות ומעל `appeal`), מחציתו נשארת אחרי 36 שעות,
+ותוך שבוע הוא אפס. 1 שווה בדיוק כלום, ואף פעם לא מוריד שאלה — שאלה בלי וו חדשותי היא שאלה
+לגיטימית, פשוט בלי הקפיצה.
+
+שלושה דברים שנובעים מזה ישירות:
+
+- **מדרגים מול רגע הכתיבה, לא מול חשיבות הנושא.** משפט נתניהו הוא נושא חשוב תמיד; שאלה עליו
+  היום שווה 5 רק אם משהו קרה בו היום.
+- **5 על אירוע מלפני שבוע הוא שקר שנגמר תוך יום.** הדעיכה נמדדת מ-`createdAt`, לכן הדירוג הזה
+  קונה קפיצה של יומיים על סיפור שכבר מת — בדיוק החוויה שהאתר לא רוצה לתת.
+- **סיפור שחוזר הוא שאלה חדשה, לא עדכון של הישנה.** אפשר לתקן `topicality` של שוק קיים
+  (`sync.ts` מעדכן אותו כמו `appeal`), אבל השעון לא מתאפס — נשאר רק מה שהדעיכה השאירה.
+
+`npm run markets:audit` מציג את מצב החום החי של הלוח: מי עוד חם, ואם אף שאלה לא קשורה לחדשות
+כרגע — זו התרעה שהריצה הבאה מחפשת בדיוק אותה.
+
+## 7. הרכבה, מיזוג ובדיקה
 
 כתבו batch לפי `templates/batch.example.json` (כולל `newPeople` אם צריך אנשים חדשים), ואז:
 
@@ -170,7 +204,7 @@ npm test                      # אינווריאנטות של מנוע השוק
 הבדיקה הזו רואה רק כותרות — כפילות אמיתית נמדדת בקריטריון ההכרעה, ראו `references/validation.md`.
 דחייה היא תשובה, לא תקלה — אל תעקפו אותה בשינוי מילה בכותרת.
 
-## 7. הכרעות
+## 8. הכרעות
 
 בכל ריצה, לפני שמוסיפים: `npm run markets:audit` מציג תחת "resolution debt" כל שוק פתוח שמועד
 היעד שלו עבר. **ההכרעות עצמן עוברות בצינור נפרד** — `npm run resolve` — והסקיל שמסביר אותו הוא
@@ -185,7 +219,7 @@ npm test                      # אינווריאנטות של מנוע השוק
 רצועות): הוא התשובה לשאלה "האם האחוזים שלנו טובים בכלל", והוא הקלט לתמחור של הריצה הבאה.
 אם הוא אומר שאתם אופטימיים בשיטתיות — הורידו את נקודות הפתיחה בטבלה שלמעלה.
 
-## 8. commit
+## 9. commit
 
 ```bash
 git add data/markets.json data/people.json
@@ -201,5 +235,6 @@ git push -u origin <branch>
 - `references/validation.md` — תשעת השערים במלואם + קטלוג שאלות רעות
 - `references/pricing.md` — בסיסי שכיחות, טבלת סקרים, הטיות בית, דוגמאות
 - `references/liquidity.md` — מה `b` עושה, איך קוראים את הכלי, מתי לחרוג
+- `.claude/routines/questions.md` — מה ריצה מתוזמנת של הצינור הזה עושה, ומה היא אסורה לעשות
 - `templates/batch.example.json` — batch מלא לדוגמה
 - `.claude/skills/market-resolutions` — הצד השני: אימות תוצאה, אישור ופרסום של הכרעה

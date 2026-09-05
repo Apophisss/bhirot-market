@@ -3,6 +3,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { isAdminRequest } from "@/lib/admin";
 import { APPEAL_DEFAULT, APPEAL_MAX, APPEAL_MIN } from "@/lib/appeal";
+import { TOPICALITY_DEFAULT, TOPICALITY_MAX, TOPICALITY_MIN } from "@/lib/topicality";
 import { unauthorized } from "@/lib/api-auth";
 import { CATEGORY_IDS } from "@/lib/categories";
 import { MarketContentSchema, type MarketContent } from "@/lib/content";
@@ -36,6 +37,8 @@ const Body = z.object({
   liquidity: z.number().min(200).max(100_000).default(2000),
   /** how good a question the editor filling in the form thinks it is, 1..5 */
   appeal: z.number().int().min(APPEAL_MIN).max(APPEAL_MAX).default(APPEAL_DEFAULT),
+  /** how tied to today's news it is, 1..5 — decays from the createdAt stamped below */
+  topicality: z.number().int().min(TOPICALITY_MIN).max(TOPICALITY_MAX).default(TOPICALITY_DEFAULT),
   featured: z.boolean().default(false),
   sources: z.array(z.object({ title: z.string().trim().min(1).max(200), url: z.string().trim().url() })).max(12).default([]),
   /** the suggestion this question came from, if it was published out of the inbox */
@@ -74,6 +77,7 @@ export async function POST(req: Request) {
     initialProbability: Math.round(input.probabilityPct) / 100,
     liquidity: input.liquidity,
     appeal: input.appeal,
+    topicality: input.topicality,
     featured: input.featured,
     status: "open" as const,
     sources: input.sources,

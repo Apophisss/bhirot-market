@@ -11,6 +11,7 @@
  */
 import fs from "node:fs";
 import { clampAppeal } from "../src/lib/appeal";
+import { clampTopicality } from "../src/lib/topicality";
 import { MarketsFileSchema, PeopleFileSchema, MarketContentSchema } from "../src/lib/content";
 import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
 
@@ -76,6 +77,9 @@ for (const item of incoming) {
     liquidity: typeof m.liquidity === "number" ? m.liquidity : 2000,
     // the creator's 1..5 rating; anything missing or off-scale lands on the neutral default
     appeal: clampAppeal(typeof m.appeal === "number" ? m.appeal : undefined),
+    // ...and the news rating, whose default is the bottom of its scale: a batch that
+    // does not mention topicality merges as a board of evergreen questions
+    topicality: clampTopicality(typeof m.topicality === "number" ? m.topicality : undefined),
     featured: Boolean(m.featured),
     status: "open",
     createdAt: typeof m.createdAt === "string" ? m.createdAt : now,

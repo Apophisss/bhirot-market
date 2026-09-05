@@ -57,6 +57,13 @@
       "when": 1788635263930,
       "tag": "0007_ad_utm_detail",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1788640289660,
+      "tag": "0008_market_topicality",
+      "breakpoints": true
     }
   ]
 }

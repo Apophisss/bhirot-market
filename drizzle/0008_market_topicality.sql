@@ -1,0 +1,1 @@
+ALTER TABLE `market` ADD `topicality` integer DEFAULT 1 NOT NULL;

@@ -41,6 +41,8 @@ export async function GET(req: Request) {
         taste: Number(r.taste.toFixed(4)),
         popularity: Number(r.popularity.toFixed(4)),
         appeal: r.appeal,
+        topicality: r.topicality,
+        heat: Number(r.heat.toFixed(4)),
         reasons: r.reasons,
         url: `/market/${r.market.id}`,
       })),

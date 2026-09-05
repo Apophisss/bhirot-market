@@ -114,6 +114,8 @@ export const markets = sqliteTable(
     featured: integer("featured", { mode: "boolean" }).notNull().default(false),
     /** 1..5, how good a question the creator thinks it is (see src/lib/appeal.ts). 3 = unrated. */
     appeal: integer("appeal").notNull().default(3),
+    /** 1..5, how tied to the news of the day it was (see src/lib/topicality.ts). Decays from `createdAt`; 1 = evergreen. */
+    topicality: integer("topicality").notNull().default(1),
     status: text("status").$type<MarketStatus>().notNull().default("open"),
     resolution: text("resolution").$type<Resolution>(),
     resolutionNote: text("resolutionNote"),
