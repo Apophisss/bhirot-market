@@ -20,14 +20,14 @@ function Face({ c, n, on }: { c: PmCandidateView; n: number; on: boolean }) {
           className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.04]"
         />
         {n > 0 && (
-          <span className="tabular absolute end-1.5 top-1.5 rounded-full bg-ink/75 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+          <span className="tabular absolute end-1.5 top-1.5 rounded-full bg-ink/75 px-1.5 py-0.5 text-[13px] font-bold text-white backdrop-blur">
             {questionsLabel(n)}
           </span>
         )}
       </div>
       <div className={`px-2 py-1.5 ${on ? "bg-accent-soft" : ""}`}>
         <div className="truncate text-[13px] font-bold leading-tight text-text-strong">{c.name}</div>
-        <div className="truncate text-[11px] text-muted">{c.list}</div>
+        <div className="truncate text-[13px] text-muted">{c.list}</div>
       </div>
     </>
   );

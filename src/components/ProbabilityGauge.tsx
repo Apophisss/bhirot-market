@@ -28,7 +28,7 @@ export function ProbabilityGauge({ p, size = 64, label = "סיכוי" }: { p: nu
         />
       </svg>
       <div className="tabular -mt-3 text-lg font-extrabold leading-none text-text-strong">{pct(p)}</div>
-      <div className="text-[10px] text-muted">{label}</div>
+      <div className="text-[13px] text-muted">{label}</div>
     </div>
   );
 }

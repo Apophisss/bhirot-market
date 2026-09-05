@@ -61,7 +61,7 @@ export function MobileNav({ loggedIn }: { loggedIn: boolean }) {
                 data-evt="mobilenav"
                 data-evt-label={it.label}
                 aria-current={active ? "page" : undefined}
-                className={`pressable flex h-[60px] flex-col items-center justify-center gap-1 text-[10px] font-semibold sm:text-[11px] ${
+                className={`pressable flex h-[60px] flex-col items-center justify-center gap-1 text-[13px] font-semibold ${
                   active ? "text-accent" : "text-muted"
                 }`}
               >

@@ -21,7 +21,7 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
           <PeopleStack photos={m.photos} fallback={cat.cover} size={44} max={3} />
         </Link>
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
+          <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted">
             <span className="cat-chip rounded-md px-1.5 py-0.5" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
               {cat.label}
             </span>
@@ -43,7 +43,7 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
           >
             {m.title}
           </Link>
-          {note && <p className="mt-1 text-[11px] font-medium text-accent-2 sm:text-xs">{note}</p>}
+          {note && <p className="mt-1 text-[13px] font-medium text-accent-2">{note}</p>}
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
         THIN_MARKET_TRADES, so the "מחיר ראשוני" caveat only appears where the line
         beside it is genuinely small.
       */}
-      <footer className="mt-auto flex items-center justify-between gap-2 text-[11px] text-muted sm:text-xs">
+      <footer className="mt-auto flex items-center justify-between gap-2 text-[13px] text-muted">
         <span className="tabular truncate">
           {money(m.displayVolume, { compact: true })} · {m.displayTradeCount} תשובות
           {!resolved && m.displayTradeCount < THIN_MARKET_TRADES && <span className="text-muted-2"> · מחיר ראשוני</span>}

@@ -50,7 +50,9 @@ export function CategoryTabs({
               aria-hidden
             />
             {c.label}
-            {typeof n === "number" && <span className="tabular ms-1.5 text-xs text-muted-2">{n}</span>}
+            {/* the count sits on the active tab's own accent tint, where the secondary
+                grey measured 3.91:1 — the primary one clears 4.5:1 on both states */}
+            {typeof n === "number" && <span className="tabular ms-1.5 text-xs text-muted">{n}</span>}
           </Link>
         );
       })}

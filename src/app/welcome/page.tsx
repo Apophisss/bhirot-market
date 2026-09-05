@@ -10,6 +10,7 @@ import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { daysUntil, money } from "@/lib/format";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { shareCard } from "@/lib/seo";
+import { displayOpenCount } from "@/lib/display-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,8 @@ export default async function WelcomePage() {
       categoryAccentDark: cat.accentDark,
     };
   });
-  const openCount = counts.all ?? 0;
+  // the same number the home page and the category filter print — see displayOpenCount
+  const openCount = displayOpenCount(counts.all ?? 0);
   const days = daysUntil(`${ELECTION_DATE}T00:00:00+03:00`);
 
   return (
@@ -78,9 +80,9 @@ export default async function WelcomePage() {
             an ad reviewer looks for, and the first thing a sceptical visitor asks. */}
         <p className="inline-flex flex-wrap items-center gap-x-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold sm:text-sm">
           <span>נקודות משחק בלבד</span>
-          <span aria-hidden className="text-white/40">·</span>
+          <span aria-hidden className="text-white/60">·</span>
           <span>אין כסף אמיתי</span>
-          <span aria-hidden className="text-white/40">·</span>
+          <span aria-hidden className="text-white/60">·</span>
           <span>אין פרסים ואין תשלום</span>
         </p>
 

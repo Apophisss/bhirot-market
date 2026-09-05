@@ -105,7 +105,7 @@ export function MobileSearch() {
           window.setTimeout(() => input.current?.focus(), 30);
         }}
         data-evt="mobile-search-open"
-        aria-label="חיפוש שוק"
+        aria-label="חיפוש שאלה"
         className="pressable flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-accent md:hidden"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
@@ -119,7 +119,7 @@ export function MobileSearch() {
           className="fixed inset-0 z-50 bg-bg md:hidden"
           role="dialog"
           aria-modal="true"
-          aria-label="חיפוש שוק"
+          aria-label="חיפוש שאלה"
           onTouchStart={(e) => {
             touchY.current = e.touches[0]?.clientY ?? null;
           }}
@@ -155,7 +155,7 @@ export function MobileSearch() {
                 inputMode="search"
                 enterKeyHint="search"
                 autoComplete="off"
-                placeholder="חיפוש שוק: נתניהו, סקר, בנט…"
+                placeholder="חיפוש שאלה: נתניהו, סקר, בנט…"
                 className="w-full rounded-xl border border-border bg-surface-2 py-2.5 pr-10 pl-3 text-base outline-none placeholder:text-muted-2 focus:border-accent focus:bg-surface"
               />
             </form>

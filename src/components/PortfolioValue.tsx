@@ -32,10 +32,10 @@ export async function PortfolioValue() {
       title={`ניקוד כולל (נקודות פנויות + תשובות פתוחות) ${money(netWorth)} · נקודות פנויות ${money(user.balance)}`}
     >
       {/* the full label needs room the phone header does not have */}
-      <span className="text-[10px] font-medium text-muted-2 sm:hidden">שווי</span>
-      <span className="hidden text-[11px] font-medium text-muted-2 sm:inline">שווי כולל</span>
+      <span className="text-[13px] font-medium text-muted-2 sm:hidden">שווי</span>
+      <span className="hidden text-[13px] font-medium text-muted-2 sm:inline">שווי כולל</span>
       <span className="tabular text-text-strong">{money(netWorth)}</span>
-      <span className={`tabular hidden text-[11px] sm:inline ${pnlTone(pnl)}`}>{signedMoney(pnl)}</span>
+      <span className={`tabular hidden text-[13px] sm:inline ${pnlTone(pnl)}`}>{signedMoney(pnl)}</span>
     </Link>
   );
 }

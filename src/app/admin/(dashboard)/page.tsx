@@ -80,7 +80,7 @@ export default async function AdminOverview({ searchParams }: { searchParams: Pr
               return (
                 <li key={i.id} className="rounded-lg border border-border p-3">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-bold ${sev.className}`}>{sev.label}</span>
+                    <span className={`rounded-md px-1.5 py-0.5 text-[13px] font-bold ${sev.className}`}>{sev.label}</span>
                     <strong className="text-text-strong">{i.title}</strong>
                   </div>
                   <p className="mt-1 text-sm text-muted">{i.detail}</p>

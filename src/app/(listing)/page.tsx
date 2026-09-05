@@ -140,7 +140,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {!filtered && session?.user && (
         <section className="card flex items-center justify-between gap-3 p-3 sm:hidden">
           <Countdown variant="card" />
-          <div className="tabular shrink-0 text-left text-[11px] leading-tight text-muted">
+          <div className="tabular shrink-0 text-left text-[13px] leading-tight text-muted">
             <div>
               <strong className="text-text-strong">{openCount}</strong> שאלות
             </div>
@@ -223,7 +223,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <Countdown />
               </div>
               {/* one thin line on a phone; the full grid from `sm` up */}
-              <div className="tabular flex flex-wrap gap-x-3 text-[11px] text-white/70 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-1.5 sm:text-xs lg:flex lg:flex-wrap">
+              <div className="tabular flex flex-wrap gap-x-3 text-[13px] text-white/70 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-1.5 sm:text-xs lg:flex lg:flex-wrap">
                 <span><strong className="text-white">{openCount}</strong> שאלות</span>
                 <span><strong className="text-white">{money(volume, { compact: true })}</strong> שוחקו</span>
                 <span><strong className="text-white">{traderCount}</strong> שחקנים</span>

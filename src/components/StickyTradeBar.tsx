@@ -40,13 +40,13 @@ export function StickyTradeBar({ probability }: { probability: number }) {
           onClick={() => pick("YES")}
           className="tap pressable flex-1 rounded-xl bg-yes/15 text-sm font-extrabold text-yes active:bg-yes active:text-white"
         >
-          קניית כן {pct(probability)}
+          תשובה: כן {pct(probability)}
         </button>
         <button
           onClick={() => pick("NO")}
           className="tap pressable flex-1 rounded-xl bg-no/15 text-sm font-extrabold text-no active:bg-no active:text-white"
         >
-          קניית לא {pct(1 - probability)}
+          תשובה: לא {pct(1 - probability)}
         </button>
       </div>
     </div>
