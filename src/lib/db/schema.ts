@@ -205,6 +205,37 @@ export const comments = sqliteTable(
   (c) => [index("comment_market_idx").on(c.marketId, c.createdAt)],
 );
 
+/* ---------- Onboarding survey / personalization ---------- */
+
+export type SurveyStatus = "completed" | "skipped";
+/** How far out a user likes their questions to close. */
+export type Horizon = "fast" | "mixed" | "long";
+
+/**
+ * What the short political survey learned about a user, and the fact that they
+ * were already asked. One row per user: its existence (whatever its `status`) is
+ * what stops the site from asking again.
+ */
+export const userPreferences = sqliteTable("user_preference", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** JSON string[] of category ids (see src/lib/categories.ts) */
+  topics: text("topics").notNull().default("[]"),
+  /** JSON string[] of people ids (see data/people.json) */
+  people: text("people").notNull().default("[]"),
+  horizon: text("horizon").$type<Horizon>().notNull().default("mixed"),
+  status: text("status").$type<SurveyStatus>().notNull().default("completed"),
+  /** which revision of the survey they answered, so a future one can re-ask */
+  version: integer("version").notNull().default(1),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 /* ---------- Inbox: what users send the editorial team ---------- */
 
 /** Where a message or a suggestion stands in the editorial team's queue. */
@@ -279,5 +310,55 @@ export const agentRuns = sqliteTable("agent_run", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+/**
+ * First-party analytics log — one row per event (pageview, click, trade, web vital, error).
+ * Cookie-less: `visitorId` is a daily-rotating hash of ip+user-agent, so it identifies a
+ * browser for a day and never a person. No IP, no user-agent and no PII are stored.
+ */
+export const analyticsEvents = sqliteTable(
+  "analytics_event",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** pageview | page_exit | click | search | trade | signup | web_vital | client_error | … */
+    name: text("name").notNull(),
+    /** URL path without the query string */
+    path: text("path").notNull().default(""),
+    /** query string without the leading "?" (kept for utm + filter analysis) */
+    query: text("query").notNull().default(""),
+    /** referrer host; "" = direct, "internal" = another page of the site */
+    referrer: text("referrer").notNull().default(""),
+    /** utm_source, or the referrer host when there is no utm */
+    source: text("source").notNull().default(""),
+    medium: text("medium").notNull().default(""),
+    campaign: text("campaign").notNull().default(""),
+    /** daily-rotating hash of ip+ua — a browser-day, not a person */
+    visitorId: text("visitorId").notNull().default(""),
+    /** one browser tab visit (sessionStorage) */
+    sessionId: text("sessionId").notNull().default(""),
+    /** set when the visitor was signed in (no FK: the log outlives the account) */
+    userId: text("userId"),
+    /** market slug, when the event happened on/about a market */
+    marketId: text("marketId"),
+    device: text("device").notNull().default(""),
+    country: text("country").notNull().default(""),
+    /** numeric payload: ms for timings, ₪ for trades, score for web vitals */
+    value: real("value"),
+    /** JSON object with event-specific fields */
+    props: text("props").notNull().default("{}"),
+    ts: integer("ts", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (e) => [
+    index("analytics_ts_idx").on(e.ts),
+    index("analytics_name_ts_idx").on(e.name, e.ts),
+    index("analytics_path_ts_idx").on(e.path, e.ts),
+    index("analytics_visitor_ts_idx").on(e.visitorId, e.ts),
+    index("analytics_market_ts_idx").on(e.marketId, e.ts),
+    index("analytics_user_ts_idx").on(e.userId, e.ts),
+    index("analytics_session_ts_idx").on(e.sessionId, e.ts),
+  ],
+);
 
 export const nowMs = sql`(unixepoch() * 1000)`;

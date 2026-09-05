@@ -16,13 +16,16 @@
     "markets:sync": "tsx scripts/sync.ts",
     "markets:generate": "tsx scripts/generate-questions.ts",
     "people:fetch": "tsx scripts/fetch-people.ts",
+    "bundle": "tsx scripts/fetch-bundle.ts",
     "markets:merge": "tsx scripts/merge-markets.ts",
     "history:verify": "tsx scripts/verify-synthetic-history.ts",
     "markets:audit": "tsx scripts/audit-markets.ts",
     "markets:liquidity": "tsx scripts/liquidity.ts",
-    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-admin.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/validate-markets.ts",
+    "test": "tsx scripts/test-lmsr.ts && tsx scripts/test-elasticity.ts && tsx scripts/test-trade.ts && tsx scripts/test-recommendations.ts && tsx scripts/test-display-stats.ts && tsx scripts/test-letter-avatar.ts && tsx scripts/test-admin.ts && tsx scripts/verify-synthetic-history.ts && tsx scripts/validate-markets.ts",
     "test:lmsr": "tsx scripts/test-lmsr.ts",
     "test:trade": "tsx scripts/test-trade.ts",
+    "test:display": "tsx scripts/test-display-stats.ts",
+    "test:letters": "tsx scripts/test-letter-avatar.ts",
     "test:admin": "tsx scripts/test-admin.ts"
   },
   "dependencies": {

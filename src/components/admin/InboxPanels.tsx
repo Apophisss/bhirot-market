@@ -157,7 +157,7 @@ export function MessagesPanel({ items }: { items: MessageItem[] }) {
           {shown.map((m) => (
             <li key={m.id} className="card space-y-2.5 p-3.5 sm:p-4">
               <div className="flex flex-wrap items-center gap-2">
-                <Avatar name={m.userName ?? m.name} image={m.userImage} size={28} />
+                <Avatar name={m.userName ?? m.name} image={m.userImage} seed={`msg-${m.id}`} size={28} />
                 <span className="font-semibold text-text-strong">{m.name || m.userName || "אנונימי"}</span>
                 {m.email && (
                   <a href={`mailto:${m.email}?subject=${encodeURIComponent("בחירות מרקט — תשובה לפנייתך")}`} className="text-[12px] text-accent-2 hover:underline" dir="ltr">
@@ -204,7 +204,7 @@ export function SuggestionsPanel({ items }: { items: SuggestionItem[] }) {
           {shown.map((s) => (
             <li key={s.id} className="card space-y-2.5 p-3.5 sm:p-4">
               <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-2">
-                <Avatar name={s.userName ?? s.name} image={s.userImage} size={24} />
+                <Avatar name={s.userName ?? s.name} image={s.userImage} seed={`sug-${s.id}`} size={24} />
                 <span className="text-[13px] font-semibold text-text">{s.name || s.userName || "אנונימי"}</span>
                 {s.email && <span dir="ltr">{s.email}</span>}
                 <span className="rounded-md bg-surface-2 px-1.5 py-0.5 font-medium text-muted">{getCategory(s.category).label}</span>
@@ -243,7 +243,7 @@ export function SuggestionsPanel({ items }: { items: SuggestionItem[] }) {
                 <StatusButtons states={SUGGESTION_STATES} current={s.status} disabled={busy === s.id} onPick={(status) => patch(s.id, { status })} />
                 {!s.publishedSlug && (
                   <Link
-                    href={`/admin?tab=new&suggestion=${s.id}`}
+                    href={`/admin/questions?suggestion=${s.id}`}
                     className="pressable rounded-lg bg-yes px-3 py-1 text-[12px] font-semibold text-white hover:bg-yes-2"
                   >
                     פרסום כשאלה

@@ -11,6 +11,7 @@
  * on a reload, and the server-rendered backfill matches what the client keeps
  * appending afterwards.
  */
+import { letterForHash } from "./letter-avatar";
 
 /** one fabricated trade per tick */
 export const FAKE_TICK_MS = 5_000;
@@ -37,6 +38,11 @@ export interface FeedItem {
   ts: number;
   marketId: string;
   marketTitle?: string;
+  /**
+   * The capital shown in the row's avatar circle. Decorative: it is drawn from
+   * the item's own key, never from a trader — a real trade stays anonymous.
+   */
+  letter: string;
 }
 
 function hash32(seed: number, i: number): number {
@@ -83,6 +89,7 @@ export function fakeTradeAt(tick: number, markets: FeedMarket[]): FeedItem | nul
     ts: tick * FAKE_TICK_MS,
     marketId: m.id,
     marketTitle: m.title,
+    letter: letterForHash(hash32(tick, 0x06)),
   };
 }
 

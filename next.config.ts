@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
   // emits a server.js with only the traced dependencies beside it, so the image
   // does not have to carry node_modules.
   output: "standalone",
+  // /for-you is gone: the same picks now open the home page and the rapid deck,
+  // so an old bookmark or a stale link lands on the board instead of a 404
+  async redirects() {
+    return [{ source: "/for-you", destination: "/", permanent: true }];
+  },
 };
 
 export default nextConfig;

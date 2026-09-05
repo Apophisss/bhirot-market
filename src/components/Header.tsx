@@ -2,26 +2,22 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth, signOut } from "@/lib/auth";
 import { SITE_NAME } from "@/lib/config";
-import { isAdminEmail } from "@/lib/admin";
-import { UserBalance } from "./UserBalance";
+import { PortfolioValue } from "./PortfolioValue";
 import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
 
 const NAV = [
-  { href: "/", label: "שווקים" },
-  { href: "/for-you", label: "מומלץ בשבילי" },
-  { href: "/rapid", label: "מצב זריז" },
-  { href: "/activity", label: "פעילות" },
-  { href: "/leaderboard", label: "מובילים" },
-  { href: "/about", label: "איך זה עובד" },
+  { href: "/", label: "שווקים", evt: "nav-markets" },
+  { href: "/rapid", label: "מצב זריז", evt: "nav-rapid" },
+  { href: "/activity", label: "פעילות", evt: "nav-activity" },
+  { href: "/leaderboard", label: "מובילים", evt: "nav-leaderboard" },
+  { href: "/about", label: "איך זה עובד", evt: "nav-about" },
 ];
 
 export async function Header() {
   const session = await auth();
   const user = session?.user;
-  // the allowlist is read from the session's email — /admin itself re-checks against the database
-  const admin = isAdminEmail(user?.email);
 
   async function doSignOut() {
     "use server";
@@ -60,7 +56,12 @@ export async function Header() {
 
           <nav className="ms-auto hidden items-center gap-1 lg:flex">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-accent">
+              <Link
+                key={n.href}
+                href={n.href}
+                data-evt={n.evt}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-accent"
+              >
                 {n.label}
               </Link>
             ))}
@@ -70,7 +71,7 @@ export async function Header() {
           <div className="ms-auto flex shrink-0 items-center gap-2 lg:ms-0">
             {user ? (
               <>
-                <UserBalance />
+                <PortfolioValue />
                 <UserMenu
                   trigger={
                     <>
@@ -81,13 +82,10 @@ export async function Header() {
                   }
                 >
                   <Link href="/portfolio" className="block px-4 py-3 text-sm hover:bg-surface-2">התיק שלי</Link>
-                  <Link href="/for-you" className="block px-4 py-3 text-sm hover:bg-surface-2">מומלץ בשבילי</Link>
+                  <Link href="/onboarding?edit=1" className="block px-4 py-3 text-sm hover:bg-surface-2">ההעדפות שלי</Link>
                   <Link href="/suggest" className="block px-4 py-3 text-sm hover:bg-surface-2">הצעת שאלה</Link>
                   <Link href="/contact" className="block px-4 py-3 text-sm hover:bg-surface-2">יצירת קשר</Link>
                   <Link href="/about" className="block px-4 py-3 text-sm hover:bg-surface-2">איך זה עובד</Link>
-                  {admin && (
-                    <Link href="/admin" className="block px-4 py-3 text-sm font-semibold text-accent hover:bg-surface-2">לוח ניהול</Link>
-                  )}
                   <form action={doSignOut}>
                     <button className="block w-full px-4 py-3 text-right text-sm text-no hover:bg-surface-2">התנתקות</button>
                   </form>
@@ -100,6 +98,7 @@ export async function Header() {
                 </Link>
                 <Link
                   href="/login"
+                  data-evt="header-login"
                   className="pressable rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-md shadow-accent/25 hover:bg-accent-2"
                 >
                   התחברות

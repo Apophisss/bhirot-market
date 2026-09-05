@@ -5,7 +5,7 @@
  * No framework — plain assertions so it runs anywhere `tsx` runs. Run: npm test
  */
 import assert from "node:assert/strict";
-import { adminEmails, isAdminEmail } from "../src/lib/admin";
+import { adminEmails, adminOpenInDev, adminTokenConfigured, checkAdminToken } from "../src/lib/admin";
 import { israelLocalToIso, israelOffsetMinutes, isoToIsraelLocal } from "../src/lib/il-time";
 import { fallbackSlug, slugify, suggestSlug } from "../src/lib/slug";
 import { rateLimit } from "../src/lib/rate-limit";
@@ -22,43 +22,74 @@ function test(name: string, fn: () => void) {
   }
 }
 
-function withEnv(value: string | undefined, fn: () => void) {
-  const before = process.env.ADMIN_EMAILS;
-  if (value === undefined) delete process.env.ADMIN_EMAILS;
-  else process.env.ADMIN_EMAILS = value;
+function withEnv(vars: Record<string, string | undefined>, fn: () => void) {
+  const before: Record<string, string | undefined> = {};
+  for (const [k, v] of Object.entries(vars)) {
+    before[k] = process.env[k];
+    if (v === undefined) delete process.env[k];
+    else process.env[k] = v;
+  }
   try {
     fn();
   } finally {
-    if (before === undefined) delete process.env.ADMIN_EMAILS;
-    else process.env.ADMIN_EMAILS = before;
+    for (const [k, v] of Object.entries(before)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
   }
 }
 
-/* ---------- the allowlist ---------- */
+/* ---------- who may reach the dashboard ---------- */
 
-test("an empty allowlist lets nobody in", () => {
-  withEnv(undefined, () => {
-    assert.equal(adminEmails().length, 0);
-    assert.equal(isAdminEmail("anyone@example.com"), false);
-  });
-  withEnv("  ", () => assert.equal(isAdminEmail("anyone@example.com"), false));
+test("an empty allowlist names nobody", () => {
+  withEnv({ ADMIN_EMAILS: undefined }, () => assert.deepEqual(adminEmails(), []));
+  withEnv({ ADMIN_EMAILS: "  " }, () => assert.deepEqual(adminEmails(), []));
+  withEnv({ ADMIN_EMAILS: " , ," }, () => assert.deepEqual(adminEmails(), []));
 });
 
-test("membership ignores case, spacing and the separator used", () => {
-  withEnv("Editor@Example.com, second@example.com;third@example.com", () => {
-    assert.deepEqual(adminEmails(), ["editor@example.com", "second@example.com", "third@example.com"]);
-    assert.equal(isAdminEmail("EDITOR@example.com"), true);
-    assert.equal(isAdminEmail(" second@example.com "), true);
-    assert.equal(isAdminEmail("third@example.com"), true);
-  });
-});
-
-test("a near-miss address is not an admin", () => {
-  withEnv("editor@example.com", () => {
-    for (const email of ["editor@example.com.evil.com", "xeditor@example.com", "editor@example.co", "", null, undefined]) {
-      assert.equal(isAdminEmail(email as string | null | undefined), false, `${email} must not be an admin`);
+test("the allowlist is lower-cased and trimmed, so a typo in spacing still matches", () => {
+  withEnv({ ADMIN_EMAILS: "Editor@Example.com,  second@example.com ," }, () => {
+    assert.deepEqual(adminEmails(), ["editor@example.com", "second@example.com"]);
+    // the comparison in isAdmin() lower-cases the session email against exactly this list
+    assert.equal(adminEmails().includes("editor@example.com"), true);
+    for (const near of ["editor@example.com.evil.com", "xeditor@example.com", "editor@example.co"]) {
+      assert.equal(adminEmails().includes(near), false, `${near} must not be an admin`);
     }
   });
+});
+
+test("the admin token comparison accepts only the exact token", () => {
+  withEnv({ ADMIN_TOKEN: "s3cret-token" }, () => {
+    assert.equal(adminTokenConfigured(), true);
+    assert.equal(checkAdminToken("s3cret-token"), true);
+    for (const wrong of ["s3cret-toke", "s3cret-token ", "S3CRET-TOKEN", "", "x"]) {
+      assert.equal(checkAdminToken(wrong), false, `${JSON.stringify(wrong)} must be rejected`);
+    }
+  });
+});
+
+test("with no token configured nothing authenticates", () => {
+  withEnv({ ADMIN_TOKEN: undefined }, () => {
+    assert.equal(adminTokenConfigured(), false);
+    assert.equal(checkAdminToken(""), false);
+    assert.equal(checkAdminToken("anything"), false);
+  });
+});
+
+test("the dashboard is open locally only when neither gate is configured", () => {
+  withEnv({ ADMIN_TOKEN: undefined, ADMIN_EMAILS: undefined, NODE_ENV: "development" }, () =>
+    assert.equal(adminOpenInDev(), true),
+  );
+  withEnv({ ADMIN_TOKEN: "t", ADMIN_EMAILS: undefined, NODE_ENV: "development" }, () =>
+    assert.equal(adminOpenInDev(), false),
+  );
+  withEnv({ ADMIN_TOKEN: undefined, ADMIN_EMAILS: "a@b.com", NODE_ENV: "development" }, () =>
+    assert.equal(adminOpenInDev(), false),
+  );
+  // production is never open, however empty the configuration is
+  withEnv({ ADMIN_TOKEN: undefined, ADMIN_EMAILS: undefined, NODE_ENV: "production" }, () =>
+    assert.equal(adminOpenInDev(), false),
+  );
 });
 
 /* ---------- deadlines in Israel time ---------- */

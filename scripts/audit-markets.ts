@@ -32,6 +32,9 @@ const WEAK_SOURCES = new Set(["en.wikipedia.org", "he.wikipedia.org", "x.com", "
 /** resolutionCriteria has to say what happens when the event simply does not occur. */
 const NO_CASE = /["״'׳]לא["״'׳]|אחרת|לא\s+(?:יתפרסם|יפורסם|יוגש|יוכרז|יתקיים|יתרחש|יקרה|תוגש|תפורסם)|אינ(?:ו|ה|ם|ן)\s+נחשב|לא\s+נחשב/;
 const DEADLINE_WORDS = ["עד ", "לפני ", "מחר", "היום", "הערב", "הקרוב", "הקרובה", "הבא", "הבאה", "מוצאי", "בתוך "];
+/** MarketCard clamps the title at three lines: what a question is *about* has to fit. */
+const TITLE_TARGET = 80;
+const TITLE_MAX = 120;
 
 // piping into `head` closes stdout early; that is not an error worth a stack trace
 process.stdout.on("error", () => {});
@@ -65,6 +68,10 @@ const section = (title: string) => console.log(`\n${title}`);
 const hoursOut = (m: MarketContent) => (new Date(m.closesAt).getTime() - now) / HOUR;
 const isShort = (m: MarketContent) => hoursOut(m) <= 72;
 const hosts = (m: MarketContent) => m.sources.map((s) => new URL(s.url).hostname.replace(/^www\./, ""));
+const median = (xs: number[]) => {
+  const v = [...xs].sort((a, b) => a - b);
+  return v.length ? v[Math.floor(v.length / 2)] : 0;
+};
 
 
 console.log(`board audit — ${file.markets.length} markets (${open.length} open), updated ${file.updatedAt}`);
@@ -203,7 +210,13 @@ for (const m of open) {
     warn(`${m.slug}: title carries no deadline — the closing date has to be readable from the question itself`);
     criteriaFlags++;
   }
+  if (m.title.length > TITLE_MAX) {
+    warn(`${m.slug}: title is ${m.title.length} chars — the card clamps at three lines; keep the differentiators and move the rest into resolutionCriteria/subtitle (target ${TITLE_TARGET})`);
+    criteriaFlags++;
+  }
 }
+const overTarget = open.filter((m) => m.title.length > TITLE_TARGET).length;
+info(`title length: median ${median(open.map((m) => m.title.length))} chars · ${overTarget}/${open.length} over the ${TITLE_TARGET}-char target`);
 if (!criteriaFlags) ok(`all ${open.length} open questions are worded to settle themselves`);
 
 // ── elasticity ─────────────────────────────────────────────────────────────

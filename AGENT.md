@@ -103,7 +103,7 @@
 
 ## הצעות שאלה שהגיעו ממשתמשים
 
-באתר יש טופס ציבורי ב-`/suggest`, וההצעות נכנסות לתיבה בלוח הניהול (`/admin?tab=suggestions`). אם מוגדרים
+באתר יש טופס ציבורי ב-`/suggest`, וההצעות נכנסות לתיבה בלוח הניהול (`/admin/inbox`). אם מוגדרים
 `SITE_URL` ו-`ADMIN_TOKEN` בסביבה — עברו עליהן בתחילת הריצה, לפני שאתם מחפשים שאלות חדשות בחדשות:
 
 ```bash
@@ -128,6 +128,7 @@ npm run markets:audit                # חוב הכרעות, תמהיל מועד�
 npm run markets:validate             # סכמה — חייב לעבור
 npm run markets:audit                # בריאות הלוח — תקנו כל ✗
 npm run history:verify               # רק אם נגעתם ב-src/lib/synthetic-history.ts
+npm run test:display                 # רק אם נגעתם ב-src/lib/display-stats.ts
 git add data/markets.json data/people.json
 git commit -m "markets: <תקציר קצר בעברית של מה נוסף/הוכרע>"
 git push
@@ -138,6 +139,23 @@ fetch(process.env.SITE_URL+"/api/admin/markets",{method:"POST",headers:{"content
 ```
 
 אם אין שינויים (לא נוספו שאלות ולא הוכרעו שווקים) — אל תבצעו commit ריק. סיימו עם סיכום קצר.
+
+## משוב מהאתר (מה באמת עובד)
+
+לאתר יש אנליטיקה משלו ולוח ניהול ב-`/admin`. אם יש בסביבה `SITE_URL` ו-`ADMIN_TOKEN`, כדאי להתחיל ריצה במבט על הנתונים:
+
+```bash
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "$SITE_URL/api/admin/bundle?days=30&format=md" | head -60
+```
+
+מה לחפש שם:
+
+- `issues` — בעיות שהאתר זיהה בעצמו, למשל שווקים שעבר מועד הסגירה שלהם ולא הוכרעו (זו עבודה שלכם, עכשיו).
+- `markets.byMarket` — אילו שאלות נצפו והרבה, ואילו לא נסחרו בכלל. שאלה עם צפיות ובלי עסקאות = ניסוח לא ברור,
+  תמחור קיצוני או נושא שלא מעניין. אל תכתבו עוד כאלה.
+- `markets.byCategory` — אילו קטגוריות מייצרות עסקאות ליחידת צפייה. תנו לזה משקל בבחירת הנושאים.
+- `markets.calibration.brierInitial` — עד כמה ה-`initialProbability` שלכם מדויק. ציון גבוה מ-0.25 אומר
+  שהמחירים הפותחים גרועים ממטבע, ושצריך לתמחר בזהירות רבה יותר.
 
 ## עובדות רקע (עדכנו כאן כשמשהו משתנה) — נכון ל-4.9.2026
 

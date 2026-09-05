@@ -1,59 +1,98 @@
-import { eq } from "drizzle-orm";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { cookies } from "next/headers";
 import { auth } from "./auth";
 import { isAuthorizedAdmin } from "./api-auth";
-import { getDb, schema } from "./db";
 
 /**
- * Who may open /admin.
- *
- * The allowlist is an env var rather than a database flag on purpose: the dashboard
- * is the one place that can publish questions and read every message users sent, so
- * membership must not be grantable from inside the running site.
- *
- * ADMIN_EMAILS="editor@example.com, second@example.com"
+ * Who may open /admin and download the data bundle:
+ *  1. anyone who typed ADMIN_TOKEN into /admin/login (kept as a signed cookie, never the token itself)
+ *  2. a signed-in user whose email is listed in ADMIN_EMAILS
+ *  3. locally, when neither is configured, so `npm run dev` just works
+ * API clients keep using `Authorization: Bearer <ADMIN_TOKEN>` exactly as before.
  */
+export const ADMIN_COOKIE = "bm_admin";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
 export function adminEmails(): string[] {
   return (process.env.ADMIN_EMAILS ?? "")
-    .split(/[,;\s]+/)
-    .map((e) => e.trim().toLowerCase())
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
 }
 
-export function isAdminEmail(email?: string | null): boolean {
-  if (!email) return false;
-  const list = adminEmails();
-  if (!list.length) return false;
-  return list.includes(email.trim().toLowerCase());
+export function adminTokenConfigured(): boolean {
+  return Boolean(process.env.ADMIN_TOKEN);
 }
 
-export interface AdminUser {
-  id: string;
-  name: string | null;
-  email: string;
-  image: string | null;
+/** No token and no admin emails outside production: the dashboard is open locally. */
+export function adminOpenInDev(): boolean {
+  return process.env.NODE_ENV !== "production" && !adminTokenConfigured() && adminEmails().length === 0;
 }
 
-/** The signed-in user, but only when their email is on the allowlist. */
-export async function currentAdmin(): Promise<AdminUser | null> {
+function equals(a: string, b: string): boolean {
+  const x = Buffer.from(a);
+  const y = Buffer.from(b);
+  return x.length === y.length && timingSafeEqual(x, y);
+}
+
+/** The cookie holds an HMAC of a constant keyed by ADMIN_TOKEN — leaking it does not leak the token. */
+function cookieValue(): string | null {
+  const secret = process.env.ADMIN_TOKEN;
+  if (!secret) return null;
+  return createHmac("sha256", secret).update("bhirot-admin-v1").digest("hex");
+}
+
+export function checkAdminToken(token: string): boolean {
+  const secret = process.env.ADMIN_TOKEN;
+  return Boolean(secret && token) && equals(token, secret!);
+}
+
+export function adminCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: COOKIE_MAX_AGE,
+  };
+}
+
+export function adminCookieValue(): string | null {
+  return cookieValue();
+}
+
+/** Admin check for pages and server actions. */
+export async function isAdmin(): Promise<boolean> {
+  if (adminOpenInDev()) return true;
+  const expected = cookieValue();
+  const jar = await cookies();
+  const got = jar.get(ADMIN_COOKIE)?.value;
+  if (expected && got && equals(got, expected)) return true;
+  const emails = adminEmails();
+  if (!emails.length) return false;
   const session = await auth();
-  const id = session?.user?.id;
-  if (!id) return null;
-  const db = await getDb();
-  const row = await db.query.users.findFirst({ where: eq(schema.users.id, id) });
-  if (!row?.email || !isAdminEmail(row.email)) return null;
-  return { id: row.id, name: row.name, email: row.email, image: row.image };
+  const email = session?.user?.email?.toLowerCase();
+  return Boolean(email && emails.includes(email));
 }
 
-/**
- * Authorises an admin API call. Two ways in: a signed-in allowlisted user (the
- * dashboard) or `Authorization: Bearer ADMIN_TOKEN` (the editorial routine).
- */
+/** Admin check for route handlers: Bearer token, or the browser cookie/session of a logged-in admin. */
 export async function isAdminRequest(req: Request): Promise<boolean> {
   if (isAuthorizedAdmin(req)) return true;
-  return (await currentAdmin()) !== null;
+  return isAdmin();
 }
 
-/** True when nobody can reach the dashboard yet, so the page can say what to set. */
-export function adminAllowlistEmpty(): boolean {
-  return adminEmails().length === 0;
+/** How the current visitor got in — shown on the dashboard so it is obvious when dev mode is open. */
+export async function adminMode(): Promise<"dev" | "cookie" | "email" | "none"> {
+  if (adminOpenInDev()) return "dev";
+  const expected = cookieValue();
+  const jar = await cookies();
+  const got = jar.get(ADMIN_COOKIE)?.value;
+  if (expected && got && equals(got, expected)) return "cookie";
+  const emails = adminEmails();
+  if (emails.length) {
+    const session = await auth();
+    const email = session?.user?.email?.toLowerCase();
+    if (email && emails.includes(email)) return "email";
+  }
+  return "none";
 }
