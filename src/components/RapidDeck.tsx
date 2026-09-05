@@ -16,6 +16,7 @@ import {
   type RapidCard,
 } from "@/lib/rapid";
 import { MarketImage } from "./MarketImage";
+import { RapidSpark } from "./RapidSpark";
 
 type AnswerStatus = "pending" | "ok" | "error";
 
@@ -670,8 +671,12 @@ function RapidCardView({
         </div>
       )}
 
-      <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 sm:p-6">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
+      {/* Everything the card carries has to fit one screen: the question, its past and
+          the two answers. The meta row, the question and the price bar take exactly what
+          they need, and the chart takes whatever is left over — down to a floor it stays
+          readable at, below which the body scrolls rather than squeezing the curve flat. */}
+      <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 sm:gap-3 sm:p-5">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 text-[11px] text-muted">
           <span
             className="rounded-md px-1.5 py-0.5 font-semibold"
             style={{ background: `${card.categoryAccent}22`, color: card.categoryAccent }}
@@ -692,20 +697,27 @@ function RapidCardView({
           </Link>
         </div>
 
-        <div className="flex flex-1 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <MarketImage
             src={card.image}
             fallback={card.fallbackImage}
             alt={card.personName ?? ""}
-            className="h-14 w-14 shrink-0 rounded-2xl border border-border object-cover sm:h-20 sm:w-20"
+            className="h-12 w-12 shrink-0 rounded-2xl border border-border object-cover sm:h-16 sm:w-16"
           />
           <div className="min-w-0">
-            <h2 className="text-xl font-extrabold leading-tight text-text-strong sm:text-2xl">{card.title}</h2>
-            {card.subtitle && <p className="mt-1 line-clamp-2 text-sm text-muted">{card.subtitle}</p>}
+            <h2 className="text-lg font-extrabold leading-tight text-text-strong sm:text-2xl">{card.title}</h2>
+            {card.subtitle && <p className="mt-1 line-clamp-2 text-xs text-muted sm:text-sm">{card.subtitle}</p>}
           </div>
         </div>
 
-        <div className="space-y-2">
+        {card.spark ? (
+          <RapidSpark spark={card.spark} tradeCount={card.tradeCount} />
+        ) : (
+          /* a market with no drawable past keeps the question centred, as before */
+          <div className="min-h-0 flex-1" aria-hidden />
+        )}
+
+        <div className="shrink-0 space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="tabular font-semibold text-yes">כן {pct(card.probability)}</span>
             <span className="text-muted-2">מחיר השוק כרגע</span>
@@ -718,7 +730,7 @@ function RapidCardView({
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-border p-3 sm:p-4">
+      <div className="shrink-0 border-t border-border p-2.5 sm:p-4">
         <div className="grid grid-cols-2 gap-2">
           <AnswerButton
             side="YES"
@@ -739,7 +751,7 @@ function RapidCardView({
             onClick={() => onAnswer("NO")}
           />
         </div>
-        <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-2">
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-muted-2 sm:mt-2">
           <button
             onClick={onSkip}
             data-evt="rapid-skip"
@@ -786,11 +798,11 @@ function AnswerButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={`${yes ? "כן" : "לא"} ב־${stake} שקלים וירטואליים`}
-      className={`cursor-pointer rounded-2xl py-3 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`cursor-pointer rounded-2xl py-2.5 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 sm:py-3 ${
         yes ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
       }`}
     >
-      <span className="flex items-center justify-center gap-2 text-2xl font-black leading-none">
+      <span className="flex items-center justify-center gap-2 text-xl font-black leading-none sm:text-2xl">
         {hint && (
           <span className="text-sm font-bold opacity-60" aria-hidden>
             {hint}
@@ -824,48 +836,61 @@ function StakeBar({
   dimmed: boolean;
 }) {
   return (
-    <div className={`card shrink-0 p-3 transition-opacity ${dimmed ? "opacity-50" : ""}`}>
-      <div className="flex items-center justify-between">
-        <label htmlFor="rapid-stake" className="text-xs font-semibold text-text">
-          סכום מחייב לכל תשובה
-        </label>
-        <span className="tabular text-2xl font-black text-text-strong">{money(stake)}</span>
+    // Under the deck on a phone the panel is a strip, and every row it takes is a row the
+    // card loses — so the label, the amount and the slider share one line there. From lg it
+    // has a column to itself and goes back to stacking.
+    <div className={`card shrink-0 p-2.5 transition-opacity lg:p-3 ${dimmed ? "opacity-50" : ""}`}>
+      <div className="flex items-center gap-3 lg:block">
+        <div className="flex shrink-0 items-baseline justify-between gap-2 lg:w-full">
+          <label htmlFor="rapid-stake" className="text-[11px] font-semibold text-text lg:text-xs">
+            סכום מחייב לכל תשובה
+          </label>
+          <span className="tabular text-xl font-black text-text-strong lg:text-2xl">{money(stake)}</span>
+        </div>
+        <input
+          id="rapid-stake"
+          type="range"
+          min={RAPID_MIN_STAKE}
+          max={RAPID_MAX_STAKE}
+          step={1}
+          value={stake}
+          onChange={(e) => writeStake(Number(e.target.value))}
+          className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-surface-3 accent-accent lg:mt-2 lg:w-full"
+          aria-describedby="rapid-stake-range"
+        />
       </div>
-      <input
-        id="rapid-stake"
-        type="range"
-        min={RAPID_MIN_STAKE}
-        max={RAPID_MAX_STAKE}
-        step={1}
-        value={stake}
-        onChange={(e) => writeStake(Number(e.target.value))}
-        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-3 accent-accent"
-        aria-describedby="rapid-stake-range"
-      />
-      <div className="scrollbar-none mt-2 flex gap-1.5 overflow-x-auto">
-        {RAPID_STAKE_PRESETS.map((p) => (
-          <button
-            key={p}
-            onClick={() => writeStake(p)}
-            className={`tabular shrink-0 rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
-              stake === p
-                ? "border-accent bg-accent/15 text-accent-2"
-                : "border-border bg-surface-2 text-muted hover:text-text-strong"
-            }`}
-          >
-            ₪{p}
-          </button>
-        ))}
-      </div>
-      <p id="rapid-stake-range" className="tabular mt-1.5 truncate text-[11px] text-muted-2">
-        טווח ₪{RAPID_MIN_STAKE}–₪{RAPID_MAX_STAKE} · יורד מהיתרה מיד
-        {available != null && (
-          <span className={broke ? "text-no" : ""}>
-            {" · "}
-            {outOfMoney ? "נגמרה היתרה" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
+      {/* the presets and the range note share a line while there is width for it, and
+          wrap onto two in the narrow lg column */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 lg:mt-2">
+        <div className="scrollbar-none flex gap-1.5 overflow-x-auto">
+          {RAPID_STAKE_PRESETS.map((p) => (
+            <button
+              key={p}
+              onClick={() => writeStake(p)}
+              className={`tabular shrink-0 rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
+                stake === p
+                  ? "border-accent bg-accent/15 text-accent-2"
+                  : "border-border bg-surface-2 text-muted hover:text-text-strong"
+              }`}
+            >
+              ₪{p}
+            </button>
+          ))}
+        </div>
+        {/* One line on the phone strip, where it has room for one fact only — how far the
+            balance stretches, the fact the slider itself does not already carry. In the lg
+            column it takes a line of its own and says everything. */}
+        <p id="rapid-stake-range" className="tabular min-w-0 flex-1 truncate text-[11px] text-muted-2 lg:basis-full">
+          <span className="hidden lg:inline">
+            טווח ₪{RAPID_MIN_STAKE}–₪{RAPID_MAX_STAKE} · יורד מהיתרה מיד{available != null ? " · " : ""}
           </span>
-        )}
-      </p>
+          {available != null && (
+            <span className={broke ? "text-no" : ""}>
+              {outOfMoney ? "נגמרה היתרה" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
+            </span>
+          )}
+        </p>
+      </div>
       {showKeys && (
         <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-2">
           מקלדת: <Kbd>→</Kbd> כן · <Kbd>←</Kbd> לא · <Kbd>רווח</Kbd> דלג · <Kbd>+</Kbd>/<Kbd>−</Kbd> סכום ·{" "}

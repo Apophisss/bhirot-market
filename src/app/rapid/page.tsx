@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth, currentUser } from "@/lib/auth";
 import { SITE_TEAM } from "@/lib/config";
 import { ensureSynced } from "@/lib/sync";
-import { listRapidFeed, toRapidCard } from "@/lib/rapid-feed";
+import { listRapidCards } from "@/lib/rapid-feed";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE, RAPID_SORTS, type RapidSort } from "@/lib/rapid";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { RapidDeck } from "@/components/RapidDeck";
@@ -25,8 +25,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
 
   const [session, user] = await Promise.all([auth(), currentUser()]);
   const loggedIn = Boolean(session?.user?.id);
-  const feed = await listRapidFeed({ userId: user?.id ?? null, category, sort, includeAnswered });
-  const cards = feed.map(toRapidCard);
+  const cards = await listRapidCards({ userId: user?.id ?? null, category, sort, includeAnswered });
 
   const link = (patch: Partial<Search>) => {
     const next = { ...sp, ...patch };
