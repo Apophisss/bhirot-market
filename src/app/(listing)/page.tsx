@@ -93,7 +93,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
     getPeopleCounts("open"),
     status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 18 }) : Promise.resolve([]),
-    !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 6 }) : Promise.resolve([]),
+    !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 4 }) : Promise.resolve([]),
     !filtered ? getRecommendations({ userId: session?.user?.id, limit: 12 }) : Promise.resolve(null),
     !filtered ? shouldOfferSurvey(session?.user?.id) : Promise.resolve(false),
   ]);
@@ -111,7 +111,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const visible = markets.slice(0, show);
   const soonIds = new Set(closingSoon.map((m) => m.id));
   // a question already surfaced by "closing today" is not worth a second slot in the recommendations
-  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 6);
+  const recommendations = (recommended?.items ?? []).filter((r) => !soonIds.has(r.market.id)).slice(0, 4);
   const recIds = new Set(recommendations.map((r) => r.market.id));
   const featured = !filtered ? markets.filter((m) => m.featured && !soonIds.has(m.id) && !recIds.has(m.id)).slice(0, 3) : [];
   const skip = new Set([...featured.map((m) => m.id), ...soonIds, ...recIds]);
@@ -125,7 +125,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             path: status === "resolved" ? "/?status=resolved" : "/",
             name: status === "resolved" ? `שווקים שהוכרעו | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`,
             description: status === "resolved" ? RESOLVED_DESCRIPTION : SITE_DESCRIPTION,
-            markets: [...recommendations.map((r) => r.market), ...closingSoon, ...featured, ...rest].slice(0, 30),
+            // the ItemList is a pointer for crawlers, not a copy of the board: twelve
+            // entries name the page's own content, and each extra one is ~400 bytes of
+            // HTML plus the same again in the RSC payload beside it
+            markets: [...recommendations.map((r) => r.market), ...closingSoon, ...featured, ...rest].slice(0, 12),
           })}
         />
       )}
@@ -207,7 +210,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <Link
                 href="/about"
                 data-evt="hero-about"
-                className="mt-2 inline-flex py-1 text-[13px] font-semibold text-white/75 underline underline-offset-4 hover:text-white sm:hidden"
+                className="tap mt-1 inline-flex items-center text-[13px] font-semibold text-white/75 underline underline-offset-4 hover:text-white sm:hidden"
               >
                 איך זה עובד?
               </Link>
@@ -267,7 +270,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="text-base font-bold text-text-strong sm:text-lg">נסגר היום או מחר</h2>
-            <Link href="/?sort=closing" className="-my-1 inline-flex items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
+            <Link href="/?sort=closing" className="tap -my-1 inline-flex items-center text-[13px] text-accent-2 hover:underline sm:text-sm" rel="nofollow">
               כל השאלות לפי מועד סגירה
             </Link>
           </div>
@@ -312,7 +315,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="text-base font-bold text-text-strong sm:text-lg">הוכרעו לאחרונה</h2>
-            <Link href="/?status=resolved" className="-my-1 inline-flex shrink-0 items-center py-1.5 text-[13px] text-accent-2 hover:underline sm:text-sm">כל ההכרעות</Link>
+            <Link href="/?status=resolved" className="tap -my-1 inline-flex shrink-0 items-center text-[13px] text-accent-2 hover:underline sm:text-sm">כל ההכרעות</Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {resolvedRecently.map((m) => (

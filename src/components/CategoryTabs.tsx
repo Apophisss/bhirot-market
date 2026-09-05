@@ -40,7 +40,7 @@ export function CategoryTabs({
             data-evt="category-tab"
             data-evt-label={c.label}
             aria-current={isActive ? "page" : undefined}
-            className={`tap pressable flex shrink-0 items-center rounded-full border px-3.5 text-sm font-medium transition ${
+            className={`tap pressable flex min-w-11 shrink-0 items-center justify-center rounded-full border px-3.5 text-sm font-medium transition ${
               isActive ? "border-accent bg-accent/15 text-accent-2" : "border-border bg-surface text-muted hover:border-border-2 hover:text-text-strong"
             }`}
           >

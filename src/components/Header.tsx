@@ -43,7 +43,7 @@ export async function Header() {
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-bg/90 shadow-[0_1px_3px_rgba(10,16,32,0.05)] backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          <Link href="/" className="tap flex shrink-0 items-center gap-2 sm:gap-2.5">
             <Image src="/logo.svg" alt="" width={32} height={32} priority className="h-8 w-8 sm:h-9 sm:w-9" />
             <span className="text-base font-extrabold tracking-tight text-text-strong sm:text-lg">{SITE_NAME}</span>
             <span className="hidden rounded-full border border-border-2 bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent md:inline">

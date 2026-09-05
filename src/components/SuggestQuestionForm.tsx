@@ -7,6 +7,7 @@ import { MarketImage } from "./MarketImage";
 import { ProbabilityGauge } from "./ProbabilityGauge";
 import { Field } from "./ContactForm";
 import { pct } from "@/lib/format";
+import type { CSSProperties } from "react";
 
 /** Two weeks out — a sane default target date for a proposed question. */
 function defaultCloseDate(): string {
@@ -238,7 +239,7 @@ export function SuggestionPreview({
           className="h-11 w-11 shrink-0 rounded-lg object-cover"
         />
         <div className="min-w-0 flex-1">
-          <span className="rounded-md px-1.5 py-0.5 text-[11px]" style={{ background: `${cat.accent}22`, color: cat.accent }}>
+          <span className="cat-chip rounded-md px-1.5 py-0.5 text-[11px]" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
             {cat.label}
           </span>
           <p className="mt-1 line-clamp-3 text-[14px] font-semibold leading-snug text-text-strong">

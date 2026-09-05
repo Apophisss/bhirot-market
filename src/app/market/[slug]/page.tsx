@@ -21,6 +21,7 @@ import { MarketCard } from "@/components/MarketCard";
 import { StickyTradeBar } from "@/components/StickyTradeBar";
 import { ShareButton } from "@/components/ShareButton";
 import { THIN_MARKET_TRADES } from "@/lib/limits";
+import type { CSSProperties } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -104,15 +105,15 @@ export default async function MarketPage({ params, searchParams }: { params: Par
       <JsonLd data={marketGraph(market)} />
       <div className="space-y-4 sm:space-y-5">
         <nav className="-my-1 text-xs text-muted" aria-label="פירורי לחם">
-          <Link href="/" className="inline-block py-1 hover:text-text">שווקים</Link> ‹{" "}
-          <Link href={`/category/${cat.id}`} className="inline-block py-1 hover:text-text">{cat.label}</Link>
+          <Link href="/" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-text">שווקים</Link> ‹{" "}
+          <Link href={`/category/${cat.id}`} className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-text">{cat.label}</Link>
         </nav>
 
         <header className="flex gap-3 sm:gap-4">
           <PeopleStack photos={market.photos} fallback={cat.cover} size={60} max={3} />
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className="rounded-md px-1.5 py-0.5 font-semibold" style={{ background: `${cat.accent}22`, color: cat.accent }}>
+              <span className="cat-chip rounded-md px-1.5 py-0.5 font-semibold" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
                 {cat.label}
               </span>
               <span className="tabular">
@@ -203,7 +204,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
                       data-evt-market={market.id}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="inline-block py-1 text-accent-2 hover:underline"
+                      className="inline-flex min-h-11 items-center text-accent-2 hover:underline"
                     >
                       {s.title}
                     </a>
@@ -217,7 +218,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             <div className="mt-4 flex flex-wrap gap-1.5">
               {market.tags.map((t) => (
                 <Link key={t} href={`/?q=${encodeURIComponent(t)}`}
-                  rel="nofollow" className="rounded-full bg-surface-2 px-2.5 py-1.5 text-xs text-muted hover:text-text">
+                  rel="nofollow" className="tap inline-flex min-w-11 items-center justify-center rounded-full bg-surface-2 px-2.5 text-xs text-muted hover:text-text">
                   #{t}
                 </Link>
               ))}

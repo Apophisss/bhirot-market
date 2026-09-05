@@ -290,7 +290,7 @@ export function TradePanel({
               if (a === "BUY") setInput("");
               setMsg(null);
             }}
-            className={`pressable flex-1 rounded-md py-2 text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
+            className={`tap pressable flex-1 rounded-md text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
           >
             {a === "BUY" ? "קנייה" : "מכירה"}
           </button>
@@ -492,7 +492,7 @@ export function TradePanel({
 
       {!loggedIn && (
         <p className="mt-3 text-center text-xs text-muted-2">
-          <Link href="/login" className="text-accent-2 hover:underline">התחברו עם Google</Link> וקבלו ₪10,000 וירטואליים למסחר
+          <Link href="/login" className="inline-flex min-h-11 items-center text-accent-2 hover:underline">התחברו עם Google</Link> וקבלו ₪10,000 וירטואליים למסחר
         </p>
       )}
     </div>

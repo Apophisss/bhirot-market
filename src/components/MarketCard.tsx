@@ -5,6 +5,7 @@ import { THIN_MARKET_TRADES } from "@/lib/limits";
 import { getCategory } from "@/lib/categories";
 import { SITE_TEAM, isTeamAuthored } from "@/lib/config";
 import { PeopleStack } from "./PeopleStack";
+import type { CSSProperties } from "react";
 
 export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
   const href = `/market/${m.id}`;
@@ -21,7 +22,7 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
         </Link>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
-            <span className="rounded-md px-1.5 py-0.5" style={{ background: `${cat.accent}22`, color: cat.accent }}>
+            <span className="cat-chip rounded-md px-1.5 py-0.5" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
               {cat.label}
             </span>
             {isTeamAuthored(m.createdBy) && <span className="text-muted-2">{SITE_TEAM}</span>}
@@ -38,7 +39,7 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
             href={href}
             data-evt="market-card"
             data-evt-market={m.id}
-            className="line-clamp-3 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2"
+            className="line-clamp-3 py-0.5 text-[15px] font-semibold leading-snug text-text-strong hover:text-accent-2"
           >
             {m.title}
           </Link>

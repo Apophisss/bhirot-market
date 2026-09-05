@@ -68,6 +68,50 @@
     --nav-h: 60px;
   }
 
+  /*
+    Dark mode.
+    ---------------------------------------------------------------------------
+    Every colour on this site already goes through a token, so the whole theme is
+    this one block: the utilities read `var(--color-*)` and never care which value
+    is behind them. There is no toggle — the site follows the reader's system
+    setting, which is the setting they already made.
+
+    Three things are chosen rather than inverted:
+
+    - The greys are picked against `--color-bg` and `--color-surface-2` the same
+      way the light ones are, so the 11-13px operational text (closing times,
+      volumes) clears 4.5:1 here too.
+    - Green, red and blue are LIGHTENED. Their job in the interface is mostly to
+      be read as text on a card (`bg-yes/15 text-yes`), and a 600-tone green on a
+      near-black card is invisible. That leaves them too light to carry white
+      text as a fill, which is what the rule further down fixes.
+    - `--color-ink` stays near-black. It is the footer's background, and in dark
+      mode it doubles as the foreground of the solid brand buttons.
+  */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --color-bg: #0b1020;
+      --color-surface: #121a2e;
+      --color-surface-2: #1a2440;
+      --color-surface-3: #26325a;
+      --color-border: #263156;
+      --color-border-2: #3a4a78;
+      --color-text: #dbe4f4;
+      --color-text-strong: #f4f8ff;
+      --color-muted: #a8b6d0; /* 9.3:1 on the page, 7.5:1 on surface-2 */
+      --color-muted-2: #93a1bd; /* 7.3:1 on the page, 5.9:1 on surface-2 */
+      --color-accent: #7aa2ff;
+      --color-accent-2: #a9c3ff;
+      --color-accent-soft: #16213c;
+      --color-yes: #43c97a; /* 8.1:1 on a card, 6.2:1 on its own tint */
+      --color-yes-2: #6bdc9a;
+      --color-no: #f4696b; /* 5.8:1 on a card, 4.8:1 on its own tint */
+      --color-no-2: #ff8b8d;
+      --color-warn: #e3a33a;
+    }
+  }
+
   html {
     background: var(--color-bg);
     /* phones must not re-flow text on rotate, and anchors must clear the sticky header */
@@ -354,6 +398,92 @@
 
   .prose-he p + p {
     margin-top: 0.75rem;
+  }
+}
+
+/*
+  The one place the token swap is not enough.
+
+  A solid brand button is `bg-accent`/`bg-yes`/`bg-no` with `text-white` written at
+  the call site — around thirty of them. In dark mode those fills are light, and
+  white on a light green is unreadable (2.1:1). No single value can satisfy both
+  jobs: to clear 4.5:1 as text on a near-black card a colour has to be light, and
+  to carry white text it has to be dark.
+
+  So the foreground flips instead of the fill. The compound selector (two classes)
+  outranks the plain `.text-white` utility without `!important`, and it fires only
+  where a brand fill and white text actually meet — nothing else on the page is
+  touched, and light mode never sees this rule at all.
+*/
+@media (prefers-color-scheme: dark) {
+  .bg-accent.text-white,
+  .bg-accent-2.text-white,
+  .bg-yes.text-white,
+  .bg-yes-2.text-white,
+  .bg-no.text-white,
+  .bg-no-2.text-white {
+    color: var(--color-ink);
+  }
+
+  /*
+    The mirror image of the same problem. The primary CTA on every dark banner is
+    a white pill with `text-accent` on it — and `--color-accent` is deliberately
+    light in dark mode, which turns that button into pale blue on white (2.5:1).
+    The banner behind it is dark in both themes, so the button stays white and the
+    label goes back to the deep brand blue.
+  */
+  .bg-white.text-accent,
+  .bg-white.text-accent-2 {
+    color: var(--color-brand-deep);
+  }
+}
+
+/*
+  Category chips carry their colour inline, from `categories.ts`, so a media query
+  cannot reach the value — it can only choose between two values the element
+  already carries. Both are set as custom properties on the element and this picks
+  one; see `Category.accentDark`.
+*/
+.cat-chip {
+  /* the tint is an upgrade, never a requirement: a browser without color-mix would
+     otherwise be handed `background: var(--cat)` behind `color: var(--cat)` — the
+     label in its own colour, on itself */
+  background: transparent;
+  color: var(--cat);
+}
+@supports (color: color-mix(in srgb, red, red)) {
+  .cat-chip {
+    background: color-mix(in srgb, var(--cat) 13%, transparent);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .cat-chip {
+    color: var(--cat-dark);
+  }
+  @supports (color: color-mix(in srgb, red, red)) {
+    .cat-chip {
+      background: color-mix(in srgb, var(--cat-dark) 16%, transparent);
+    }
+  }
+}
+
+/* the same idea for the tinted band on a /category/<id> landing page */
+.cat-band {
+  border-color: var(--color-border);
+  background: transparent;
+}
+@supports (color: color-mix(in srgb, red, red)) {
+  .cat-band {
+    border-color: color-mix(in srgb, var(--cat) 20%, transparent);
+    background: color-mix(in srgb, var(--cat) 5%, transparent);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  @supports (color: color-mix(in srgb, red, red)) {
+    .cat-band {
+      border-color: color-mix(in srgb, var(--cat-dark) 26%, transparent);
+      background: color-mix(in srgb, var(--cat-dark) 8%, transparent);
+    }
   }
 }
 

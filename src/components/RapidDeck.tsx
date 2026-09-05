@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
@@ -927,8 +928,8 @@ function RapidCardView({
       <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 short:gap-2 short:p-3 sm:gap-3 sm:p-5">
         <div className="flex shrink-0 flex-wrap items-center gap-2 text-[11px] text-muted">
           <span
-            className="rounded-md px-1.5 py-0.5 font-semibold"
-            style={{ background: `${card.categoryAccent}22`, color: card.categoryAccent }}
+            className="cat-chip rounded-md px-1.5 py-0.5 font-semibold"
+            style={{ "--cat": card.categoryAccent, "--cat-dark": card.categoryAccentDark } as CSSProperties}
           >
             {card.categoryLabel}
           </span>
@@ -937,7 +938,7 @@ function RapidCardView({
           <Link
             href={`/market/${card.id}`}
             target="_blank"
-            className="ms-auto inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 py-0.5 hover:text-text-strong"
+            className="tap ms-auto inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 hover:text-text-strong"
           >
             פרטים
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1009,7 +1010,7 @@ function RapidCardView({
             onClick={onSkip}
             data-evt="rapid-skip"
             data-evt-market={card.id}
-            className="tap inline-flex shrink-0 cursor-pointer items-center rounded-md px-3 font-semibold hover:text-text-strong"
+            className="tap inline-flex min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-md px-3 font-semibold hover:text-text-strong"
           >
             דלג
           </button>

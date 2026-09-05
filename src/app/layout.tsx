@@ -8,6 +8,7 @@ import { Analytics } from "@/components/Analytics";
 import { JsonLd } from "@/components/JsonLd";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AdConversions } from "@/components/AdConversions";
+import { ServiceWorker } from "@/components/ServiceWorker";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "@/lib/config";
 import { siteGraph } from "@/lib/seo";
 
@@ -72,8 +73,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   // draw under the notch/home indicator; the safe-area utilities keep content clear
   viewportFit: "cover",
-  themeColor: "#0d2a6b",
-  colorScheme: "light",
+  // the browser chrome follows the theme: the deep brand blue on a light page, the
+  // page's own near-black in dark mode, where a bright band above the content is
+  // exactly what a reader on dark mode is trying to avoid
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0d2a6b" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1020" },
+  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -91,6 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <GoogleAnalytics />
         <AdConversions />
+        <ServiceWorker />
       </body>
     </html>
   );

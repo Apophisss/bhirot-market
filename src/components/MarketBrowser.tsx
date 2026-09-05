@@ -152,7 +152,7 @@ export function MarketBrowser({
               href={link({ sort: s.id })}
               data-evt="sort-tab"
               data-evt-label={s.label}
-              className={`tap inline-flex shrink-0 items-center rounded-md px-2.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+              className={`tap inline-flex min-w-11 shrink-0 items-center justify-center rounded-md px-2.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
               rel="nofollow"
             >
               {s.label}

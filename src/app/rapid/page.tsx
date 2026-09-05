@@ -102,7 +102,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
       {!loggedIn && (
         <p className="shrink-0 rounded-xl border border-accent/40 bg-accent/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
           {GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות, ו
-          <Link href="/login?callbackUrl=%2Frapid" className="font-bold text-accent-2 hover:underline">
+          <Link href="/login?callbackUrl=%2Frapid" className="inline-flex min-h-11 items-center font-bold text-accent-2 hover:underline">
             התחברות
           </Link>{" "}
           הופכת אותן לפוזיציות אמיתיות.
