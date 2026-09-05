@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { auth, currentUser } from "@/lib/auth";
-import { getMarket, getComments, getRelatedMarkets } from "@/lib/markets";
+import { getMarket, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
 import { getChartHistory } from "@/lib/display-history";
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
@@ -14,6 +14,7 @@ import { getPerson } from "@/lib/content";
 import { money, fmtDateTime, closesLabel, timeAgo } from "@/lib/format";
 import { PriceChart } from "@/components/PriceChart";
 import { TradePanel } from "@/components/TradePanel";
+import { TradeList } from "@/components/TradeList";
 import { Comments } from "@/components/Comments";
 import { PeopleStack } from "@/components/PeopleStack";
 import { MarketCard } from "@/components/MarketCard";
@@ -74,8 +75,9 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   if (!market) notFound();
 
   const session = await auth();
-  const [chart, comments, user, related] = await Promise.all([
+  const [chart, recent, comments, user, related] = await Promise.all([
     getChartHistory(market),
+    getRecentTrades(slug, 25),
     getComments(slug),
     currentUser(),
     getRelatedMarkets(market, 3),
@@ -182,6 +184,11 @@ export default async function MarketPage({ params, searchParams }: { params: Par
               ))}
             </div>
           )}
+        </section>
+
+        <section className="card p-3.5 sm:p-5">
+          <h2 className="mb-2 font-bold text-text-strong">עסקאות אחרונות</h2>
+          <TradeList trades={recent} />
         </section>
 
         <Comments marketId={market.id} comments={comments} loggedIn={Boolean(session?.user)} />

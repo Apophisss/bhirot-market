@@ -10,6 +10,7 @@ import { MobileNav } from "./MobileNav";
 const NAV = [
   { href: "/", label: "שווקים" },
   { href: "/rapid", label: "מצב זריז" },
+  { href: "/activity", label: "פעילות" },
   { href: "/leaderboard", label: "מובילים" },
   { href: "/about", label: "איך זה עובד" },
 ];
