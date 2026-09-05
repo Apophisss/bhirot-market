@@ -70,6 +70,7 @@ export const CLICK_IDS: Record<string, string> = {
   "hero-portfolio": "CTA לתיק שלי בהירו",
   "hero-about": "CTA איך זה עובד בהירו",
   "browser-rapid": "מעבר למצב זריז מרשימת השווקים",
+  "rapid-skip": "דילוג על שאלה במצב זריז",
   "market-card": "כרטיס שוק ברשימה",
   "market-card-yes": "כפתור כן בכרטיס",
   "market-card-no": "כפתור לא בכרטיס",
