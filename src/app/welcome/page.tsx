@@ -7,7 +7,6 @@ import { getCategory } from "@/lib/categories";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
-import { STARTING_BALANCE } from "@/lib/db/schema";
 import { daysUntil, money } from "@/lib/format";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { shareCard } from "@/lib/seo";
@@ -21,15 +20,15 @@ export const dynamic = "force-dynamic";
  * home page that exists to be linked from an ad, and letting Google index both
  * would split the ranking of the real one.
  */
-const DESCRIPTION = `משחק ניחושים חינמי על בחירות 2026. ${money(STARTING_BALANCE)} לכל שחקן חדש — אין כסף אמיתי, אין פרסים ואין תשלום.`;
+const DESCRIPTION = "משחק ידע חינמי על הפוליטיקה הישראלית — בנקודות משחק בלבד. אין כסף אמיתי, אין פרסים ואין תשלום.";
 
 export const metadata: Metadata = {
-  title: "נחשו מה יקרה בפוליטיקה הישראלית",
+  title: "משחק ידע על הפוליטיקה הישראלית",
   description: DESCRIPTION,
   robots: { index: false, follow: true },
   // noindex, but this is the page an ad links to and the one people forward: the
   // inherited card would name the home page instead of the pitch they are reading
-  ...shareCard({ title: `נחשו מה יקרה בפוליטיקה הישראלית | ${SITE_NAME}`, description: DESCRIPTION, path: "/welcome" }),
+  ...shareCard({ title: `משחק ידע על הפוליטיקה הישראלית | ${SITE_NAME}`, description: DESCRIPTION, path: "/welcome" }),
 };
 
 /** The single destination every button on this page points at. */
@@ -86,9 +85,9 @@ export default async function WelcomePage() {
         </p>
 
         <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">
-          חושבים שאתם יודעים
+          כמה טוב אתם מכירים
           <br />
-          מה יקרה בבחירות?
+          את הפוליטיקה הישראלית?
         </h1>
         {/* The one piece of urgency on this page that is not invented: there is a real
             election on a real date. It used to sit in small grey type halfway down the
@@ -100,8 +99,8 @@ export default async function WelcomePage() {
           </p>
         )}
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-lg">
-          {SITE_NAME} הוא משחק ניחושים על הפוליטיקה הישראלית. מקבלים {money(STARTING_BALANCE)}, עונים ״כן״ או ״לא״
-          על שאלות שמתעדכנות כל שעה לפי החדשות, ומגלים אם קראתם את המפה טוב יותר מכולם.
+          {SITE_NAME} הוא משחק ידע על הפוליטיקה הישראלית — בנקודות משחק בלבד. אין כסף אמיתי, אין פרסים
+          ואין תשלום. עונים על שאלות, צוברים נקודות על תשובות נכונות, ומגלים אם קראתם את המפה טוב יותר מכולם.
         </p>
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -140,7 +139,7 @@ export default async function WelcomePage() {
 
       <section className="grid gap-3 sm:grid-cols-3">
         <Step n="1" title="עונים על שאלה">
-          ״האם הכנסת תתפזר עד מרץ?״ — כן או לא. כל תשובה עולה נקודות משחק, לפי כמה היא בטוחה.
+          בוחרים שאלה מהלוח ועונים. כל תשובה עולה נקודות משחק, לפי כמה היא בטוחה.
         </Step>
         <Step n="2" title="המד זז">
           תשובה זולה שווה יותר נקודות אם צדקתם. ככל שפחות שחקנים בחרו את הצד שלכם — כך המד נמוך יותר והתשובה משתלמת יותר.
@@ -170,7 +169,7 @@ export default async function WelcomePage() {
           href={CTA}
           className="tap pressable inline-flex items-center justify-center rounded-xl bg-accent px-8 py-4 text-base font-extrabold text-white hover:bg-accent-2 sm:text-lg"
         >
-          קבלו {money(STARTING_BALANCE)} והתחילו לשחק
+          לבדוק כמה אתם מכירים — חינם
         </Link>
       </section>
     </div>
