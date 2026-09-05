@@ -20,3 +20,6 @@ bhirot-market-*.md
 # הנוהל שלנו נמצא ב-AGENT.md וב-.claude/skills.
 AGENTS.md
 CLAUDE.md
+
+# דוחות ההכרעה מיוצרים מחדש מקובץ הריצה (npm run resolve -- report); הריצות עצמן כן נשמרות.
+data/resolutions/*.report.html
