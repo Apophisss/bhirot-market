@@ -1,5 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
+import { MAX_BET, MAX_SELL_SHARES, MIN_BET } from "./limits";
 import { maxBuyAmount, maxSellShares, PRICE_BAND, priceYes, quoteBuy, quoteSell, type MarketState, type Side } from "./lmsr";
 
 const { markets, positions, trades, priceHistory, users } = schema;
@@ -12,7 +13,8 @@ export type TradeErrorCode =
   | "USER_NOT_FOUND"
   | "INSUFFICIENT_BALANCE"
   | "NO_SHARES"
-  | "AMOUNT_TOO_SMALL";
+  | "AMOUNT_TOO_SMALL"
+  | "AMOUNT_TOO_LARGE";
 
 export class TradeError extends Error {
   constructor(message: string, public status = 400, public code: TradeErrorCode = "BAD_REQUEST") {
@@ -56,16 +58,27 @@ export interface TradeRequest {
   quantity: number;
 }
 
-export const MIN_TRADE = 1;
-export const MAX_TRADE = 100_000;
+export const MIN_TRADE = MIN_BET;
+/** A BUY is a bet, so it is capped in ₪ by the site-wide limit. */
+export const MAX_TRADE = MAX_BET;
+/** A SELL is measured in shares, not ₪ — see `MAX_SELL_SHARES`. */
+export { MAX_SELL_SHARES };
 
 export async function executeTrade(req: TradeRequest) {
   const db = await getDb();
-  if (!Number.isFinite(req.quantity) || req.quantity < MIN_TRADE || req.quantity > MAX_TRADE) {
-    throw new TradeError("סכום לא תקין");
-  }
   if (req.side !== "YES" && req.side !== "NO") throw new TradeError("צד לא תקין");
   if (req.action !== "BUY" && req.action !== "SELL") throw new TradeError("פעולה לא תקינה");
+  const maxQuantity = req.action === "BUY" ? MAX_TRADE : MAX_SELL_SHARES;
+  if (!Number.isFinite(req.quantity) || req.quantity < MIN_TRADE) {
+    throw new TradeError("סכום לא תקין");
+  }
+  if (req.quantity > maxQuantity) {
+    throw new TradeError(
+      req.action === "BUY" ? `אפשר להמר עד ₪${MAX_TRADE} בעסקה אחת` : "סכום לא תקין",
+      400,
+      "AMOUNT_TOO_LARGE",
+    );
+  }
 
   return withBusyRetry(() => db.transaction(async (tx) => {
     const market = await tx.query.markets.findFirst({ where: eq(markets.id, req.marketId) });
