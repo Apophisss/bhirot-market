@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-05T16:44:58.476Z",
-  "lastUpdateNote": "שאלות קמפיין: הקלף של טראמפ (תמיכה מפורשת עד יום הבחירות והתייחסות פומבית עד 8.9), צילום סיום באחוז החסימה ובין שתי הגדולות, השפל של הליכוד בסקרים, והיום שאחרי בראשות הליכוד.",
+  "updatedAt": "2026-09-05T21:49:19.550Z",
+  "lastUpdateNote": "נוספו 4 שאלות אחרי מכתבי הרב לנדו לגפני ולמקלב ועל מרוץ הרשימות לקראת 9–10.9",
   "markets": [
     {
       "slug": "golan-sues-sara-netanyahu-oct7",
@@ -24,6 +24,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -67,6 +68,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -102,6 +104,7 @@
       "initialProbability": 0.04,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -138,6 +141,7 @@
       "initialProbability": 0.72,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -177,6 +181,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -216,6 +221,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": true,
       "status": "open",
       "sources": [
@@ -255,6 +261,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -290,6 +297,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -326,6 +334,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -360,6 +369,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -396,6 +406,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -429,6 +440,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -465,6 +477,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -504,6 +517,7 @@
       "initialProbability": 0.38,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -543,6 +557,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -583,6 +598,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -623,6 +639,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -659,6 +676,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -696,6 +714,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -729,6 +748,7 @@
       "initialProbability": 0.8,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -762,6 +782,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם ועדת הבחירות המרכזית תפסול לפחות מועמד אחד או רשימה אחת עד מועד ההכרעה, 29 בספטמבר 2026, בחול המועד סוכות?\" (cec-disqualification-decision-by-september-29). השאלה הזו רחבה משתי שאלות פסילה פתוחות אחרות וכוללת אותן, אך תומחרה נמוך מהן (15% מול 45% ו-58%) - כלומר אותו אירוע בתמחור לא עקבי. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -799,6 +820,7 @@
       "initialProbability": 0.03,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -834,6 +856,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -873,6 +896,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -908,6 +932,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -940,6 +965,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": true,
       "status": "open",
       "sources": [
@@ -975,6 +1001,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": true,
       "status": "open",
       "sources": [
@@ -1015,6 +1042,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": true,
       "status": "open",
       "sources": [
@@ -1052,6 +1080,7 @@
       "initialProbability": 0.65,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1099,6 +1128,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1139,6 +1169,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "אי אפשר להכריע בדיעבד באיזו ידיעה נפתחה המהדורה — הראיה קיימת רק בשידור עצמו, ואין פרסום כתוב קבוע של סדר המהדורה.",
@@ -1179,6 +1210,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1217,6 +1249,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1258,6 +1291,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1298,6 +1332,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1339,6 +1374,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1376,6 +1412,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1415,6 +1452,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1451,6 +1489,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1487,6 +1526,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1523,6 +1563,7 @@
       "initialProbability": 0.05,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1562,6 +1603,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1603,6 +1645,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1645,6 +1688,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1686,6 +1730,7 @@
       "initialProbability": 0.05,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1722,6 +1767,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1758,6 +1804,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1795,6 +1842,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1832,6 +1880,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1873,6 +1922,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1913,6 +1963,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1954,6 +2005,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -1990,6 +2042,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2032,6 +2085,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2073,6 +2127,7 @@
       "initialProbability": 0.09,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2110,6 +2165,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2148,6 +2204,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2183,6 +2240,7 @@
       "initialProbability": 0.27,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2221,6 +2279,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2262,6 +2321,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2300,6 +2360,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2340,6 +2401,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2380,6 +2442,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2422,6 +2485,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2462,6 +2526,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2501,6 +2566,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2539,6 +2605,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם הליכוד ועוצמה יהודית יחתמו על הסכם עודפים ביניהן עד 16.10.2026?\" (likud-otzma-surplus-agreement-by-oct16). אותו הסכם עודפים בין הליכוד לעוצמה יהודית, אותו מועד אחרון (16.10.2026) ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -2582,6 +2649,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2623,6 +2691,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2666,6 +2735,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם 'ביחד' (בנט-לפיד) ו'ישר!' (איזנקוט) יגישו רשימה משותפת לוועדת הבחירות עד 10.9?\" (beyachad-yashar-joint-list-by-sept10). אותה שאלה: רשימה משותפת אחת של ישר ושל ביחד עד סגירת ההגשה ב-10.9.2026. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -2714,6 +2784,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2755,6 +2826,7 @@
       "initialProbability": 0.68,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2795,6 +2867,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2834,6 +2907,7 @@
       "initialProbability": 0.48,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2873,6 +2947,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם 'ישר!' של איזנקוט תגיע ל-25 מנדטים ומעלה בסקר של חדשות 12, חדשות 13 או כאן עד 30.9?\" (yashar-25-plus-mainstream-poll-by-sept30). אותו סף (25 מנדטים לישר) בחלון חופף כמעט לגמרי. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -2921,6 +2996,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -2962,6 +3038,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3003,6 +3080,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3045,6 +3123,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3085,6 +3164,7 @@
       "initialProbability": 0.33,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם הרשימה בראשות גדי איזנקוט תהיה הרשימה הגדולה ביותר בתוצאות הרשמיות של הבחירות ב-27.10.2026?\" (eisenkot-list-largest-in-official-results). אותה שאלה: האם הרשימה בראשות איזנקוט תהיה הגדולה ביותר בתוצאות הרשמיות. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -3130,6 +3210,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3169,6 +3250,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3209,6 +3291,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3249,6 +3332,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3288,6 +3372,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3327,6 +3412,7 @@
       "initialProbability": 0.33,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3368,6 +3454,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3411,6 +3498,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3450,6 +3538,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3489,6 +3578,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3531,6 +3621,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3575,6 +3666,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3619,6 +3711,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3664,6 +3757,7 @@
       "initialProbability": 0.27,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3704,6 +3798,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3746,6 +3841,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3786,6 +3882,7 @@
       "initialProbability": 0.14,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3827,6 +3924,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3867,6 +3965,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3908,6 +4007,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -3945,6 +4045,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -3985,6 +4086,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם יתקיים עימות טלוויזיוני ישיר בין נתניהו לאיזנקוט לפני יום הבחירות?\" (netanyahu-eisenkot-tv-debate-before-election). אותו אירוע: עימות טלוויזיוני של נתניהו מול מועמד יריב. השאלה הרחבה תומחרה נמוך מהמצומצמת ממנה (7% מול 10%). כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -4024,6 +4126,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4065,6 +4168,7 @@
       "initialProbability": 0.82,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4106,6 +4210,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4148,6 +4253,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4184,6 +4290,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4221,6 +4328,7 @@
       "initialProbability": 0.38,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4260,6 +4368,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4301,6 +4410,7 @@
       "initialProbability": 0.7,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4342,6 +4452,7 @@
       "initialProbability": 0.65,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4382,6 +4493,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם תוגש לוועדת הבחירות המרכזית בקשה לפסילת מועמדותו של איתמר בן גביר עד 30.9?\" (petition-disqualify-ben-gvir-filed-by-sept30). אותה שאלה: הגשת בקשת פסילה נגד בן גביר או עוצמה יהודית. המועד האחרון להגשה הוא 15.9, ולכן שני החלונות מוכרעים יחד. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -4424,6 +4536,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4464,6 +4577,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4504,6 +4618,7 @@
       "initialProbability": 0.7,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4545,6 +4660,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4584,6 +4700,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4630,6 +4747,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4676,6 +4794,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4718,6 +4837,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4759,6 +4879,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4806,6 +4927,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4846,6 +4968,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4887,6 +5010,7 @@
       "initialProbability": 0.7,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4928,6 +5052,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -4969,6 +5094,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5014,6 +5140,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5055,6 +5182,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5096,6 +5224,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5137,6 +5266,7 @@
       "initialProbability": 0.27,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5177,6 +5307,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5217,6 +5348,7 @@
       "initialProbability": 0.38,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5254,6 +5386,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5295,6 +5428,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5335,6 +5469,7 @@
       "initialProbability": 0.74,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5374,6 +5509,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5414,6 +5550,7 @@
       "initialProbability": 0.72,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5454,6 +5591,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5496,6 +5634,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5537,6 +5676,7 @@
       "initialProbability": 0.75,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5577,6 +5717,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5618,6 +5759,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5659,6 +5801,7 @@
       "initialProbability": 0.72,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5695,6 +5838,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5735,6 +5879,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5776,6 +5921,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5817,6 +5963,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5858,6 +6005,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם בנימין נתניהו יעניק ריאיון שישודר בחדשות 12, בחדשות 13 או בכאן 11 עד 26.10.2026?\" (netanyahu-interview-on-news12-13-or-kan11). אותו אירוע: ריאיון של נתניהו בחדשות 12 או 13 עד סוף הקמפיין. השוק שנשמר רחב יותר וכולל גם את כאן 11. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -5902,6 +6050,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5943,6 +6092,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -5989,6 +6139,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6034,6 +6185,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6075,6 +6227,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6117,6 +6270,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6162,6 +6316,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6204,6 +6359,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6244,6 +6400,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6287,6 +6444,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6326,6 +6484,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6370,6 +6529,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6405,6 +6565,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6445,6 +6606,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6484,6 +6646,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6525,6 +6688,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6565,6 +6729,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6605,6 +6770,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6649,6 +6815,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6693,6 +6860,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6733,6 +6901,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם פיץ' תסיר את התחזית השלילית מדירוג האשראי של ישראל ותקבע לו תחזית יציבה או חיובית עד 20.11.2026?\" (fitch-israel-outlook-off-negative-by-20-november-2026). אותה פעולת דירוג של פיץ עד 20.11.2026 - הסרת התחזית השלילית - ואותו מקור מכריע. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -6780,6 +6949,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6825,6 +6995,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם הממשלה תאשר הצעת תקציב מדינה לשנת 2027 עד 5.11.2026?\" (cabinet-approves-2027-state-budget-proposal-by-5-nov-2026). אותו אירוע: אישור הצעת תקציב 2027 בממשלה. החלון שנשמר ארוך יותר והקריטריון בו חד יותר. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -6872,6 +7043,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6917,6 +7089,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -6962,6 +7135,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7003,6 +7177,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7043,6 +7218,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7087,6 +7263,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7128,6 +7305,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7168,6 +7346,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7208,6 +7387,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7248,6 +7428,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7288,6 +7469,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7329,6 +7511,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7366,6 +7549,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7402,6 +7586,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7442,6 +7627,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7478,6 +7664,7 @@
       "initialProbability": 0.38,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7518,6 +7705,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7559,6 +7747,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7603,6 +7792,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7647,6 +7837,7 @@
       "initialProbability": 0.8,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7688,6 +7879,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם רע\"ם תקבל יותר מ-60% מהקולות הכשרים ברהט בבחירות 27.10.2026?\" (raam-above-60-percent-in-rahat). אותו אירוע עם סף נמוך יותר, ובכל זאת תומחר באותם 55% בדיוק - סף נמוך יותר חייב להיות סביר יותר, ולכן השאלה אינה מוסיפה מידע. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -7733,6 +7925,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7780,6 +7973,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7823,6 +8017,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7864,6 +8059,7 @@
       "initialProbability": 0.8,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7904,6 +8100,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7947,6 +8144,7 @@
       "initialProbability": 0.56,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -7994,6 +8192,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8041,6 +8240,7 @@
       "initialProbability": 0.82,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8089,6 +8289,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8132,6 +8333,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם הרשימה המשותפת תקבל יותר מנדטים מרע\"ם בתוצאות הרשמיות של הבחירות שיפורסמו ב-4.11.2026?\" (joint-list-more-seats-than-raam-official-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, רעם או הרשימה המשותפת. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -8181,6 +8383,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8227,6 +8430,7 @@
       "initialProbability": 0.87,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8273,6 +8477,7 @@
       "initialProbability": 0.46,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8316,6 +8521,7 @@
       "initialProbability": 0.33,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8363,6 +8569,7 @@
       "initialProbability": 0.72,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8411,6 +8618,7 @@
       "initialProbability": 0.11,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8456,6 +8664,7 @@
       "initialProbability": 0.27,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם גוש נתניהו (ליכוד, ש\"ס, יהדות התורה, עוצמה יהודית, הציונות הדתית, עמך ישראל) יגיע ל-61 מנדטים בבחירות?\" (netanyahu-bloc-61-election-result). אותה שאלה: 61 מנדטים לגוש הימין-חרדים בתוצאות הרשמיות. בנוסף, סעיף ההמלצות אצל הנשיא אינו ניתן להכרעה עד מועד הסגירה. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -8500,6 +8709,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8542,6 +8752,7 @@
       "initialProbability": 0.53,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8584,6 +8795,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8624,6 +8836,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8664,6 +8877,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8704,6 +8918,7 @@
       "initialProbability": 0.82,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8745,6 +8960,7 @@
       "initialProbability": 0.16,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8784,6 +9000,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8824,6 +9041,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8867,6 +9085,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8909,6 +9128,7 @@
       "initialProbability": 0.13,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8950,6 +9170,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -8992,6 +9213,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9032,6 +9254,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9069,6 +9292,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9110,6 +9334,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9151,6 +9376,7 @@
       "initialProbability": 0.15,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9192,6 +9418,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9233,6 +9460,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9273,6 +9501,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9309,6 +9538,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9350,6 +9580,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9391,6 +9622,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9432,6 +9664,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9473,6 +9706,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9517,6 +9751,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9557,6 +9792,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9597,6 +9833,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9638,6 +9875,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9679,6 +9917,7 @@
       "initialProbability": 0.27,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9721,6 +9960,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9763,6 +10003,7 @@
       "initialProbability": 0.38,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9800,6 +10041,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9838,6 +10080,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9880,6 +10123,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9920,6 +10164,7 @@
       "initialProbability": 0.8,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9960,6 +10205,7 @@
       "initialProbability": 0.57,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -9997,6 +10243,7 @@
       "initialProbability": 0.68,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10037,6 +10284,7 @@
       "initialProbability": 0.33,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10077,6 +10325,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10116,6 +10365,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10155,6 +10405,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10195,6 +10446,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10235,6 +10487,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10277,6 +10530,7 @@
       "initialProbability": 0.4,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10322,6 +10576,7 @@
       "initialProbability": 0.38,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10364,6 +10619,7 @@
       "initialProbability": 0.09,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10406,6 +10662,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10447,6 +10704,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10487,6 +10745,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10527,6 +10786,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10568,6 +10828,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10614,6 +10875,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10655,6 +10917,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10701,6 +10964,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10743,6 +11007,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10787,6 +11052,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10833,6 +11099,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10875,6 +11142,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם עופר וינטר יודיע עד יום ראשון בערב (6.9) על הצטרפות לרשימה אחרת או על פרישה מהמרוץ?\" (winter-join-or-quit-sunday). אותה הודעה של עופר וינטר על חיבור לרשימה אחרת, בחלון החופף ב-9 שעות בלבד. השוק שנשמר רחב יותר וכולל גם פרישה. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -10919,6 +11187,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10960,6 +11229,7 @@
       "initialProbability": 0.85,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -10996,6 +11266,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11037,6 +11308,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11077,6 +11349,7 @@
       "initialProbability": 0.17,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11118,6 +11391,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11160,6 +11434,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11196,6 +11471,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11236,6 +11512,7 @@
       "initialProbability": 0.87,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11273,6 +11550,7 @@
       "initialProbability": 0.06,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11313,6 +11591,7 @@
       "initialProbability": 0.5,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11353,6 +11632,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11393,6 +11673,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11429,6 +11710,7 @@
       "initialProbability": 0.08,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11473,6 +11755,7 @@
       "initialProbability": 0.72,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11513,6 +11796,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11553,6 +11837,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11593,6 +11878,7 @@
       "initialProbability": 0.07,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11633,6 +11919,7 @@
       "initialProbability": 0.16,
       "liquidity": 2000,
       "appeal": 1,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11674,6 +11961,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11716,6 +12004,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11758,6 +12047,7 @@
       "initialProbability": 0.52,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11799,6 +12089,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11839,6 +12130,7 @@
       "initialProbability": 0.75,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11879,6 +12171,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11920,6 +12213,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11960,6 +12254,7 @@
       "initialProbability": 0.87,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -11997,6 +12292,7 @@
       "initialProbability": 0.35,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12037,6 +12333,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12077,6 +12374,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12118,6 +12416,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12158,6 +12457,7 @@
       "initialProbability": 0.38,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12199,6 +12499,7 @@
       "initialProbability": 0.58,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12239,6 +12540,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12279,6 +12581,7 @@
       "initialProbability": 0.26,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12320,6 +12623,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12360,6 +12664,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12402,6 +12707,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12442,6 +12748,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12482,6 +12789,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12523,6 +12831,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12564,6 +12873,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12604,6 +12914,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12644,6 +12955,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12684,6 +12996,7 @@
       "initialProbability": 0.2,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12724,6 +13037,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12764,6 +13078,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12804,6 +13119,7 @@
       "initialProbability": 0.48,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12844,6 +13160,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12883,6 +13200,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12924,6 +13242,7 @@
       "initialProbability": 0.14,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -12964,6 +13283,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13004,6 +13324,7 @@
       "initialProbability": 0.88,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13045,6 +13366,7 @@
       "initialProbability": 0.92,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13085,6 +13407,7 @@
       "initialProbability": 0.7,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13121,6 +13444,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13161,6 +13485,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13202,6 +13527,7 @@
       "initialProbability": 0.6,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13243,6 +13569,7 @@
       "initialProbability": 0.88,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13283,6 +13610,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13324,6 +13652,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13365,6 +13694,7 @@
       "initialProbability": 0.05,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13403,6 +13733,7 @@
       "initialProbability": 0.25,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "cancelled",
       "resolutionNote": "בוטל ככפילות של \"האם עוצמה יהודית של בן גביר תקבל יותר מנדטים מרשימת הציונות הדתית של סמוטריץ' ופייגלין בתוצאות הבחירות ב-27.10.2026?\" (otzma-yehudit-vs-smotrich-feiglin-results). אותו אירוע בניסוח הפוך: מי תקבל יותר מנדטים, עוצמה יהודית או הציונות הדתית-זהות. סכום שני האחוזים היה 107% - יותר מ-100. כל הכסף שהושקע בשוק הזה מוחזר.",
@@ -13448,6 +13779,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13490,6 +13822,7 @@
       "initialProbability": 0.57,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13530,6 +13863,7 @@
       "initialProbability": 0.62,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13567,6 +13901,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13607,6 +13942,7 @@
       "initialProbability": 0.1,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13645,6 +13981,7 @@
       "initialProbability": 0.48,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13687,6 +14024,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13727,6 +14065,7 @@
       "initialProbability": 0.45,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13764,6 +14103,7 @@
       "initialProbability": 0.55,
       "liquidity": 2000,
       "appeal": 2,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13802,6 +14142,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13839,6 +14180,7 @@
       "initialProbability": 0.78,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13880,6 +14222,7 @@
       "initialProbability": 0.52,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13919,6 +14262,7 @@
       "initialProbability": 0.18,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -13960,6 +14304,7 @@
       "initialProbability": 0.36,
       "liquidity": 4000,
       "appeal": 5,
+      "topicality": 1,
       "featured": true,
       "status": "open",
       "sources": [
@@ -14006,6 +14351,7 @@
       "initialProbability": 0.33,
       "liquidity": 4000,
       "appeal": 5,
+      "topicality": 1,
       "featured": true,
       "status": "open",
       "sources": [
@@ -14050,6 +14396,7 @@
       "initialProbability": 0.33,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14090,6 +14437,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14133,6 +14481,7 @@
       "initialProbability": 0.43,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14174,6 +14523,7 @@
       "initialProbability": 0.42,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14215,6 +14565,7 @@
       "initialProbability": 0.3,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14255,6 +14606,7 @@
       "initialProbability": 0.22,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14292,6 +14644,7 @@
       "initialProbability": 0.32,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14332,6 +14685,7 @@
       "initialProbability": 0.12,
       "liquidity": 2000,
       "appeal": 5,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14372,6 +14726,7 @@
       "initialProbability": 0.28,
       "liquidity": 2000,
       "appeal": 4,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14411,6 +14766,7 @@
       "initialProbability": 0.16,
       "liquidity": 2000,
       "appeal": 3,
+      "topicality": 1,
       "featured": false,
       "status": "open",
       "sources": [
@@ -14428,6 +14784,152 @@
         }
       ],
       "createdAt": "2026-09-05T19:40:00+03:00",
+      "createdBy": "editorial-routine"
+    },
+    {
+      "slug": "yaakov-asher-top-three-utj-list-sept10",
+      "title": "האם יעקב אשר ישובץ באחד משלושת המקומות הראשונים ברשימת יהדות התורה עד 10.9?",
+      "subtitle": "הרב לנדו הודיע במוצ\"ש שגפני ומקלב פורשים, ואשר מסומן כמחליף בראש דגל התורה",
+      "description": "במוצאי שבת 5.9.2026 פורסם שהרב דוב לנדו שלח מכתבים אישיים לח\"כים משה גפני ואורי מקלב ולפיהם הם לא ישובצו ברשימת דגל התורה לכנסת ה-26, \"מפאת הצורך בריענון השורות\". גפני מכהן בכנסת מאז 1988. בדיווחים באותו ערב סומן ח\"כ יעקב אשר, ראש עיריית בני ברק לשעבר, כמי שצפוי לעמוד בראש נציגות דגל התורה. רשימות המועמדים הסופיות מוגשות לוועדת הבחירות המרכזית ב-9–10.9.2026, וברשימת יהדות התורה המקומות מחולקים בין אגודת ישראל לדגל התורה.",
+      "resolutionCriteria": "יוכרע \"כן\" אם ברשימת המועמדים שתגיש יהדות התורה לוועדת הבחירות המרכזית עד 10.9.2026 יופיע יעקב אשר במקום הראשון, השני או השלישי. אם דגל התורה תגיש רשימה נפרדת מאגודת ישראל — יוכרע לפי מקומו של אשר בשלושת המקומות הראשונים ברשימה שתגיש דגל התורה. המקור המכריע: רשימות המועמדים כפי שיפורסמו באתר ועדת הבחירות המרכזית (gov.il), ולחלופין דיווח זהה בשניים מבין ynet, N12, חדשות 13, כאן 11, מעריב או ישראל היום. אם אשר לא ישובץ באחד משלושת המקומות הראשונים, אם לא ישובץ ברשימה כלל, או אם לא תוגש רשימה מטעם יהדות התורה או דגל התורה עד המועד — \"לא\".",
+      "category": "haredi",
+      "tags": [
+        "יהדות התורה",
+        "דגל התורה",
+        "רשימות"
+      ],
+      "people": [
+        "yaakov-asher",
+        "moshe-gafni"
+      ],
+      "closesAt": "2026-09-10T22:00:00+03:00",
+      "initialProbability": 0.7,
+      "liquidity": 2000,
+      "appeal": 4,
+      "topicality": 5,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "ערוץ 7: מהפכה בדגל התורה — גפני ומקלב לא ישובצו ברשימה; יעקב אשר יעמוד בראשה",
+          "url": "https://www.inn.co.il/news/705666"
+        },
+        {
+          "title": "כיפה: רעידת אדמה ביהדות התורה — גפני בדרך החוצה, זה היו\"ר החדש",
+          "url": "https://kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1231040-0"
+        },
+        {
+          "title": "כיכר השבת: רבני דגל התורה זועמים על ניסיון ההשתלטות — \"מה ההיגיון להדיח את מקלב לטובת אשר\"",
+          "url": "https://www.kikar.co.il/haredim-news/tks2hp"
+        }
+      ],
+      "createdAt": "2026-09-06T00:47:00+03:00",
+      "createdBy": "editorial-routine"
+    },
+    {
+      "slug": "another-utj-sitting-mk-off-list-sept10",
+      "title": "האם ח\"כ מכהן נוסף מיהדות התורה, מלבד גפני ומקלב, ייעדר מהרשימה שתוגש עד 10.9?",
+      "subtitle": "מכתבי הרב לנדו נומקו ב\"ריענון השורות\" — והשאלה היא כמה רחוק זה יגיע",
+      "description": "במוצאי שבת 5.9.2026 פורסם שהרב דוב לנדו הודיע לח\"כים משה גפני ואורי מקלב שלא ישובצו ברשימת דגל התורה לכנסת ה-26, בנימוק של הצורך בריענון השורות. לסיעת יהדות התורה שבעה חברי כנסת בכנסת ה-25, מהם ארבעה מטעם אגודת ישראל ושלושה מטעם דגל התורה. רשימות המועמדים הסופיות מוגשות לוועדת הבחירות המרכזית ב-9–10.9.2026.",
+      "resolutionCriteria": "יוכרע \"כן\" אם לפחות אחד מחברי הכנסת המכהנים מטעם סיעת יהדות התורה בכנסת ה-25, מלבד משה גפני ואורי מקלב, לא יופיע כמועמד באף מקום ברשימה שתגיש יהדות התורה לוועדת הבחירות המרכזית עד 10.9.2026. אם אגודת ישראל ודגל התורה יגישו רשימות נפרדות — ייבדק איחוד המועמדים בשתי הרשימות יחד. הכרעה לפי רשימות המועמדים כפי שיפורסמו באתר ועדת הבחירות המרכזית (gov.il), מול הרכב הסיעה כפי שהוא מופיע באתר הכנסת. אם כל שאר חברי הכנסת המכהנים מהסיעה יופיעו ברשימה — \"לא\". פרישה שתוכרז בלי שתשתקף ברשימה שהוגשה אינה נחשבת.",
+      "category": "haredi",
+      "tags": [
+        "יהדות התורה",
+        "דגל התורה",
+        "רשימות"
+      ],
+      "people": [
+        "yitzhak-goldknopf",
+        "moshe-gafni"
+      ],
+      "closesAt": "2026-09-10T22:00:00+03:00",
+      "initialProbability": 0.4,
+      "liquidity": 2000,
+      "appeal": 3,
+      "topicality": 4,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "ערוץ 7: מהפכה בדגל התורה — גפני ומקלב לא ישובצו ברשימה",
+          "url": "https://www.inn.co.il/news/705666"
+        },
+        {
+          "title": "כיכר השבת: רבני דגל התורה זועמים על ניסיון ההשתלטות — \"מה ההיגיון להדיח את מקלב לטובת אשר\"",
+          "url": "https://www.kikar.co.il/haredim-news/tks2hp"
+        }
+      ],
+      "createdAt": "2026-09-06T00:47:00+03:00",
+      "createdBy": "editorial-routine"
+    },
+    {
+      "slug": "gafni-confirms-himself-not-running-sunday",
+      "title": "האם גפני יאשר בעצמו עד יום ראשון 6.9 בחצות שלא יתמודד לכנסת ה-26?",
+      "subtitle": "38 שנות כהונה נגמרות במכתב מהרב לנדו — וגפני עצמו עוד לא אמר מילה",
+      "description": "במוצאי שבת 5.9.2026 דווח שהרב דוב לנדו שלח מכתב אישי לח\"כ משה גפני ולפיו הוא לא ישובץ ברשימת דגל התורה לכנסת ה-26. גפני נבחר לכנסת לראשונה ב-1988 ומכהן ברציפות 38 שנה. בדיווחים נמסר שלנדו ביקש ממנו להמשיך לעמוד בראש התנועה הארצית של דגל התורה. נכון לשעת כתיבת השאלה לא פורסמה התייחסות פומבית של גפני עצמו להחלטה.",
+      "resolutionCriteria": "יוכרע \"כן\" אם עד 6.9.2026 בשעה 23:59 (שעון ישראל) יפורסמו דברים המיוחסים ישירות למשה גפני — מכתב, הודעה בכתב, ציטוט מנאום או ריאיון — שבהם הוא מאשר שלא יתמודד ברשימה לכנסת ה-26 או שהוא מקבל את החלטת הרב לנדו. הפרסום חייב להיות בכלי תקשורת שאפשר לפתוח אחרי המועד: ynet, N12, חדשות 13, כאן 11, מעריב, ישראל היום, כיכר השבת, בחדרי חרדים, ערוץ 7 או JDN. אמירה שמיוחסת ל\"מקורביו\", ל\"גורמים בדגל התורה\" או לדובר בלי ציטוט ישיר ממנו — אינה נחשבת, וכך גם הודעה של הרב לנדו או של המפלגה. אם עד המועד לא תפורסם אמירה כזאת — \"לא\".",
+      "category": "haredi",
+      "tags": [
+        "יהדות התורה",
+        "דגל התורה",
+        "גפני"
+      ],
+      "people": [
+        "moshe-gafni"
+      ],
+      "closesAt": "2026-09-06T23:59:00+03:00",
+      "initialProbability": 0.4,
+      "liquidity": 2000,
+      "appeal": 4,
+      "topicality": 4,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "ערוץ 7: הרב לנדו הודיע לגפני ולמקלב שלא ישובצו ברשימה",
+          "url": "https://www.inn.co.il/news/705666"
+        },
+        {
+          "title": "כיפה: רעידת אדמה ביהדות התורה — גפני בדרך החוצה",
+          "url": "https://kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1231040-0"
+        }
+      ],
+      "createdAt": "2026-09-06T00:47:00+03:00",
+      "createdBy": "editorial-routine"
+    },
+    {
+      "slug": "yashar-full-candidate-list-published-by-sept8",
+      "title": "האם \"ישר!\" של איזנקוט תפרסם את רשימת המועמדים המלאה שלה עד 8.9 בחצות?",
+      "subtitle": "בנט וליברמן הציגו רשימות במוצ\"ש; לפי הדיווחים איזנקוט מתוכנן ליום שני",
+      "description": "לקראת מועד הגשת הרשימות לוועדת הבחירות המרכזית ב-9–10.9.2026 הציגו במוצאי שבת 5.9.2026 נפתלי בנט (\"ביחד\") ואביגדור ליברמן (ישראל ביתנו) את רשימותיהם. בדיווח של ynet מאותו ערב נמסר שהצגת רשימת \"ישר!\" של גדי איזנקוט מתוכננת ליום שני. \"ישר!\" מובילה בסקרים עם כ-24 מנדטים, וחלק מהמקומות ברשימה עדיין פתוחים למשא ומתן מול הנדל וטרופר ומול גופים נוספים בגוש השינוי.",
+      "resolutionCriteria": "יוכרע \"כן\" אם עד 8.9.2026 בשעה 23:59 (שעון ישראל) תפורסם רשימת המועמדים המלאה של \"ישר!\" לכנסת ה-26, לפי סדר המקומות ולפחות 15 המקומות הראשונים — בפרסום רשמי של המפלגה (אתר, דף רשמי, מסיבת עיתונאים) או בדיווח בשניים מבין ynet, N12, חדשות 13, כאן 11, מעריב או ישראל היום. פרסום חלקי, רשימת שמות בלי סדר מקומות, או דליפה של \"טיוטת רשימה\" שהמפלגה לא אישרה — אינם נחשבים. אם הפרסום ייעשה רק ב-9.9 או אחר כך, או שהרשימה תיוודע רק עם ההגשה לוועדת הבחירות — \"לא\".",
+      "category": "parties",
+      "tags": [
+        "ישר",
+        "איזנקוט",
+        "רשימות"
+      ],
+      "people": [
+        "gadi-eisenkot"
+      ],
+      "closesAt": "2026-09-08T23:59:00+03:00",
+      "initialProbability": 0.7,
+      "liquidity": 2000,
+      "appeal": 3,
+      "topicality": 3,
+      "featured": false,
+      "status": "open",
+      "sources": [
+        {
+          "title": "ynet: הקרב האחרון על השריון של נתניהו — והצגת הרשימות של יריביו",
+          "url": "https://www.ynet.co.il/news/elections2026/article/rysemg5uze"
+        },
+        {
+          "title": "ynet: הקרב עד הרגע האחרון — מי הצטרף למי והשריונים הפנויים",
+          "url": "https://www.ynet.co.il/news/elections2026/article/hyifkz2wze"
+        }
+      ],
+      "createdAt": "2026-09-06T00:47:00+03:00",
       "createdBy": "editorial-routine"
     }
   ]
