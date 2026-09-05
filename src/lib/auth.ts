@@ -125,8 +125,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
       if (user.id) await claimAdAttribution(user.id, (await cookies()).get(AD_COOKIE)?.value);
       await track(EVENTS.signup, { userId: user.id, path: "/login" });
     },
-    // fires for every provider and after createUser, so it is the one place that
-    // sees both halves of the answer: which provider, and new account or not
+    // the shape differs by session strategy; this site is on jwt, so the user id
+    // is on the token. Narrowed rather than cast, so a strategy change is a type
+    // error here instead of a column of missing ids in the log.
     async signOut(message) {
       const userId = "token" in message ? (message.token?.id as string | undefined) : undefined;
       await track(EVENTS.logout, { userId, path: "/" });
