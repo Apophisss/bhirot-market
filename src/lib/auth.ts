@@ -1,9 +1,12 @@
 import NextAuth, { type DefaultSession } from "next-auth";
+import { cookies } from "next/headers";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "./db";
+import { REFERRAL_COOKIE } from "./referral";
+import { claimReferral } from "./referral-program";
 import { track } from "./analytics";
 import { EVENTS } from "./events";
 
@@ -15,6 +18,28 @@ declare module "next-auth" {
 
 /** Password-less "quick login" for local development. Ignored in production builds, so a stray env var can't open the public site. */
 export const devLoginEnabled = process.env.ALLOW_DEV_LOGIN === "true" && process.env.NODE_ENV !== "production";
+
+/**
+ * Credit the friend who sent the invite link, if this account arrived through one.
+ * The code rides in a cookie that middleware stamps on `/i/<code>`, so it survives the
+ * round trip to Google. Never fatal: a failed bonus must not fail the sign-in itself.
+ */
+async function claimPendingReferral(userId: string) {
+  try {
+    const jar = await cookies();
+    const code = jar.get(REFERRAL_COOKIE)?.value;
+    if (!code) return;
+    await claimReferral(userId, code);
+    // the cookie has done its job; a stale one would follow the user around for a month
+    try {
+      jar.delete(REFERRAL_COOKIE);
+    } catch {
+      // cookies are read-only outside route handlers and server actions
+    }
+  } catch (err) {
+    console.error("[referral] claim failed", err);
+  }
+}
 
 export const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
@@ -47,6 +72,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
                 .insert(schema.users)
                 .values({ name, email, image: null })
                 .returning();
+              // the adapter isn't in the loop for credentials logins, so no createUser event fires
+              await claimPendingReferral(created.id);
               return { id: created.id, name: created.name, email: created.email, image: created.image };
             },
           }),
@@ -56,6 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
   events: {
     // sign-ups and logins are recorded server-side, so no ad-blocker can hide them
     async createUser({ user }) {
+      if (user.id) await claimPendingReferral(user.id);
       await track(EVENTS.signup, { userId: user.id, path: "/login" });
     },
     async signIn({ user, isNewUser }) {

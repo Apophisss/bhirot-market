@@ -3,11 +3,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { getPortfolio, getUserTrades, getLeaderboard } from "@/lib/portfolio";
+import { getReferralSummary } from "@/lib/referral-program";
 import { buildBoard } from "@/lib/fake-leaderboard";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money, signedMoney, pct, shares as fmtShares, agora } from "@/lib/format";
 import { StatTile } from "@/components/StatTile";
 import { TradeList } from "@/components/TradeList";
+import { InviteCard } from "@/components/InviteCard";
 import { BoltIcon } from "@/components/BoltIcon";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +22,10 @@ export const metadata: Metadata = {
 export default async function PortfolioPage() {
   const user = await currentUser();
   if (!user) redirect("/login?callbackUrl=/portfolio");
-  const [{ holdings, openHoldings, positionsValue, unrealized, realized }, trades, ranked] = await Promise.all([
+  const [{ holdings, openHoldings, positionsValue, unrealized, realized }, trades, referrals, ranked] = await Promise.all([
     getPortfolio(user.id),
     getUserTrades(user.id),
+    getReferralSummary(user.id),
     getLeaderboard(),
   ]);
   // the leaderboard is not in the site navigation — the profile is the way in,
@@ -30,7 +33,8 @@ export default async function PortfolioPage() {
   const board = buildBoard(ranked, { meId: user.id });
   const myRank = board.find((r) => r.isMe)?.rank ?? null;
   const netWorth = user.balance + positionsValue;
-  const totalPnl = netWorth - STARTING_BALANCE;
+  // invite bonuses are capital, not performance: they raise the balance but never the P&L
+  const totalPnl = netWorth - STARTING_BALANCE - referrals.earned;
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -54,11 +58,21 @@ export default async function PortfolioPage() {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
-        <StatTile label="שווי כולל" value={money(netWorth)} hint={`התחלת עם ${money(STARTING_BALANCE)}`} />
+        <StatTile
+          label="שווי כולל"
+          value={money(netWorth)}
+          hint={
+            referrals.earned > 0
+              ? `התחלת עם ${money(STARTING_BALANCE)} + ${money(referrals.earned)} בונוס הזמנות`
+              : `התחלת עם ${money(STARTING_BALANCE)}`
+          }
+        />
         <StatTile label="רווח/הפסד כולל" value={signedMoney(totalPnl)} tone={totalPnl >= 0 ? "yes" : "no"} hint={`ממומש ${signedMoney(realized)}`} />
         <StatTile label="יתרה זמינה" value={money(user.balance)} />
         <StatTile label="שווי פוזיציות פתוחות" value={money(positionsValue)} hint={`לא ממומש ${signedMoney(unrealized)}`} tone={unrealized >= 0 ? "yes" : "no"} />
       </div>
+
+      <InviteCard code={referrals.code} invited={referrals.invited} earned={referrals.earned} remaining={referrals.remaining} />
 
       <section className="card overflow-hidden">
         <h2 className="border-b border-border px-4 py-3 font-bold text-text-strong">פוזיציות פתוחות ({openHoldings.length})</h2>
