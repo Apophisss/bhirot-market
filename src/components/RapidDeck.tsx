@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { quoteBuy, type MarketState, type Side } from "@/lib/lmsr";
-import { money, pct, agora, shares as fmtShares, closesLabel } from "@/lib/format";
+import { money, pct, sharePrice, shares as fmtShares, closesLabel } from "@/lib/format";
 import { SITE_TEAM } from "@/lib/config";
 import {
   RAPID_DEFAULT_STAKE,
@@ -809,7 +809,7 @@ function AnswerButton({
           </span>
         )}
         {yes ? "כן" : "לא"}
-        <span className="tabular text-sm font-bold opacity-80">{agora(price)}</span>
+        <span className="tabular text-sm font-bold opacity-80">{sharePrice(price)}</span>
       </span>
       <span className="tabular mt-1 block text-[11px] font-semibold opacity-90">
         {money(stake)} ← ≈{money(payout)} אם צדקת
