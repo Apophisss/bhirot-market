@@ -11,6 +11,7 @@
  */
 import fs from "node:fs";
 import { MarketsFileSchema, PeopleFileSchema, MarketContentSchema } from "../src/lib/content";
+import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
 
 const [, , batchPath, ...rest] = process.argv;
 if (!batchPath) {
@@ -29,49 +30,6 @@ const incomingPeople: { id: string; name: string; role?: string; wiki?: string }
 const file = MarketsFileSchema.parse(JSON.parse(fs.readFileSync("data/markets.json", "utf8")));
 const peopleFile = PeopleFileSchema.parse(JSON.parse(fs.readFileSync("data/people.json", "utf8")));
 
-/**
- * Duplicate detection for Hebrew prediction questions.
- *
- * Plain word overlap is useless here: almost every title is built from the same
- * scaffolding ("האם … יפרסם … סקר … מנדטים … עד"), so unrelated questions about
- * different parties score 0.7+ against each other. Two questions count as the
- * same only when their *distinctive* words overlap heavily AND they quote the
- * same numbers — a different seat threshold, pollster number or date makes them
- * genuinely different markets.
- */
-const SCAFFOLD = new Set([
-  "האם", "עד", "של", "את", "על", "לא", "כן", "יהיה", "תהיה", "יהיו", "יגיש", "יגישו", "יפרסם", "יפורסם",
-  "יתפרסם", "יקבל", "תקבל", "יקבלו", "יעבור", "תעבור", "יעברו", "יודיע", "תודיע", "יודיעו", "סקר", "בסקר",
-  "סקרים", "מנדט", "מנדטים", "רשימה", "רשימת", "רשימות", "משותפת", "מפלגה", "מפלגת", "ועדת", "לוועדת",
-  "הבחירות", "בחירות", "המרכזית", "ומעלה", "לפחות", "יותר", "פחות", "לפני", "אחרי", "בתוצאות", "הרשמיות",
-  "תוצאות", "כלשהו", "כלשהי", "אחד", "אחת", "שני", "שתי", "חדשות", "ערוץ", "כאן", "בכנסת", "כנסת", "הכנסת",
-  "ראש", "הממשלה", "ממשלה", "יום", "בערב", "בבוקר", "שבת", "ראשון", "בספטמבר", "באוקטובר", "בנובמבר",
-  "השאלה", "מועד", "המועד", "האחרון", "האחרונה", "הקרוב", "הקרובה", "בין", "עם", "נגד", "כדי", "שבו", "שבה",
-  "הוא", "היא", "הם", "הן", "זה", "זו", "גם", "אם", "או",
-]);
-
-function distinctive(s: string): Set<string> {
-  return new Set(
-    s
-      .replace(/[^\p{L}\p{N}\s]/gu, " ")
-      .split(/\s+/)
-      .filter((w) => w.length > 2 && !SCAFFOLD.has(w) && !/^\d+$/.test(w)),
-  );
-}
-
-function numbers(s: string): string {
-  return [...s.matchAll(/\d+(?:[.,]\d+)?/g)].map((m) => m[0]).sort().join("|");
-}
-
-function similar(a: string, b: string): number {
-  if (numbers(a) !== numbers(b)) return 0; // different thresholds/dates => different market
-  const A = distinctive(a);
-  const B = distinctive(b);
-  if (A.size < 2 || B.size < 2) return 0;
-  let hit = 0;
-  for (const w of A) if (B.has(w)) hit++;
-  return hit / Math.min(A.size, B.size);
-}
 
 // add new people first so market validation can reference them
 const peopleIds = new Set(peopleFile.people.map((p) => p.id));
@@ -102,7 +60,7 @@ for (const item of incoming) {
     continue;
   }
   const title = String(m.title ?? "");
-  const dup = titles.find((t) => similar(t, title) >= 0.8);
+  const dup = titles.find((t) => similar(t, title) >= DUPLICATE_THRESHOLD);
   if (dup) {
     rejected.push({ slug, reason: `too similar to "${dup.slice(0, 60)}"` });
     continue;

@@ -11,10 +11,13 @@
  * `POST /api/rapid/answer`, which is the only place that actually binds.
  */
 
+import { MAX_BET } from "./limits";
+
 export const RAPID_MIN_STAKE = 5;
-export const RAPID_MAX_STAKE = 100;
+/** The site-wide bet cap — rapid mode never lets an answer exceed it. */
+export const RAPID_MAX_STAKE = MAX_BET;
 export const RAPID_STAKE_STEP = 5;
-export const RAPID_STAKE_PRESETS = [5, 10, 25, 50, 100];
+export const RAPID_STAKE_PRESETS = [5, 10, 25, 50, 100].filter((v) => v <= RAPID_MAX_STAKE);
 export const RAPID_DEFAULT_STAKE = 20;
 
 /** Nudges any number into the binding range (used by the slider and by the localStorage restore). */
