@@ -181,6 +181,10 @@ function market(over: Partial<LlmsMarket> & { id: string; title: string }): Llms
     probability: 0.34,
     volume: 1234,
     tradeCount: 7,
+    // the file quotes the display pair; a fixture that does not override it keeps
+    // the two sides equal so a test can go on reasoning about one number
+    displayVolume: 1234,
+    displayTradeCount: 7,
     closesAt: new Date("2026-09-15T20:59:59+03:00"),
     status: "open",
     resolution: null,
@@ -214,8 +218,14 @@ test("an open question is listed with its price, its deadline in Israel time and
   assert.match(txt, /נסגר 2026-09-15 20:59/);
 });
 
-test("a question nobody traded yet says so rather than showing a volume", () => {
-  const txt = renderLlmsTxt({ open: [market({ id: "x", title: "שאלה", tradeCount: 0, volume: 0 })], resolved: [] });
+// The board's own markets never reach this branch — `toView` fabricates a floor of
+// activity onto every one of them (src/lib/fake-market-stats.ts) — but the renderer
+// must still handle a zero rather than printing "0 עסקאות · מחזור ₪0".
+test("a question with no activity to show says so rather than showing a zero volume", () => {
+  const txt = renderLlmsTxt({
+    open: [market({ id: "x", title: "שאלה", tradeCount: 0, volume: 0, displayTradeCount: 0, displayVolume: 0 })],
+    resolved: [],
+  });
   assert.match(txt, /טרם נסחר/);
 });
 

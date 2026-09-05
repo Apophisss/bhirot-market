@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMarket, getPriceHistory, getRecentTrades } from "@/lib/markets";
 import { getChartHistory } from "@/lib/display-history";
+import { fakeMarketTrades, mergeTrades } from "@/lib/fake-market-stats";
 import { ensureSynced } from "@/lib/sync";
 
 export const dynamic = "force-dynamic";
@@ -19,11 +20,16 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
     getRecentTrades(slug, 20),
     getChartHistory(market),
   ]);
+  // The feed carries the same numbers and the same list the question's page shows
+  // (src/lib/fake-market-stats.ts): a public endpoint that answered with the recorded
+  // pair would contradict the page it describes. The internal display fields are
+  // stripped rather than published beside them.
+  const { displayVolume, displayTradeCount, ...row } = market;
   return NextResponse.json({
     ok: true,
-    market,
+    market: { ...row, volume: displayVolume, tradeCount: displayTradeCount },
     history,
-    recentTrades: recent,
+    recentTrades: mergeTrades(recent, fakeMarketTrades(market, 12), 20),
     chartHistory: chart.points,
     chartHistoryMeta: {
       synthetic: chart.synthetic,

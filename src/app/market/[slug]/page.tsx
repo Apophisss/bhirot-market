@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { auth, currentUser } from "@/lib/auth";
 import { getMarket, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
 import { getChartHistory } from "@/lib/display-history";
+import { fakeMarketTrades, mergeTrades } from "@/lib/fake-market-stats";
+import { fakeComments, mergeComments } from "@/lib/fake-comments";
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
@@ -97,6 +99,11 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   const prefill = amount && /^\d+(\.\d{1,2})?$/.test(amount) && Number(amount) > 0 ? amount : undefined;
   const cat = getCategory(market.category);
   const people = market.people.map((id) => getPerson(id)).filter(Boolean);
+  // The two lists under the chart are display-only merges (see fake-market-stats.ts
+  // and fake-comments.ts): the real rows are shown verbatim and in the same order
+  // they would be in on their own, with fabricated ones interleaved by timestamp.
+  const recentShown = mergeTrades(recent, fakeMarketTrades({ ...market, probability: market.probability }, 12), 25);
+  const commentsShown = mergeComments(comments, fakeComments(market));
 
   // The single column is capped explicitly: an implicit `auto` track grows to its widest
   // item's min-content (the comment input), which scrolls the whole document on a phone.
@@ -116,8 +123,9 @@ export default async function MarketPage({ params, searchParams }: { params: Par
               <span className="cat-chip rounded-md px-1.5 py-0.5 font-semibold" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
                 {cat.label}
               </span>
+              {/* the display pair, never the recorded one — see src/lib/fake-market-stats.ts */}
               <span className="tabular">
-                {market.tradeCount === 0 ? "עדיין אין עסקאות" : `${money(market.volume, { compact: true })} נפח · ${market.tradeCount} עסקאות`}
+                {`${money(market.displayVolume, { compact: true })} נפח · ${market.displayTradeCount} עסקאות`}
               </span>
               <span>·</span>
               <span>{market.status === "open" ? closesLabel(market.closesAt) : market.status === "resolved" ? `הוכרע ${market.resolvedAt ? timeAgo(market.resolvedAt) : ""}` : "בוטל"}</span>
@@ -129,7 +137,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
               crowd's answer, and presenting it as the latter is what let a single
               ₪7,110 order read as "the market says 1%".
             */}
-            {market.status === "open" && market.tradeCount < THIN_MARKET_TRADES && (
+            {market.status === "open" && market.displayTradeCount < THIN_MARKET_TRADES && (
               <p className="mt-1.5 inline-flex rounded-md bg-warn/10 px-2 py-1 text-[11px] font-semibold text-warn">
                 מחיר ראשוני · מעט מסחר — התשובות הראשונות הן שיקבעו אותו
               </p>
@@ -169,7 +177,7 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           current={market.probability}
           isOpen={market.status === "open"}
           estimateBand={chart.synthetic ? chart.maxDeviation : undefined}
-          tradeCount={market.tradeCount}
+          tradeCount={market.displayTradeCount}
           now={chart.now}
         />
 
@@ -229,10 +237,10 @@ export default async function MarketPage({ params, searchParams }: { params: Par
 
         <section className="card p-3.5 sm:p-5">
           <h2 className="mb-2 font-bold text-text-strong">עסקאות אחרונות</h2>
-          <TradeList trades={recent} />
+          <TradeList trades={recentShown} />
         </section>
 
-        <Comments marketId={market.id} comments={comments} loggedIn={Boolean(session?.user)} />
+        <Comments marketId={market.id} comments={commentsShown} loggedIn={Boolean(session?.user)} />
 
         {related.length > 0 && (
           <section className="space-y-3">

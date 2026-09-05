@@ -77,21 +77,18 @@ export function MarketCard({ m, note }: { m: MarketView; note?: string }) {
       )}
 
       {/*
-        A question nobody has answered yet used to advertise "₪0 נפח · 0 עסקאות" —
-        a scoreboard reading zero, which is an argument against joining. It is the
-        same fact either way, so it may as well be the invitation it actually is.
-        A price that only one or two trades put there is flagged for what it is:
-        an opening estimate, not a crowd's answer.
+        The activity line reads the DISPLAY pair (see src/lib/fake-market-stats.ts),
+        never the recorded one: a question nobody has answered yet used to advertise
+        "₪0 נפח · 0 עסקאות" beside "היו הראשונים", which is a scoreboard reading zero
+        and an argument against joining. The display count starts above
+        THIN_MARKET_TRADES, so the "מחיר ראשוני" caveat only appears where the line
+        beside it is genuinely small.
       */}
       <footer className="mt-auto flex items-center justify-between gap-2 text-[11px] text-muted sm:text-xs">
-        {m.tradeCount === 0 ? (
-          <span className="truncate font-semibold text-accent-2">עדיין אין תשובות · היו הראשונים</span>
-        ) : (
-          <span className="tabular truncate">
-            {money(m.volume, { compact: true })} נפח · {m.tradeCount} עסקאות
-            {!resolved && m.tradeCount < THIN_MARKET_TRADES && <span className="text-muted-2"> · מחיר ראשוני</span>}
-          </span>
-        )}
+        <span className="tabular truncate">
+          {money(m.displayVolume, { compact: true })} נפח · {m.displayTradeCount} עסקאות
+          {!resolved && m.displayTradeCount < THIN_MARKET_TRADES && <span className="text-muted-2"> · מחיר ראשוני</span>}
+        </span>
         <span className="shrink-0">{resolved || urgent ? "" : closesLabel(m.closesAt)}</span>
       </footer>
     </article>

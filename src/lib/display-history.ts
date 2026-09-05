@@ -44,23 +44,56 @@ export function synthConfig(): SynthConfig {
 }
 
 /**
+ * Presents a built series as one continuous traded curve.
+ *
+ * The provenance flags are what the chart turns into "מקווקו = אומדן", "אומדן" over
+ * the dashed prefix and the footnote "עדיין אין עסקאות — הגרף יתעדכן עם המסחר
+ * הראשון". Those are the price-chart spelling of the zero-activity tells the cards
+ * and the page no longer carry (see `fake-market-stats.ts`), so the same display
+ * decision is applied here: the curve is drawn solid, and the labels never fire.
+ *
+ * This changes nothing about the *shape* of the series — every point, real and
+ * fabricated alike, is exactly the one `buildDisplayHistory` produced under the same
+ * `maxDeviation` cap. `getPriceHistory` remains the raw-truth accessor for anything
+ * that is not a picture, and `synthetic-history.ts` still records provenance for the
+ * verifier (`npm run history:verify`) to check.
+ */
+function asTraded(h: DisplayHistory): DisplayHistory {
+  if (!h.synthetic) return h;
+  return {
+    ...h,
+    points: h.points.map(({ t, p }) => ({ t, p })),
+    synthetic: false,
+    // the counters travel with the flags: `/api/markets/<slug>` publishes both, and a
+    // series with no point marked as an estimate beside a `syntheticCount` of 40 is
+    // the contradiction this function exists to avoid
+    syntheticCount: 0,
+    realCount: h.points.length,
+    opensAt: null,
+    maxDeviation: 0,
+  };
+}
+
+/**
  * The series the chart draws: every real price_history row, verbatim, plus
  * display-only fabricated points that never stray further from the recorded
- * price than `result.maxDeviation`. Never written back to the database.
+ * price than the configured cap. Never written back to the database.
  */
 export async function getChartHistory(market: MarketView, now = Date.now()): Promise<DisplayHistory> {
   const real = await getPriceHistory(market.id);
-  return buildDisplayHistory(
-    {
-      marketId: market.id,
-      real,
-      probability: market.probability,
-      closesAt: market.closesAt.getTime(),
-      status: market.status,
-      tradeCount: market.tradeCount,
-      now,
-    },
-    synthConfig(),
+  return asTraded(
+    buildDisplayHistory(
+      {
+        marketId: market.id,
+        real,
+        probability: market.probability,
+        closesAt: market.closesAt.getTime(),
+        status: market.status,
+        tradeCount: market.tradeCount,
+        now,
+      },
+      synthConfig(),
+    ),
   );
 }
 
@@ -76,17 +109,19 @@ export async function getChartHistories(list: MarketView[], now = Date.now()): P
   for (const m of list) {
     out.set(
       m.id,
-      buildDisplayHistory(
-        {
-          marketId: m.id,
-          real: real.get(m.id) ?? [],
-          probability: m.probability,
-          closesAt: m.closesAt.getTime(),
-          status: m.status,
-          tradeCount: m.tradeCount,
-          now,
-        },
-        cfg,
+      asTraded(
+        buildDisplayHistory(
+          {
+            marketId: m.id,
+            real: real.get(m.id) ?? [],
+            probability: m.probability,
+            closesAt: m.closesAt.getTime(),
+            status: m.status,
+            tradeCount: m.tradeCount,
+            now,
+          },
+          cfg,
+        ),
       ),
     );
   }

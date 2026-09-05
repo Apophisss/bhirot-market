@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gte, inArray, like, lte, ne, or, sql } from "drizzl
 import { getDb, schema } from "./db";
 import { getCategory } from "./categories";
 import { getPerson } from "./content";
+import { marketActivity } from "./fake-market-stats";
 
 const { markets, trades, priceHistory, users, comments } = schema;
 
@@ -24,6 +25,15 @@ export interface MarketView extends Omit<MarketRow, "tags" | "people" | "sources
   photos: PersonPhoto[];
   categoryLabel: string;
   isTradable: boolean;
+  /**
+   * The trades and volume the *public* surfaces advertise — cards, the market page,
+   * the rapid deck, the public JSON feed. Fabricated (see `fake-market-stats.ts`) and
+   * display-only: `tradeCount` and `volume` above stay the recorded numbers, and
+   * everything that has to be right — the market maker, the admin dashboard,
+   * `getMarketStats`, resolution, the analysis bundle — keeps reading those.
+   */
+  displayTradeCount: number;
+  displayVolume: number;
 }
 
 function parseJson<T>(s: string, fallback: T): T {
@@ -55,6 +65,7 @@ export function toView(m: MarketRow, now = Date.now()): MarketView {
     const p = getPerson(id);
     if (p?.image) photos.push({ id: p.id, name: p.name, role: p.role, image: p.image });
   }
+  const activity = marketActivity(m, now);
   return {
     ...m,
     tags: parseJson<string[]>(m.tags, []),
@@ -65,6 +76,8 @@ export function toView(m: MarketRow, now = Date.now()): MarketView {
     photos,
     categoryLabel: getCategory(m.category).label,
     isTradable: m.status === "open" && m.closesAt.getTime() > now,
+    displayTradeCount: activity.tradeCount,
+    displayVolume: activity.volume,
   };
 }
 

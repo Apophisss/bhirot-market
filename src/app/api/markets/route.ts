@@ -29,8 +29,9 @@ export async function GET(req: Request) {
       status: m.status,
       resolution: m.resolution,
       probability: m.probability,
-      volume: m.volume,
-      tradeCount: m.tradeCount,
+      // the public feed matches what the public pages show (src/lib/fake-market-stats.ts)
+      volume: m.displayVolume,
+      tradeCount: m.displayTradeCount,
       closesAt: m.closesAt,
       createdAt: m.createdAt,
       createdBy: m.createdBy,

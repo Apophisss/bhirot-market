@@ -2,7 +2,8 @@ import Link from "next/link";
 import { money, pct, shares as fmtShares, timeAgo } from "@/lib/format";
 
 export interface TradeItem {
-  id: number;
+  /** a number for a recorded trade, `f:<market>:<n>` for a display-only one */
+  id: number | string;
   side: "YES" | "NO";
   action: "BUY" | "SELL";
   shares: number;

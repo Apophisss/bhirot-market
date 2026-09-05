@@ -101,7 +101,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
   const openCount = displayOpenCount(stats.open);
   const resolvedCount = displayResolvedCount(stats.resolved);
-  const volume = displayVolume(stats.volume);
+  // the headline has to cover the board printed under it: every card advertises its
+  // own volume, so the sum of them is the floor the hero may not fall below
+  const boardVolume = markets.reduce((sum, m) => sum + m.displayVolume, 0);
+  const volume = displayVolume(stats.volume, boardVolume);
   const traderCount = displayUserCount(stats.users);
   // "הוכרעו לאחרונה" exists to show that questions really do get decided, and a
   // cancellation decides nothing — a strip of six of them says the opposite of what

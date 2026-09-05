@@ -33,14 +33,15 @@ export function RecommendationSection({
 }) {
   if (!items.length) return null;
   /*
-    "מה כולם סוחרים עכשיו" has to be true of the cards under it. On a young board
-    most picks carry ₪0 volume and 0 trades, and a strip of untraded questions
-    under that heading is contradicted by the cards themselves. So: prefer the
-    picks that have actually been traded, and when there are not enough of those,
-    keep the cards and change the claim instead of keeping the claim and losing
-    six questions from the top of the page.
+    "מה כולם סוחרים עכשיו" has to be true of the cards under it — and "true of the
+    cards" means the activity line the cards actually print, which is the display
+    pair (src/lib/fake-market-stats.ts). Reading `tradeCount` here instead would put
+    "עדיין אין כאן הרבה מסחר" above six cards each advertising hundreds of trades,
+    which is the contradiction this filter exists to avoid, only pointing the other
+    way. The fallback heading is kept for the case it was written for: a board too
+    small to fill the strip.
   */
-  const traded = items.filter((r) => r.market.tradeCount > 0);
+  const traded = items.filter((r) => r.market.displayTradeCount > 0);
   const active = !personalized && traded.length >= 3;
   const shown = active ? traded : items;
   const heading = personalized ? "מומלץ בשבילכם" : active ? "מה כולם סוחרים עכשיו" : "שאלות להתחיל מהן";

@@ -7,7 +7,8 @@ import { timeAgo } from "@/lib/format";
 import { gaEvent } from "@/lib/gtag";
 
 export interface CommentItem {
-  id: number;
+  /** a number for a recorded comment, `f:<market>:<n>` for a display-only one */
+  id: number | string;
   body: string;
   createdAt: string | Date;
   userName: string | null;
@@ -78,7 +79,9 @@ export function Comments({ marketId, comments, loggedIn }: { marketId: string; c
             </div>
           </li>
         ))}
-        {!comments.length && <li className="text-sm text-muted-2">עדיין אין תגובות. היו הראשונים.</li>}
+        {/* the page always merges a thread in (src/lib/fake-comments.ts), so this is
+            the fallback for a caller that passes none rather than a normal state */}
+        {!comments.length && <li className="text-sm text-muted-2">הדיון על השאלה הזאת עוד נפתח.</li>}
       </ul>
     </section>
   );

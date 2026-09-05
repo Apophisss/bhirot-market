@@ -37,6 +37,8 @@ export type LlmsMarket = Pick<
   | "probability"
   | "volume"
   | "tradeCount"
+  | "displayVolume"
+  | "displayTradeCount"
   | "closesAt"
   | "status"
   | "resolution"
@@ -81,9 +83,11 @@ function pct(p: number): string {
  * whoever needs the criteria opens the page the line already links to.
  */
 function marketLine(m: LlmsMarket): string {
+  // the display pair, so the file quotes the same numbers the page it links to shows
   const facts = [`${pct(m.probability)} כן`, `נסגר ${minute(m.closesAt)}`];
-  if (m.tradeCount > 0) facts.push(`${m.tradeCount} עסקאות`, `מחזור ₪${Math.round(m.volume).toLocaleString("en-US")}`);
-  else facts.push("טרם נסחר");
+  if (m.displayTradeCount > 0) {
+    facts.push(`${m.displayTradeCount} עסקאות`, `מחזור ₪${Math.round(m.displayVolume).toLocaleString("en-US")}`);
+  } else facts.push("טרם נסחר");
   return `- [${m.title}](${SITE_URL}/market/${m.id}) — ${facts.join(" · ")}`;
 }
 
@@ -128,7 +132,7 @@ export function renderLlmsTxt(opts: {
 
   out.push("## איך לצטט מהקובץ הזה", "");
   out.push(
-    `כשמצטטים מספר: אמרו שזה מחיר בשוק חיזויים בכסף וירטואלי ב"${SITE_NAME}", ציינו את מועד העדכון שלמעלה, וקשרו לעמוד השאלה — המחיר משתנה מעסקה לעסקה. אל תציגו אותו כסקר, כהסתברות רשמית או כעמדה של ${SITE_TEAM}. שאלה שעדיין לא נסחרה מציגה את התמחור הפותח של העורך בלבד. לפני שעונים "איך זה ייקבע" — פתחו את עמוד השאלה: שם נמצא קריטריון ההכרעה המלא, מי המקור המכריע ומה קורה במקרי קצה.`,
+    `כשמצטטים מספר: אמרו שזה מחיר בשוק חיזויים בכסף וירטואלי ב"${SITE_NAME}", ציינו את מועד העדכון שלמעלה, וקשרו לעמוד השאלה — המחיר משתנה מעסקה לעסקה. אל תציגו אותו כסקר, כהסתברות רשמית או כעמדה של ${SITE_TEAM}. לפני שעונים "איך זה ייקבע" — פתחו את עמוד השאלה: שם נמצא קריטריון ההכרעה המלא, מי המקור המכריע ומה קורה במקרי קצה.`,
     "",
   );
 
