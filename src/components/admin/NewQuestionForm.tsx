@@ -4,6 +4,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { APPEAL_DEFAULT, APPEAL_LEVELS, appealLevel } from "@/lib/appeal";
+import {
+  TOPICALITY_DEFAULT,
+  TOPICALITY_HALF_LIFE_HOURS,
+  TOPICALITY_LEVELS,
+  topicalityLevel,
+} from "@/lib/topicality";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { Field } from "@/components/ContactForm";
 import { MarketImage } from "@/components/MarketImage";
@@ -51,6 +57,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
   const [probabilityPct, setProbabilityPct] = useState(draft?.probabilityPct ?? 30);
   const [liquidity, setLiquidity] = useState(2000);
   const [appeal, setAppeal] = useState(APPEAL_DEFAULT);
+  const [topicality, setTopicality] = useState(TOPICALITY_DEFAULT);
   const [featured, setFeatured] = useState(false);
   const [tags, setTags] = useState("");
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
@@ -97,6 +104,7 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
       probabilityPct,
       liquidity,
       appeal,
+      topicality,
       featured,
       sources: sources.filter((s) => s.url.trim()).map((s) => ({ title: s.title.trim() || "מקור", url: s.url.trim() })),
       ...(draft?.suggestionId ? { fromSuggestion: draft.suggestionId } : {}),
@@ -272,6 +280,30 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
           <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{appealLevel(appeal).hint}</p>
         </Field>
 
+        <Field
+          label={`כמה זה אקטואלי עכשיו? ${topicalityLevel(topicality).label}`}
+          required
+          hint={`נמדד מרגע הפרסום ודועך מעצמו: מחצית מהדחיפה נשארת אחרי ${TOPICALITY_HALF_LIFE_HOURS} שעות, ותוך שבוע היא נגמרת. שאלה שלא תלויה בחדשות של היום — השאירו על 1.`}
+        >
+          <div className="flex flex-wrap gap-2">
+            {TOPICALITY_LEVELS.map((level) => (
+              <button
+                type="button"
+                key={level.value}
+                onClick={() => setTopicality(level.value)}
+                title={level.hint}
+                aria-pressed={topicality === level.value}
+                className={`pressable rounded-lg border px-3 py-1.5 text-[13px] font-medium ${
+                  topicality === level.value ? "border-accent bg-accent-soft text-accent" : "border-border text-muted hover:bg-surface-2"
+                }`}
+              >
+                {level.value} · {level.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[12px] leading-relaxed text-muted">{topicalityLevel(topicality).hint}</p>
+        </Field>
+
         <Field label="אנשים בשאלה" hint="הראשון שנבחר מספק את תמונת הכרטיס. עד 6.">
           <input
             value={peopleQuery}
@@ -394,6 +426,12 @@ export function NewQuestionForm({ people, draft }: { people: PersonOption[]; dra
               <dt>דירוג היוצר</dt>
               <dd className="text-text">
                 <span className="tabular">{appeal}</span> · {appealLevel(appeal).label}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt>אקטואליות</dt>
+              <dd className="text-text">
+                <span className="tabular">{topicality}</span> · {topicalityLevel(topicality).label}
               </dd>
             </div>
             <div className="flex justify-between gap-2">

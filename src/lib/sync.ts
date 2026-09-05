@@ -37,9 +37,12 @@ export async function upsertMarkets(items: MarketContent[], source = "sync"): Pr
       people: JSON.stringify(m.people),
       sources: JSON.stringify(m.sources),
       featured: m.featured,
-      // unlike `liquidity`, the creator's rating is pure editorial judgement: nobody
-      // traded on it, so a later re-rating is allowed to land on a live market
+      // unlike `liquidity`, the creator's ratings are pure editorial judgement: nobody
+      // traded on them, so a later re-rating is allowed to land on a live market. It buys
+      // less than it looks like for `topicality`, which decays from the unchanged
+      // `createdAt` — a correction, not a second launch (see ./topicality).
       appeal: m.appeal,
+      topicality: m.topicality,
       closesAt: new Date(m.closesAt),
     };
 
@@ -72,6 +75,7 @@ export async function upsertMarkets(items: MarketContent[], source = "sync"): Pr
         existing.sources !== common.sources ||
         existing.featured !== common.featured ||
         existing.appeal !== common.appeal ||
+        existing.topicality !== common.topicality ||
         existing.closesAt.getTime() !== common.closesAt.getTime();
       if (changed) {
         await db.update(markets).set({ ...common, updatedAt: now }).where(eq(markets.id, m.slug));

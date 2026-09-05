@@ -36,6 +36,18 @@ import {
   appealLevel,
   clampAppeal,
 } from "../src/lib/appeal";
+import {
+  clampTopicality,
+  topicalityBoost,
+  topicalityDecay,
+  topicalityHeat,
+  topicalityLevel,
+  TOPICALITY_DEFAULT,
+  TOPICALITY_HALF_LIFE_HOURS,
+  TOPICALITY_MAX,
+  TOPICALITY_MIN,
+  TOPICALITY_WEIGHT,
+} from "../src/lib/topicality";
 import type { UserPreferences } from "../src/lib/preferences";
 
 let passed = 0;
@@ -399,6 +411,103 @@ test("the rating never rewrites the board on its own: order without it is still 
       .map((s) => s.id);
   assert.deepEqual(rank(1), rank(APPEAL_DEFAULT));
   assert.deepEqual(rank(5), rank(APPEAL_DEFAULT));
+});
+
+/* ------------------------------- topicality -------------------------------- */
+
+const HOUR = 3_600_000;
+
+test("the news scale folds anything onto 1..5, and an evergreen question is neutral", () => {
+  close(topicalityBoost(TOPICALITY_DEFAULT, NOW, NOW), 0, 1e-12, "the default contributes nothing");
+  close(topicalityBoost(undefined, NOW, NOW), 0, 1e-12, "neither does a missing rating");
+  close(topicalityBoost(null, NOW, NOW), 0, 1e-12);
+  close(topicalityBoost(NaN, NOW, NOW), 0, 1e-12, "and neither does a broken one");
+  close(topicalityBoost(TOPICALITY_MAX, NOW, NOW), TOPICALITY_WEIGHT, 1e-12, "a brand new 5 is the full weight");
+  close(topicalityBoost(99, NOW, NOW), TOPICALITY_WEIGHT, 1e-12, "off-scale is clamped, not extrapolated");
+  assert.equal(clampTopicality(4.4), 4, "a rating is an integer step on the scale");
+  assert.equal(clampTopicality("5" as unknown as number), TOPICALITY_DEFAULT, "a non-number is unrated, not a 5");
+  for (const v of [TOPICALITY_MIN, 2, 3, 4, TOPICALITY_MAX]) assert.ok(topicalityLevel(v).label.length > 0);
+});
+
+test("the boost is never negative: an evergreen question is not punished for being one", () => {
+  for (const age of [0, 12, 36, 24 * 30]) {
+    for (const v of [1, 2, 3, 4, 5]) {
+      assert.ok(topicalityBoost(v, NOW - age * HOUR, NOW) >= 0, `level ${v} at ${age}h`);
+    }
+  }
+});
+
+test("the push is at its strongest on publication and halves every half-life", () => {
+  const at = (hours: number) => topicalityBoost(5, NOW - hours * HOUR, NOW);
+  close(at(0), TOPICALITY_WEIGHT, 1e-12, "the first moment is the full weight");
+  close(at(TOPICALITY_HALF_LIFE_HOURS), TOPICALITY_WEIGHT / 2, 1e-9, "half of it, one half-life later");
+  close(at(2 * TOPICALITY_HALF_LIFE_HOURS), TOPICALITY_WEIGHT / 4, 1e-9, "and a quarter after two");
+  for (let h = 1; h <= 24 * 10; h += 7) assert.ok(at(h) < at(h - 1), "strictly falling, every hour of the way");
+  assert.ok(at(24 * 7) < 0.1, "a week on, the news hook is noise");
+  close(topicalityDecay(NOW + 5 * HOUR, NOW), 1, 1e-12, "a market dated in the future is new, not more than new");
+});
+
+test("a higher rating outranks a lower one at every age — the decay never inverts the editor's order", () => {
+  for (const hours of [0, 6, 36, 72, 24 * 7]) {
+    const createdAt = NOW - hours * HOUR;
+    const heats = [1, 2, 3, 4, 5].map((v) => topicalityHeat(v, createdAt, NOW));
+    for (let i = 1; i < heats.length; i++) assert.ok(heats[i] > heats[i - 1] || heats[i - 1] === 0, `at ${hours}h`);
+  }
+});
+
+test("a question written for tonight's news beats a busy one, and stops beating it in a few days", () => {
+  const breaking = (hours: number) => candidate({ id: "breaking", topicality: 5, createdAt: NOW - hours * HOUR, popularity: 0 });
+  const busy = candidate({ id: "busy", popularity: 0.8, createdAt: NOW - 30 * DAY });
+  const busyScore = scoreCandidate(busy, EMPTY_TASTE, NOW).score;
+  assert.ok(
+    scoreCandidate(breaking(0.5), EMPTY_TASTE, NOW).score > busyScore,
+    "a question published half an hour ago is what the visitor should see first",
+  );
+  assert.ok(
+    scoreCandidate(breaking(24 * 6), EMPTY_TASTE, NOW).score < busyScore,
+    "six days later the same question is just another question",
+  );
+});
+
+test("the news rating and the quality rating are different claims", () => {
+  const now = scoreCandidate(candidate({ id: "now", topicality: 5, createdAt: NOW }), EMPTY_TASTE, NOW);
+  const good = scoreCandidate(candidate({ id: "good", appeal: 5, createdAt: NOW }), EMPTY_TASTE, NOW);
+  assert.equal(now.appeal, APPEAL_DEFAULT, "rating a question topical says nothing about how good it is");
+  assert.equal(good.topicality, TOPICALITY_DEFAULT, "and rating it good says nothing about the news");
+  assert.ok(now.score > good.score, "in its first hour the news hook is the stronger of the two");
+  const old = { createdAt: NOW - 4 * DAY };
+  assert.ok(
+    scoreCandidate(candidate({ id: "was-news", topicality: 5, ...old }), EMPTY_TASTE, NOW).score <
+      scoreCandidate(candidate({ id: "still-good", appeal: 5, ...old }), EMPTY_TASTE, NOW).score,
+    "four days on, being a good question outlasts having been the news",
+  );
+});
+
+test("a hot question says why it is there, and a cooled one stops saying it", () => {
+  const kinds = (topicality: number, hours: number) =>
+    scoreCandidate(candidate({ topicality, createdAt: NOW - hours * HOUR }), EMPTY_TASTE, NOW).reasons.map((r) => r.kind);
+  assert.ok(kinds(5, 0).includes("topical"), "a question published now, off the news");
+  assert.ok(!kinds(5, 24 * 5).includes("topical"), "the same question five days later");
+  assert.ok(!kinds(1, 0).includes("topical"), "an evergreen question never claims to be the news");
+  const labels = (hours: number) =>
+    scoreCandidate(candidate({ topicality: 5, createdAt: NOW - hours * HOUR }), EMPTY_TASTE, NOW).reasons.find(
+      (r) => r.kind === "topical",
+    )?.label;
+  assert.notEqual(labels(0), labels(40), "still-breaking and merely-recent are not worded the same");
+});
+
+test("the news rating never rewrites the board on its own: order without it is still order", () => {
+  const rank = (topicality: number) =>
+    [
+      candidate({ id: "a", popularity: 0.9, topicality }),
+      candidate({ id: "b", popularity: 0.5, topicality, closesAt: NOW + 6 * HOUR }),
+      candidate({ id: "c", popularity: 0.1, topicality }),
+    ]
+      .map((c) => scoreCandidate(c, EMPTY_TASTE, NOW))
+      .sort((x, y) => y.score - x.score)
+      .map((s) => s.id);
+  assert.deepEqual(rank(1), rank(TOPICALITY_DEFAULT), "every candidate unrated");
+  assert.deepEqual(rank(5), rank(TOPICALITY_DEFAULT), "and every candidate rated the same, all published together");
 });
 
 /* --------------------------------- survey ---------------------------------- */

@@ -7,12 +7,16 @@
  * visitor gets pure popularity; the personal half fades in as the taste profile
  * fills up, so the list is never empty and never stale.
  *
- * A third signal is not measured at all: `appeal`, the 1..5 rating the editor who
- * wrote the question gave it (`./appeal`). Both measured signals need the question
- * to already have been seen by somebody, which a question published an hour ago has
- * not been — so the creator's own judgement of how good it is carries real weight
- * here, just under taste and popularity. An unrated question scores exactly as it
- * would have before the field existed.
+ * Two more signals are not measured at all, and both come from the person who wrote
+ * the question. `appeal` (`./appeal`) is the 1..5 rating of how good a question it is;
+ * `topicality` (`./topicality`) is the 1..5 rating of how tied it is to today's news,
+ * read against the market's own `createdAt` and decaying from it — full strength in the
+ * first hour, half of it a day and a half later, gone within a week. Both measured
+ * signals need the question to already have been seen by somebody, which a question
+ * published an hour ago has not been; these two are what let the board carry a question
+ * written twenty minutes after the poll dropped straight to the top, and let it settle
+ * back down on its own once the story is not the story any more. An unrated question
+ * scores exactly as it would have before either field existed.
  *
  * A signed-in user who has not traded yet used to be in the same boat as a visitor.
  * The short survey (`preferences.ts`) is what fills that gap: its answers are folded
@@ -30,6 +34,13 @@
 import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { appealBoost, clampAppeal } from "./appeal";
+import {
+  clampTopicality,
+  topicalityBoost,
+  topicalityHeat,
+  TOPICALITY_HOT_THRESHOLD,
+  TOPICALITY_REASON_THRESHOLD,
+} from "./topicality";
 import { getCategory } from "./categories";
 import { getPerson } from "./content";
 import { toView, type MarketView } from "./markets";
@@ -283,9 +294,11 @@ export interface CandidateSignals {
   popularity: number;
   /** 1..5, the creator's rating; missing or 3 means unrated (see ./appeal) */
   appeal?: number;
+  /** 1..5, how tied to the news it was when written; missing or 1 means evergreen (see ./topicality) */
+  topicality?: number;
 }
 
-export type ReasonKind = "category" | "person" | "appeal" | "trending" | "closing" | "fresh" | "open";
+export type ReasonKind = "category" | "person" | "topical" | "appeal" | "trending" | "closing" | "fresh" | "open";
 
 export interface RecReason {
   kind: ReasonKind;
@@ -299,6 +312,10 @@ export interface ScoredCandidate {
   popularity: number;
   /** the rating that went into the score, on the 1..5 scale */
   appeal: number;
+  /** the news rating that went into the score, on the 1..5 scale */
+  topicality: number;
+  /** 0..1 — what is left of that rating right now, after the decay */
+  heat: number;
   reasons: RecReason[];
 }
 
@@ -353,10 +370,13 @@ export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now =
   const urge = urgency(c.closesAt, now);
   const fresh = freshness(c.createdAt, now);
   const appeal = clampAppeal(c.appeal);
+  const topicality = clampTopicality(c.topicality);
+  const heat = topicalityHeat(topicality, c.createdAt, now);
   const score =
     w.taste * taste +
     w.popularity * c.popularity +
     appealBoost(appeal) +
+    topicalityBoost(topicality, c.createdAt, now) +
     0.9 * urge +
     0.5 * uncertainty(c.probability) +
     0.35 * fresh +
@@ -386,6 +406,14 @@ export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now =
       label: surveyPeople.has(bestPerson) ? `בחרתם את ${name} בשאלון` : `שאלות על ${name} מעניינות אתכם`,
     });
   }
+  // the news hook goes first among the board-wide reasons: when it is still hot it is
+  // both the strongest term in the score and the only one that answers "why this, now"
+  if (heat >= TOPICALITY_REASON_THRESHOLD) {
+    reasons.push({
+      kind: "topical",
+      label: heat >= TOPICALITY_HOT_THRESHOLD ? "זה מה שבחדשות ברגע זה" : "מהחדשות של הימים האחרונים",
+    });
+  }
   // said before the popularity reason on purpose: a question the editor picked out is
   // usually a *new* question, and "נסחר הרבה עכשיו" is exactly what it cannot claim yet
   if (appeal >= APPEAL_REASON_THRESHOLD) {
@@ -396,7 +424,7 @@ export function scoreCandidate(c: CandidateSignals, profile: TasteProfile, now =
   if (fresh >= 0.6) reasons.push({ kind: "fresh", label: "שאלה חדשה על הלוח" });
   if (!reasons.length) reasons.push({ kind: "open", label: "שאלה פתוחה שעוד לא עניתם עליה" });
 
-  return { id: c.id, score, taste, popularity: c.popularity, appeal, reasons: reasons.slice(0, 2) };
+  return { id: c.id, score, taste, popularity: c.popularity, appeal, topicality, heat, reasons: reasons.slice(0, 2) };
 }
 
 /**
@@ -558,6 +586,10 @@ export interface Recommendation {
   popularity: number;
   /** 1..5 — the rating the question's creator gave it */
   appeal: number;
+  /** 1..5 — how tied to the news the creator said it was */
+  topicality: number;
+  /** 0..1 — what is left of that after the decay from `createdAt` */
+  heat: number;
   reasons: RecReason[];
 }
 
@@ -631,6 +663,7 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
         featured: view.featured,
         popularity: popularity.get(r.id) ?? 0,
         appeal: view.appeal,
+        topicality: view.topicality,
       },
       profile,
       now,
@@ -647,6 +680,8 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
       taste: s.taste,
       popularity: s.popularity,
       appeal: s.appeal,
+      topicality: s.topicality,
+      heat: s.heat,
       reasons: s.reasons,
     })),
     profile,

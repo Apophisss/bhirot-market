@@ -11,6 +11,14 @@
  */
 import fs from "node:fs";
 import { APPEAL_DEFAULT, APPEAL_LEVELS, appealLevel, clampAppeal } from "../src/lib/appeal";
+import {
+  clampTopicality,
+  topicalityHeat,
+  topicalityLevel,
+  TOPICALITY_DEFAULT,
+  TOPICALITY_LEVELS,
+  TOPICALITY_REASON_THRESHOLD,
+} from "../src/lib/topicality";
 import { MarketsFileSchema, type MarketContent } from "../src/lib/content";
 import { verdict } from "../src/lib/elasticity";
 import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
@@ -251,6 +259,47 @@ if (!open.length) {
     warn(`${top.length}/${open.length} open questions are rated ${appealLevel(4).label} or better — if most of the board is great, none of it is; the rating stops separating anything`);
   } else if (top.length) {
     ok(`${top.length}/${open.length} open questions are rated 4+: ${top.slice(0, 5).map((m) => `${m.slug}(${clampAppeal(m.appeal)})`).join(", ")}${top.length > 5 ? " …" : ""}`);
+  }
+}
+
+// ── topicality ─────────────────────────────────────────────────────────────
+// The news rating decays from createdAt (src/lib/topicality.ts), so the only
+// thing worth auditing is the *live* state of it: does the board still carry a
+// question that is hot right now, and is the rating being handed out honestly.
+section("topicality (how much news heat the board is carrying right now)");
+if (!open.length) {
+  info("no open questions to rate");
+} else {
+  const now = Date.now();
+  const heatOf = (m: (typeof open)[number]) => topicalityHeat(m.topicality, new Date(m.createdAt).getTime(), now);
+  const counts = new Map<number, number>();
+  for (const m of open) counts.set(clampTopicality(m.topicality), (counts.get(clampTopicality(m.topicality)) ?? 0) + 1);
+  info(TOPICALITY_LEVELS.map((l) => `${l.value} ${l.label}:${counts.get(l.value) ?? 0}`).join("  "));
+
+  const hot = open.filter((m) => heatOf(m) >= TOPICALITY_REASON_THRESHOLD).sort((a, b) => heatOf(b) - heatOf(a));
+  if (hot.length) {
+    ok(
+      `${hot.length} question(s) still carry live news heat: ` +
+        hot.slice(0, 5).map((m) => `${m.slug}(${clampTopicality(m.topicality)}, ${(heatOf(m) * 100).toFixed(0)}%)`).join(", ") +
+        (hot.length > 5 ? " …" : ""),
+    );
+  } else {
+    // not an error: a quiet news day is allowed to leave the board evergreen
+    warn("nothing on the board is tied to the news right now — the next run should be looking for a question that is");
+  }
+
+  // rating inflation is only measurable on questions young enough to still be
+  // carrying their rating; an old 5 is simply a story that has since cooled
+  const recent = open.filter((m) => now - new Date(m.createdAt).getTime() < 7 * 86_400_000);
+  const loud = recent.filter((m) => clampTopicality(m.topicality) >= 4);
+  if (recent.length >= 5 && loud.length / recent.length > 0.4) {
+    warn(
+      `${loud.length}/${recent.length} questions written this week are rated ${topicalityLevel(4).label} or above — if everything is the headline, nothing is`,
+    );
+  }
+  const flat = recent.filter((m) => clampTopicality(m.topicality) === TOPICALITY_DEFAULT);
+  if (recent.length >= 5 && flat.length === recent.length) {
+    warn(`all ${recent.length} questions written this week are rated ${TOPICALITY_DEFAULT} — a news-driven question that is not rated never gets its opening push`);
   }
 }
 

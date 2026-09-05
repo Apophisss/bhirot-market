@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { APPEAL_DEFAULT, APPEAL_MAX, APPEAL_MIN } from "./appeal";
+import { TOPICALITY_DEFAULT, TOPICALITY_MAX, TOPICALITY_MIN } from "./topicality";
 import { CATEGORY_IDS } from "./categories";
 import marketsJson from "../../data/markets.json";
 import peopleJson from "../../data/people.json";
@@ -44,6 +45,11 @@ export const MarketContentSchema = z.object({
   liquidity: z.number().min(200).max(100000).default(2000),
   /** the creator's own verdict on how good a question this is, 1..5 — see ./appeal */
   appeal: z.number().int().min(APPEAL_MIN).max(APPEAL_MAX).default(APPEAL_DEFAULT),
+  /**
+   * how tied to today's news this question is, 1..5, read together with `createdAt`
+   * and decaying from it — see ./topicality. 1 (the default) is an evergreen question.
+   */
+  topicality: z.number().int().min(TOPICALITY_MIN).max(TOPICALITY_MAX).default(TOPICALITY_DEFAULT),
   featured: z.boolean().default(false),
   status: z.enum(["open", "resolved", "cancelled"]).default("open"),
   resolution: z.enum(["YES", "NO"]).optional(),
