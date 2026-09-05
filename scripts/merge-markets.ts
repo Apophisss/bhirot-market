@@ -10,6 +10,7 @@
  * pull their photos.
  */
 import fs from "node:fs";
+import { clampAppeal } from "../src/lib/appeal";
 import { MarketsFileSchema, PeopleFileSchema, MarketContentSchema } from "../src/lib/content";
 import { similar, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
 
@@ -73,6 +74,8 @@ for (const item of incoming) {
     tags: Array.isArray(m.tags) ? m.tags : [],
     sources: Array.isArray(m.sources) ? m.sources : [],
     liquidity: typeof m.liquidity === "number" ? m.liquidity : 2000,
+    // the creator's 1..5 rating; anything missing or off-scale lands on the neutral default
+    appeal: clampAppeal(typeof m.appeal === "number" ? m.appeal : undefined),
     featured: Boolean(m.featured),
     status: "open",
     createdAt: typeof m.createdAt === "string" ? m.createdAt : now,

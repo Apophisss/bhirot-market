@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { APPEAL_DEFAULT, APPEAL_MAX, APPEAL_MIN } from "./appeal";
 import { CATEGORY_IDS } from "./categories";
 import marketsJson from "../../data/markets.json";
 import peopleJson from "../../data/people.json";
@@ -41,6 +42,8 @@ export const MarketContentSchema = z.object({
   closesAt: z.string().datetime({ offset: true }),
   initialProbability: z.number().min(0.02).max(0.98),
   liquidity: z.number().min(200).max(100000).default(2000),
+  /** the creator's own verdict on how good a question this is, 1..5 — see ./appeal */
+  appeal: z.number().int().min(APPEAL_MIN).max(APPEAL_MAX).default(APPEAL_DEFAULT),
   featured: z.boolean().default(false),
   status: z.enum(["open", "resolved", "cancelled"]).default("open"),
   resolution: z.enum(["YES", "NO"]).optional(),
