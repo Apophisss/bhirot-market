@@ -314,6 +314,8 @@ src/lib/preferences-store.ts  קריאה/כתיבה של תשובות השאלו
 src/lib/elasticity.ts    תרגום liquidity לגמישות מחיר (כמה ₪100 מזיזים)
 src/lib/synthetic-history.ts  אומדן הגרף לפני העסקה הראשונה (תצוגה בלבד, חסום)
 src/lib/display-stats.ts  מונה השאלות המנופח וזמן העדכון בהירו (תצוגה בלבד, נגזר מהשעון)
+src/lib/fake-activity.ts      זרם הפעילות ב-/activity (תצוגה בלבד, נגזר מהשעון)
+src/lib/fake-leaderboard.ts   לוח המובילים האנונימי: כינויים לסוחרים האמיתיים + קהל הדגמה (תצוגה בלבד)
 src/lib/trade.ts         ביצוע עסקאות והכרעות (טרנזקציות)
 src/lib/sync.ts          סנכרון JSON → DB
 src/lib/agent/           מחולל השאלות המובנה (מודל שפה + web search)

@@ -13,6 +13,8 @@
  */
 import { letterForHash } from "./letter-avatar";
 
+import { hash32, unit } from "./hash";
+
 /** one fabricated trade per tick */
 export const FAKE_TICK_MS = 5_000;
 
@@ -43,20 +45,6 @@ export interface FeedItem {
    * the item's own key, never from a trader — a real trade stays anonymous.
    */
   letter: string;
-}
-
-function hash32(seed: number, i: number): number {
-  let h = (seed ^ Math.imul(i | 0, 0x9e3779b1)) >>> 0;
-  h ^= h >>> 16;
-  h = Math.imul(h, 0x85ebca6b) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 0xc2b2ae35) >>> 0;
-  return (h ^ (h >>> 16)) >>> 0;
-}
-
-/** hash → [0, 1) */
-function unit(h: number): number {
-  return h / 0x1_0000_0000;
 }
 
 export function tickAt(ms: number): number {

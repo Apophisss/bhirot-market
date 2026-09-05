@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 const ICONS = {
   markets: "M4 13h5V4H4v9Zm0 7h5v-5H4v5Zm7 0h5V11h-5v9Zm7 0h5V8h-5v12ZM11 9h5V4h-5v5Z",
   activity: "M3 12h4l3 8 4-16 3 8h4",
-  trophy: "M7 3h10v5a5 5 0 0 1-10 0V3Zm-2 1v3a2 2 0 0 0 2 2v2a4 4 0 0 1-4-4V4h2Zm14 0h2v3a4 4 0 0 1-4 4v-2a2 2 0 0 0 2-2V4ZM11 14h2v4h3v2H8v-2h3v-4Z",
   wallet: "M3 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1h-4a3 3 0 0 0 0 6h4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Zm14 3h4v2h-4a1 1 0 1 1 0-2Z",
   login: "M10 17v-2H5V9h5V7l5 5-5 5Zm3-14a6 6 0 0 1 6 6v6a6 6 0 0 1-6 6h-1v-2h1a4 4 0 0 0 4-4V9a4 4 0 0 0-4-4h-1V3h1Z",
   // same glyph as BoltIcon, so rapid mode is marked identically everywhere
@@ -16,11 +15,12 @@ const ICONS = {
 
 type Item = { href: string; label: string; icon: keyof typeof ICONS; stroke?: boolean };
 
+// The leaderboard is reached from the profile (the user menu and /portfolio), not
+// from the tab bar.
 const BASE: Item[] = [
   { href: "/", label: "שווקים", icon: "markets" },
   { href: "/rapid", label: "מצב זריז", icon: "bolt" },
   { href: "/activity", label: "פעילות", icon: "activity", stroke: true },
-  { href: "/leaderboard", label: "מובילים", icon: "trophy" },
 ];
 
 /**

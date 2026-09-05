@@ -1,5 +1,5 @@
 import { STARTING_BALANCE } from "@/lib/db/schema";
-import { getLeaderboard } from "@/lib/portfolio";
+import { getTopTradersForAdmin } from "@/lib/portfolio";
 import { money, signedMoney } from "@/lib/format";
 import { getDailyBusiness, getRetention, getTradingStats, getUserStats, range } from "@/lib/stats";
 import { BarSeries, Card, Kpi, fmt, shortDay } from "@/components/admin/Charts";
@@ -15,7 +15,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
     getRetention(10),
     getDailyBusiness(r),
     getTradingStats(r),
-    getLeaderboard(15),
+    getTopTradersForAdmin(15),
   ]);
 
   const tradedShare = users.total ? users.everTraded / users.total : 0;
