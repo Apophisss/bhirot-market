@@ -12,8 +12,15 @@
     {
       "idx": 1,
       "version": "6",
-      "when": 1788607085143,
-      "tag": "0001_user_preference",
+      "when": 1788559834899,
+      "tag": "0001_analytics",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788608671524,
+      "tag": "0002_user_preference",
       "breakpoints": true
     }
   ]

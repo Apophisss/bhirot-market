@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAuthorizedAdmin, unauthorized } from "@/lib/api-auth";
 import { syncFromContent } from "@/lib/sync";
 import { runQuestionGenerator } from "@/lib/agent/generate";
+import { pruneAnalytics } from "@/lib/analytics";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -10,6 +11,7 @@ export const maxDuration = 300;
  * Hourly job (Vercel Cron, see vercel.json):
  *  1. sync data/markets.json -> DB (picks up anything the editorial routine committed)
  *  2. if an API key is configured, run the built-in question generator (with web search) for new, current questions
+ *  3. drop analytics events past their retention window, so the log cannot grow without bound
  * Auth: Vercel sends `Authorization: Bearer ${CRON_SECRET}`; ADMIN_TOKEN also works.
  */
 export async function GET(req: Request) {
@@ -26,5 +28,9 @@ export async function GET(req: Request) {
   } else {
     generator = { skipped: true, reason: "ANTHROPIC_API_KEY not set" };
   }
-  return NextResponse.json({ ok: true, sync, generator });
+  const pruned = await pruneAnalytics().catch((err) => {
+    console.error("[cron] analytics prune failed", err);
+    return 0;
+  });
+  return NextResponse.json({ ok: true, sync, generator, analyticsPruned: pruned });
 }

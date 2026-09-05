@@ -89,12 +89,16 @@ export function MarketBrowser({
         <div className="scrollbar-none swipe-x -mx-3 flex items-center gap-1 px-3 text-sm sm:mx-0 sm:px-0">
           <Link
             href={link({ status: "open", show: undefined })}
+            data-evt="status-tab"
+            data-evt-label="פתוחים"
             className={`shrink-0 rounded-lg px-3 py-2 font-semibold ${status === "open" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
           >
             פתוחים
           </Link>
           <Link
             href={link({ status: "resolved", show: undefined })}
+            data-evt="status-tab"
+            data-evt-label="הוכרעו"
             className={`shrink-0 rounded-lg px-3 py-2 font-semibold ${status === "resolved" ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
           >
             הוכרעו
@@ -123,6 +127,7 @@ export function MarketBrowser({
         <div className="scrollbar-none swipe-x -mx-3 flex items-center gap-1 px-3 text-[13px] sm:mx-0 sm:px-0 sm:text-xs">
           <Link
             href="/rapid"
+            data-evt="browser-rapid"
             className="pressable me-2 inline-flex shrink-0 items-center gap-1 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 font-bold text-accent-2 hover:bg-accent/20"
           >
             <BoltIcon />
@@ -133,6 +138,8 @@ export function MarketBrowser({
             <Link
               key={s.id}
               href={link({ sort: s.id })}
+              data-evt="sort-tab"
+              data-evt-label={s.label}
               className={`shrink-0 rounded-md px-2.5 py-1.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
               rel="nofollow"
             >
@@ -153,6 +160,7 @@ export function MarketBrowser({
             <div className="flex flex-col items-center gap-1 pt-2">
               <Link
                 href={link({ show: String(shown + PAGE) })}
+                data-evt="show-more"
                 className="tap pressable flex w-full items-center justify-center rounded-xl border border-border-2 bg-surface px-6 font-semibold text-text hover:bg-surface-2 sm:w-auto"
                 scroll={false}
                 rel="nofollow"
