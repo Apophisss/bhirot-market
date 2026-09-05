@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CATEGORY_IDS } from "@/lib/categories";
 import { REFERRAL_COOKIE, REFERRAL_COOKIE_MAX_AGE, normalizeReferralCode } from "@/lib/referral";
+import { AD_COOKIE, AD_COOKIE_MAX_AGE, readAdParams, serializeAdAttribution } from "@/lib/ad-attribution";
 
 /**
  * An invite link (`/i/<code>`) has to leave something behind: the visitor lands, reads the
@@ -41,8 +42,33 @@ function categoryRedirect(req: NextRequest) {
   return NextResponse.redirect(url, 308);
 }
 
-export function middleware(req: NextRequest) {
-  return req.nextUrl.pathname.startsWith("/i/") ? stampInvite(req) : categoryRedirect(req);
+/**
+ * An ad click leaves the same kind of trace an invite link does: someone lands
+ * from a campaign, browses, and signs up later — possibly after a round trip to
+ * Google. `claimAdAttribution()` reads this cookie when the account is finally
+ * created. Stamped here rather than in the browser so an ad-blocker cannot hide
+ * it, and set only on the first campaign visit — overwriting would credit the
+ * last click instead of the one that actually earned the account.
+ */
+function stampAdClick(req: NextRequest, res: NextResponse): NextResponse {
+  if (req.cookies.has(AD_COOKIE)) return res;
+  const attr = readAdParams(req.nextUrl.searchParams);
+  if (!attr) return res;
+  res.cookies.set(AD_COOKIE, serializeAdAttribution(attr), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: AD_COOKIE_MAX_AGE,
+    secure: process.env.NODE_ENV === "production",
+  });
+  return res;
 }
 
-export const config = { matcher: ["/", "/i/:code"] };
+export function middleware(req: NextRequest) {
+  const res = req.nextUrl.pathname.startsWith("/i/") ? stampInvite(req) : categoryRedirect(req);
+  // a redirect drops the query, so the click has to be recorded before it leaves
+  return stampAdClick(req, res);
+}
+
+// /welcome is the ad landing page; it is in the matcher so the click is stamped there too
+export const config = { matcher: ["/", "/i/:code", "/welcome"] };

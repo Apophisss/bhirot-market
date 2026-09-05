@@ -8,6 +8,7 @@ export function ContactForm({ defaultName, defaultEmail }: { defaultName?: strin
   const [name, setName] = useState(defaultName ?? "");
   const [email, setEmail] = useState(defaultEmail ?? "");
   const [topic, setTopic] = useState<string>("question");
+  const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export function ContactForm({ defaultName, defaultEmail }: { defaultName?: strin
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name, email, topic, body }),
+      body: JSON.stringify({ name, email, topic, subject, body }),
     });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
@@ -29,6 +30,7 @@ export function ContactForm({ defaultName, defaultEmail }: { defaultName?: strin
       return;
     }
     setSent(true);
+    setSubject("");
     setBody("");
   }
 
@@ -91,6 +93,17 @@ export function ContactForm({ defaultName, defaultEmail }: { defaultName?: strin
             </button>
           ))}
         </div>
+      </Field>
+
+      <Field label="כותרת" required>
+        <input
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          required
+          maxLength={120}
+          className="tap w-full rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-base outline-none focus:border-accent sm:text-sm"
+          placeholder="במשפט אחד — על מה הפנייה"
+        />
       </Field>
 
       <Field label="ההודעה" required>

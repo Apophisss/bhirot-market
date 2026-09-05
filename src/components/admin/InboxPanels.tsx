@@ -13,6 +13,7 @@ export interface MessageItem {
   name: string;
   email: string;
   topic: string;
+  subject: string;
   body: string;
   status: string;
   adminNote: string | null;
@@ -160,7 +161,7 @@ export function MessagesPanel({ items }: { items: MessageItem[] }) {
                 <Avatar name={m.userName ?? m.name} image={m.userImage} seed={`msg-${m.id}`} size={28} />
                 <span className="font-semibold text-text-strong">{m.name || m.userName || "אנונימי"}</span>
                 {m.email && (
-                  <a href={`mailto:${m.email}?subject=${encodeURIComponent("בחירות מרקט — תשובה לפנייתך")}`} className="text-[12px] text-accent-2 hover:underline" dir="ltr">
+                  <a href={`mailto:${m.email}?subject=${encodeURIComponent(m.subject ? `בחירות מרקט — ${m.subject}` : "בחירות מרקט — תשובה לפנייתך")}`} className="text-[12px] text-accent-2 hover:underline" dir="ltr">
                     {m.email}
                   </a>
                 )}
@@ -168,6 +169,7 @@ export function MessagesPanel({ items }: { items: MessageItem[] }) {
                 <span className="text-[11px] text-muted-2">{timeAgo(m.createdAt)}</span>
                 {m.userName === null && !m.email && <span className="text-[11px] text-muted-2">(ללא פרטי קשר)</span>}
               </div>
+              {m.subject && <p className="font-semibold text-text-strong">{m.subject}</p>}
               <p className="whitespace-pre-wrap break-words text-sm text-text">{m.body}</p>
               <div className="flex flex-wrap items-center gap-2">
                 <StatusButtons states={MESSAGE_STATES} current={m.status} disabled={busy === m.id} onPick={(status) => patch(m.id, { status })} />

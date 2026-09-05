@@ -35,6 +35,8 @@ export async function Footer() {
             <Link href="/about#updates" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">מי כותב את השאלות</Link>
             <Link href="/suggest" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">הצעת שאלה</Link>
             <Link href="/contact" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">יצירת קשר</Link>
+            <Link href="/privacy" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">פרטיות</Link>
+            <Link href="/terms" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">תנאי שימוש</Link>
             {admin && (
               <Link href="/admin" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">ניהול</Link>
             )}

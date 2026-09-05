@@ -9,6 +9,7 @@ import { money, pct, shares as fmtShares, sharePrice } from "@/lib/format";
 import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
 import { gaEvent } from "@/lib/gtag";
+import { checkAdConversions } from "@/components/AdConversions";
 
 export interface TradePanelProps {
   market: { id: string; qYes: number; qNo: number; liquidity: number; probability: number; isTradable: boolean; status: string; resolution: string | null };
@@ -130,6 +131,7 @@ export function TradePanel({ market, position, balance, loggedIn, initialSide = 
           // virtual shekels, reported as a plain number — see gaEvent()
           amount: Math.round(data.quote.amount * 100) / 100,
         });
+        checkAdConversions();
         setMsg({
           kind: "ok",
           text:

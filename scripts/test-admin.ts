@@ -167,10 +167,17 @@ test("two clients do not share a quota", () => {
 
 /* ---------- what the public forms accept ---------- */
 
-test("a contact message needs a real address and some text", () => {
-  assert.equal(ContactInputSchema.safeParse({ email: "a@b.com", body: "שלום, יש טעות בשוק" }).success, true);
-  assert.equal(ContactInputSchema.safeParse({ email: "not-an-email", body: "שלום, יש טעות בשוק" }).success, false);
-  assert.equal(ContactInputSchema.safeParse({ email: "a@b.com", body: "קצר" }).success, false);
+test("a contact message needs an address, a title and some text", () => {
+  const ok = { email: "a@b.com", subject: "טעות בשוק", body: "שלום, יש טעות בשוק" };
+  assert.equal(ContactInputSchema.safeParse(ok).success, true);
+  assert.equal(ContactInputSchema.safeParse({ ...ok, email: "not-an-email" }).success, false);
+  assert.equal(ContactInputSchema.safeParse({ ...ok, body: "קצר" }).success, false);
+  // the title is what makes the inbox scannable, so an empty or one-letter one is rejected
+  assert.equal(ContactInputSchema.safeParse({ ...ok, subject: "" }).success, false);
+  assert.equal(ContactInputSchema.safeParse({ ...ok, subject: "x".repeat(121) }).success, false);
+  // the error reaches the visitor verbatim, so it has to be in Hebrew even when the field is absent
+  const missing = ContactInputSchema.safeParse({ email: ok.email, body: ok.body });
+  assert.match(missing.success ? "" : (missing.error.issues[0]?.message ?? ""), /[\u0590-\u05FF]/);
 });
 
 test("a suggestion needs a question, and its image must be a path or https", () => {

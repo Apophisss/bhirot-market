@@ -24,6 +24,7 @@ export const ContactInputSchema = z.object({
   name: z.string().trim().max(80).optional(),
   email: z.string().trim().email("כתובת אימייל לא תקינה").max(160),
   topic: z.enum(CONTACT_TOPIC_IDS).default("other"),
+  subject: z.string({ message: "כתבו כותרת קצרה" }).trim().min(3, "כתבו כותרת קצרה").max(120, "הכותרת ארוכה מדי"),
   body: z.string().trim().min(10, "כתבו לפחות 10 תווים").max(4000),
 });
 export type ContactInput = z.infer<typeof ContactInputSchema>;
@@ -62,6 +63,7 @@ export async function createContactMessage(
       name: (input.name || user?.name || "").slice(0, 80),
       email: input.email || user?.email || "",
       topic: input.topic,
+      subject: input.subject,
       body: input.body,
     })
     .returning();

@@ -23,3 +23,6 @@ CLAUDE.md
 
 # דוחות ההכרעה מיוצרים מחדש מקובץ הריצה (npm run resolve -- report); הריצות עצמן כן נשמרות.
 data/resolutions/*.report.html
+
+# קריאייטיב למודעות — נוצר מחדש מ-data/markets.json בכל `npm run ads:creatives`
+ads/creatives/

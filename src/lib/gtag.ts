@@ -74,3 +74,48 @@ export function gaEvent(name: string, params: GaParams = {}): void {
   if (!gaEnabled || typeof window === "undefined") return;
   gtag("event", name, params);
 }
+
+/* ---------------- Google Ads ---------------- */
+
+/**
+ * Conversion tracking for a paid campaign, on the same gtag.js the GA4 code
+ * above loads.
+ *
+ * Separate ID and separate events on purpose: GA4 answers "what are people
+ * doing", Google Ads answers "which click was worth paying for", and only the
+ * second one feeds bidding. A campaign optimising on conversions is only as
+ * good as the conversions it is told about, which is why these are reported
+ * from the server's decision (`ad-conversions.ts`) rather than fired wherever
+ * the interaction happens.
+ */
+
+/** Conversion ID of the Google Ads account (`AW-XXXXXXXXX`). */
+export const ADS_ID = process.env.NEXT_PUBLIC_ADS_ID ?? "";
+
+/** Ads only runs when a real conversion ID was compiled in. */
+export const adsEnabled = /^AW-[0-9]+$/i.test(ADS_ID);
+
+/**
+ * Conversion labels, copied out of each conversion action's tag setup. Without
+ * one, that conversion simply is not reported — Google needs the label to know
+ * which action fired, and a bare ID would be silently dropped.
+ */
+const ADS_LABELS: Record<string, string> = {
+  sign_up: process.env.NEXT_PUBLIC_ADS_LABEL_SIGNUP ?? "",
+  first_trade: process.env.NEXT_PUBLIC_ADS_LABEL_FIRST_TRADE ?? "",
+};
+
+/**
+ * Reports one conversion.
+ *
+ * `value` is a modelled worth, not revenue — the money on this site is virtual.
+ * It is sent here and nowhere else: value-based bidding needs a number to weigh
+ * a signup against a first trade, while GA4 (`gaEvent`) deliberately stays
+ * value-free so play money never reaches a revenue report.
+ */
+export function adsConversion(name: string, value: number): void {
+  const label = ADS_LABELS[name];
+  if (!adsEnabled || !label || typeof window === "undefined") return;
+  gtag("event", "conversion", { send_to: `${ADS_ID}/${label}`, value, currency: "ILS" });
+}
+

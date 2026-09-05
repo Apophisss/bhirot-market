@@ -51,6 +51,7 @@ export default async function AdminInbox({ searchParams }: { searchParams: Promi
           name: row.name,
           email: row.email,
           topic: row.topic,
+          subject: row.subject,
           body: row.body,
           status: row.status,
           adminNote: row.adminNote,
