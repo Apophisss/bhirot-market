@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
-import { getPortfolio, getUserTrades, getLeaderboard } from "@/lib/portfolio";
+import { getPortfolio, getUserTrades, getLeaderboard, type HoldingView } from "@/lib/portfolio";
 import { getReferralSummary } from "@/lib/referral-program";
 import { buildBoard } from "@/lib/fake-leaderboard";
 import { STARTING_BALANCE } from "@/lib/db/schema";
@@ -18,6 +18,15 @@ export const metadata: Metadata = {
   // personal, login-gated page: never index it
   robots: { index: false, follow: false, nocache: true },
 };
+
+/**
+ * The tooltip behind every value cell. The column is the sale proceeds, not
+ * shares × price, so it is worth saying why the two differ: selling walks the
+ * price down, and the average the sale actually gets is the honest number.
+ */
+function sellHint(h: HoldingView): string {
+  return `מכירה של ${fmtShares(h.shares)} מניות עכשיו מזכה ב־${money(h.value, { decimals: true })} — ${sharePrice(h.exitPrice)} למניה בממוצע. המחיר הנוכחי (${pct(h.currentPrice, 1)}) הוא מחיר המניה הבאה; מכירה גדולה מורידה אותו תוך כדי.`;
+}
 
 export default async function PortfolioPage() {
   const user = await currentUser();
@@ -69,7 +78,12 @@ export default async function PortfolioPage() {
         />
         <StatTile label="רווח/הפסד כולל" value={signedMoney(totalPnl)} tone={totalPnl >= 0 ? "yes" : "no"} hint={`ממומש ${signedMoney(realized)}`} />
         <StatTile label="יתרה זמינה" value={money(user.balance)} />
-        <StatTile label="שווי פוזיציות פתוחות" value={money(positionsValue)} hint={`לא ממומש ${signedMoney(unrealized)}`} tone={unrealized >= 0 ? "yes" : "no"} />
+        <StatTile
+          label="שווי פוזיציות פתוחות"
+          value={money(positionsValue)}
+          hint={`מה שתקבלו אם תמכרו הכול עכשיו · לא ממומש ${signedMoney(unrealized)}`}
+          tone={unrealized >= 0 ? "yes" : "no"}
+        />
       </div>
 
       <InviteCard code={referrals.code} invited={referrals.invited} earned={referrals.earned} remaining={referrals.remaining} />
@@ -91,11 +105,11 @@ export default async function PortfolioPage() {
                     <span className={`tabular font-bold ${h.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.pnl)}</span>
                   </div>
                   <div className="tabular mt-2 flex items-center justify-between gap-2 text-xs text-muted">
-                    <span>
-                      ממוצע {sharePrice(h.avgPrice)} · נוכחי {pct(h.currentPrice, 1)} · שווי {money(h.value, { decimals: true })}
+                    <span title={sellHint(h)}>
+                      ממוצע {sharePrice(h.avgPrice)} · נוכחי {pct(h.currentPrice, 1)} · במכירה {money(h.value, { decimals: true })}
                     </span>
                     <Link
-                      href={`/market/${h.market.id}?side=${h.side.toLowerCase()}`}
+                      href={`/market/${h.market.id}?side=${h.side.toLowerCase()}&action=sell#trade`}
                       className="pressable shrink-0 rounded-md border border-border-2 px-3 py-1.5 font-semibold text-text"
                     >
                       סחר
@@ -114,7 +128,7 @@ export default async function PortfolioPage() {
                   <th className="px-3 py-2 text-right font-medium">מניות</th>
                   <th className="px-3 py-2 text-right font-medium">מחיר ממוצע</th>
                   <th className="px-3 py-2 text-right font-medium">מחיר נוכחי</th>
-                  <th className="px-3 py-2 text-right font-medium">שווי</th>
+                  <th className="px-3 py-2 text-right font-medium" title="מה שתקבלו אם תמכרו את הפוזיציה עכשיו">שווי במכירה</th>
                   <th className="px-3 py-2 text-right font-medium">רווח/הפסד</th>
                   <th className="px-3 py-2"></th>
                 </tr>
@@ -129,10 +143,10 @@ export default async function PortfolioPage() {
                     <td className="tabular px-3 py-2.5">{fmtShares(h.shares)}</td>
                     <td className="tabular px-3 py-2.5">{sharePrice(h.avgPrice)}</td>
                     <td className="tabular px-3 py-2.5">{pct(h.currentPrice, 1)}</td>
-                    <td className="tabular px-3 py-2.5 font-semibold">{money(h.value, { decimals: true })}</td>
+                    <td className="tabular px-3 py-2.5 font-semibold" title={sellHint(h)}>{money(h.value, { decimals: true })}</td>
                     <td className={`tabular px-3 py-2.5 font-semibold ${h.pnl >= 0 ? "text-yes" : "text-no"}`}>{signedMoney(h.pnl)}</td>
                     <td className="px-3 py-2.5">
-                      <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">סחר</Link>
+                      <Link href={`/market/${h.market.id}?side=${h.side.toLowerCase()}&action=sell#trade`} className="rounded-md border border-border px-2 py-1 text-xs hover:border-border-2">סחר</Link>
                     </td>
                   </tr>
                 ))}
