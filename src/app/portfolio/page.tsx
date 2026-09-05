@@ -39,6 +39,7 @@ export default async function PortfolioPage() {
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/leaderboard"
+            data-evt="portfolio-leaderboard"
             className="pressable inline-flex items-center rounded-xl border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-accent hover:text-accent-2"
           >
             לוח המובילים{myRank ? ` · מקום ${myRank}` : ""}

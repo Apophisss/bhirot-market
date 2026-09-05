@@ -105,6 +105,20 @@ export interface LeaderRow {
   tradeCount: number;
 }
 
+/**
+ * The same ranking with the account names attached, for the admin dashboard
+ * only. It is a separate function on purpose: the public board must not be able
+ * to reach a name by accident, so the identity is fetched exactly where someone
+ * decided it should be — here — and nowhere else.
+ */
+export async function getTopTradersForAdmin(limit = 15): Promise<(LeaderRow & { name: string | null })[]> {
+  const db = await getDb();
+  const rows = await getLeaderboard(limit);
+  const named = await db.select({ id: users.id, name: users.name }).from(users);
+  const byId = new Map(named.map((u) => [u.id, u.name]));
+  return rows.map((r) => ({ ...r, name: byId.get(r.userId) ?? null }));
+}
+
 /** Every ranked trader, best first. The board is small enough to rank whole. */
 export async function getLeaderboard(limit = 5_000): Promise<LeaderRow[]> {
   const db = await getDb();
@@ -139,4 +153,30 @@ export async function getLeaderboard(limit = 5_000): Promise<LeaderRow[]> {
     .filter((r) => r.tradeCount > 0 || r.pnl !== 0)
     .sort((a, b) => b.netWorth - a.netWorth)
     .slice(0, limit);
+}
+
+/**
+ * Cash plus the value of every position that is still open — the same "שווי כולל"
+ * the portfolio page shows, but as one lean query so the header can render it.
+ */
+export async function getNetWorth(userId: string, balance: number): Promise<number> {
+  const db = await getDb();
+  const rows = await db
+    .select({
+      yesShares: positions.yesShares,
+      noShares: positions.noShares,
+      probability: markets.probability,
+      status: markets.status,
+      resolution: markets.resolution,
+    })
+    .from(positions)
+    .innerJoin(markets, eq(positions.marketId, markets.id))
+    .where(and(eq(positions.userId, userId), eq(positions.settled, false)));
+
+  let value = 0;
+  for (const r of rows) {
+    const yes = r.status === "resolved" ? (r.resolution === "YES" ? 1 : 0) : r.probability;
+    value += r.yesShares * yes + r.noShares * (1 - yes);
+  }
+  return balance + value;
 }

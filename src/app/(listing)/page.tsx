@@ -154,6 +154,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-3">
                 <Link
                   href="/rapid"
+                  data-evt="hero-rapid"
                   className="tap pressable inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-accent shadow-lg shadow-ink/30 hover:bg-accent-soft sm:py-2.5"
                 >
                   <BoltIcon size={16} />
@@ -162,6 +163,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {session?.user ? (
                   <Link
                     href="/portfolio"
+                    data-evt="hero-portfolio"
                     className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
                   >
                     לתיק שלי
@@ -169,6 +171,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 ) : (
                   <Link
                     href="/login"
+                    data-evt="hero-login"
                     className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 text-center font-semibold text-white hover:bg-white/20"
                   >
                     <span className="sm:hidden">התחברות · ₪10,000 וירטואליים</span>
@@ -177,6 +180,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 )}
                 <Link
                   href="/about"
+                  data-evt="hero-about"
                   className="tap pressable flex items-center justify-center rounded-xl border border-white/35 bg-white/10 px-5 font-semibold text-white hover:bg-white/20"
                 >
                   איך זה עובד?
