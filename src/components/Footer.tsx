@@ -30,6 +30,7 @@ export async function Footer() {
           </p>
           <nav className="-my-1 flex shrink-0 flex-wrap gap-x-4">
             <Link href="/about" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">איך זה עובד</Link>
+            <Link href="/invite" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">הזמינו חברים</Link>
             <Link href="/about#faq" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">שאלות ותשובות</Link>
             <Link href="/about#updates" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">מי כותב את השאלות</Link>
             <Link href="/suggest" data-evt="footer-link" className="inline-flex items-center py-2 hover:text-white">הצעת שאלה</Link>

@@ -20,6 +20,7 @@
 | מצב זריז | פיד שאלות ב־`/rapid`: תשובת ״כן״/״לא״ = קנייה מחייבת בטווח ₪5–₪100 דרך אותו LMSR |
 | המלצות | ״מומלץ בשבילכם״ בדף הבית ובחפיסת ברירת המחדל של מצב זריז: שילוב של מה שהמשתמש סוחר בו בפועל ומה שהכי פעיל על הלוח (`src/lib/recommendations.ts`) |
 | שאלון היכרות | שאלון פוליטי קצר (`/onboarding`) לכל מי שמתחבר — נושאים, מתמודדים וקצב — שמזין את ההמלצות לפני שיש היסטוריית מסחר (`src/lib/preferences.ts`) |
+| הזמנות | קישור אישי לכל משתמש/ת (`/invite`): ₪2,000 וירטואליים על כל הרשמה דרכו, עד 50 חברים (`src/lib/referral.ts`) |
 | תוכן | `data/markets.json` — מקור האמת לשאלות; מסונכרן למסד הנתונים אוטומטית |
 | תמונות | תמונות אישי ציבור מוורדות מ־Wikimedia Commons אל `public/people/` (`npm run people:fetch`) — האתר לא מקשר החוצה — + עטיפות SVG לכל קטגוריה ותמונת שיתוף (`public/og.png`) |
 | מספרי הכותרת | מונה השאלות בהירו ותווית ״עודכן״ הם **תצוגה בלבד** (`src/lib/display-stats.ts`): המונה מנפח את מספר השווקים הפתוחים האמיתי, וזמן העדכון תמיד נופל בתוך השעה האחרונה. הלוח עצמו, `/api/health` ומונה ״X מתוך Y״ מציגים את המספרים האמיתיים |
@@ -100,7 +101,29 @@
 מכיוון שהכול עובר דרך `getTasteProfile`, גם סדר ״מצב זריז״ מקבל את זה בלי קוד נוסף. התשובות נשמרות
 בטבלה `user_preference` (שורה אחת למשתמש; עצם קיומה הוא מה שעוצר שאלה חוזרת), והעלאת `SURVEY_VERSION`
 תגרום לכל מי שענה לגרסה קודמת להישאל שוב.
+## הזמנת חברים (`/invite`)
 
+לכל משתמש/ת יש קישור אישי לשיתוף האתר, ו**כל מי שנרשם דרכו מזכה את המזמין/ה ב־₪2,000 וירטואליים** שנכנסים ליתרה מיד.
+המספרים כולם ב־`src/lib/referral.ts` (`REFERRAL_BONUS`, `MAX_REFERRALS`), מודול עלה ללא תלויות שנטען גם בדפדפן — בדיוק
+כמו `limits.ts`, כדי שכרטיס השיתוף והשרת שמשלם את הבונוס יצטטו את אותה הצעה.
+
+איך זה עובד מקצה לקצה:
+
+1. **הקישור** — `/i/<code>`. הקוד נטבע בפעם הראשונה שנכנסים ל־`/invite` (`getOrCreateReferralCode`), הוא יציב, והעמודה
+   `user.referralCode` ייחודית כך שהתנגשות נכשלת בכתיבה ולא יוצרת שני בעלים לאותו קוד.
+2. **הנחיתה** — `src/middleware.ts` חותם עוגייה (`bm_ref`, 30 יום) על כל בקשה ל־`/i/<code>` ומעביר לדף נחיתה אמיתי עם
+   שם המזמין ותגיות OG. העוגייה נחתמת ב-middleware ולא בדף, כי Server Component לא יכול לכתוב עוגיות — ו־Route Handler
+   היה משאיר את הקישור המשותף בלי תצוגה מקדימה.
+3. **התשלום** — באירוע `createUser` של Auth.js (וגם בכניסת הפיתוח, שלא עוברת דרך ה-adapter) רץ `claimReferral`:
+   טרנזקציה אחת שמסמנת `user.referredBy`, כותבת שורה ל-`referral` ומזכה את המזמין/ה. הכתיבה מותנית ב־`referredBy is null`
+   ועמודת `invitedId` ייחודית, כך ששתי בקשות במקביל, ריענון או קישור שנפתח שוב לא משלמים פעמיים. הזמנה עצמית לא מזכה.
+4. **התקרה** — אחרי `MAX_REFERRALS` הזמנות משלמות, הקישור ממשיך לעבוד וההזמנה עדיין נרשמת (`bonus: 0`), כדי שסקריפט
+   שמייצר הרשמות לא יזרים כסף אינסופי ללוח המובילים.
+5. **החשבונאות** — הבונוס הוא **הון שקיבלת, לא רווח שהרווחת**: הוא נכנס ליתרה ולשווי הכולל, אבל מנוכה מכל רווח/הפסד
+   באתר (`getLeaderboard` ודף התיק), כך שלוח המובילים ממשיך למדוד חיזוי בלבד.
+
+הכל מכוסה ב־`npm run test` דרך `scripts/test-referrals.ts` (טביעת קודים, תשלום יחיד, הזמנה עצמית, התקרה, וההפרדה בין
+בונוס לרווח) מול מסד נתונים זמני.
 
 ## הרצה מקומית
 
@@ -322,6 +345,7 @@ npm run people:fetch       # הורדת תמונות חדשות מוויקיפד
 npm run markets:generate   # הרצת המחולל המובנה (דורש ANTHROPIC_API_KEY)
 npm run history:verify     # בדיקת החסמים של גרף האומדן (--sparklines להצגת העקומות)
 npm run test:trade         # בדיקות קצה-לקצה של נתיב הכסף (קנייה, מכירה, הנזלה, הכרעה) מול DB זמני
+npm run test:referrals     # בדיקות תוכנית ההזמנות (קודים, תשלום יחיד, תקרה, הפרדת בונוס מרווח) מול DB זמני
 npm run test:admin         # הרשאות לוח הניהול, מועדים בשעון ישראל, slugים, חסם קצב וסכמות הטפסים
 npm run db:generate        # יצירת מיגרציה אחרי שינוי בסכמה
 npm run bundle             # הורדת באנדל הנתונים לקובץ (דורש SITE_URL + ADMIN_TOKEN)
@@ -341,6 +365,8 @@ src/lib/rapid-feed.ts    בניית פיד ״מצב זריז״ (ברירת המ�
 src/lib/recommendations.ts    מנוע ההמלצות: פרופיל טעם, פופולריות, ניקוד וגיוון
 src/lib/preferences.ts   קבועי שאלון ההיכרות (מודול ללא תלויות מסד נתונים)
 src/lib/preferences-store.ts  קריאה/כתיבה של תשובות השאלון (טבלת user_preference)
+src/lib/referral.ts      תוכנית ההזמנות: בונוס, תקרה, קודים וקישורים — ללא תלויות, נטען גם בדפדפן
+src/lib/referral-program.ts   צד המסד של ההזמנות: טביעת קוד, תשלום הבונוס וסיכום למשתמש
 src/lib/elasticity.ts    תרגום liquidity לגמישות מחיר (כמה ₪100 מזיזים)
 src/lib/synthetic-history.ts  אומדן הגרף לפני העסקה הראשונה (תצוגה בלבד, חסום)
 src/lib/display-stats.ts  מונה השאלות המנופח וזמן העדכון בהירו (תצוגה בלבד, נגזר מהשעון)
@@ -359,16 +385,16 @@ src/lib/analytics.ts     קליטת אירועי אנליטיקה בצד השר�
 src/lib/stats.ts         כל שאילתות הדוחות של לוח הניהול והבאנדל
 src/lib/bundle.ts        בניית באנדל הנתונים (JSON + דוח Markdown)
 src/components/Analytics.tsx  המעקב בצד הדפדפן (sendBeacon)
-src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה
+src/middleware.ts        הפניית 308 מ-/?category=x לדף הקטגוריה, וחתימת עוגיית ההזמנה על /i/<code>
 src/app/admin/           לוח הניהול: סקירה, תנועה, שווקים, משתמשים, שאלה חדשה, תיבה, באנדל
-src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /about, /login, /admin, /onboarding, /suggest, /contact
+src/app/                 דפים: /, /rapid, /category/[id], /market/[slug], /portfolio, /leaderboard, /activity, /invite, /i/[code], /about, /login, /admin, /onboarding, /suggest, /contact
 ```
 
 ## SEO
 
 - **כתובת האתר**: `NEXT_PUBLIC_SITE_URL` חייבת להיות הדומיין הפומבי המלא. כל ה-canonical, ה-sitemap וה-JSON-LD נגזרים ממנה.
 - **דפי קטגוריה**: לכל קטגוריה יש דף אינדוקס משלה ב-`/category/<id>` עם `h1`, תיאור ייחודי (`description` ב-`src/lib/categories.ts`) ו-`CollectionPage` + `ItemList`. קישורים ישנים בסגנון `/?category=x` מקבלים 308 מ-`src/middleware.ts`.
-- **מה נכנס לאינדקס**: דף הבית, `/?status=resolved`, דפי הקטגוריות, דפי השווקים ו-`/about`. תוצאות חיפוש, מיון ו"הצגת עוד" מסומנים `noindex, follow`; `/portfolio` ו-`/login` חסומים.
+- **מה נכנס לאינדקס**: דף הבית, `/?status=resolved`, דפי הקטגוריות, דפי השווקים, `/about` ו-`/invite`. תוצאות חיפוש, מיון ו"הצגת עוד" מסומנים `noindex, follow`; `/portfolio`, `/login` ודפי הנחיתה של ההזמנות (`/i/<code>` — עמוד זהה לכל קוד) חסומים.
 - **נתונים מובנים**: `Organization` + `WebSite` (עם SearchAction) בכל דף, `Article` + `BreadcrumbList` בדף שוק, `CollectionPage` בדפי רשימה ו-`FAQPage` ב-`/about` (השאלות נמצאות ב-`FAQ` ב-`src/lib/seo.ts` ומוצגות גם בדף עצמו — אין להוסיף שאלה ל-JSON-LD בלי להציג אותה).
 - **קודי סטטוס**: שלד הטעינה (`loading.tsx`) חי רק תחת קבוצת הראוט `(listing)`. אם מוסיפים `loading.tsx` מעל דפי שוק/קטגוריה, ה-404 שלהם יהפוך ל-200 רך (soft 404).
 - **אימות Search Console**: הגדירו `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` והתג ייווצר לבד.
