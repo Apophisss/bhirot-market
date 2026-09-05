@@ -37,6 +37,8 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const category = sp.category ?? "all";
   const sort = (RAPID_SORTS.find((s) => s.id === sp.sort)?.id ?? "mix") as RapidSort;
+  // "כולל שאלות שכבר ראיתי": both halves of what the deck subtracts — the questions
+  // this user answered, and the ones they skipped (see src/lib/rapid-feed.ts)
   const includeAnswered = sp.all === "1";
 
   const [session, user] = await Promise.all([auth(), currentUser()]);
@@ -81,7 +83,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
               includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
             }`}
           >
-            כולל שאלות שכבר עניתי
+            כולל שאלות שכבר ראיתי
           </Link>
           <Link href="/" className="tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold text-muted hover:text-text">
             לרשימה המלאה
@@ -128,10 +130,10 @@ function EmptyFeed({ category, includeAnswered }: { category: string; includeAns
   return (
     <div className="card flex flex-col items-center gap-3 p-8 text-center sm:p-12">
       <h2 className="text-xl font-extrabold text-text-strong">
-        {includeAnswered ? "אין כרגע שאלות פתוחות" : "ענית על כל השאלות הפתוחות"}
+        {includeAnswered ? "אין כרגע שאלות פתוחות" : "עברתם על כל השאלות הפתוחות"}
       </h2>
       <p className="max-w-md text-sm text-muted">
-        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן, או לעבור לרשימת השאלות.
+        {SITE_TEAM} מוסיף שאלות חדשות לאורך היום לפי החדשות. בינתיים אפשר לחזור לשאלות שכבר עניתם עליהן או שדילגתם עליהן, או לעבור לרשימת השאלות.
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {!includeAnswered && (
@@ -139,7 +141,7 @@ function EmptyFeed({ category, includeAnswered }: { category: string; includeAns
             href={category === "all" ? "/rapid?all=1" : `/rapid?category=${category}&all=1`}
             className="tap pressable flex items-center justify-center rounded-xl bg-accent px-5 font-bold text-white hover:bg-accent-2"
           >
-            הצג גם שאלות שעניתי
+            הצג גם שאלות שכבר ראיתי
           </Link>
         )}
         {category !== "all" && (
