@@ -145,7 +145,7 @@ const SAMPLE_CREATIVES: Creative[] = [
   },
   {
     id: "pitch-free-market",
-    headline: "משחק ניחושים על הבחירות בישראל.\nהשתתפות חינם.",
+    headline: "משחק ידע על הבחירות בישראל.\nהשתתפות חינם.",
     question: "האם מפלגה חדשה תעבור את אחוז החסימה?",
     probability: 0.78,
     sample: true,
@@ -154,7 +154,7 @@ const SAMPLE_CREATIVES: Creative[] = [
   },
   {
     id: "pitch-virtual-money",
-    headline: "מנחשים את הבחירות —\nבנקודות משחק בלבד.",
+    headline: "משחק ידע על הבחירות —\nבנקודות משחק בלבד.",
     question: "האם יתקיים עימות טלוויזיוני בין המועמדים?",
     probability: 0.27,
     sample: true,
@@ -163,7 +163,7 @@ const SAMPLE_CREATIVES: Creative[] = [
   },
   {
     id: "pitch-what-happens",
-    headline: "מה באמת יקרה בבחירות?",
+    headline: "כמה טוב אתם קוראים את המפה?",
     question: "האם תקציב 2027 יאושר לפני סוף השנה?",
     probability: 0.55,
     sample: true,
@@ -172,7 +172,7 @@ const SAMPLE_CREATIVES: Creative[] = [
   },
   {
     id: "pitch-beat-the-market",
-    headline: "השאר כבר ניחשו.\nואתם?",
+    headline: "השאר כבר ענו.\nואתם?",
     question: "האם הכנסת ה-26 תושבע לפני סוף נובמבר?",
     probability: 0.63,
     sample: true,
@@ -406,7 +406,7 @@ function html(c: Creative, w: number, h: number): string {
       <div class="gauge">
         ${gauge(c.probability, gaugeSize)}
         <div class="gnum">${yes}%</div>
-        <div class="glabel">מד הניחושים</div>
+        <div class="glabel">מד הביטחון</div>
       </div>
     </div>
 
@@ -445,37 +445,44 @@ const LIMITS = { headline: 40, longHeadline: 90, description: 90, businessName: 
 
 const TEXT = {
   generic: {
+    // Only framings the ad review let through on the landing page (see the commit
+    // history of src/app/welcome/page.tsx): a knowledge game, points for right
+    // answers, the disclosure. Three were rejected asset by asset and stay out —
+    // the outcome of a future event ("מה יקרה"), an opening balance ("10,000
+    // נקודות במתנה") and yes/no about what will happen. "כל שעה" is gone too: the
+    // routine adds questions a few times a day, and an ad the reader can check
+    // against the board must not overstate it.
     headlines: [
       "אתם מכירים את העם שלכם?",
-      "משחק ניחושים על הבחירות",
-      "מה באמת יקרה בבחירות?",
+      "משחק ידע על הבחירות",
+      "כמה טוב אתם מכירים את הפוליטיקה?",
       "השתתפות חינם. בלי אשראי.",
-      "10,000 נקודות במתנה",
+      "10 שאלות בלי הרשמה",
     ],
-    longHeadline: "משחק ניחושים על הבחירות והפוליטיקה הישראלית — בנקודות משחק בלבד",
+    longHeadline: "משחק ידע על הבחירות והפוליטיקה הישראלית — בנקודות משחק בלבד",
     descriptions: [
-      "עונים כן או לא על מה שיקרה בבחירות, ורואים אם קראתם את המפה נכון.",
+      "עונים כן או לא, ורואים אם קראתם את המפה נכון.",
       "נקודות משחק בלבד. אין כסף אמיתי, אין פרסים, אין תשלום.",
-      "מקבלים 10,000 נקודות ומתחילים לנחש. השתתפות חינם.",
-      "השאלות מתעדכנות כל שעה לפי החדשות, לקראת הבחירות לכנסת ה-26.",
-      "לוח מובילים, ניקוד אישי וגרפים. הכל בנקודות משחק.",
+      "10 שאלות בלי הרשמה. אחר כך הרשמה חינם בלחיצה אחת.",
+      "שאלות חדשות כל יום, מתוך החדשות, לקראת הבחירות לכנסת ה-26.",
+      "ניקוד אישי, גרפים ולוח מובילים. הכל בנקודות משחק.",
     ],
   },
   named: {
     headlines: [
-      "מה אתם מנחשים שיקרה?",
-      "השאר כבר ניחשו. ואתם?",
-      "מנחשים את בחירות 2026",
-      "10,000 נקודות במתנה",
+      "מה אתם אומרים?",
+      "השאר כבר ענו. ואתם?",
+      "משחק הידע של בחירות 2026",
+      "10 שאלות בלי הרשמה",
       "כן או לא. 30 שאלות, 3 דקות",
     ],
-    longHeadline: "משחק הניחושים של בחירות 2026 — בנקודות משחק בלבד",
+    longHeadline: "משחק הידע של בחירות 2026 — בנקודות משחק בלבד",
     descriptions: [
       "סקרים, קואליציה ומנדטים. ענו ״כן״ או ״לא״ וראו אם צדקתם.",
       "נקודות משחק בלבד. אין כסף אמיתי, אין פרסים, אין תשלום.",
-      "השאלות נכתבות ומוכרעות כל שעה לפי החדשות.",
-      "מקבלים 10,000 נקודות ומתחילים לנחש. חינם.",
-      "לוח מובילים, ניקוד אישי וגרפים. הכל בנקודות משחק.",
+      "שאלות חדשות כל יום, מתוך החדשות.",
+      "10 שאלות בלי הרשמה, ואז הרשמה חינם בלחיצה אחת.",
+      "ניקוד אישי, גרפים ולוח מובילים. הכל בנקודות משחק.",
     ],
   },
 } as const;

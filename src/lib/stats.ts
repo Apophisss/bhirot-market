@@ -304,8 +304,8 @@ export interface FunnelStage {
   id: string;
   label: string;
   count: number;
-  /** conversion from the previous stage */
-  rate: number;
+  /** conversion from the previous stage; null where the two stages count different units */
+  rate: number | null;
 }
 
 /**
@@ -688,6 +688,286 @@ export async function getAgentRuns(limit = 20) {
   `);
 }
 
+/* ----------------------------- paid traffic ------------------------------ */
+
+/**
+ * The funnel for visitors who arrived from a campaign, session by session.
+ *
+ * The general funnel above starts at "מבקרים" and counts market pages and trade
+ * attempts — the path an organic visitor takes. A paid visitor takes a different
+ * one: the ad → /welcome → the deck → the free run → the sign-in screen → an
+ * account → a first trade. Every step of that path leaves a first-party event with
+ * the same `sessionId`, and the landing pageview is the only one that carries the
+ * campaign (`utm_*` lives on the ad's URL and is gone after the first client-side
+ * navigation), so "a paid session" is exactly "a session whose pageview carried a
+ * medium". The last two stages come from the user table, where `claimAdAttribution`
+ * stamped the campaign cookie on the account, so they are counted in accounts, not
+ * sessions — the labels say so.
+ */
+export interface PaidFunnel {
+  /** distinct browser-days behind the paid sessions */
+  visitors: number;
+  /**
+   * Ad clicks the server saw arrive on /welcome (`landing`, written while the page
+   * renders). Not a stage: it has no session id. Its distance from the first stage
+   * is the loss the browser never reports — taps abandoned before hydration, and
+   * content blockers that swallow the collector.
+   */
+  landings: number;
+  stages: FunnelStage[];
+}
+
+/** a pageview whose query carried a campaign medium — the ad click itself */
+const PAID_PAGEVIEW = (r: Range) => sql`
+  select distinct sessionId from analytics_event
+  where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview} and sessionId <> '' and medium <> ''
+`;
+
+/**
+ * An account the campaign earned: stamped with a medium by `claimAdAttribution`, or
+ * with a bare gclid — Google's auto-tagging can send a click with no utm_* at all.
+ */
+const PAID_ACCOUNT = sql`(coalesce(u.utmMedium, '') <> '' or u.gclid is not null)`;
+
+export async function getPaidFunnel(r: Range): Promise<PaidFunnel> {
+  const paid = PAID_PAGEVIEW(r);
+  const count = (cond: SQL) =>
+    one<{ n: number }>(sql`
+      select count(distinct e.sessionId) as n from analytics_event e
+      where e.ts >= ${r.from} and e.ts < ${r.to} and e.sessionId in (${paid}) and ${cond}
+    `).then((row) => row?.n ?? 0);
+
+  const [landings, sessions, visitors, touched, deck, answered, gate, login, signups, traders] = await Promise.all([
+    one<{ n: number }>(sql`
+      select count(*) as n from analytics_event where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.landing}
+    `).then((row) => row?.n ?? 0),
+    one<{ n: number }>(sql`select count(*) as n from (${paid})`).then((row) => row?.n ?? 0),
+    one<{ n: number }>(sql`
+      select count(distinct visitorId) as n from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview} and medium <> ''
+    `).then((row) => row?.n ?? 0),
+    // did anything at all during the visit: a marked click, a search, a share, an answer on a card
+    count(sql`e.name in (${EVENTS.click}, ${EVENTS.search}, ${EVENTS.guestAnswer}, ${EVENTS.share})`),
+    count(sql`e.name = ${EVENTS.pageview} and e.path = '/rapid'`),
+    count(sql`e.name = ${EVENTS.guestAnswer}`),
+    count(sql`e.name = ${EVENTS.guestGate}`),
+    count(sql`e.name = ${EVENTS.pageview} and e.path = '/login'`),
+    one<{ n: number }>(sql`
+      select count(*) as n from user u where u.createdAt >= ${r.from} and u.createdAt < ${r.to} and ${PAID_ACCOUNT}
+    `).then((row) => row?.n ?? 0),
+    one<{ n: number }>(sql`
+      select count(*) as n from user u
+      where u.createdAt >= ${r.from} and u.createdAt < ${r.to} and ${PAID_ACCOUNT}
+        and exists (select 1 from trade t where t.userId = u.id)
+    `).then((row) => row?.n ?? 0),
+  ]);
+
+  // the first five stages are sessions; the last two are accounts, and a percentage
+  // across that boundary would be arithmetic rather than a conversion — hence null
+  const raw: { id: string; label: string; count: number; unitBreak?: boolean }[] = [
+    { id: "paid_sessions", label: "נחתו מקמפיין (סשנים)", count: sessions },
+    { id: "paid_touched", label: "עשו משהו בביקור", count: touched },
+    { id: "paid_deck", label: "הגיעו לחפיסה", count: deck },
+    { id: "paid_answered", label: "ענו על שאלה (כאורחים)", count: answered },
+    { id: "paid_gate", label: "ראו את החסימה בסוף הריצה", count: gate },
+    { id: "paid_login", label: "הגיעו למסך ההתחברות", count: login },
+    { id: "paid_signup", label: "נרשמו (חשבונות עם שיוך לקמפיין)", count: signups, unitBreak: true },
+    { id: "paid_trade", label: "ביצעו עסקה", count: traders },
+  ];
+  return {
+    visitors,
+    landings,
+    stages: raw.map(({ unitBreak, ...s }, i) => ({
+      ...s,
+      rate: i === 0 ? 1 : unitBreak ? null : raw[i - 1].count ? s.count / raw[i - 1].count : 0,
+    })),
+  };
+}
+
+/* ---------------------------- the landing page itself ---------------------- */
+
+export interface LandingEngagement {
+  /** paid sessions that left a page_exit on /welcome */
+  exits: number;
+  /** seconds on the landing page: the median, and the share of visits in each band */
+  medianSeconds: number;
+  under5s: number;
+  under15s: number;
+  under60s: number;
+  over60s: number;
+  /** average deepest scroll, 0–1 */
+  avgScroll: number;
+  /** average deepest scroll among the sessions that never touched anything — did they even see the card? */
+  avgScrollUntouched: number;
+}
+
+/**
+ * What a paid visitor did on /welcome before leaving — the distribution, not the mean.
+ *
+ * "34 seconds on page" was a mean over the exits the browser managed to send, and
+ * a mean cannot tell a page that is read and declined from one that is glanced at
+ * and closed with a few long visits pulling the number up. The scroll depth has
+ * been recorded on every exit since the first day and aggregated nowhere; for the
+ * sessions that never touched anything it answers the only question that matters
+ * for the landing page — whether the card was ever on the screen.
+ */
+export async function getLandingEngagement(r: Range): Promise<LandingEngagement> {
+  const paid = PAID_PAGEVIEW(r);
+  const row = await one<{
+    exits: number;
+    under5: number;
+    under15: number;
+    under60: number;
+    over60: number;
+    scroll: number | null;
+  }>(sql`
+    select count(*) as exits,
+           sum(case when value < 5000 then 1 else 0 end) as under5,
+           sum(case when value >= 5000 and value < 15000 then 1 else 0 end) as under15,
+           sum(case when value >= 15000 and value < 60000 then 1 else 0 end) as under60,
+           sum(case when value >= 60000 then 1 else 0 end) as over60,
+           avg(json_extract(props, '$.scroll')) as scroll
+    from analytics_event e
+    where e.ts >= ${r.from} and e.ts < ${r.to} and e.name = ${EVENTS.pageExit} and e.path = '/welcome'
+      and e.value between 0 and 3600000 and e.sessionId in (${paid})
+  `);
+  const median = await one<{ v: number | null }>(sql`
+    with v as (
+      select value, row_number() over (order by value) as rn, count(*) over () as n
+      from analytics_event e
+      where e.ts >= ${r.from} and e.ts < ${r.to} and e.name = ${EVENTS.pageExit} and e.path = '/welcome'
+        and e.value between 0 and 3600000 and e.sessionId in (${paid})
+    )
+    select value as v from v where rn >= (n * 50 + 99) / 100 limit 1
+  `);
+  const untouched = await one<{ scroll: number | null }>(sql`
+    select avg(json_extract(e.props, '$.scroll')) as scroll
+    from analytics_event e
+    where e.ts >= ${r.from} and e.ts < ${r.to} and e.name = ${EVENTS.pageExit} and e.path = '/welcome'
+      and e.sessionId in (${paid})
+      and not exists (
+        select 1 from analytics_event t
+        where t.sessionId = e.sessionId and t.ts >= ${r.from} and t.ts < ${r.to}
+          and t.name in (${EVENTS.click}, ${EVENTS.search}, ${EVENTS.guestAnswer}, ${EVENTS.share})
+      )
+  `);
+  const exits = row?.exits ?? 0;
+  const share = (n: number | undefined) => (exits ? (n ?? 0) / exits : 0);
+  return {
+    exits,
+    medianSeconds: Math.round((median?.v ?? 0) / 100) / 10,
+    under5s: share(row?.under5),
+    under15s: share(row?.under15),
+    under60s: share(row?.under60),
+    over60s: share(row?.over60),
+    avgScroll: row?.scroll ?? 0,
+    avgScrollUntouched: untouched?.scroll ?? 0,
+  };
+}
+
+/** The paid funnel's first steps, one row per ad group (`utm_content`, which Google fills with {adgroupid}). */
+export async function getPaidAdGroups(r: Range, limit = 12): Promise<{ key: string; sessions: number; touched: number; deck: number }[]> {
+  return all<{ key: string; sessions: number; touched: number; deck: number }>(sql`
+    with landing as (
+      select sessionId,
+             campaign || ' / ' || coalesce(nullif(json_extract(props, '$.content'), ''), '?') as key
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview} and sessionId <> '' and medium <> ''
+      group by sessionId
+    )
+    select l.key,
+           count(*) as sessions,
+           sum(case when exists (select 1 from analytics_event e where e.sessionId = l.sessionId and e.ts >= ${r.from} and e.ts < ${r.to}
+                                 and e.name in (${EVENTS.click}, ${EVENTS.search}, ${EVENTS.guestAnswer}, ${EVENTS.share})) then 1 else 0 end) as touched,
+           sum(case when exists (select 1 from analytics_event e where e.sessionId = l.sessionId and e.ts >= ${r.from} and e.ts < ${r.to}
+                                 and e.name = ${EVENTS.pageview} and e.path = '/rapid') then 1 else 0 end) as deck
+    from landing l
+    group by l.key
+    order by sessions desc
+    limit ${limit}
+  `);
+}
+
+export interface PaidCampaignRow {
+  /** source / medium / campaign — the same key `getCampaigns` prints */
+  key: string;
+  sessions: number;
+  /** sessions with a second pageview */
+  engaged: number;
+  deck: number;
+  answered: number;
+  login: number;
+  /** accounts stamped with this campaign (user table), created in the range */
+  signups: number;
+  /** of those, accounts with at least one trade */
+  traders: number;
+}
+
+/** The same funnel, one row per campaign key, so two ad groups can be told apart. */
+export async function getPaidCampaigns(r: Range, limit = 15): Promise<PaidCampaignRow[]> {
+  // `key` beside min(ts) in a GROUP BY is SQLite's bare-column rule: the row that holds
+  // the minimum supplies the other columns, i.e. the session's first tagged pageview
+  const rows = await all<Omit<PaidCampaignRow, "signups" | "traders">>(sql`
+    with landing as (
+      select sessionId,
+             (source || case when medium = '' then '' else ' / ' || medium end
+                     || case when campaign = '' then '' else ' / ' || campaign end) as key,
+             min(ts) as t0
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview} and sessionId <> '' and medium <> ''
+      group by sessionId
+    )
+    select l.key,
+           count(*) as sessions,
+           sum(case when (select count(*) from analytics_event e where e.sessionId = l.sessionId and e.name = ${EVENTS.pageview} and e.ts >= ${r.from} and e.ts < ${r.to}) >= 2 then 1 else 0 end) as engaged,
+           sum(case when exists (select 1 from analytics_event e where e.sessionId = l.sessionId and e.name = ${EVENTS.pageview} and e.path = '/rapid' and e.ts >= ${r.from} and e.ts < ${r.to}) then 1 else 0 end) as deck,
+           sum(case when exists (select 1 from analytics_event e where e.sessionId = l.sessionId and e.name = ${EVENTS.guestAnswer} and e.ts >= ${r.from} and e.ts < ${r.to}) then 1 else 0 end) as answered,
+           sum(case when exists (select 1 from analytics_event e where e.sessionId = l.sessionId and e.name = ${EVENTS.pageview} and e.path = '/login' and e.ts >= ${r.from} and e.ts < ${r.to}) then 1 else 0 end) as login
+    from landing l
+    group by l.key
+    order by sessions desc
+    limit ${limit}
+  `);
+  const accounts = await all<{ key: string; signups: number; traders: number }>(sql`
+    select (coalesce(utmSource, '') || case when coalesce(utmMedium, '') = '' then '' else ' / ' || utmMedium end
+                                    || case when coalesce(utmCampaign, '') = '' then '' else ' / ' || utmCampaign end) as key,
+           count(*) as signups,
+           sum(case when exists (select 1 from trade t where t.userId = u.id) then 1 else 0 end) as traders
+    from user u
+    where u.createdAt >= ${r.from} and u.createdAt < ${r.to} and ${PAID_ACCOUNT}
+    group by key
+  `);
+  const byKey = new Map(accounts.map((a) => [a.key, a]));
+  const out: PaidCampaignRow[] = rows.map((row) => ({
+    ...row,
+    signups: byKey.get(row.key)?.signups ?? 0,
+    traders: byKey.get(row.key)?.traders ?? 0,
+  }));
+  // an account whose campaign sent no session in the range (a cookie from an earlier
+  // click) still deserves a row, or the signup would vanish from the report
+  for (const a of accounts) {
+    if (!rows.some((row) => row.key === a.key)) {
+      out.push({ key: a.key, sessions: 0, engaged: 0, deck: 0, answered: 0, login: 0, signups: a.signups, traders: a.traders });
+    }
+  }
+  return out;
+}
+
+/**
+ * Browser languages of the paid visitors — the nearest thing to a country the log
+ * has (see `browserLang` in Analytics.tsx). "?" is a pageview recorded before the
+ * field existed.
+ */
+export async function getPaidLanguages(r: Range, limit = 8): Promise<NamedCount[]> {
+  return all<NamedCount>(sql`
+    select coalesce(nullif(json_extract(props, '$.lang'), ''), '?') as key,
+           count(*) as count, count(distinct visitorId) as visitors
+    from analytics_event
+    where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview} and medium <> ''
+    group by key order by visitors desc limit ${limit}
+  `);
+}
+
 /* -------------------------------- issues -------------------------------- */
 
 export interface Issue {
@@ -703,17 +983,53 @@ export interface Issue {
  * The dashboard's "what to fix" list — also the most useful part of the export
  * for an agent that is asked to improve the site.
  */
-export async function getIssues(r: Range): Promise<Issue[]> {
-  const [health, funnel, traffic, vitals, errors, markets] = await Promise.all([
+export async function getIssues(r: Range, precomputed: { paid?: PaidFunnel } = {}): Promise<Issue[]> {
+  const [health, funnel, traffic, vitals, errors, markets, paid, pages] = await Promise.all([
     getContentHealth(),
     getFunnel(r),
     getTraffic(r),
     getWebVitals(r),
     getClientErrors(r, 5),
     getMarketMetrics(r, { limit: 300, status: "open" }),
+    precomputed.paid ?? getPaidFunnel(r),
+    getTopPages(r, 6),
   ]);
   const issues: Issue[] = [];
   const stage = (id: string) => funnel.find((s) => s.id === id);
+  const paidStage = (id: string) => paid.stages.find((s) => s.id === id)?.count ?? 0;
+
+  // the campaign is paying for every one of these sessions, so the two silences that
+  // matter most — nobody touches the landing page, nobody opens an account — are
+  // flagged as soon as there are enough sessions to mean something
+  const paidSessions = paidStage("paid_sessions");
+  if (paidSessions >= 10 && paidStage("paid_touched") / paidSessions < 0.25) {
+    issues.push({
+      id: "paid-no-touch",
+      severity: "high",
+      title: `${Math.round((1 - paidStage("paid_touched") / paidSessions) * 100)}% מהמבקרים מהקמפיין עוזבים בלי לגעת בכלום`,
+      detail: `${paidStage("paid_touched")} מתוך ${paidSessions} סשנים מהקמפיין עשו משהו בביקור. מה שהמודעה הבטיחה חייב להיות הדבר הראשון שאפשר לעשות בדף — ולא טקסט.`,
+      hint: "src/app/welcome/page.tsx, src/components/WelcomeQuestions.tsx",
+    });
+  }
+  const paidSignups = paidStage("paid_signup");
+  if ((paidSessions >= 40 && paidSignups === 0) || (paidSessions >= 100 && paidSignups / paidSessions < 0.01)) {
+    issues.push({
+      id: "paid-no-signup",
+      severity: "high",
+      title: paidSignups === 0 ? "אף חשבון לא נפתח מתנועת הקמפיין" : `פחות מאחוז מסשני הקמפיין הופכים לחשבון (${paidSignups} מתוך ${paidSessions})`,
+      detail: `${paidSessions} סשנים מהקמפיין, ${paidStage("paid_deck")} הגיעו לחפיסה, ${paidStage("paid_answered")} ענו, ${paidStage("paid_gate")} ראו את החסימה, ${paidStage("paid_login")} הגיעו למסך ההתחברות — ${paidSignups} חשבונות עם שיוך לקמפיין. הנקודה שבה המספר נופל היא המקום לתקן.`,
+      hint: "src/components/RapidDeck.tsx (GuestGate, GuestSoftAsk), src/components/GuestRunBanner.tsx, src/app/login/page.tsx",
+    });
+  }
+  if (paid.landings >= 20 && paidSessions / paid.landings < 0.7) {
+    issues.push({
+      id: "paid-lost-before-js",
+      severity: "medium",
+      title: `${Math.round((1 - paidSessions / paid.landings) * 100)}% מהקליקים על המודעה לא הפכו לסשן מדוד`,
+      detail: `${paid.landings} נחיתות נרשמו בשרת, ${paidSessions} סשנים נמדדו בדפדפן. ההפרש הוא מי שעזב לפני שה-JavaScript רץ (זמן טעינה) או שחוסם תוכן בלע את המדידה — ולא ״נטישה״ של הדף.`,
+      hint: "src/app/welcome/page.tsx (זמן שרת), src/components/Analytics.tsx",
+    });
+  }
 
   if (traffic.current.events === 0) {
     issues.push({
@@ -775,12 +1091,15 @@ export async function getIssues(r: Range): Promise<Issue[]> {
     });
   }
   if (traffic.current.bounceRate > 0.7 && traffic.current.sessions >= 20) {
+    // name the page that carries the bounce, not the home page by default: a campaign
+    // landing page with most of the visitors is where the site-wide number comes from
+    const worst = [...pages].sort((a, b) => b.views * b.bounceRate - a.views * a.bounceRate)[0];
     issues.push({
       id: "high-bounce",
       severity: "medium",
       title: `שיעור נטישה גבוה (${Math.round(traffic.current.bounceRate * 100)}%)`,
-      detail: "רוב הסשנים נגמרים אחרי עמוד אחד. בדקו את עמוד הנחיתה, את מהירות הטעינה ואת רלוונטיות השאלות המוצגות ראשונות.",
-      hint: "src/app/page.tsx",
+      detail: `רוב הסשנים נגמרים אחרי עמוד אחד${worst ? ` — בעיקר ב-${worst.path} (${Math.round(worst.bounceRate * 100)}% מ-${worst.views} צפיות)` : ""}. בדקו את עמוד הנחיתה, את מהירות הטעינה ואת רלוונטיות השאלות המוצגות ראשונות.`,
+      hint: worst?.path === "/welcome" ? "src/app/welcome/page.tsx" : "src/app/page.tsx",
     });
   }
   const lcp = vitals.find((v) => v.metric === "LCP");

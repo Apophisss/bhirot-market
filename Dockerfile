@@ -45,6 +45,9 @@ RUN npm run build
 # ---------- runtime ----------
 FROM base AS runner
 ENV NODE_ENV=production
+# The audience's clock. Date formatting pins its own zone (src/lib/format.ts), so
+# this is for everything that reads the process clock — logs, cron, `new Date()`.
+ENV TZ=Asia/Jerusalem
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0

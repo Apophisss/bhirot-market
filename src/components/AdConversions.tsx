@@ -31,7 +31,7 @@ export function checkAdConversions() {
  * does, and marks it claimed in the same statement, so a refresh or a second tab
  * cannot report one signup twice. This component only asks and fires.
  */
-export function AdConversions() {
+export function AdConversions({ loggedIn }: { loggedIn: boolean }) {
   const check = useCallback(async () => {
     try {
       const res = await fetch("/api/conversions", { method: "POST" });
@@ -45,17 +45,19 @@ export function AdConversions() {
 
   useEffect(() => {
     if (!adsEnabled) return;
-    // One check per tab, plus a guaranteed one on the way back from the login
-    // redirect. Otherwise every page view by every logged-out visitor would post
-    // to an endpoint that has nothing to tell it.
+    // One check per tab for a signed-in user, plus a guaranteed one on the way back
+    // from the login redirect. A signed-out visitor owes nothing and is not asked:
+    // every paid landing used to post here right after hydration for an empty answer.
     let due = new URLSearchParams(window.location.search).has(AD_CHECK_PARAM);
-    try {
-      if (!sessionStorage.getItem(SESSION_FLAG)) {
-        due = true;
-        sessionStorage.setItem(SESSION_FLAG, "1");
+    if (loggedIn) {
+      try {
+        if (!sessionStorage.getItem(SESSION_FLAG)) {
+          due = true;
+          sessionStorage.setItem(SESSION_FLAG, "1");
+        }
+      } catch {
+        due = true; // storage blocked (private mode): check rather than skip
       }
-    } catch {
-      due = true; // storage blocked (private mode): check rather than skip
     }
     if (due) {
       lastCheck = Date.now();
@@ -63,7 +65,7 @@ export function AdConversions() {
     }
     window.addEventListener(AD_CONVERSION_EVENT, check);
     return () => window.removeEventListener(AD_CONVERSION_EVENT, check);
-  }, [check]);
+  }, [check, loggedIn]);
 
   return null;
 }

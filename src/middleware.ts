@@ -77,5 +77,6 @@ export function middleware(req: NextRequest) {
   return stampAdClick(req, res);
 }
 
-// /welcome is the ad landing page; it is in the matcher so the click is stamped there too
-export const config = { matcher: ["/", "/i/:code", "/welcome"] };
+// /welcome is the ad landing page and /rapid is where every button on it leads; both
+// are in the matcher so a click that lands on either is stamped
+export const config = { matcher: ["/", "/i/:code", "/welcome", "/rapid"] };

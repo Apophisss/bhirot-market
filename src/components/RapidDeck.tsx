@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { BoltIcon } from "./BoltIcon";
@@ -20,14 +20,22 @@ import { setRapidStake, useRapidStake } from "@/lib/settings-client";
 import { addSkips, openSkipSnapshot, serverSkipSnapshot, skipSnapshot, subscribeSkipSnapshot } from "@/lib/rapid-skips";
 import {
   GUEST_LIMIT,
+  GUEST_PAYOUT_CAP,
   GUEST_RECAP_LIMIT,
+  GUEST_SOFT_ASK,
   addGuestAnswer,
   guestGateReached,
+  guestPayoutEstimate,
+  guestResolvingSoon,
+  markSoftAskSeen,
   readGuestAnswers,
   serverGuestAnswers,
+  softAskSeen,
   subscribeGuestAnswers,
   type GuestAnswer,
 } from "@/lib/rapid-guest";
+import { signInWithGoogle } from "@/app/login/actions";
+import { GoogleIcon } from "./GoogleIcon";
 import { MarketImage } from "./MarketImage";
 import { RapidSpark } from "./RapidSpark";
 import { gaEvent } from "@/lib/gtag";
@@ -155,11 +163,15 @@ export function RapidDeck({
   balance,
   savedStake = null,
   includeAnswered = false,
+  googleEnabled = false,
   children,
 }: {
   cards: RapidCard[];
   loggedIn: boolean;
   balance: number | null;
+  /** whether a Google sign-in can start from the deck itself (see login/actions.ts);
+   *  without it every ask below falls back to a link to /login */
+  googleEnabled?: boolean;
   /** the stake this account chose, whatever device it chose it on — null for a guest */
   savedStake?: number | null;
   /** the "כולל שאלות שכבר ראיתי" switch — it puts back both what was answered and what
@@ -209,6 +221,8 @@ export function RapidDeck({
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [liveBalance, setLiveBalance] = useState<number | null>(balance);
   const [halted, setHalted] = useState(false);
+  /** the earlier, dismissible ask a guest meets after `GUEST_SOFT_ASK` answers */
+  const [softAsk, setSoftAsk] = useState(false);
   /** the answer currently inside its undo window, and when the window closes */
   const [held, setHeld] = useState<{ card: RapidCard; side: Side; until: number } | null>(null);
   /**
@@ -255,10 +269,16 @@ export function RapidDeck({
     last few seconds, the ones made after this page was rendered. "כולל שאלות שכבר
     ראיתי" puts everything back.
   */
-  const feed = useMemo(
-    () => (includeAnswered ? allCards : allCards.filter((c) => !(c.id in carried) && !hiddenSkips.has(c.id))),
-    [allCards, carried, hiddenSkips, includeAnswered],
-  );
+  const feed = useMemo(() => {
+    if (includeAnswered) return allCards;
+    const fresh = allCards.filter((c) => !(c.id in carried) && !hiddenSkips.has(c.id));
+    // A guest's deck is short (see app/rapid/page.tsx) and the server cannot drop
+    // their skips for them: a visitor who swiped past sixteen cards must not come
+    // back to "עברתם על כל השאלות הפתוחות" with 340 questions open. The skipped
+    // cards return before the deck is declared empty; the answered ones stay out.
+    if (!fresh.length && !loggedIn) return allCards.filter((c) => !(c.id in carried));
+    return fresh;
+  }, [allCards, carried, hiddenSkips, includeAnswered, loggedIn]);
 
   useEffect(() => {
     alive.current = true;
@@ -553,15 +573,33 @@ export function RapidDeck({
           // the amount the card was showing while it was answered — redemption binds
           // this, not the default (see GuestAnswer.stake)
           stake,
+          closesAt: card.closesAt,
           ts: Date.now(),
         });
         setAnswers((prev) => ({ ...prev, [card.id]: { marketId: card.id, side, stake, status: "guest" } }));
+        // Nothing about a guest's answer reaches the server on its own — it lives in the
+        // browser until sign-in — so this event is the only way the funnel can see that
+        // the free run was played at all. A change of mind (`known`) is not a new answer.
+        const stored = readGuestAnswers().length;
+        if (!known) {
+          track(EVENTS.guestAnswer, {
+            marketId: card.id,
+            props: { surface: "deck", side, stored },
+          });
+        }
         if (typeof navigator.vibrate === "function") navigator.vibrate(12);
         // Past the limit the answer is still taken — it is kept with the others and
         // listed on the sign-in screen — and the wall is what comes next.
         if (!known && guestAnswers.length >= GUEST_LIMIT) {
-          router.push("/login?callbackUrl=%2Frapid");
+          router.push("/login?callbackUrl=%2Frapid&from=gate");
           return;
+        }
+        // The first ask, where the players actually are: after a few answers, once,
+        // and after the card has moved on so it never lands on top of the tap itself.
+        if (!known && stored === GUEST_SOFT_ASK && !softAskSeen()) {
+          window.setTimeout(() => {
+            if (alive.current) setSoftAsk(true);
+          }, ADVANCE_MS + 200);
         }
         goTo(feed.indexOf(card) + 1, ADVANCE_MS);
         return;
@@ -721,8 +759,14 @@ export function RapidDeck({
   }, [answered.length, feed.length, index, pendingCount, router]);
 
   const atSummary = index >= feed.length;
-  const totalStaked = answered.filter((a) => a.status === "ok").reduce((s, a) => s + a.stake, 0);
-  const totalPayout = answered.filter((a) => a.status === "ok").reduce((s, a) => s + (a.shares ?? 0), 0);
+  // a guest's answers are not positions yet, so their total is what the browser holds
+  // (the same estimate the wall and the sign-in page quote), not a sum of confirmed shares
+  const totalStaked = loggedIn
+    ? answered.filter((a) => a.status === "ok").reduce((s, a) => s + a.stake, 0)
+    : guestAnswers.reduce((s, a) => s + (a.stake ?? stake), 0);
+  const totalPayout = loggedIn
+    ? answered.filter((a) => a.status === "ok").reduce((s, a) => s + (a.shares ?? 0), 0)
+    : guestPayoutEstimate(guestAnswers);
   const yesCount = answered.filter((a) => a.side === "YES" && a.status === "ok").length;
   const firstError = answered.find((a) => a.status === "error")?.error;
 
@@ -737,7 +781,7 @@ export function RapidDeck({
         {/* On a phone this row is the first thing to go: the tape below it already shows
             where the run stands, and the counter and the balance move into the stake
             strip, which is one line the card does not have to pay for twice. */}
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs short:hidden">
+        <header className={`flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs ${loggedIn ? "short:hidden" : "flat:hidden"}`}>
           <div className="flex items-center gap-2">
             <span className="tabular rounded-full border border-border bg-surface px-2.5 py-1 font-bold text-text-strong">
               {Math.min(index + 1, feed.length)} / {feed.length}
@@ -789,6 +833,8 @@ export function RapidDeck({
               yesCount={yesCount}
               totalStaked={totalStaked}
               totalPayout={totalPayout}
+              loggedIn={loggedIn}
+              googleEnabled={googleEnabled}
               showActions={atSummary}
               onRestart={() => {
                 refreshed.current = false;
@@ -827,26 +873,164 @@ export function RapidDeck({
         />
       )}
 
-      {/* the free run is over, and the answers behind this are the argument */}
-      {guestGate && <GuestGate answers={guestAnswers} />}
-
-      <aside className="scrollbar-none shrink-0 flat:w-56 flat:overflow-y-auto lg:w-72 lg:overflow-y-auto xl:w-80">
-        <StakeBar
-          stake={stake}
-          onStake={setStake}
-          available={available}
-          broke={broke}
-          outOfMoney={outOfMoney}
-          showKeys={showKeys}
-          dimmed={atSummary}
-          position={{ index: Math.min(index + 1, feed.length), total: feed.length }}
+      {/* the earlier ask: a sheet over the bottom of the deck, dismissible, once */}
+      {softAsk && !guestGate && (
+        <GuestSoftAsk
+          answers={guestAnswers}
+          googleEnabled={googleEnabled}
+          onLater={() => {
+            setSoftAsk(false);
+          }}
         />
-      </aside>
+      )}
+
+      {/* the free run is over, and the answers behind this are the argument */}
+      {guestGate && <GuestGate answers={guestAnswers} googleEnabled={googleEnabled} />}
+
+      {/* The stake is a choice about one's own points, and a guest has none yet: the
+          free run plays at the default, and the strip's rows go back to the card — on a
+          phone that is the difference between a question and a question with its two
+          answers on screen. */}
+      {loggedIn && (
+        <aside className="scrollbar-none shrink-0 flat:w-56 flat:overflow-y-auto lg:w-72 lg:overflow-y-auto xl:w-80">
+          <StakeBar
+            stake={stake}
+            onStake={setStake}
+            available={available}
+            broke={broke}
+            outOfMoney={outOfMoney}
+            showKeys={showKeys}
+            dimmed={atSummary}
+            position={{ index: Math.min(index + 1, feed.length), total: feed.length }}
+          />
+        </aside>
+      )}
     </section>
   );
 }
 
 /* -------------------------------------------------------------- guest gate -- */
+
+/** "N שמורות · ≈X אם צדקתם · K מוכרעות תוך יומיים" — the value line every ask quotes. */
+function GuestWorth({ answers, className = "" }: { answers: GuestAnswer[]; className?: string }) {
+  const soon = guestResolvingSoon(answers);
+  const payout = guestPayoutEstimate(answers);
+  return (
+    <p className={`tabular ${className}`}>
+      <strong className="text-text-strong">
+        {answers.length} {answers.length === 1 ? "תשובה שמורה" : "תשובות שמורות"} · ≈{money(payout)} אם צדקתם
+      </strong>
+      {soon > 0 && (
+        <span className="text-muted">
+          {" · "}
+          {soon === 1 ? "אחת מוכרעת" : `${soon} מוכרעות`} תוך יומיים
+        </span>
+      )}
+    </p>
+  );
+}
+
+/**
+ * The Google button, on the deck itself. The form posts to the shared server action, so
+ * the tap that keeps the answers is the sign-in — not a navigation to a page that asks
+ * again. Without Google configured (a dev box) it is a link to the sign-in page.
+ */
+function GuestGoogleButton({
+  googleEnabled,
+  evt,
+  from,
+  children,
+  className = "",
+}: {
+  googleEnabled: boolean;
+  evt: string;
+  /** where the ask was raised — lands in the sign-in page's URL, for the funnel */
+  from: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const cls = `tap pressable flex w-full items-center justify-center gap-3 rounded-xl border border-border-2 bg-white px-4 text-base font-bold text-gray-900 shadow-md shadow-black/5 hover:bg-gray-100 ${className}`;
+  if (!googleEnabled) {
+    return (
+      <Link href={`/login?callbackUrl=%2Frapid&from=${from}`} data-evt={evt} className={cls}>
+        <GoogleIcon />
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <form action={signInWithGoogle}>
+      <input type="hidden" name="callbackUrl" value={`/rapid?from=${from}`} />
+      <button type="submit" data-evt={evt} className={cls}>
+        <GoogleIcon />
+        {children}
+      </button>
+    </form>
+  );
+}
+
+/**
+ * The first ask — after `GUEST_SOFT_ASK` answers, not after ten.
+ *
+ * The wall below was the only place a guest was ever asked for an account, and the
+ * campaign's own numbers said nobody got that far: the median paid visit answered
+ * three or four cards and left. So the ask now arrives where the players are. It is
+ * a sheet over the bottom of the deck rather than a wall: the question stays on
+ * screen behind it, "אחר כך" puts it away, and it is shown once per browser.
+ *
+ * What it says is what the answers already given are worth, and what an account
+ * costs — nothing, one Google tap — in that order. It does not say what the site
+ * wants.
+ */
+function GuestSoftAsk({ answers, googleEnabled, onLater }: { answers: GuestAnswer[]; googleEnabled: boolean; onLater: () => void }) {
+  const titleId = useId();
+  // marked as seen when it is shown, not when it is answered: a reload after "אחר כך"
+  // must not bring it back, and neither must a tap on the scrim
+  useEffect(() => {
+    markSoftAskSeen();
+    track(EVENTS.guestSoftAsk, { props: { n: answers.length, soon: guestResolvingSoon(answers) } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the sheet goes up once
+  }, []);
+  return (
+    <div className="absolute inset-0 z-40 flex items-end justify-center bg-bg/60 p-2 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={onLater}>
+      <div
+        role="dialog"
+        aria-labelledby={titleId}
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        className="card w-full max-w-md p-4 text-right shadow-2xl shadow-black/20 flat:p-3 sm:p-5"
+      >
+        <h2 id={titleId} className="text-lg font-black leading-tight text-text-strong sm:text-xl">
+          רוצים שהתשובות ייכנסו לניקוד?
+        </h2>
+        <GuestWorth answers={answers} className="mt-1 text-sm" />
+        <p className="mt-2 text-[13px] leading-snug text-muted flat:hidden">
+          חשבון חינם בלחיצה אחת עם Google: התשובות שמורות, ומקבלים {money(STARTING_BALANCE)} נקודות משחק להמשך. בלי אשראי ובלי טופס.
+        </p>
+        <div className="mt-3 flex flex-col gap-2">
+          <GuestGoogleButton googleEnabled={googleEnabled} evt="rapid-soft-ask-google" from="softask" className="min-h-12">
+            לשמור את התשובות עם Google
+          </GuestGoogleButton>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={onLater}
+              data-evt="rapid-soft-ask-later"
+              className="tap pressable rounded-lg px-3 text-sm font-semibold text-muted hover:text-text-strong"
+            >
+              אחר כך, ממשיכים לשחק
+            </button>
+            {googleEnabled && (
+              <Link href="/login?callbackUrl=%2Frapid&from=softask" data-evt="rapid-soft-ask-login" className="tap rounded-lg px-2 text-[13px] text-muted-2 hover:text-text-strong">
+                דרך אחרת להתחבר
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * The wall a signed-out visitor meets after `GUEST_LIMIT` answers.
@@ -858,75 +1042,90 @@ export function RapidDeck({
  *
  * What it adds to that is the answer to the question a stranger actually has at
  * this moment, which is not "why should I" but "what does this cost me": the
- * account is free, it is one click of a Google button, and it opens the rest of
- * the game rather than merely removing an obstacle. Those three are stated here,
- * on the screen that asks, rather than left on a marketing page nobody is on.
+ * account is free, it is one tap of the Google button that sits right here, and
+ * it makes the answers count. The list of what an account opens used to sit
+ * between the answers and the button; on a phone it pushed the button under the
+ * fold, so the button now comes first and the list is gone.
  *
  * Only the last `GUEST_RECAP_LIMIT` answers are named. Ten rows plus a heading is
  * taller than a phone, and the row that would be pushed off the bottom is the
  * button — the recap is here to make the ask concrete, not to bury it.
  */
-function GuestGate({ answers }: { answers: GuestAnswer[] }) {
+function GuestGate({ answers, googleEnabled }: { answers: GuestAnswer[]; googleEnabled: boolean }) {
   const listed = answers.slice(-GUEST_RECAP_LIMIT).reverse();
   const rest = answers.length - listed.length;
+  const titleId = useId();
+  // once per wall, so the funnel can count how many free runs actually reached it —
+  // the button click alone cannot say how many people saw the wall and walked away.
+  // A reload with the wall still up is the same wall, hence the session marker.
+  useEffect(() => {
+    try {
+      if (window.sessionStorage.getItem("bhirot:rapid:gate-seen") === "1") return;
+      window.sessionStorage.setItem("bhirot:rapid:gate-seen", "1");
+    } catch {
+      /* counted once more, at most */
+    }
+    track(EVENTS.guestGate, { props: { n: answers.length, soon: guestResolvingSoon(answers) } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the wall goes up once
+  }, []);
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-bg/92 p-3 backdrop-blur-sm">
       {/*
         The middle scrolls, the heading and the button do not. On a 454px phone the whole
         panel scrolled instead, which put the one button this screen exists for 216px
         below the fold — a sign-in wall whose sign-in button is off screen. The answers
-        and the list of what an account opens are what give way.
+        are what give way.
       */}
-      <div className="card flex max-h-full w-full max-w-md flex-col overflow-hidden p-4 text-center flat:p-3 sm:p-6">
-        <h2 className="shrink-0 text-xl font-black text-text-strong flat:text-lg sm:text-2xl">
-          ענית על {answers.length} שאלות
+      <div role="dialog" aria-labelledby={titleId} aria-modal="true" className="card flex max-h-full w-full max-w-md flex-col overflow-hidden p-4 text-center flat:p-3 sm:p-6">
+        <h2 id={titleId} className="shrink-0 text-xl font-black text-text-strong flat:text-lg sm:text-2xl">
+          עניתם על {answers.length} שאלות
         </h2>
-        {/* sideways there is room for the offer or for the answers behind it, and the
-            answers are the offer — the button says the rest */}
-        <p className="mt-1.5 shrink-0 text-sm text-muted flat:hidden">
-          הרשמה חינם, בלחיצה אחת עם Google — התשובות שכבר נתתם נכנסות לניקוד, ואיתן{" "}
-          {money(STARTING_BALANCE)} להמשך.
+        {/* what the answers behind this wall are worth, before what the account costs */}
+        <GuestWorth answers={answers} className="mt-1 shrink-0 text-sm" />
+        <p className="mt-1.5 shrink-0 text-[13px] leading-snug text-muted flat:hidden">
+          כדי שייכנסו לניקוד צריך חשבון — חינם, בלחיצה אחת עם Google, ואיתו {money(STARTING_BALANCE)} נקודות משחק להמשך.
         </p>
 
-        <div className="scrollbar-none mt-4 min-h-0 flex-1 overflow-y-auto flat:mt-2">
-        <ul className="space-y-1.5 text-right">
-          {listed.map((a) => (
-            <li key={a.marketSlug} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-2">
-              <span className={`shrink-0 text-sm font-black ${a.side === "YES" ? "text-yes" : "text-no"}`}>
-                {a.side === "YES" ? "כן" : "לא"}
-              </span>
-              <span className="line-clamp-2 min-w-0 flex-1 text-[13px] leading-snug text-text">{a.title}</span>
-              <span className="tabular shrink-0 text-[13px] text-muted-2">{pct(a.priceAtAnswer)}</span>
-            </li>
-          ))}
-          {rest > 0 && (
-            <li className="rounded-lg bg-surface-2 px-2.5 py-1.5 text-[13px] text-muted">
-              ועוד {rest} {rest === 1 ? "תשובה" : "תשובות"} שנשמרו לכם
-            </li>
-          )}
-        </ul>
-
-        {/* what the account opens, in the words of things to do — not "הטבות" */}
-        <ul className="mt-3 grid list-inside list-disc gap-1 text-right text-[13px] leading-snug text-muted">
-          <li>להמשיך לענות בלי הגבלה, על כל הלוח</li>
-          <li>לעלות בטבלת המובילים ולראות כמה פעמים צדקתם</li>
-          <li>לפתוח ליגה עם חברים ולראות מי מוביל</li>
-          <li>לעקוב אחרי התיק שלכם — כמה שווה כל תשובה עכשיו</li>
-        </ul>
+        <div className="mt-3 shrink-0">
+          <GuestGoogleButton googleEnabled={googleEnabled} evt="rapid-guest-gate-google" from="gate" className="min-h-12 sm:min-h-13">
+            לשמור את התשובות עם Google
+          </GuestGoogleButton>
         </div>
 
-        <Link
-          href="/login?callbackUrl=%2Frapid"
-          data-evt="rapid-guest-gate"
-          className="tap pressable mt-4 flex w-full shrink-0 items-center justify-center rounded-xl bg-accent px-5 text-base font-extrabold text-white shadow-md shadow-accent/25 hover:bg-accent-2 flat:mt-2"
-        >
-          הרשמה חינם · והתשובות נשמרות
-        </Link>
-        {/* what signing up costs is part of the offer, so it stays on a phone; sideways
-            there is no line for it and the button above says the same "חינם" */}
+        <div className="scrollbar-none mt-3 min-h-0 flex-1 overflow-y-auto flat:mt-2">
+          <ul className="space-y-1.5 text-right">
+            {listed.map((a) => (
+              <li key={a.marketSlug} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-2">
+                <span className={`shrink-0 text-sm font-black ${a.side === "YES" ? "text-yes" : "text-no"}`}>
+                  {a.side === "YES" ? "כן" : "לא"}
+                </span>
+                <span className="line-clamp-2 min-w-0 flex-1 text-[13px] leading-snug text-text">{a.title}</span>
+                <span className="tabular shrink-0 text-[13px] text-muted-2">{pct(a.priceAtAnswer)}</span>
+              </li>
+            ))}
+            {rest > 0 && (
+              <li className="rounded-lg bg-surface-2 px-2.5 py-1.5 text-[13px] text-muted">
+                ועוד {rest} {rest === 1 ? "תשובה" : "תשובות"} שנשמרו לכם
+              </li>
+            )}
+          </ul>
+        </div>
+
+        {/* what signing up costs is part of the offer; and a way out that is not the
+            back button — a wall with no door is a bounce, not a sign-up */}
         <p className="mt-2 shrink-0 text-[13px] text-muted-2 flat:hidden">
-          בלי אשראי ובלי טופס — שם, אימייל ותמונה מ-Google. התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
+          בלי אשראי ובלי טופס · התשובות שמורות בדפדפן עד ההתחברות · נקודות משחק בלבד
         </p>
+        <div className="mt-1 flex shrink-0 items-center justify-center gap-3 text-[13px]">
+          {googleEnabled && (
+            <Link href="/login?callbackUrl=%2Frapid&from=gate" data-evt="rapid-guest-gate" className="tap rounded-lg px-2 text-muted hover:text-text-strong">
+              דרך אחרת להתחבר
+            </Link>
+          )}
+          <Link href="/" data-evt="rapid-guest-gate-browse" className="tap rounded-lg px-2 text-muted-2 hover:text-text-strong">
+            להמשיך לעיין בשאלות
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -1115,9 +1314,13 @@ function RunTape({
             ? "bg-no/40"
             : a.status === "pending"
               ? "bg-muted-2"
-              : a.side === "YES"
-                ? "bg-yes"
-                : "bg-no"
+              : a.status === "guest"
+                ? a.side === "YES"
+                  ? "bg-yes/60"
+                  : "bg-no/60"
+                : a.side === "YES"
+                  ? "bg-yes"
+                  : "bg-no"
           : i === index
             ? "bg-accent"
             : "bg-surface-2";
@@ -1128,6 +1331,12 @@ function RunTape({
 }
 
 /* ------------------------------------------------------------- one card -- */
+
+/** What one saved answer would pay, by the same rule as the headline estimate (rapid-guest.ts). */
+function guestPayout(answer: Answer, probability: number): number {
+  const p = Math.min(0.99, Math.max(0.01, answer.side === "YES" ? probability : 1 - probability));
+  return Math.round(Math.min(answer.stake / p, answer.stake * GUEST_PAYOUT_CAP));
+}
 
 function RapidCardView({
   card,
@@ -1282,11 +1491,11 @@ function RapidCardView({
             <p className="tabular text-sm text-muted">
               {money(answer.stake)} ·{" "}
               {answer.status === "ok"
-                ? `${money(answer.shares ?? 0)} אם צדקת`
+                ? `${money(answer.shares ?? 0)} אם צדקתם`
                 : answer.status === "held"
                   ? "אפשר עוד לבטל"
                   : answer.status === "guest"
-                    ? "נשמר · ייכנס לניקוד אחרי התחברות"
+                    ? `≈${money(guestPayout(answer, card.probability))} אם צדקתם · נשמר`
                     : "נשלח…"}
             </p>
           )}
@@ -1322,7 +1531,14 @@ function RapidCardView({
           >
             {card.categoryLabel}
           </span>
-          <span className="card-bare:hidden">{closesLabel(card.closesAt)}</span>
+          {/* The label is relative to "now", and the server's now is a second or two
+              before the browser's: on a question closing in 59½ minutes the two render
+              "בעוד 60 דק׳" and "בעוד 59 דק׳", React throws hydration error #418, and the
+              whole deck is re-rendered from scratch on the client — the recorded
+              client_error on /rapid. The server's text is kept; it is at most a minute old. */}
+          <span className="card-bare:hidden" suppressHydrationWarning>
+            {closesLabel(card.closesAt)}
+          </span>
           {/* The byline is on the question's own page, one tap away through "פרטים".
               At the 13px floor it was the word that tipped this row onto a second
               line, and the line it cost was the subtitle — the card's own context. */}
@@ -1360,8 +1576,15 @@ function RapidCardView({
             price it plots is printed on both answer buttons. Under `card-tight` it hands
             its space back, and the empty stretch that takes its place keeps the question
             and the gauge exactly where they were. */}
+        {/* `min-h-0` AND `overflow-hidden`, and the figure inside has no floor of its own.
+            Under a four-line question this wrapper shrinks to ~20px; the figure used to
+            keep a 48px floor, spill out, and paint its caption ("מאז 29 באוג׳ · +1.7 נק׳")
+            straight over the gauge's "כן 15% / לא 85%" (measured on 16 of 60 cards at
+            390×664). Dropping `min-h-0` instead is worse: the wrapper's automatic minimum
+            becomes the stretched SVG's intrinsic height and the gauge leaves the screen
+            on every card. So the chart is the part that gives way, clipped, never the gauge. */}
         {card.spark && (
-          <div className="flex min-h-0 flex-1 flex-col card-tight:hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden card-tight:hidden">
             <RapidSpark spark={card.spark} tradeCount={card.tradeCount} />
           </div>
         )}
@@ -1425,13 +1648,17 @@ function RapidCardView({
                 44px tall on a phone that had 200px of card to give */}
             <Link
               href={`/market/${card.id}`}
-              target="_blank"
+              // a second tab is a habit of the desk; for a first visit from a phone it is
+              // the deck disappearing behind a page that cannot be swiped back to
+              target={loggedIn ? "_blank" : undefined}
               className="tap inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 font-semibold hover:text-text-strong card-bare:min-h-9"
             >
               פרטים
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
+              {loggedIn && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M7 17 17 7M9 7h8v8" />
+                </svg>
+              )}
             </Link>
           </div>
           <span className="line-clamp-2 min-w-0 text-end card-min:line-clamp-1">
@@ -1441,7 +1668,7 @@ function RapidCardView({
                 ? "אין מספיק נקודות לסכום הזה"
                 : loggedIn
                   ? "הסכום מחייב · מספר התשובות משוער"
-                  : "התשובות נשמרות · ההתחברות מכניסה אותן לניקוד"}
+                  : "נשמר בדפדפן · נכנס לניקוד אחרי ההרשמה"}
           </span>
         </div>
       </div>
@@ -1496,7 +1723,7 @@ function AnswerButton({
           already saying ("הסכום מחייב · מספר התשובות משוער"). */}
       <span className="tabular mt-1 block text-[13px] font-semibold opacity-90">
         {money(stake)} ← ≈{money(payout)}
-        <span className="card-bare:hidden card-narrow:hidden"> אם צדקת</span>
+        <span className="card-bare:hidden card-narrow:hidden"> אם צדקתם</span>
       </span>
     </button>
   );
@@ -1626,6 +1853,8 @@ function RunSummary({
   yesCount,
   totalStaked,
   totalPayout,
+  loggedIn,
+  googleEnabled,
   showActions,
   onRestart,
 }: {
@@ -1636,6 +1865,8 @@ function RunSummary({
   yesCount: number;
   totalStaked: number;
   totalPayout: number;
+  loggedIn: boolean;
+  googleEnabled: boolean;
   showActions: boolean;
   onRestart: () => void;
 }) {
@@ -1646,23 +1877,28 @@ function RunSummary({
     // container puts its own top out of reach.
     <div className="card scrollbar-none h-full overflow-y-auto">
       <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center short:gap-2.5 short:p-4">
-      <h2 className="text-2xl font-black text-text-strong short:text-xl">{done ? "סיימת את הרצף" : "לא ענית על אף שאלה"}</h2>
+      <h2 className="text-2xl font-black text-text-strong short:text-xl">{done ? "סיימתם את הרצף" : "לא עניתם על אף שאלה"}</h2>
       {done ? (
         <>
           <p className="text-muted">
-            ענית על <strong className="tabular text-text-strong">{done}</strong> מתוך {total} שאלות ·{" "}
+            עניתם על <strong className="tabular text-text-strong">{done}</strong> מתוך {total} שאלות ·{" "}
             <span className="text-yes">{yesCount} כן</span> · <span className="text-no">{done - yesCount} לא</span>
           </p>
           <dl className="grid w-full max-w-md grid-cols-2 gap-3">
             <div className="rounded-xl border border-border bg-surface-2 p-3">
-              <dt className="text-xs text-muted">הושקעו</dt>
-              <dd className="tabular text-xl font-extrabold text-text-strong">{money(totalStaked)}</dd>
+              <dt className="text-xs text-muted">{loggedIn ? "הושקעו" : "שמורות בדפדפן"}</dt>
+              <dd className="tabular text-xl font-extrabold text-text-strong">{loggedIn ? money(totalStaked) : done}</dd>
             </div>
             <div className="rounded-xl border border-border bg-surface-2 p-3">
-              <dt className="text-xs text-muted">תשלום אם תצדקו בכל התשובות</dt>
+              <dt className="text-xs text-muted">{loggedIn ? "תשלום אם תצדקו בכל התשובות" : "≈ אם צדקתם בכולן"}</dt>
               <dd className="tabular text-xl font-extrabold text-yes">{money(totalPayout)}</dd>
             </div>
           </dl>
+          {!loggedIn && (
+            <p className="max-w-sm text-sm text-muted">
+              התשובות עדיין לא בניקוד. חשבון חינם עם Google מכניס אותן, ומוסיף {money(STARTING_BALANCE)} להמשך.
+            </p>
+          )}
           {failed > 0 && (
             <p className="rounded-lg bg-no/10 px-3 py-2 text-sm text-no">
               {failed} תשובות לא נקלטו{firstError ? ` (${firstError})` : ""}. אפשר לנסות אותן שוב בעמוד השאלה.
@@ -1679,15 +1915,29 @@ function RunSummary({
         It is therefore the primary button — the score can wait until the player
         stops answering, not the other way round.
       */}
+      {showActions && !loggedIn && done > 0 && (
+        <div className="w-full max-w-md">
+          <GuestGoogleButton googleEnabled={googleEnabled} evt="rapid-summary-google" from="summary" className="min-h-12">
+            לשמור את התשובות עם Google
+          </GuestGoogleButton>
+        </div>
+      )}
       {showActions && (
         <div className="flex w-full max-w-md flex-wrap justify-center gap-2">
-          <button onClick={onRestart} className="tap pressable inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">
+          <button
+            onClick={onRestart}
+            className={`tap pressable inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-bold ${
+              loggedIn || !done ? "bg-accent text-white hover:bg-accent-2" : "border border-border-2 hover:bg-surface-2"
+            }`}
+          >
             <BoltIcon size={16} />
             עוד סבב זריז
           </button>
-          <Link href="/portfolio" className="tap inline-flex items-center justify-center rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
-            לניקוד שלי
-          </Link>
+          {loggedIn && (
+            <Link href="/portfolio" className="tap inline-flex items-center justify-center rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
+              לניקוד שלי
+            </Link>
+          )}
           <Link href="/" className="tap inline-flex items-center justify-center rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
             לכל השאלות
           </Link>

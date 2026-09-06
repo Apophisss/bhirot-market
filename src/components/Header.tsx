@@ -10,9 +10,10 @@ import { Avatar } from "./Avatar";
 import { UserMenu } from "./UserMenu";
 import { MobileNav } from "./MobileNav";
 import { MobileSearch } from "./MobileSearch";
-import { LoginLink } from "./LoginLink";
+import { HeaderLogin } from "./HeaderLogin";
 import { RapidGuestSync } from "./RapidGuestSync";
 import { RapidEntryGate } from "./RapidEntryGate";
+import { AdConversions } from "./AdConversions";
 import { needsSurvey } from "@/lib/preferences-store";
 import { countIncomingRequests } from "@/lib/friends";
 import { countLeagueInvites } from "@/lib/leagues";
@@ -169,7 +170,9 @@ export async function Header() {
                   איך זה עובד
                 </Link>
                 {/* useSearchParams needs a boundary; the fallback is the same button
-                    pointing at a bare /login, which is what it used to be everywhere */}
+                    pointing at a bare /login, which is what it used to be everywhere.
+                    On the paid landing page the button steps down to a text link —
+                    see HeaderLogin for the measurement behind that. */}
                 <Suspense
                   fallback={
                     <Link href="/login" data-evt="header-login" className={LOGIN_BUTTON}>
@@ -177,9 +180,7 @@ export async function Header() {
                     </Link>
                   }
                 >
-                  <LoginLink evt="header-login" className={LOGIN_BUTTON}>
-                    התחברות
-                  </LoginLink>
+                  <HeaderLogin evt="header-login" className={LOGIN_BUTTON} />
                 </Suspense>
               </>
             )}
@@ -192,6 +193,9 @@ export async function Header() {
           Each answer redeems at the amount it was given at, and the amount itself is
           adopted by the new account (src/components/RapidGuestSync.tsx) */}
       <RapidGuestSync loggedIn={Boolean(user)} />
+      {/* the Google Ads conversions the server says are owed — asked for only by an
+          account, which is the one thing the header knows and the layout does not */}
+      <AdConversions loggedIn={Boolean(user)} />
       {/* ההצעה שפותחת כל ביקור: מצב זריז, ומתחילים לשחק. כאן ולא בעמוד מסוים, כי היא
           שייכת לכניסה לאתר ולא לדף הבית — ובהדר ממילא כבר ידוע אם המבקר מחובר
           (src/components/RapidEntryGate.tsx) */}

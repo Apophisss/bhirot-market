@@ -57,6 +57,27 @@ export const EVENTS = {
   installApp: "install_app",
   /** the "מצב זריז" offer that opens a visit (props.action = shown, props.loggedIn) */
   rapidGate: "rapid_gate",
+  /**
+   * A signed-out visitor answered a question — on the landing page or in the deck.
+   * Kept only in the browser until sign-in (src/lib/rapid-guest.ts), so nothing
+   * server-side ever sees it; this is the one record that the free run was used.
+   * props.source = welcome | deck, props.side, props.n = answers stored after this one.
+   */
+  guestAnswer: "guest_answer",
+  /** the sign-in wall went up at the end of the free run (props.n = answers behind it) */
+  guestGate: "guest_gate",
+  /** answers given before sign-in became real positions (props.ok, props.skipped) */
+  guestRedeem: "guest_redeem",
+  /** the soft ask after the first few guest answers (props.action = shown|later, props.n, props.soon) */
+  guestSoftAsk: "guest_soft_ask",
+  /** the sign-in page came back from the provider with an error (props.error) */
+  loginError: "login_error",
+  /**
+   * A paid click reached the landing page — recorded by the server while the page
+   * renders, before any JavaScript, so a tap abandoned mid-load still counts once.
+   * The gap between landings and paid pageviews is the loss the browser cannot see.
+   */
+  landing: "landing",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
@@ -89,6 +110,12 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.bundleDownload]: "הורדת באנדל נתונים",
   [EVENTS.installApp]: "הוספה למסך הבית",
   [EVENTS.rapidGate]: "הצעת מצב זריז בכניסה",
+  [EVENTS.guestAnswer]: "תשובה של אורח (לפני הרשמה)",
+  [EVENTS.guestGate]: "חסימת סוף הריצה החופשית הוצגה",
+  [EVENTS.guestRedeem]: "תשובות אורח נכנסו לניקוד אחרי התחברות",
+  [EVENTS.guestSoftAsk]: "ההצעה הרכה להירשם אחרי כמה תשובות של אורח",
+  [EVENTS.loginError]: "התחברות שחזרה עם שגיאה",
+  [EVENTS.landing]: "נחיתה מקליק על מודעה (נרשם בשרת)",
 };
 
 /** Click ids used by `data-evt` attributes around the site (documented for the analyst). */
@@ -135,6 +162,13 @@ export const CLICK_IDS: Record<string, string> = {
   "rapid-undo": "ביטול תשובה במצב זריז",
   "rapid-undo-dismiss": "החלקת סרגל הביטול למטה במצב זריז",
   "rapid-guest-gate": "חסימת אורח במצב זריז",
+  "rapid-guest-gate-google": "כפתור Google בחסימת האורח במצב זריז",
+  "rapid-soft-ask-google": "כפתור Google בהצעה הרכה במצב זריז",
+  "rapid-soft-ask-login": "מעבר למסך ההתחברות מההצעה הרכה",
+  "rapid-soft-ask-later": "״להמשיך בלי חשבון״ בהצעה הרכה",
+  "rapid-guest-gate-browse": "״להמשיך לעיין בשאלות״ בחסימת האורח",
+  "rapid-summary-google": "כפתור Google בסיכום הרצף (אורח)",
+  "login-google": "כפתור Google במסך ההתחברות",
   "rapid-guest-note": "שורת ההתחברות מעל החפיסה במצב זריז",
   "market-card": "כרטיס שוק ברשימה",
   "market-card-yes": "כפתור כן בכרטיס",
@@ -151,6 +185,14 @@ export const CLICK_IDS: Record<string, string> = {
   "footer-install": "הוספה למסך הבית מהפוטר",
   "entry-gate-rapid": "מעבר למצב זריז מהשער בכניסה",
   "entry-gate-dismiss": "דחיית השער בכניסה",
+  // the paid landing page (/welcome): every tap a stranger can make on it, by name
+  "welcome-answer-yes": "כן על כרטיס בדף הנחיתה",
+  "welcome-answer-no": "לא על כרטיס בדף הנחיתה",
+  "welcome-start": "CTA ראשי בדף הנחיתה (להתחיל לשחק)",
+  "welcome-start-end": "CTA בתחתית דף הנחיתה",
+  "welcome-login": "״כבר יש לכם חשבון״ בדף הנחיתה",
+  "welcome-how": "״איך זה עובד״ בדף הנחיתה",
+  "header-login-quiet": "קישור התחברות שקט בהדר (דף הנחיתה)",
   "install-prompt-add": "הוספה למסך הבית מהכרטיס",
   "install-prompt-later": "דחיית ההצעה להוסיף למסך הבית",
   "install-sheet-add": "התקנה בלחיצה אחת מתוך החלון",

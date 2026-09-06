@@ -26,6 +26,7 @@ const fakeWindow: FakeWindow = {};
 (globalThis as { window?: FakeWindow }).window = fakeWindow;
 
 import { forwardToGa } from "../src/lib/ga-bridge";
+import { EVENTS } from "../src/lib/events";
 
 let passed = 0;
 const failures: string[] = [];
@@ -103,14 +104,10 @@ test("a flood of props cannot exceed GA4's per-event cap", () => {
 });
 
 test("every event the site records today is forwarded", () => {
-  // the catalogue minus `pageview`: a name added here without a decision about GA4
-  // is the failure mode this test exists to catch
-  const names = [
-    "page_exit", "click", "outbound", "search", "share", "trade_attempt", "trade",
-    "trade_error", "comment", "signup", "login", "web_vital", "client_error",
-    "bundle_download", "install_app", "suggestion", "contact_message", "survey",
-    "referral_claimed", "logout",
-  ];
+  // the catalogue minus `pageview`, read from the catalogue itself: a hand-written
+  // list silently stopped covering the events added after it was written
+  const names = Object.values(EVENTS).filter((n) => n !== EVENTS.pageview);
+  assert.ok(names.includes("guest_answer") && names.includes("landing"), "the catalogue is the source");
   for (const n of names) forwardToGa(n, {});
   assert.deepEqual(sent().map(([n]) => n), names);
 });
