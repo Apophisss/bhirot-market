@@ -13,6 +13,10 @@ function Face({ c, n, on }: { c: PmCandidateView; n: number; on: boolean }) {
   return (
     <>
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-2">
+        {/* the one place on the board that draws a face large enough to read — 120px on a
+            phone, 144 from `sm`, so at 2x and 3x it wants every pixel of the vendored
+            330px original. The small WebP thumbnails `PeopleStack` uses would be upscaled
+            here, and a blurred candidate is the opposite of what this strip is for. */}
         <MarketImage
           src={c.image}
           fallback={FALLBACK}

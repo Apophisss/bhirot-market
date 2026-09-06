@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
-import { listMarkets, getMarketStats, getCategoryCounts, getPeopleCounts } from "@/lib/markets";
+import { getBoardRecommendations, getHomeBoard, isFilteredBoard } from "@/lib/board-cache";
 import { ensureSynced } from "@/lib/sync";
 import { MarketCard } from "@/components/MarketCard";
 import { MarketBrowser, PAGE, browseHref, parseSort } from "@/components/MarketBrowser";
@@ -19,7 +19,6 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 import { findCategory } from "@/lib/categories";
 import { collectionPage, shareCard } from "@/lib/seo";
 import { auth } from "@/lib/auth";
-import { getRecommendations } from "@/lib/recommendations";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 import { BoltIcon } from "@/components/BoltIcon";
@@ -82,23 +81,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const q = sp.q?.trim() || undefined;
   const person = sp.person && /^[a-z0-9-]+$/.test(sp.person) ? getPerson(sp.person) : undefined;
   const show = Math.min(Math.max(Number(sp.show) || PAGE, PAGE), 600);
-  const filtered = Boolean(q || person || status === "resolved");
+  const query = { category: "all", sort, status, q, person: person?.id } as const;
+  const filtered = isFilteredBoard(query);
   // the candidate strip doubles as the person filter: it stays up while a candidate is
   // selected so the active one can be highlighted and cleared from the strip itself
   const showCandidates = !q && status === "open";
   // only the two canonical listings (/ and /?status=resolved) carry the ItemList
   const indexable = !q && !person && !sp.sort && !sp.show;
 
-  const [markets, stats, counts, peopleCounts, recentlyResolved, closingSoon, recommended, askSurvey] = await Promise.all([
-    listMarkets({ category: "all", q, sort, status, person: person?.id, limit: 600 }),
-    getMarketStats(),
-    getCategoryCounts(status === "resolved" ? "resolved" : "open", person?.id),
-    getPeopleCounts("open"),
-    status === "open" && !filtered ? listMarkets({ status: "resolved", sort: "newest", limit: 18 }) : Promise.resolve([]),
-    !filtered ? listMarkets({ status: "open", sort: "closing", closingWithinHours: 72, limit: 4 }) : Promise.resolve([]),
-    !filtered ? getRecommendations({ userId: session?.user?.id, limit: 12 }) : Promise.resolve(null),
+  // the board itself is the same for everybody and comes out of the in-process cache
+  // (src/lib/board-cache.ts, up to 45 seconds stale); the recommendation row and the
+  // survey prompt are the two things that belong to this visitor, and only they are
+  // computed per request — on top of the shared, cached candidate pool
+  const [board, recommended, askSurvey] = await Promise.all([
+    getHomeBoard(query),
+    !filtered ? getBoardRecommendations({ userId: session?.user?.id, limit: 12 }) : Promise.resolve(null),
     !filtered ? shouldOfferSurvey(session?.user?.id) : Promise.resolve(false),
   ]);
+  const { markets, stats, counts, peopleCounts, recentlyResolved, closingSoon } = board;
 
   // the hero advertises a fabricated, larger board (src/lib/display-stats.ts, display only)
   const openCount = displayOpenCount(stats.open);

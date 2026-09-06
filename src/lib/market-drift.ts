@@ -48,6 +48,22 @@ const THIN_AFTER_MS = 3 * DAY;
 const THIN_BUCKET_MS = 6 * HOUR;
 
 /**
+ * ...and past this age a drift row is deleted outright rather than thinned.
+ *
+ * Thinning bounds the density of the old tail but not its length: a board that runs
+ * until election day would still keep a tick every six hours per market forever, and
+ * every one of them is a row the drift queries below and the deck's curves have to
+ * step over. Nothing draws them — the chart window is thirty days
+ * (`SYNTHETIC_HISTORY_WINDOW_DAYS`) and `getPriceHistoryMany` reads thirty-one — so
+ * two weeks past the furthest thing that can be drawn, a house tick has no reader left.
+ *
+ * As with the thinning, `source = 'drift'` is the whole point: the opening price, every
+ * trade and every settlement are the audit trail behind somebody's score, they are what
+ * `history` in `/api/markets/<slug>` publishes, and they are kept forever.
+ */
+const PRUNE_AFTER_MS = 45 * DAY;
+
+/**
  * ...and at most once an hour per process. The statement scans every drift row older
  * than the cutoff, which is cheap but not free, and there is nothing for it to do on
  * the other five passes of the hour: the rows it would delete are ones written days
@@ -116,6 +132,8 @@ export interface DriftRun {
   steps: DriftStep[];
   /** old drift rows dropped by the thinning pass */
   thinned: number;
+  /** drift rows past `PRUNE_AFTER_MS` deleted outright by the same pass */
+  pruned: number;
   dryRun: boolean;
   ms: number;
 }
@@ -155,7 +173,7 @@ export async function runMarketDrift(
   };
 
   if (!cfg.enabled) {
-    return { ok: true, scanned: 0, moved: 0, skipped: { disabled: 1 }, steps: [], thinned: 0, dryRun, ms: 0 };
+    return { ok: true, scanned: 0, moved: 0, skipped: { disabled: 1 }, steps: [], thinned: 0, pruned: 0, dryRun, ms: 0 };
   }
 
   const db = await getDb();
@@ -164,7 +182,7 @@ export async function runMarketDrift(
     .from(markets)
     .where(and(eq(markets.status, "open"), gt(markets.closesAt, new Date(now))));
   if (!open.length) {
-    return { ok: true, scanned: 0, moved: 0, skipped, steps: [], thinned: 0, dryRun, ms: Date.now() - started };
+    return { ok: true, scanned: 0, moved: 0, skipped, steps: [], thinned: 0, pruned: 0, dryRun, ms: Date.now() - started };
   }
 
   /* -- the three facts the policy needs, in three round trips rather than 3×N -- */
@@ -246,6 +264,14 @@ export async function runMarketDrift(
         return 0;
       })
     : 0;
+  // the prune rides on the same hourly gate as the thinning, and runs after it: the
+  // thinning has already emptied most of what the prune would have had to walk
+  const pruned = thin
+    ? await pruneDriftHistory(now).catch((err) => {
+        console.error("[drift] pruning failed", err);
+        return 0;
+      })
+    : 0;
 
   return {
     ok: true,
@@ -254,6 +280,7 @@ export async function runMarketDrift(
     skipped,
     steps,
     thinned,
+    pruned,
     dryRun,
     ms: Date.now() - started,
   };
@@ -316,5 +343,20 @@ async function thinDriftHistory(now: number): Promise<number> {
         where source = 'drift' and ts < ${cutoff}
         group by marketId, cast(ts / ${THIN_BUCKET_MS} as integer)
       )`);
+  return Number(res.rowsAffected ?? 0);
+}
+
+/**
+ * Deletes the drift tail past `PRUNE_AFTER_MS` outright.
+ *
+ * The thinning above keeps the shape of the old curve; this drops the part of it that
+ * is older than anything the site can draw. `source = 'drift'` is again the whole
+ * statement's guard — an opening price, a trade or a settlement is never eligible,
+ * however old it is.
+ */
+async function pruneDriftHistory(now: number): Promise<number> {
+  const db = await getDb();
+  const cutoff = now - PRUNE_AFTER_MS;
+  const res = await db.run(sql`delete from price_history where source = 'drift' and ts < ${cutoff}`);
   return Number(res.rowsAffected ?? 0);
 }

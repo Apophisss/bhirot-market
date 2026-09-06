@@ -17,7 +17,25 @@ const heebo = Heebo({
   subsets: ["hebrew", "latin"],
   weight: ["400", "500", "700", "800"],
   variable: "--font-heebo",
-  display: "swap",
+  /*
+    `optional`, and not `swap`, because of what happens on an Android phone.
+
+    next/font builds a metric-adjusted fallback face — `"Heebo Fallback"`, with
+    `src: local(Arial)` and a `size-adjust` computed against Arial's metrics. Android
+    has no Arial. So that face never loads, the stack falls through to Roboto with no
+    adjustment at all, and Hebrew first-paints at the wrong width; when Heebo lands a
+    moment later every line of text on the page re-flows. That is the CLS the field
+    reports (p95 0.286), and `swap` is what guarantees the re-flow happens.
+
+    `optional` gives the font about 100ms to arrive and then commits for the whole
+    document load: either Heebo was ready and it is used from the first paint, or it is
+    not used at all this time and the page stays in the fallback — and is cached for the
+    next navigation, which is when the visitor sees it. Either way nothing swaps
+    underneath the reader. `fallback` was the other candidate and was rejected: its
+    three-second swap window is exactly the re-flow we are trying to remove, only rarer
+    and therefore harder to notice in the numbers.
+  */
+  display: "optional",
 });
 
 export const metadata: Metadata = {
