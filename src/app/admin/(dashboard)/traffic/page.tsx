@@ -8,6 +8,11 @@ import {
   getDeviceSplit,
   getEventTotals,
   getHourHistogram,
+  getLandingEngagement,
+  getPaidAdGroups,
+  getPaidCampaigns,
+  getPaidFunnel,
+  getPaidLanguages,
   getSearchTerms,
   getSlowPages,
   getTopPages,
@@ -15,7 +20,7 @@ import {
   getWebVitals,
   range,
 } from "@/lib/stats";
-import { BarSeries, Card, TopList, fmt, shortDay } from "@/components/admin/Charts";
+import { BarSeries, Card, Funnel, TopList, fmt, shortDay } from "@/components/admin/Charts";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "תנועה" };
@@ -27,7 +32,7 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
   const days = Number((await searchParams).days) || 7;
   const r = range(days);
 
-  const [daily, pages, referrers, campaigns, devices, countries, hours, events, clicks, searches, vitals, slow, errors] = await Promise.all([
+  const [daily, pages, referrers, campaigns, devices, countries, hours, events, clicks, searches, vitals, slow, errors, paid, paidCampaigns, paidLanguages, paidAdGroups, landing] = await Promise.all([
     getDailyTraffic(r),
     getTopPages(r, 20),
     getTopReferrers(r, 12),
@@ -41,6 +46,11 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
     getWebVitals(r),
     getSlowPages(r, 8),
     getClientErrors(r, 10),
+    getPaidFunnel(r),
+    getPaidCampaigns(r, 12),
+    getPaidLanguages(r, 6),
+    getPaidAdGroups(r, 10),
+    getLandingEngagement(r),
   ]);
 
   return (
@@ -52,6 +62,85 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
         <Card title="סשנים ליום">
           <BarSeries data={daily.map((d) => ({ label: shortDay(d.day), value: d.sessions }))} />
         </Card>
+      </div>
+
+      {/* The campaign pays for every one of these sessions, so its funnel gets a card of
+          its own rather than a share of the general one: the paid path (ad → /welcome →
+          deck → free run → sign-in) is not the path the general funnel measures. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="space-y-4">
+          <Card
+            title="משפך התנועה בתשלום"
+            hint={`${fmt(paid.landings)} נחיתות נרשמו בשרת · ${fmt(paid.visitors)} מבקרים מקמפיין נמדדו בדפדפן · סשנים, ובשני השלבים האחרונים חשבונות עם שיוך לקמפיין`}
+          >
+            <Funnel stages={paid.stages} />
+          </Card>
+          <Card title="דף הנחיתה: כמה זמן ועד לאן" hint="סשנים מקמפיין בלבד · חציון ולא ממוצע · עומק הגלילה אומר אם הכרטיס בכלל היה על המסך">
+            {landing.exits ? (
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+                <Stat label="יציאות שנמדדו" value={fmt(landing.exits)} />
+                <Stat label="חציון שניות" value={fmt(landing.medianSeconds)} />
+                <Stat label="עד 5 שנ׳" value={`${fmt(landing.under5s * 100)}%`} tone={landing.under5s > 0.4 ? "no" : undefined} />
+                <Stat label="5–15 שנ׳" value={`${fmt(landing.under15s * 100)}%`} />
+                <Stat label="15–60 שנ׳" value={`${fmt(landing.under60s * 100)}%`} />
+                <Stat label="מעל דקה" value={`${fmt(landing.over60s * 100)}%`} />
+                <Stat label="עומק גלילה ממוצע" value={`${fmt(landing.avgScroll * 100)}%`} />
+                <Stat label="גלילה אצל מי שלא נגע בכלום" value={`${fmt(landing.avgScrollUntouched * 100)}%`} tone={landing.avgScrollUntouched < 0.3 ? "no" : undefined} />
+              </dl>
+            ) : (
+              <p className="py-6 text-center text-sm text-muted-2">אין עדיין יציאות מדודות מדף הנחיתה בטווח הזה</p>
+            )}
+          </Card>
+        </div>
+        <div className="space-y-4">
+          <Card title="לפי קמפיין" hint="source / medium / campaign — סשנים · עמוד שני · חפיסה · ענו · התחברות · נרשמו · סחרו">
+            {paidCampaigns.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-surface-2 text-xs text-muted">
+                    <tr>
+                      <th className="px-2 py-2 text-right font-medium">קמפיין</th>
+                      <th className="px-2 py-2 text-right font-medium">סשנים</th>
+                      <th className="px-2 py-2 text-right font-medium">עמוד שני</th>
+                      <th className="px-2 py-2 text-right font-medium">חפיסה</th>
+                      <th className="px-2 py-2 text-right font-medium">ענו</th>
+                      <th className="px-2 py-2 text-right font-medium">התחברות</th>
+                      <th className="px-2 py-2 text-right font-medium">נרשמו</th>
+                      <th className="px-2 py-2 text-right font-medium">סחרו</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {paidCampaigns.map((c) => (
+                      <tr key={c.key}>
+                        <td className="max-w-[14rem] truncate px-2 py-2" dir="ltr" title={c.key}>
+                          {c.key}
+                        </td>
+                        <td className="tabular px-2 py-2 font-semibold">{fmt(c.sessions)}</td>
+                        <td className="tabular px-2 py-2 text-muted">{fmt(c.engaged)}</td>
+                        <td className="tabular px-2 py-2 text-muted">{fmt(c.deck)}</td>
+                        <td className="tabular px-2 py-2 text-muted">{fmt(c.answered)}</td>
+                        <td className="tabular px-2 py-2 text-muted">{fmt(c.login)}</td>
+                        <td className={`tabular px-2 py-2 font-semibold ${c.signups ? "text-yes" : "text-no"}`}>{fmt(c.signups)}</td>
+                        <td className="tabular px-2 py-2 text-muted">{fmt(c.traders)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="py-6 text-center text-sm text-muted-2">אין תנועה מקמפיין בטווח הזה</p>
+            )}
+          </Card>
+          <Card title="לפי קבוצת מודעות" hint="utm_content, ש-Google ממלאת ב-{adgroupid} · סשנים · עשו משהו · חפיסה">
+            <TopList
+              rows={paidAdGroups.map((g) => ({ key: g.key, value: g.sessions, hint: `${g.touched} עשו משהו · ${g.deck} חפיסה` }))}
+              empty="אין תנועה מקמפיין בטווח הזה"
+            />
+          </Card>
+          <Card title="שפת הדפדפן של מבקרי הקמפיין" hint="התחליף למדינה — אין כותרת גיאוגרפית מאחורי השרת. ״?״ = נרשם לפני שהשדה נוסף">
+            <TopList rows={paidLanguages.map((x) => ({ key: x.key, value: x.visitors, hint: `${x.count} צפיות` }))} empty="אין תנועה מקמפיין בטווח הזה" />
+          </Card>
+        </div>
       </div>
 
       <Card title="שעות היום" hint="מתי נכנסים ומתי סוחרים — שעון ישראל">
@@ -173,6 +262,15 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
           </div>
         )}
       </Card>
+    </div>
+  );
+}
+
+function Stat({ label, value, tone }: { label: string; value: string; tone?: "no" }) {
+  return (
+    <div>
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className={`tabular text-lg font-extrabold ${tone === "no" ? "text-no" : "text-text-strong"}`}>{value}</dd>
     </div>
   );
 }

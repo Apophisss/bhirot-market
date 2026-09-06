@@ -11,8 +11,16 @@ export const RETENTION_DAYS = Number(process.env.ANALYTICS_RETENTION_DAYS ?? 180
 /** Analytics is on unless explicitly disabled (e.g. for a local benchmark run). */
 export const analyticsEnabled = process.env.ANALYTICS_DISABLED !== "true";
 
+/*
+  Crawlers and link-preview fetchers, and nothing that a person browses with. Four
+  of the old tokens matched real visitors: `telegram` (the Telegram-Android in-app
+  browser), `duckduck` (the DuckDuckGo Android browser), `yandex` (the Yandex app)
+  and a bare `bot` (CUBOT phones). A Demand Gen campaign serves inside exactly
+  these apps, and every one of those visitors was dropped with a 204 and never
+  reached the log. The crawler forms of the same names are kept.
+*/
 const BOT_RE =
-  /bot|crawl|spider|slurp|bingpreview|yandex|duckduck|baidu|facebookexternalhit|embedly|quora link preview|whatsapp|telegram|discord|preview|lighthouse|headless|pingdom|uptime|monitor|curl\/|wget|python-requests|axios\/|node-fetch|go-http-client/i;
+  /(?<!cu)bot(?:\b|\/|-)|crawl|spider|slurp|bingpreview|yandex(?:bot|images|metrika|accessibility)|duckduckbot|baidu|facebookexternalhit|embedly|quora link preview|whatsapp\/|telegrambot|discordbot|preview|lighthouse|headless|pingdom|uptime|monitor|curl\/|wget|python-requests|axios\/|node-fetch|go-http-client/i;
 
 export interface EventInput {
   name: EventName | string;

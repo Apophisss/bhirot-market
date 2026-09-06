@@ -11,7 +11,8 @@ import {
 } from "@/lib/rapid-guest";
 import { RAPID_DEFAULT_STAKE, clampStake } from "@/lib/rapid";
 import { claimGuestSettings } from "@/lib/settings-client";
-import { gaEvent } from "@/lib/gtag";
+import { track } from "@/lib/track";
+import { EVENTS } from "@/lib/events";
 
 /**
  * Turns what a visitor did before signing in into part of the account.
@@ -82,7 +83,9 @@ export function RapidGuestSync({ loggedIn }: { loggedIn: boolean }) {
           // a network failure costs this one answer, not the rest of them
         }
       }
-      if (ok) gaEvent("rapid_guest_redeem", { count: ok });
+      // first-party as well as GA4: this is the moment a free run became an account's
+      // positions, and the paid funnel's last step before "first trade"
+      track(EVENTS.guestRedeem, { props: { ok, skipped: answers.length - ok } });
       setResult({ ok, skipped: answers.length - ok });
       if (ok) router.refresh();
     })();

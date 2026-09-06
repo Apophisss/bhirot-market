@@ -135,9 +135,17 @@ export function sharePrice(price: number): string {
   return `${nf2.format(price)} ${POINTS_SHORT}`;
 }
 
-const dtf = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", year: "numeric" });
-const dtfShort = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
-const dtfTime = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+/*
+  Pinned to Israel time. The server runs in UTC (node:22-alpine sets no TZ), and a
+  question closing at midnight Israel time is 21:00 UTC the day before: without the
+  zone the server printed one calendar day and every phone in Israel printed the
+  next — a hydration mismatch (React #418) on every load of any page that shows the
+  date, and a wrong date on every server-rendered one.
+*/
+const TZ = "Asia/Jerusalem";
+const dtf = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short", year: "numeric" });
+const dtfShort = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short" });
+const dtfTime = new Intl.DateTimeFormat("he-IL", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 export function fmtDate(d: Date | number | string): string {
   return dtf.format(new Date(d));

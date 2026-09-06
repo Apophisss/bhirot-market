@@ -1,8 +1,15 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { pct } from "@/lib/format";
-import { GUEST_RECAP_LIMIT, readGuestAnswers, serverGuestAnswers, subscribeGuestAnswers } from "@/lib/rapid-guest";
+import { money, pct } from "@/lib/format";
+import {
+  GUEST_RECAP_LIMIT,
+  guestPayoutEstimate,
+  guestResolvingSoon,
+  readGuestAnswers,
+  serverGuestAnswers,
+  subscribeGuestAnswers,
+} from "@/lib/rapid-guest";
 
 /**
  * The answers a visitor already gave, shown back to them on the sign-in screen.
@@ -27,14 +34,21 @@ export function GuestAnswersRecap() {
   if (!answers.length) return null;
   const listed = answers.slice(-GUEST_RECAP_LIMIT).reverse();
   const rest = answers.length - listed.length;
+  const soon = guestResolvingSoon(answers);
+  const payout = guestPayoutEstimate(answers);
 
   return (
     <section className="mt-5 rounded-xl border border-accent/40 bg-accent/10 p-3.5">
       <h2 className="text-[15px] font-black text-text-strong">
-        ענית על {answers.length} {answers.length === 1 ? "שאלה" : "שאלות"}
+        עניתם על {answers.length} {answers.length === 1 ? "שאלה" : "שאלות"}
       </h2>
       <p className="mt-0.5 text-[13px] leading-snug text-muted">
-        {answers.length === 1 ? "היא נשמרה בדפדפן ותיכנס" : "הן נשמרו בדפדפן וייכנסו"} לניקוד שלכם ברגע שתתחברו.
+        {answers.length === 1 ? "נכנסת" : "נכנסות"} לניקוד ברגע שנרשמים.{" "}
+        {/* the reason to press the button, in the visitor's own numbers */}
+        <span className="font-semibold text-text-strong">
+          אם צדקתם {answers.length === 1 ? "" : "בכולן"}: ≈{money(payout)}
+          {soon > 0 && ` · ${answers.length === 1 ? "נסגרת" : soon === 1 ? "אחת נסגרת" : `${soon} נסגרות`} תוך יומיים`}
+        </span>
       </p>
       <ul className="mt-2.5 space-y-1.5">
         {listed.map((a) => (

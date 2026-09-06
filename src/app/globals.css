@@ -366,6 +366,28 @@
     backdrop-filter: blur(2px);
   }
 
+  /* The question card inside the dark band of the paid landing page keeps the ad's
+     look in both themes — a white card on deep blue. `.card` follows the theme tokens,
+     and in dark mode those make it a near-black card on a near-black gradient; here
+     the light palette is pinned on the element, and `color-scheme: light` with it so
+     the dark-mode rule that swaps white button text for ink does not fire inside. */
+  .welcome-hero-card {
+    color-scheme: light;
+    --color-surface: #ffffff;
+    --color-surface-2: #f1f5fc;
+    --color-border: #e3e9f4;
+    --color-text: #1c2b45;
+    --color-text-strong: #0a1020;
+    --color-muted: #4f6182;
+    --color-muted-2: #64708a;
+    --color-yes: #166534;
+    --color-yes-2: #14532d;
+    --color-no: #b91c1c;
+    --color-no-2: #991b1b;
+    background: #ffffff;
+    color: #1c2b45;
+  }
+
   /* safe areas: iPhone notch and home indicator */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -553,6 +575,12 @@
   .bg-no.text-white,
   .bg-no-2.text-white {
     color: var(--color-ink);
+  }
+  /* inside the pinned landing card the fills are the light-mode greens and reds, which
+     carry white text as they do everywhere in light mode */
+  .welcome-hero-card .bg-yes.text-white,
+  .welcome-hero-card .bg-no.text-white {
+    color: #ffffff;
   }
 
   /*
