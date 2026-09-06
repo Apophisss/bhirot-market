@@ -30,6 +30,24 @@ function reportVital(metric: { name: string; value: number; rating?: string; id:
 /** A remount (React Strict Mode in dev, a re-render on the same URL) must not count twice. */
 const lastView = { key: "", at: 0 };
 
+/** "he-IL" → "he", "en-US" → "en": the language alone is the signal, the region is noise. */
+function browserLang(): string {
+  try {
+    return (navigator.language || "").slice(0, 2).toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+/** Facebook/Instagram/Gmail-style embedded browsers, and Android's bare WebView marker. */
+function inAppBrowser(): boolean {
+  try {
+    return /\bwv\b|FBAN|FBAV|Instagram|GSA\/|Line\/|; wv\)/i.test(navigator.userAgent);
+  } catch {
+    return false;
+  }
+}
+
 function referrerHost(): string {
   try {
     if (!document.referrer) return "";
@@ -74,17 +92,32 @@ export function Analytics({ enabled = true }: { enabled?: boolean }) {
     exited.current = false;
 
     if (!repeat) {
+      // Google's auto-tagging can send a click with a gclid and no utm_* at all; an
+      // ad click without a medium would vanish from the paid funnel while the account
+      // it produces still carries the gclid. Same rule as the attribution cookie.
+      const clicked = sp.get("gclid") || sp.get("gbraid") || sp.get("wbraid");
       track(EVENTS.pageview, {
         path,
         query,
         referrer: referrerHost(),
-        source: sp.get("utm_source") ?? "",
-        medium: sp.get("utm_medium") ?? "",
+        source: sp.get("utm_source") || (clicked ? "google" : ""),
+        medium: sp.get("utm_medium") || (clicked ? "cpc" : ""),
         campaign: sp.get("utm_campaign") ?? "",
         props: {
           title: document.title.slice(0, 120),
           width: window.innerWidth,
           first: isFirstVisit() ? 1 : 0,
+          // The browser's language, as the closest thing to a country this stack has:
+          // the server sits behind Caddy with no geo header, so every visitor is "??".
+          // A campaign aimed at Israel that brings mostly non-Hebrew browsers is a
+          // targeting problem, and this is the one field that shows it.
+          lang: browserLang(),
+          // the ad group (Google substitutes {adgroupid} into utm_content), so two
+          // audiences can be told apart without joining on the account row
+          content: (sp.get("utm_content") ?? "").slice(0, 60),
+          // an embedded in-app browser: Google sign-in refuses some of them outright,
+          // and Demand Gen serves inside exactly those apps
+          webview: inAppBrowser() ? 1 : 0,
         },
       });
       const q = sp.get("q")?.trim();

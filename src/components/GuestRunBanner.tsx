@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { money } from "@/lib/format";
 import {
   GUEST_LIMIT,
   guestAnswersLeft,
+  guestPayoutEstimate,
+  guestResolvingSoon,
   readGuestAnswers,
   serverGuestAnswers,
   subscribeGuestAnswers,
@@ -43,6 +46,29 @@ import {
 export function GuestRunBanner() {
   const answers = useSyncExternalStore(subscribeGuestAnswers, readGuestAnswers, serverGuestAnswers);
   const left = guestAnswersLeft(answers);
+  /*
+    What the row says once there is something to say.
+
+    It used to count down ("נשארו לכם 8 תשובות בלי חשבון"), which describes the account
+    as the end of a meter. A stranger has no reason to want a meter refilled; what the
+    saved answers are *worth* is the argument — how many are decided within two days
+    (the question a prediction game can answer that a quiz cannot: you will know soon),
+    or failing that, what they pay if right. The countdown stays for the last three, so
+    the wall is still never a surprise.
+  */
+  const soon = guestResolvingSoon(answers);
+  const payout = guestPayoutEstimate(answers);
+  const n = answers.length;
+  // The row beside "הרשמה חינם ←" is 216px at 360, 231px at 375 — about 30 characters
+  // of 13px Heebo, measured. Every variant below fits that; the value clause is the
+  // part that must never be the part that truncates. "נסגרות", not "מוכרעות": the
+  // close is what the card knows; the verdict follows it, and not always within a day.
+  const value =
+    soon > 0
+      ? n === 1
+        ? "נסגרת תוך יומיים"
+        : `${soon === 1 ? "אחת נסגרת" : `${soon} נסגרות`} תוך יומיים`
+      : `≈${money(payout)} אם צדקתם`;
 
   return (
     <Link
@@ -51,14 +77,18 @@ export function GuestRunBanner() {
       className="tap flex shrink-0 items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-3 text-[13px] leading-snug text-text hover:bg-accent/15 tiny:hidden sm:text-sm"
     >
       <span className="min-w-0 flex-1 truncate">
-        {answers.length === 0 ? (
-          <>{GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות</>
-        ) : left > 0 ? (
+        {n === 0 ? (
+          <>{GUEST_LIMIT} תשובות בלי חשבון · נשמרות לכם</>
+        ) : n === 1 ? (
+          <>תשובה אחת שמורה · {value}</>
+        ) : left > 3 || left === 0 ? (
           <>
-            נשארו לכם <strong className="tabular">{left}</strong> {left === 1 ? "תשובה" : "תשובות"} בלי חשבון — הכול נשמר
+            <strong className="tabular">{n}</strong> שמורות · {value}
           </>
         ) : (
-          <>הכול נשמר לכם</>
+          <>
+            עוד <strong className="tabular">{left}</strong> חינם · {value}
+          </>
         )}
         <span className="hidden lg:inline">, וההרשמה מכניסה אותן לניקוד ופותחת את הלוח כולו, טבלת מובילים וליגות עם חברים</span>
       </span>

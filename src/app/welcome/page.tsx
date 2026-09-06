@@ -9,9 +9,15 @@ import { redirect } from "next/navigation";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { daysUntil, money } from "@/lib/format";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
+import { headers } from "next/headers";
+import { recordEvents, requestContext } from "@/lib/analytics";
+import { EVENTS } from "@/lib/events";
 import { shareCard } from "@/lib/seo";
 import { displayOpenCount } from "@/lib/display-stats";
 import { GUEST_LIMIT } from "@/lib/rapid-guest";
+import { BoltIcon } from "@/components/BoltIcon";
+import { WELCOME_SOON_HOURS, pickWelcomeQuestions } from "@/lib/welcome-pick";
+import type { MarketView } from "@/lib/markets";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +27,21 @@ export const dynamic = "force-dynamic";
  * Deliberately not in the sitemap and marked noindex: it is a variant of the
  * home page that exists to be linked from an ad, and letting Google index both
  * would split the ranking of the real one.
+ *
+ * What the page is shaped around, in one sentence: the ad shows a question card
+ * with a green כן and a red לא, so the first thing on the screen after the click
+ * is that card, live, and it answers back when tapped.
+ *
+ * Measured on the version this replaces (390×664 viewport, the campaign's own
+ * traffic 89% bounce with 34s on page): the first thing a visitor could answer sat
+ * at y=918, below a login button, a disclosure pill, a three-line headline, a
+ * countdown, a paragraph repeating the disclosure, and a CTA. "נקודות משחק בלבד"
+ * appeared four times on the page. People read it — 34 seconds is reading — and
+ * left without touching anything: 4 card taps out of 70 visitors, and the CTA
+ * buttons carried no click id at all, so nobody could tell whether they were
+ * tapped. Now the disclosure appears once above the fold (the ad reviewer's
+ * requirement is that it be visible, not that it be repeated), and the card is
+ * the second thing on the page.
  */
 const DESCRIPTION = "משחק ידע חינמי על הפוליטיקה הישראלית — בנקודות משחק בלבד. אין כסף אמיתי, אין פרסים ואין תשלום.";
 
@@ -54,17 +75,64 @@ const LOGIN = "/login?callbackUrl=%2Frapid";
  */
 const MIN_QUESTIONS_TO_QUOTE = 40;
 
-export default async function WelcomePage() {
-  const session = await auth();
+/** how many live cards the page carries: one in the hero, the rest under it */
+const CARDS = 3;
+
+type Search = { utm_source?: string; utm_medium?: string; utm_campaign?: string; utm_content?: string; gclid?: string; gbraid?: string; wbraid?: string };
+
+/**
+ * The click, counted on the server.
+ *
+ * The browser's pageview is sent from an effect after hydration, so an ad tap
+ * abandoned before the JavaScript ran — on a mid-range phone over cellular that is
+ * a two-second window, and a content blocker that swallows the collector makes it
+ * permanent — never existed in the log. This row is written while the page is
+ * rendered, from the same request headers the collector would have hashed, so the
+ * paid funnel can print landings next to measured sessions and the gap between
+ * them is the loss nothing else can see. No session id: none exists yet.
+ */
+async function recordLanding(sp: Search) {
+  const paid = Boolean(sp.utm_medium || sp.gclid || sp.gbraid || sp.wbraid);
+  if (!paid) return;
+  try {
+    const ctx = requestContext(new Request("http://internal/welcome", { headers: await headers() }));
+    await recordEvents(
+      [
+        {
+          name: EVENTS.landing,
+          path: "/welcome",
+          source: sp.utm_source ?? "google",
+          medium: sp.utm_medium ?? "cpc",
+          campaign: sp.utm_campaign ?? "",
+          props: { content: (sp.utm_content ?? "").slice(0, 60) },
+        },
+      ],
+      ctx,
+    );
+  } catch {
+    // measurement must never fail the page
+  }
+}
+
+export default async function WelcomePage({ searchParams }: { searchParams: Promise<Search> }) {
+  const [session, sp] = await Promise.all([auth(), searchParams]);
   // someone who already has an account does not need the pitch
   if (session?.user) redirect("/rapid");
+  await recordLanding(sp);
 
   await ensureSynced();
-  const [markets, counts] = await Promise.all([
-    listMarkets({ status: "open", sort: "trending", limit: 3 }),
+  const [trending, closingSoon, counts] = await Promise.all([
+    listMarkets({ status: "open", sort: "trending", limit: CARDS + 1 }),
+    // the hero card's own pool: what is decided within the window, soonest first —
+    // see src/lib/welcome-pick.ts for why the page no longer opens with "trending"
+    listMarkets({ status: "open", sort: "closing", closingWithinHours: WELCOME_SOON_HOURS, limit: 24 }),
     getCategoryCounts("open"),
   ]);
-  const questions: WelcomeQuestion[] = markets.slice(0, 3).map((m) => {
+  const byId = new Map<string, MarketView>([...trending, ...closingSoon].map((m) => [m.id, m]));
+  const candidate = (m: MarketView) => ({ id: m.id, title: m.title, probability: m.probability, closesAt: m.closesAt.getTime() });
+  const picked = pickWelcomeQuestions(closingSoon.map(candidate), trending.map(candidate), { count: CARDS });
+  const chosen = [picked.hero, ...picked.rest].flatMap((c) => (c && byId.has(c.id) ? [byId.get(c.id)!] : []));
+  const questions: WelcomeQuestion[] = chosen.map((m) => {
     const cat = getCategory(m.category);
     return {
       id: m.id,
@@ -79,18 +147,28 @@ export default async function WelcomePage() {
       categoryLabel: m.categoryLabel,
       categoryAccent: cat.accent,
       categoryAccentDark: cat.accentDark,
+      closesAt: m.closesAt.getTime(),
     };
   });
+  const [first, ...rest] = questions;
   // the same number the home page and the category filter print — see displayOpenCount
   const openCount = displayOpenCount(counts.all ?? 0);
   const days = daysUntil(`${ELECTION_DATE}T00:00:00+03:00`);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 sm:space-y-12">
-      <section className="hero-dark -mx-3 rounded-none px-5 py-9 text-white sm:mx-0 sm:rounded-card sm:px-10 sm:py-14">
-        {/* The disclosure sits above the headline on purpose: it is the first thing
-            an ad reviewer looks for, and the first thing a sceptical visitor asks. */}
-        <p className="inline-flex flex-wrap items-center gap-x-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold sm:text-sm">
+    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-10">
+      {/*
+        The hero is the ad, continued: the pitch line above a live question card, on
+        the same dark ground the creatives use. Everything that used to sit between
+        the headline and the first card — the countdown, a paragraph, a CTA button, a
+        sub-line about registration — now comes after the card or not at all. On a
+        390×664 phone the two answer buttons land around y≈430, inside the first screen.
+      */}
+      <section className="hero-dark -mx-3 rounded-none px-4 pb-5 pt-5 text-white sm:mx-0 sm:rounded-card sm:px-10 sm:pb-10 sm:pt-8">
+        {/* The disclosure stays above the headline: it is the first thing an ad
+            reviewer looks for and the first thing a sceptical visitor asks. Once,
+            on one line — the page below no longer repeats it. */}
+        <p className="inline-flex flex-wrap items-center gap-x-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[12px] font-semibold leading-tight sm:text-sm">
           <span>נקודות משחק בלבד</span>
           <span aria-hidden className="text-white/60">·</span>
           <span>אין כסף אמיתי</span>
@@ -98,42 +176,57 @@ export default async function WelcomePage() {
           <span>אין פרסים ואין תשלום</span>
         </p>
 
-        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">
-          משחק ידע חינם:
-          <br />
-          כמה טוב אתם מכירים את הפוליטיקה הישראלית?
+        {/* The headline is the one Google's asset review let through (commits 9d2fc29,
+            d96d127, ded7faf): a question about knowledge. Three framings were rejected
+            asset by asset and must stay off this page — the outcome of a future event
+            ("מה יקרה"), an opening balance, and yes/no about what will happen. */}
+        <h1 className="mt-3 text-[26px] font-black leading-tight sm:text-5xl">
+          משחק ידע חינם: כמה טוב אתם מכירים את הפוליטיקה הישראלית?
         </h1>
-        {/* The one piece of urgency on this page that is not invented: there is a real
-            election on a real date. It used to sit in small grey type halfway down the
-            page; next to the headline it is the reason to answer today. */}
-        {days > 0 && (
-          <p className="mt-3 inline-flex items-baseline gap-2 text-white/90">
-            <span className="tabular text-2xl font-black text-white sm:text-3xl">{days}</span>
-            <span className="text-sm font-semibold sm:text-base">ימים ליום הבחירות</span>
-          </p>
-        )}
-        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-lg">
-          {SITE_NAME} הוא משחק ידע על הפוליטיקה הישראלית — בנקודות משחק בלבד. אין כסף אמיתי, אין פרסים
-          ואין תשלום. עונים על שאלות, צוברים נקודות על תשובות נכונות, ומגלים אם קראתם את המפה טוב יותר מכולם.
+        {/* one line, and it is an instruction rather than a description: the card
+            under it is the thing to do, and this line says what the tap produces.
+            "איפה הלוח עומד", not "מה השחקנים חושבים": on a question nobody has
+            answered yet the meter is the board's opening estimate. */}
+        <p className="mt-2 text-[15px] leading-snug text-white/85 sm:mt-3 sm:text-lg">
+          ענו כן או לא — בלי הרשמה. המד מראה איפה הלוח עומד עכשיו, ותכף תראו כמה נקודות תקבלו אם צדקתם.
         </p>
 
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+        {first ? (
+          <div className="mt-4 sm:mt-6 sm:max-w-md">
+            {/* A real, current question that answers back — a static card is a
+                screenshot, a card that responds is a demonstration. The answer starts
+                the free run and hands over to the deck (see WelcomeQuestions). */}
+            <WelcomeQuestions questions={[first]} variant="hero" />
+          </div>
+        ) : (
           <Link
             href={CTA}
-            className="tap pressable inline-flex items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-extrabold text-brand-deep shadow-lg hover:bg-white/90 sm:text-lg"
+            data-evt="welcome-start"
+            className="tap pressable mt-5 inline-flex items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-extrabold text-brand-deep shadow-lg hover:bg-white/90 sm:text-lg"
           >
             להתחיל לשחק — בלי הרשמה
           </Link>
-          <p className="text-sm text-white/70">
-            {GUEST_LIMIT} שאלות בלי חשבון. אחר כך הרשמה חינם בלחיצה אחת עם Google — בלי אשראי, בלי טופס.
-          </p>
-        </div>
+        )}
+
+        {/* no opening balance here on purpose — it is one of the patterns the ad review
+            rejected on this page; the sign-in screen says it, where it is true */}
+        <p className="mt-3 text-[13px] text-white/70 sm:text-sm">
+          {GUEST_LIMIT} שאלות בלי חשבון, והתשובות נשמרות
+          {days > 0 && (
+            <>
+              {" · "}
+              <span className="tabular font-bold text-white">{days}</span> ימים לבחירות
+            </>
+          )}
+        </p>
       </section>
 
-      {questions.length > 0 && (
+      {rest.length > 0 && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענו עכשיו — בלי חשבון</h2>
+            <h2 className="text-lg font-black text-text-strong sm:text-2xl">
+              {rest.length === 1 ? "עוד שאלה פתוחה" : "עוד שתי שאלות פתוחות"}
+            </h2>
             {/* A new Israeli site asking for a Google account meets a wall of distrust, and
                 one honest number is the cheapest answer to it — but only while it is a
                 number worth quoting. See MIN_QUESTIONS_TO_QUOTE. */}
@@ -143,23 +236,32 @@ export default async function WelcomePage() {
               </p>
             )}
           </div>
-          <p className="text-sm leading-relaxed text-muted">
-            שאלות אמיתיות מהלוח, עם מד הביטחון של השחקנים בהן ברגע זה. {GUEST_LIMIT} התשובות הראשונות הן בלי חשבון
-            בכלל — נשמור לכם אותן, וכל אחת הופכת לתשובה שנספרת בניקוד, ב-{money(RAPID_DEFAULT_STAKE)}, ברגע
-            שנרשמים. ההרשמה חינם ובלחיצה אחת, והיא פותחת את כל הלוח, טבלת מובילים וליגות עם חברים.
-          </p>
-          {/* Real, current markets that answer back — a static card is a screenshot,
-              a card that responds is a demonstration. */}
-          <WelcomeQuestions questions={questions} />
+          <WelcomeQuestions questions={rest} />
         </section>
       )}
 
+      {/* The way into the rest of the board, for someone who scrolled past the cards
+          without tapping: the same destination the cards hand over to. */}
+      <section className="text-center">
+        <Link
+          href={CTA}
+          data-evt="welcome-start"
+          className="tap pressable inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-7 py-3.5 text-base font-extrabold text-white shadow-md shadow-accent/25 hover:bg-accent-2 sm:text-lg"
+        >
+          <BoltIcon size={16} />
+          לשאלה הבאה
+        </Link>
+        <p className="mt-2 text-sm text-muted">
+          שאלה אחרי שאלה. {GUEST_LIMIT} הראשונות בלי חשבון; אחר כך הרשמה חינם, בלחיצה אחת עם Google.
+        </p>
+      </section>
+
       <section className="grid gap-3 sm:grid-cols-3">
-        <Step n="1" title="עונים על שאלה">
-          בוחרים שאלה מהלוח ועונים. כל תשובה עולה נקודות משחק, לפי כמה היא בטוחה.
+        <Step n="1" title="עונים כן או לא">
+          על כל תשובה שמים {money(RAPID_DEFAULT_STAKE)} נקודות משחק, ומקבלים יותר אם צדקתם.
         </Step>
-        <Step n="2" title="המד זז">
-          תשובה זולה שווה יותר נקודות אם צדקתם. ככל שפחות שחקנים בחרו את הצד שלכם — כך המד נמוך יותר והתשובה משתלמת יותר.
+        <Step n="2" title="פחות מסכימים איתכם = יותר נקודות">
+          המד מראה כמה מהשחקנים בצד שלכם. ככל שהוא נמוך יותר, תשובה נכונה שווה יותר.
         </Step>
         <Step n="3" title="עולים בטבלה">
           {SITE_TEAM} מכריע כל שאלה לפי מקורות פומביים, והניקוד שלכם מתעדכן.
@@ -168,37 +270,38 @@ export default async function WelcomePage() {
 
       <section className="card space-y-3 p-5 text-[15px] leading-relaxed text-text sm:p-6">
         <h2 className="text-lg font-bold text-text-strong">רגע, משחקים כאן על כסף?</h2>
+        {/* the answer without the vocabulary of the thing being denied: no deposits,
+            withdrawals or credit cards in a paragraph whose point is that none exist */}
         <p>
-          לא. הניקוד באתר הוא נקודות משחק בלבד ואין לו שום שווי — אין מה להפקיד, אין מה למשוך, ואין פרס למי שמנצח.
-          זה משחק ידע על פוליטיקה: עונים כן או לא, וצוברים נקודות אם צדקתם. השימוש מגיל 18 ומעלה.
+          לא. הנקודות הן ניקוד במשחק, כמו בטריוויה — אי אפשר לקנות אותן, אי אפשר לפדות אותן, ואין פרסים. עונים כן או
+          לא, וצוברים נקודות אם צדקתם.
         </p>
         <p className="text-sm text-muted">
-          <Link href="/about" className="text-accent hover:underline">איך זה עובד</Link>
+          <Link href="/about" data-evt="welcome-how" className="text-accent hover:underline">איך זה עובד</Link>
           {" · "}
           <Link href="/privacy" className="text-accent hover:underline">מדיניות פרטיות</Link>
           {" · "}
           <Link href="/terms" className="text-accent hover:underline">תנאי שימוש</Link>
+          {" · "}
+          <span>מגיל 18</span>
         </p>
       </section>
 
       <section className="pb-4 text-center">
         <Link
           href={CTA}
-          className="tap pressable inline-flex items-center justify-center rounded-xl bg-accent px-8 py-4 text-base font-extrabold text-white hover:bg-accent-2 sm:text-lg"
+          data-evt="welcome-start-end"
+          className="tap pressable inline-flex items-center justify-center rounded-xl border border-border-2 px-7 py-3.5 text-base font-bold text-text-strong hover:bg-surface-2"
         >
-          לבדוק כמה אתם מכירים — בלי הרשמה
+          לבדוק כמה אתם מכירים
         </Link>
-        <p className="mt-2.5 text-sm text-muted">
-          {GUEST_LIMIT} תשובות בלי חשבון, והן נשמרות. ההרשמה עצמה חינם ובלחיצה אחת, ופותחת את כל הלוח, טבלת
-          המובילים וליגות עם חברים.
-        </p>
         {/* The whole page is written at someone who has never been here, and everything
-            on it now leads into the free run. Somebody who already has an account is not
+            on it leads into the free run. Somebody who already has an account is not
             being pitched — they are signed out on this browser, and the run they are
             being offered is one they have already had. */}
-        <p className="mt-2 text-sm text-muted-2">
+        <p className="mt-3 text-sm text-muted-2">
           כבר יש לכם חשבון?{" "}
-          <Link href={LOGIN} className="font-semibold text-accent hover:underline">
+          <Link href={LOGIN} data-evt="welcome-login" className="font-semibold text-accent hover:underline">
             התחברות
           </Link>
         </p>

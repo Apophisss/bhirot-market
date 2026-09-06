@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { auth, currentUser } from "@/lib/auth";
+import { auth, currentUser, googleEnabled } from "@/lib/auth";
+import { GUEST_LIMIT } from "@/lib/rapid-guest";
 import { SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { shareCard } from "@/lib/seo";
 import { ensureSynced } from "@/lib/sync";
@@ -64,7 +65,11 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   const includeAnswered = sp.all != null ? sp.all === "1" : settings.rapidIncludeAnswered;
 
   const [cards, askSurvey] = await Promise.all([
-    listRapidCards({ userId: user?.id ?? null, category, sort, includeAnswered }),
+    // A guest can answer GUEST_LIMIT cards and pays, on a phone, for every card the
+    // page ships twice (markup and RSC payload): sixty cards were 548KB of HTML to
+    // parse and hydrate before the first tap. A short deck for the free run, with a
+    // few spare for skips; the wall comes long before the end of it.
+    listRapidCards({ userId: user?.id ?? null, category, sort, includeAnswered, limit: loggedIn ? undefined : GUEST_LIMIT + 6 }),
     // סדר החפיסה כאן הוא בדיוק מה שהשאלון קובע, ולכן זה המקום להציע אותו למי שעדיין לא ענה
     shouldOfferSurvey(session?.user?.id),
   ]);
@@ -143,25 +148,32 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
               <span aria-hidden className="text-muted-2">✕</span>
             </Link>
           )}
-          {RAPID_SORTS.map((s) => (
-            <Link
-              key={s.id}
-              href={link({ sort: s.id })}
-              className={`tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
-            >
-              {s.label}
-            </Link>
-          ))}
+          {/* The sorts and the "seen" switch are a player's controls: they are saved to
+              the account and shape a deck the account has history in. A guest's deck is
+              the board's recommended order, and a stranger's first minute has five
+              fewer links to wander off through. */}
+          {loggedIn &&
+            RAPID_SORTS.map((s) => (
+              <Link
+                key={s.id}
+                href={link({ sort: s.id })}
+                className={`tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold ${sort === s.id ? "bg-surface-2 text-text-strong" : "text-muted hover:text-text"}`}
+              >
+                {s.label}
+              </Link>
+            ))}
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <Link
-            href={link({ all: includeAnswered ? "0" : "1" })}
-            className={`tap inline-flex shrink-0 items-center rounded-lg border px-2.5 font-semibold ${
-              includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
-            }`}
-          >
-            כולל שאלות שכבר ראיתי
-          </Link>
+          {loggedIn && (
+            <Link
+              href={link({ all: includeAnswered ? "0" : "1" })}
+              className={`tap inline-flex shrink-0 items-center rounded-lg border px-2.5 font-semibold ${
+                includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
+              }`}
+            >
+              כולל שאלות שכבר ראיתי
+            </Link>
+          )}
           <Link href="/" className="tap inline-flex shrink-0 items-center rounded-lg px-2.5 font-semibold text-muted hover:text-text">
             לרשימה המלאה
           </Link>
@@ -198,6 +210,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         balance={user?.balance ?? null}
         savedStake={loggedIn ? settings.rapidStake : null}
         includeAnswered={includeAnswered}
+        googleEnabled={googleEnabled}
       >
         <EmptyFeed
           includeAnswered={includeAnswered}

@@ -18,7 +18,12 @@ import {
   getFunnel,
   getHourHistogram,
   getIssues,
+  getLandingEngagement,
   getMarketMetrics,
+  getPaidAdGroups,
+  getPaidCampaigns,
+  getPaidFunnel,
+  getPaidLanguages,
   getRetention,
   getSearchTerms,
   getSlowPages,
@@ -41,6 +46,7 @@ function guide(days: number) {
     howToUse: [
       "התחילו מ-issues: זו רשימת הבעיות שהאתר זיהה על עצמו, ממוינת לפי חומרה, עם רמז לאיפה בקוד לתקן.",
       "אחר כך funnel: איפה נופלים המשתמשים בין כניסה לאתר לבין עסקה ראשונה.",
+      "paid הוא המשפך של מי שהגיע מקמפיין ממומן (utm), סשן אחרי סשן: נחיתה → לחיצה → חפיסה → תשובה כאורח → מסך התחברות → חשבון → עסקה. השלב שבו המספר נופל לאפס הוא המקום לתקן. paid.languages היא שפת הדפדפן — התחליף היחיד למדינה, כי אין כותרת גיאוגרפית מאחורי השרת.",
       "markets.byMarket מראה אילו שאלות מושכות צפיות אך לא עסקאות — זה בדרך כלל בעיה בניסוח השאלה או בתמחור.",
       "performance מכיל Core Web Vitals אמיתיים מהשדה; מעל 2500ms ב-LCP p75 שווה עבודה.",
       "הציעו שינויים קונקרטיים בקבצים שמופיעים ב-repoMap, והסבירו כל שינוי במונחי המדד שהוא אמור להזיז.",
@@ -50,6 +56,8 @@ function guide(days: number) {
       sessions: "ביקור בטאב אחד (sessionStorage).",
       bounceRate: "אחוז הסשנים עם צפייה בעמוד אחד בלבד.",
       conversion: "בשוק: סוחרים ייחודיים חלקי מבקרים ייחודיים בעמוד השוק.",
+      paidSession: "סשן שהצפייה הראשונה בו נשאה utm_medium או gclid (קליק על מודעה). ששת השלבים הראשונים ב-paid.funnel נספרים בסשנים; ״נרשמו״ ו״ביצעו עסקה״ נספרים בחשבונות שעליהם נשמר שיוך לקמפיין בעת ההרשמה, ולכן אין להם אחוז מהשלב הקודם. paid.landings = קליקים שהשרת ראה נוחתים על /welcome, לפני JavaScript; ההפרש מהשלב הראשון הוא מי שעזב לפני שהמדידה רצה.",
+      landing: "paid.landing — מה מבקרי הקמפיין עשו בדף הנחיתה: חציון שניות (לא ממוצע), חלוקה לרצועות זמן, ועומק הגלילה — גם אצל מי שלא נגע בכלום, כדי לדעת אם הכרטיס בכלל היה על המסך.",
       brierInitial:
         "ציון בְּרַייר של המחיר ההתחלתי של שאלות שהוכרעו (0 = חיזוי מושלם, 0.25 = מטבע). מודד עד כמה המחיר הפותח של צוות המערכת מדויק.",
       brierFinal: "ציון ברייר של המחיר האחרון לפני ההכרעה — מודד את חוכמת ההמון באתר.",
@@ -104,6 +112,11 @@ export async function buildBundle(opts: BundleOptions = {}) {
     clicks,
     searches,
     funnel,
+    paidFunnel,
+    paidCampaigns,
+    paidAdGroups,
+    paidLanguages,
+    landing,
     markets,
     categories,
     calibration,
@@ -131,6 +144,11 @@ export async function buildBundle(opts: BundleOptions = {}) {
     getClickTotals(r, 40),
     getSearchTerms(r, 40),
     getFunnel(r),
+    getPaidFunnel(r),
+    getPaidCampaigns(r, 25),
+    getPaidAdGroups(r, 25),
+    getPaidLanguages(r, 10),
+    getLandingEngagement(r),
     getMarketMetrics(r, { limit: marketLimit }),
     getCategoryMetrics(r),
     getCalibration(),
@@ -143,7 +161,8 @@ export async function buildBundle(opts: BundleOptions = {}) {
     getSlowPages(r, 15),
     getClientErrors(r, 25),
     getAgentRuns(30),
-    getIssues(r),
+    // the issue rules read the paid funnel too; computed once above, handed in here
+    getPaidFunnel(r).then((paid) => getIssues(r, { paid })),
     analyticsSize(),
   ]);
 
@@ -184,6 +203,15 @@ export async function buildBundle(opts: BundleOptions = {}) {
       resolvedMarkets: contentHealth.resolved,
     },
     funnel,
+    paid: {
+      funnel: paidFunnel.stages,
+      visitors: paidFunnel.visitors,
+      landings: paidFunnel.landings,
+      byCampaign: paidCampaigns,
+      byAdGroup: paidAdGroups,
+      languages: paidLanguages,
+      landing,
+    },
     traffic: {
       daily: dailyTraffic,
       pages,
@@ -269,10 +297,55 @@ export function bundleToMarkdown(b: Bundle): string {
   out.push(
     table(
       ["שלב", "כמות", "המרה מהשלב הקודם"],
-      b.funnel.map((f) => [f.label, n(f.count), p(f.rate)]),
+      b.funnel.map((f) => [f.label, n(f.count), f.rate == null ? "—" : p(f.rate)]),
     ),
     "",
   );
+
+  out.push("## משפך התנועה בתשלום (קמפיינים)", "");
+  out.push(
+    `${n(b.paid.landings)} נחיתות מקליק נרשמו בשרת · ${n(b.paid.visitors)} מבקרים ייחודיים מקמפיין נמדדו בדפדפן. ששת השלבים הראשונים בסשנים, השניים האחרונים בחשבונות עם שיוך לקמפיין.`,
+    "",
+  );
+  out.push(
+    table(
+      ["שלב", "כמות", "המרה מהשלב הקודם"],
+      b.paid.funnel.map((f) => [f.label, n(f.count), f.rate == null ? "—" : p(f.rate)]),
+    ),
+    "",
+  );
+  const L = b.paid.landing;
+  if (L.exits) {
+    out.push(
+      `דף הנחיתה, סשנים מקמפיין (${n(L.exits)} יציאות): חציון ${n(L.medianSeconds)} שנ׳ · עד 5 שנ׳ ${p(L.under5s)} · 5–15 ${p(L.under15s)} · 15–60 ${p(L.under60s)} · מעל דקה ${p(L.over60s)} · עומק גלילה ממוצע ${p(L.avgScroll)} (${p(L.avgScrollUntouched)} אצל מי שלא נגע בכלום)`,
+      "",
+    );
+  }
+  if (b.paid.byCampaign.length) {
+    out.push(
+      table(
+        ["קמפיין", "סשנים", "עמוד שני", "חפיסה", "ענו", "התחברות", "נרשמו", "סחרו"],
+        b.paid.byCampaign.map((c) => [c.key, n(c.sessions), n(c.engaged), n(c.deck), n(c.answered), n(c.login), n(c.signups), n(c.traders)]),
+      ),
+      "",
+    );
+  }
+  if (b.paid.byAdGroup.length) {
+    out.push(
+      table(
+        ["קמפיין / קבוצת מודעות (utm_content)", "סשנים", "עשו משהו", "חפיסה"],
+        b.paid.byAdGroup.map((g) => [g.key, n(g.sessions), n(g.touched), n(g.deck)]),
+      ),
+      "",
+    );
+  }
+  if (b.paid.languages.length) {
+    out.push(
+      "שפת הדפדפן של מבקרי הקמפיין (התחליף למדינה): " +
+        b.paid.languages.map((l) => `${l.key} ${n(l.visitors)}`).join(" · "),
+      "",
+    );
+  }
 
   out.push("## עמודים מובילים", "");
   out.push(

@@ -7,7 +7,6 @@ import { Footer } from "@/components/Footer";
 import { Analytics } from "@/components/Analytics";
 import { JsonLd } from "@/components/JsonLd";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
-import { AdConversions } from "@/components/AdConversions";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "@/lib/config";
 import { siteGraph } from "@/lib/seo";
@@ -110,7 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="mx-auto w-full max-w-7xl flex-1 px-3 pb-10 pt-3 sm:px-6 sm:pb-16 sm:pt-4">{children}</main>
         <Footer />
         <GoogleAnalytics />
-        <AdConversions />
+        {/* AdConversions is rendered by the header, which already knows who is signed in */}
         <ServiceWorker />
       </body>
     </html>

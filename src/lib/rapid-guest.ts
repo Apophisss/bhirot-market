@@ -78,6 +78,12 @@ export interface GuestAnswer {
    * which is what they were shown.
    */
   stake?: number;
+  /**
+   * When the question closes, epoch ms — so the screens that ask for the account can
+   * say the one thing a stranger actually wants to know: *when will I find out*.
+   * Optional because answers written by an earlier deck are still in browsers.
+   */
+  closesAt?: number;
   ts: number;
 }
 
@@ -89,8 +95,95 @@ function isAnswer(v: unknown): v is GuestAnswer {
       (a.side === "YES" || a.side === "NO") &&
       typeof a.priceAtAnswer === "number" &&
       (a.stake === undefined || typeof a.stake === "number") &&
+      (a.closesAt === undefined || typeof a.closesAt === "number") &&
       typeof a.ts === "number",
   );
+}
+
+/* ------------------------------------------------------- what the run is worth --
+ * The free run used to be described to the visitor only as a count running out
+ * ("נשארו לכם 8 תשובות"). A count is a limit; what makes an account worth one tap
+ * is what the answers already given would pay and how soon the visitor would know.
+ * Both are derived here from what the browser holds, so every screen that raises the
+ * ask (the deck banner, the wall, the sign-in recap) quotes the same two numbers.
+ */
+
+/** The stake an old answer, written before stakes were stored, is redeemed at. */
+export const GUEST_LEGACY_STAKE = 20;
+
+/**
+ * Roughly what the saved answers pay if every one of them is right, in points.
+ *
+ * An estimate on purpose: a binary share bought at price p pays 1 per share, so
+ * `stake / p` shares — the same arithmetic the deck's own payout line uses before
+ * the market maker moves. The real position is quoted again by the server at
+ * redemption, which is why every screen prints it with "≈".
+ */
+/**
+ * How much one answer may contribute to the headline, as a multiple of its stake.
+ * A tap on a 2% side is worth fifty times the stake on paper; one such tap would
+ * dominate the estimate and turn an honest "≈" into a lottery figure.
+ */
+export const GUEST_PAYOUT_CAP = 8;
+
+export function guestPayoutEstimate(answers: GuestAnswer[]): number {
+  let total = 0;
+  for (const a of answers) {
+    const stake = a.stake ?? GUEST_LEGACY_STAKE;
+    const p = Math.min(0.99, Math.max(0.01, a.priceAtAnswer));
+    total += Math.min(stake / p, stake * GUEST_PAYOUT_CAP);
+  }
+  return Math.round(total);
+}
+
+/* ---------------------------------------------------------------- the soft ask --
+ * The wall at `GUEST_LIMIT` was the only ask a guest ever met, and the campaign's own
+ * numbers said nobody reached it. So there is an earlier, softer one: after
+ * `GUEST_SOFT_ASK` answers a sheet slides up over the deck with what the answers are
+ * worth and the Google button itself — dismissible, once per browser. The wall stays
+ * where it was; this is not a shorter free run, it is the ask arriving where the
+ * players actually are.
+ */
+export const GUEST_SOFT_ASK = 3;
+
+const SOFT_ASK_KEY = "bhirot:rapid:softask";
+
+/** Has this browser already seen the soft ask? Storage that refuses reads as "yes" — an ask that cannot be remembered must not repeat every card. */
+export function softAskSeen(): boolean {
+  try {
+    return window.localStorage.getItem(SOFT_ASK_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+export function markSoftAskSeen(): void {
+  try {
+    window.localStorage.setItem(SOFT_ASK_KEY, "1");
+  } catch {
+    /* private mode: it will show once more next time, at most */
+  }
+}
+
+/** Test seam. */
+export function resetSoftAskSeen(): void {
+  try {
+    window.localStorage.removeItem(SOFT_ASK_KEY);
+  } catch {
+    /* nothing to forget */
+  }
+}
+
+/** The window in which "you will know soon" is true: a question that closes within it. */
+export const GUEST_SOON_MS = 48 * 60 * 60 * 1000;
+
+/** How many of the saved answers are decided within `GUEST_SOON_MS` of `now`. */
+export function guestResolvingSoon(answers: GuestAnswer[], now = Date.now()): number {
+  let n = 0;
+  for (const a of answers) {
+    if (typeof a.closesAt === "number" && a.closesAt > now && a.closesAt - now <= GUEST_SOON_MS) n++;
+  }
+  return n;
 }
 
 /* --------------------------------------------------------------- the store --

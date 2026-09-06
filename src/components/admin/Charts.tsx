@@ -95,7 +95,12 @@ export function BarSeries({ data, height = 120, unit = "" }: { data: Point[]; he
 }
 
 /** Funnel stages: bar width is the share of the first stage; the drop-off is spelled out. */
-export function Funnel({ stages }: { stages: { label: string; count: number; rate: number }[] }) {
+/**
+ * A stage whose `rate` is null is counted in a different unit from the one before it
+ * (the paid funnel switches from sessions to accounts), so no percentage is printed —
+ * "200% מהשלב הקודם" is what the arithmetic says and not what happened.
+ */
+export function Funnel({ stages }: { stages: { label: string; count: number; rate: number | null }[] }) {
   const top = stages[0]?.count || 1;
   if (!stages.length) return <Empty />;
   return (
@@ -106,7 +111,9 @@ export function Funnel({ stages }: { stages: { label: string; count: number; rat
             <span className="font-medium text-text">{s.label}</span>
             <span className="tabular text-muted">
               {fmt(s.count)}
-              {i > 0 && <span className={`ms-2 ${s.rate < 0.2 ? "text-no" : "text-muted-2"}`}>{fmt(s.rate * 100)}% מהשלב הקודם</span>}
+              {i > 0 && s.rate != null && (
+                <span className={`ms-2 ${s.rate < 0.2 ? "text-no" : "text-muted-2"}`}>{fmt(s.rate * 100)}% מהשלב הקודם</span>
+              )}
             </span>
           </div>
           <div className="h-2.5 overflow-hidden rounded-full bg-surface-2">
