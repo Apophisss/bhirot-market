@@ -1,18 +1,32 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CATEGORY_IDS } from "@/lib/categories";
 import { REFERRAL_COOKIE, REFERRAL_COOKIE_MAX_AGE, normalizeReferralCode } from "@/lib/referral";
+import { SHARE_REF } from "@/lib/share";
 import { AD_COOKIE, AD_COOKIE_MAX_AGE, AD_LANDING_COOKIE, readAdParams, serializeAdAttribution } from "@/lib/ad-attribution";
 
 /**
- * An invite link (`/i/<code>`) has to leave something behind: the visitor lands, reads the
- * offer, browses, and only signs up later — possibly after a round trip to Google. The
- * cookie stamped here is what `claimPendingReferral()` reads when the account is finally
+ * A referral has to leave something behind: the visitor lands, reads the offer,
+ * browses, and only signs up later — possibly after a round trip to Google. The cookie
+ * stamped here is what `claimPendingReferral()` reads when the account is finally
  * created. It is set in middleware rather than in the page because a Server Component
  * cannot write cookies, and a Route Handler would give the shared link no preview card.
+ *
+ * The code arrives one of two ways. An invite link carries it in the path (`/i/<code>`),
+ * which is all this used to handle; everywhere else it arrives as `?ref=<code>` — on a
+ * league invite, on a link someone pasted into a group, on any page at all. A code that
+ * only works on one route is a code that gets lost the moment anyone edits the link.
  */
-function stampInvite(req: NextRequest) {
-  const res = NextResponse.next();
-  const code = normalizeReferralCode(req.nextUrl.pathname.slice("/i/".length));
+function stampReferral(req: NextRequest, res: NextResponse): NextResponse {
+  const { pathname, searchParams } = req.nextUrl;
+  const raw = pathname.startsWith("/i/") ? pathname.slice("/i/".length) : searchParams.get("ref");
+  /*
+    `?ref=share` says "this link came out of the share button", not "credit this
+    player" — and `normalizeReferralCode()` would happily accept the word "share" as a
+    code and stamp a five-letter referral that belongs to nobody. The sentinel is
+    checked by name before anything else looks at the value.
+  */
+  if (raw === SHARE_REF) return res;
+  const code = normalizeReferralCode(raw);
   if (code) {
     res.cookies.set(REFERRAL_COOKIE, code, {
       httpOnly: true,
@@ -30,6 +44,12 @@ function stampInvite(req: NextRequest) {
  * /category/<id>. The redirect belongs here rather than in the page: the home
  * route streams behind a loading skeleton, so a redirect thrown while rendering
  * would only ever reach the crawler as a <meta refresh> instead of a 308.
+ *
+ * The home page only, and the check is on the path rather than on the matcher, which
+ * now covers the whole site: `?category=` is a *filter the home page no longer has*,
+ * and it is a perfectly ordinary parameter elsewhere. /rapid?category=<id> is the deck
+ * filtered to a category — the link behind "ענו ברצף" on every board — and while this
+ * ran on it, that link 308'd straight back to the grid the visitor was trying to leave.
  */
 function categoryRedirect(req: NextRequest) {
   const category = req.nextUrl.searchParams.get("category");
@@ -72,11 +92,20 @@ function stampAdClick(req: NextRequest, res: NextResponse): NextResponse {
 }
 
 export function middleware(req: NextRequest) {
-  const res = req.nextUrl.pathname.startsWith("/i/") ? stampInvite(req) : categoryRedirect(req);
+  const res = req.nextUrl.pathname === "/" ? categoryRedirect(req) : NextResponse.next();
   // a redirect drops the query, so the click has to be recorded before it leaves
-  return stampAdClick(req, res);
+  return stampAdClick(req, stampReferral(req, res));
 }
 
-// /welcome is the ad landing page and /rapid is where every button on it leads; both
-// are in the matcher so a click that lands on either is stamped
-export const config = { matcher: ["/", "/i/:code", "/welcome", "/rapid"] };
+/*
+  Every page on the site, because a link that carries who sent it can land anywhere.
+  The matcher used to name four routes — "/", "/i/<code>", "/welcome" and "/rapid" —
+  which meant a shared question, a league invite (/l/<code>) or an ad whose final URL
+  was a question page all arrived with nothing recorded. Both cookies are about where
+  the *visitor* came from, so the only paths worth excluding are the ones no visitor
+  ever lands on: /api/ (fetched by our own pages), Next's build output, and anything
+  with a file extension, which is a static asset — robots.txt, sitemap.xml, og.png.
+*/
+export const config = {
+  matcher: ["/((?!api/|_next/|.*\\.[^/]*$).*)"],
+};
