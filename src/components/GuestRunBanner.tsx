@@ -28,27 +28,45 @@ import {
  * one click, and it opens the rest of the game. A limit stated on its own reads as a
  * meter running out; stated next to what lifting it costs (nothing) it reads as an
  * offer.
+ *
+ * One row, and the row is the link. As a paragraph with a link inside it this was two
+ * lines of text plus the link's own 44px tap height — 78px measured on a 375px phone,
+ * out of the ~280px the deck had for the card underneath. Now the 44px it costs *is*
+ * the tap target, the sentence truncates instead of wrapping, and its tail (what the
+ * account opens) comes back from `lg`, where there is a line to say it on.
+ *
+ * Under 500px of viewport it steps aside altogether (`tiny:`): there the card has
+ * about 190px, every card in the deck already ends with "התשובות נשמרות · ההתחברות
+ * מכניסה אותן לניקוד", the header carries a התחברות button on every page, and the end
+ * of the free run puts this same offer up full-screen with the answers behind it.
  */
 export function GuestRunBanner() {
   const answers = useSyncExternalStore(subscribeGuestAnswers, readGuestAnswers, serverGuestAnswers);
   const left = guestAnswersLeft(answers);
 
   return (
-    <p className="shrink-0 rounded-xl border border-accent/40 bg-accent/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
-      {answers.length === 0 ? (
-        <>{GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות, ו</>
-      ) : left > 0 ? (
-        <>
-          נשארו לכם <strong className="tabular">{left}</strong> {left === 1 ? "תשובה" : "תשובות"} בלי חשבון —
-          הכול נשמר, ו
-        </>
-      ) : (
-        <>הכול נשמר לכם, ו</>
-      )}
-      <Link href="/login?callbackUrl=%2Frapid" className="inline-flex min-h-11 items-center font-bold text-accent-2 hover:underline">
-        הרשמה חינם בלחיצה אחת
-      </Link>{" "}
-      מכניסה אותן לניקוד ופותחת את הלוח כולו, טבלת מובילים וליגות עם חברים.
-    </p>
+    <Link
+      href="/login?callbackUrl=%2Frapid"
+      data-evt="rapid-guest-note"
+      className="tap flex shrink-0 items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-3 text-[13px] leading-snug text-text hover:bg-accent/15 tiny:hidden sm:text-sm"
+    >
+      <span className="min-w-0 flex-1 truncate">
+        {answers.length === 0 ? (
+          <>{GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות</>
+        ) : left > 0 ? (
+          <>
+            נשארו לכם <strong className="tabular">{left}</strong> {left === 1 ? "תשובה" : "תשובות"} בלי חשבון — הכול נשמר
+          </>
+        ) : (
+          <>הכול נשמר לכם</>
+        )}
+        <span className="hidden lg:inline">, וההרשמה מכניסה אותן לניקוד ופותחת את הלוח כולו, טבלת מובילים וליגות עם חברים</span>
+      </span>
+      {/* "בלחיצה אחת" is worth a third of a 375px row, and on that row it is competing
+          with the count that says why the offer is here at all */}
+      <span className="shrink-0 font-bold text-accent-2">
+        הרשמה חינם<span className="hidden sm:inline"> בלחיצה אחת</span> ←
+      </span>
+    </Link>
   );
 }

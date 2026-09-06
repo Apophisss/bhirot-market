@@ -50,9 +50,20 @@ export async function Header() {
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-bg/90 shadow-[0_1px_3px_rgba(10,16,32,0.05)] backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-6">
-          <Link href="/" className="tap flex shrink-0 items-center gap-2 sm:gap-2.5">
-            <Image src="/logo.svg" alt="" width={32} height={32} priority className="h-8 w-8 sm:h-9 sm:w-9" />
-            <span className="text-base font-extrabold tracking-tight text-text-strong sm:text-lg">{SITE_NAME}</span>
+          {/*
+            The wordmark gives way, and nothing else does.
+
+            The row is the logo, the search icon and — for a signed-in player — the score
+            chip and the profile menu. The last two are fixed-size, and with the logo
+            `shrink-0` too the row measured 364px on a 375px phone: the profile menu hung
+            2px off the edge at 375, 57px at 320 and 97px on a folded phone, where the
+            site is RTL so it hangs off *past the left edge* with no way to scroll to it.
+            The name is the one part of that row that can lose a few characters without
+            losing a function, so it is the part that truncates.
+          */}
+          <Link href="/" className="tap flex min-w-0 shrink items-center gap-2 sm:gap-2.5">
+            <Image src="/logo.svg" alt="" width={32} height={32} priority className="h-8 w-8 shrink-0 sm:h-9 sm:w-9" />
+            <span className="truncate text-base font-extrabold tracking-tight text-text-strong sm:text-lg">{SITE_NAME}</span>
             <span className="hidden rounded-full border border-border-2 bg-accent-soft px-2 py-0.5 text-[13px] font-semibold text-accent md:inline">
               בחירות 2026
             </span>

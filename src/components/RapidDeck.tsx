@@ -729,13 +729,14 @@ export function RapidDeck({
   if (!feed.length) return <>{children}</>;
 
   return (
-    // On a phone everything stacks. From lg the stake panel moves into a column of
-    // its own: a laptop window is wide and short, so the height it gives back is
-    // exactly what the card was missing.
-    <section className="relative flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5 lg:flex-row lg:items-stretch lg:gap-4">
+    // On a phone everything stacks. From lg — and on a phone held sideways, where height
+    // is the scarce thing (`flat:`) — the stake panel moves into a column of its own: a
+    // wide, short window gives back exactly the height the card was missing.
+    <section className="relative flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5 flat:flex-row flat:items-stretch flat:gap-2 lg:flex-row lg:items-stretch lg:gap-4">
       <div className="flex min-h-0 flex-1 flex-col gap-2 short:gap-1.5">
-        {/* On a short phone this row is the first thing to go: the tape below it already
-            shows where the run stands, and the balance moves into the stake strip. */}
+        {/* On a phone this row is the first thing to go: the tape below it already shows
+            where the run stands, and the counter and the balance move into the stake
+            strip, which is one line the card does not have to pay for twice. */}
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs short:hidden">
           <div className="flex items-center gap-2">
             <span className="tabular rounded-full border border-border bg-surface px-2.5 py-1 font-bold text-text-strong">
@@ -829,7 +830,7 @@ export function RapidDeck({
       {/* the free run is over, and the answers behind this are the argument */}
       {guestGate && <GuestGate answers={guestAnswers} />}
 
-      <aside className="scrollbar-none shrink-0 lg:w-72 lg:overflow-y-auto xl:w-80">
+      <aside className="scrollbar-none shrink-0 flat:w-56 flat:overflow-y-auto lg:w-72 lg:overflow-y-auto xl:w-80">
         <StakeBar
           stake={stake}
           onStake={setStake}
@@ -838,6 +839,7 @@ export function RapidDeck({
           outOfMoney={outOfMoney}
           showKeys={showKeys}
           dimmed={atSummary}
+          position={{ index: Math.min(index + 1, feed.length), total: feed.length }}
         />
       </aside>
     </section>
@@ -869,14 +871,25 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
   const rest = answers.length - listed.length;
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-bg/92 p-3 backdrop-blur-sm">
-      <div className="card max-h-full w-full max-w-md overflow-y-auto p-4 text-center sm:p-6">
-        <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענית על {answers.length} שאלות</h2>
-        <p className="mt-1.5 text-sm text-muted">
+      {/*
+        The middle scrolls, the heading and the button do not. On a 454px phone the whole
+        panel scrolled instead, which put the one button this screen exists for 216px
+        below the fold — a sign-in wall whose sign-in button is off screen. The answers
+        and the list of what an account opens are what give way.
+      */}
+      <div className="card flex max-h-full w-full max-w-md flex-col overflow-hidden p-4 text-center flat:p-3 sm:p-6">
+        <h2 className="shrink-0 text-xl font-black text-text-strong flat:text-lg sm:text-2xl">
+          ענית על {answers.length} שאלות
+        </h2>
+        {/* sideways there is room for the offer or for the answers behind it, and the
+            answers are the offer — the button says the rest */}
+        <p className="mt-1.5 shrink-0 text-sm text-muted flat:hidden">
           הרשמה חינם, בלחיצה אחת עם Google — התשובות שכבר נתתם נכנסות לניקוד, ואיתן{" "}
           {money(STARTING_BALANCE)} להמשך.
         </p>
 
-        <ul className="mt-4 space-y-1.5 text-right">
+        <div className="scrollbar-none mt-4 min-h-0 flex-1 overflow-y-auto flat:mt-2">
+        <ul className="space-y-1.5 text-right">
           {listed.map((a) => (
             <li key={a.marketSlug} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-2">
               <span className={`shrink-0 text-sm font-black ${a.side === "YES" ? "text-yes" : "text-no"}`}>
@@ -900,15 +913,18 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
           <li>לפתוח ליגה עם חברים ולראות מי מוביל</li>
           <li>לעקוב אחרי התיק שלכם — כמה שווה כל תשובה עכשיו</li>
         </ul>
+        </div>
 
         <Link
           href="/login?callbackUrl=%2Frapid"
           data-evt="rapid-guest-gate"
-          className="tap pressable mt-4 flex w-full items-center justify-center rounded-xl bg-accent px-5 text-base font-extrabold text-white shadow-md shadow-accent/25 hover:bg-accent-2"
+          className="tap pressable mt-4 flex w-full shrink-0 items-center justify-center rounded-xl bg-accent px-5 text-base font-extrabold text-white shadow-md shadow-accent/25 hover:bg-accent-2 flat:mt-2"
         >
           הרשמה חינם · והתשובות נשמרות
         </Link>
-        <p className="mt-2 text-[13px] text-muted-2">
+        {/* what signing up costs is part of the offer, so it stays on a phone; sideways
+            there is no line for it and the button above says the same "חינם" */}
+        <p className="mt-2 shrink-0 text-[13px] text-muted-2 flat:hidden">
           בלי אשראי ובלי טופס — שם, אימייל ותמונה מ-Google. התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
         </p>
       </div>
@@ -1033,9 +1049,12 @@ function UndoBar({
 
   const seconds = Math.ceil(left / 1000);
   return (
-    <div className="pb-safe pointer-events-none absolute inset-x-0 bottom-2 z-30 flex justify-center px-3 lg:bottom-3">
+    // Sideways the card is barely 160px tall and the bar would land on the answer
+    // buttons of the next question for the whole five seconds. There the stake panel
+    // has a column of its own with room under it, so the bar goes there instead.
+    <div className="pb-safe pointer-events-none absolute inset-x-0 bottom-2 z-30 flex justify-center px-3 flat:justify-end lg:bottom-3">
       <div
-        className={`slide-up flex max-w-md items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 shadow-lg shadow-ink/15 ${
+        className={`slide-up flex max-w-md items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 shadow-lg shadow-ink/15 flat:max-w-56 ${
           // once it is on its way out it stops taking taps: the answer is already going
           gone ? "pointer-events-none" : "pointer-events-auto"
         } ${dragging ? "cursor-grabbing select-none" : "cursor-grab"}`}
@@ -1085,7 +1104,10 @@ function RunTape({
   index: number;
 }) {
   return (
-    <div className="flex h-1.5 shrink-0 gap-px overflow-hidden rounded-full" aria-hidden>
+    // it costs 6px plus its gap, and on a phone held sideways those 12px are the
+    // difference between a question with two lines on screen and one with one. The
+    // stake strip beside the card carries "12/60" there.
+    <div className="flex h-1.5 shrink-0 gap-px overflow-hidden rounded-full flat:hidden" aria-hidden>
       {cards.map((c, i) => {
         const a = answers[c.id];
         const tone = a
@@ -1219,7 +1241,7 @@ function RapidCardView({
 
   return (
     <article
-      className={`card relative flex h-full flex-col overflow-hidden ${dragging ? "select-none" : ""}`}
+      className={`card rapid-card relative flex h-full flex-col overflow-hidden ${dragging ? "select-none" : ""}`}
       style={{
         transform: dx ? `translateX(${dx}px) rotate(${dx / 60}deg)` : undefined,
         transition: dragging || reduceMotion ? undefined : "transform 0.2s ease-out",
@@ -1271,12 +1293,18 @@ function RapidCardView({
         </div>
       )}
 
-      {/* Everything the card carries has to fit one screen: the question, its past and
-          the two answers. The meta row, the question and the price bar take exactly what
-          they need, and the chart takes whatever is left over — down to a floor it stays
-          readable at, below which the body scrolls rather than squeezing the curve flat. */}
-      <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 short:gap-2 short:p-3 sm:gap-3 sm:p-5">
-        <div className="flex shrink-0 flex-wrap items-center gap-2 text-[13px] text-muted">
+      {/* Everything the card carries has to fit the card: the question, its past and the
+          two answers. The meta row, the question and the price bar take exactly what they
+          need, and the chart takes whatever is left over. Below the heights the `card-*`
+          variants name, the parts that repeat what the answer buttons already say step
+          aside — in that order — so the question and the two answers are never the thing
+          that scrolls out of sight. */}
+      <div className="scrollbar-none flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 card-lean:gap-2 card-lean:p-3 card-min:gap-1.5 card-min:p-2 card-tall:gap-3 card-tall:p-5">
+        {/* One line, and nothing in it taller than the line: "פרטים" used to sit here with
+            a 44px tap target on it, which made the card's first row 44px tall on a phone
+            that had 200px to give. It now shares the action row at the bottom, where a
+            target that size already exists. */}
+        <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted">
           {previously && (
             <span
               className={`rounded-md px-1.5 py-0.5 font-semibold ${previously === "YES" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"}`}
@@ -1284,67 +1312,78 @@ function RapidCardView({
               ענית {previously === "YES" ? "כן" : "לא"} · אפשר לשנות
             </span>
           )}
+          {/* On the shortest card these two go and the row collapses to nothing, because
+              what they say is on the question's own page and what they are competing with
+              is the question. The badge above them stays: it is the only thing that says
+              this question already has an answer on it. */}
           <span
-            className="cat-chip rounded-md px-1.5 py-0.5 font-semibold"
+            className="cat-chip rounded-md px-1.5 py-0.5 font-semibold card-bare:hidden"
             style={{ "--cat": card.categoryAccent, "--cat-dark": card.categoryAccentDark } as CSSProperties}
           >
             {card.categoryLabel}
           </span>
-          <span>{closesLabel(card.closesAt)}</span>
+          <span className="card-bare:hidden">{closesLabel(card.closesAt)}</span>
           {/* The byline is on the question's own page, one tap away through "פרטים".
               At the 13px floor it was the word that tipped this row onto a second
               line, and the line it cost was the subtitle — the card's own context. */}
-          {card.byTeam && <span className="hidden text-muted-2 sm:inline">{SITE_TEAM}</span>}
-          <Link
-            href={`/market/${card.id}`}
-            target="_blank"
-            className="tap ms-auto inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 hover:text-text-strong"
-          >
-            פרטים
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M7 17 17 7M9 7h8v8" />
-            </svg>
-          </Link>
+          {card.byTeam && <span className="hidden text-muted-2 card-tall:inline">{SITE_TEAM}</span>}
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        {/* With the chart gone the leftover space would all pool between the question and
+            the gauge; split in two it centres the question in the card instead, which is
+            what a card with one question on it should look like. Both halves collapse to
+            nothing when the question is long enough to need the room. */}
+        <div className={`min-h-0 flex-1 ${card.spark ? "hidden card-tight:block" : ""}`} aria-hidden />
+
+        <div className="flex shrink-0 items-center gap-3 card-min:gap-2">
+          {/* the face is the first thing to go: on a card this short it competes with the
+              question for the width of the line, not only for its height */}
           <MarketImage
             src={card.image}
             fallback={card.fallbackImage}
             alt={card.personName ?? ""}
-            className="h-12 w-12 shrink-0 rounded-2xl border border-border object-cover sm:h-16 sm:w-16"
+            className="h-12 w-12 shrink-0 rounded-2xl border border-border object-cover card-tight:h-10 card-tight:w-10 card-min:hidden card-narrow:hidden card-tall:h-16 card-tall:w-16"
           />
           <div className="min-w-0">
-            <h2 className="text-lg font-extrabold leading-tight text-text-strong sm:text-2xl">{card.title}</h2>
+            {/* never clamped: a question that needs five lines gets five lines, and what
+                scrolls under it is the chart — never the question itself */}
+            <h2 className="text-lg font-extrabold leading-tight text-text-strong card-bare:text-base card-narrow:text-base card-tall:text-2xl">{card.title}</h2>
             {/* The subtitle is context, not the question: AGENT.md requires every title to
-                stand on its own, so on a short screen it is the line that gives way. */}
+                stand on its own, so on a short card it is the line that gives way. */}
             {card.subtitle && (
-              <p className="mt-1 line-clamp-2 text-xs text-muted short:hidden sm:text-sm">{card.subtitle}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-muted card-lean:hidden card-tall:text-sm">{card.subtitle}</p>
             )}
           </div>
         </div>
 
-        {card.spark ? (
-          <RapidSpark spark={card.spark} tradeCount={card.tradeCount} />
-        ) : (
-          /* a market with no drawable past keeps the question centred, as before */
-          <div className="min-h-0 flex-1" aria-hidden />
+        {/* The chart is the card's most expensive block and its least load-bearing: the
+            price it plots is printed on both answer buttons. Under `card-tight` it hands
+            its space back, and the empty stretch that takes its place keeps the question
+            and the gauge exactly where they were. */}
+        {card.spark && (
+          <div className="flex min-h-0 flex-1 flex-col card-tight:hidden">
+            <RapidSpark spark={card.spark} tradeCount={card.tradeCount} />
+          </div>
         )}
+        {/* a market with no drawable past keeps the question centred, as before */}
+        <div className={`min-h-0 flex-1 ${card.spark ? "hidden card-tight:block" : ""}`} aria-hidden />
 
-        <div className="shrink-0 space-y-1.5">
-          <div className="flex items-center justify-between text-xs">
+        <div data-gauge className="shrink-0 space-y-1.5 card-min:space-y-0">
+          {/* both percentages are printed on the buttons a thumb's width below, so on the
+              shortest card the gauge keeps only the picture */}
+          <div className="flex items-center justify-between text-xs card-min:hidden">
             <span className="tabular font-semibold text-yes">כן {pct(card.probability)}</span>
             <span className="text-muted-2">מד הביטחון כרגע</span>
             <span className="tabular font-semibold text-no">לא {pct(1 - card.probability)}</span>
           </div>
-          <div className="flex h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+          <div className="flex h-2 overflow-hidden rounded-full bg-surface-2 card-min:h-1.5" aria-hidden>
             <div className="bg-yes" style={{ width: `${card.probability * 100}%` }} />
             <div className="flex-1 bg-no" />
           </div>
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-border p-2.5 short:p-2 sm:p-4">
+      <div className="shrink-0 border-t border-border p-2.5 card-min:p-2 card-tall:p-4">
         <div className="grid grid-cols-2 gap-2">
           <AnswerButton
             side="YES"
@@ -1367,16 +1406,35 @@ function RapidCardView({
             onClick={() => onAnswer("NO")}
           />
         </div>
-        <div className="mt-1.5 flex items-center justify-between gap-2 text-[13px] text-muted-2 sm:mt-2">
-          <button
-            onClick={onSkip}
-            data-evt="rapid-skip"
-            data-evt-market={card.id}
-            className="tap inline-flex min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-md px-3 font-semibold hover:text-text-strong"
-          >
-            דלג
-          </button>
-          <span className="line-clamp-2 text-end">
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-[13px] text-muted-2 card-min:mt-0.5 card-tall:mt-2">
+          <div className="flex shrink-0 items-center">
+            {/* On the shortest cards these two give back 8px of their 44px height — they
+                are the secondary controls (a skip is also a swipe, a flick of the wheel
+                or the space bar), and 8px there is a line of the question. The answer
+                buttons above them never shrink below the 44px floor. */}
+            <button
+              onClick={onSkip}
+              data-evt="rapid-skip"
+              data-evt-market={card.id}
+              className="tap inline-flex min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-md px-3 font-semibold hover:text-text-strong card-bare:min-h-9"
+            >
+              דלג
+            </button>
+            {/* the way to the question's own page, in the row that already carries a
+                44px target — up in the meta row it was making the card's first line
+                44px tall on a phone that had 200px of card to give */}
+            <Link
+              href={`/market/${card.id}`}
+              target="_blank"
+              className="tap inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 font-semibold hover:text-text-strong card-bare:min-h-9"
+            >
+              פרטים
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            </Link>
+          </div>
+          <span className="line-clamp-2 min-w-0 text-end card-min:line-clamp-1">
             {outOfMoney
               ? "נגמרו הנקודות — אפשר להחזיר תשובות בדף השאלה"
               : locked
@@ -1418,11 +1476,11 @@ function AnswerButton({
       disabled={disabled}
       aria-label={`${yes ? "כן" : "לא"} ב־${stake} נקודות`}
       aria-pressed={chosen || undefined}
-      className={`cursor-pointer rounded-2xl py-2.5 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 sm:py-3 ${
+      className={`cursor-pointer rounded-2xl py-2.5 text-center text-white transition disabled:cursor-not-allowed disabled:opacity-40 card-min:py-2 card-tall:py-3 ${
         yes ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2"
       } ${chosen ? "ring-2 ring-text-strong ring-offset-2 ring-offset-surface" : ""}`}
     >
-      <span className="flex items-center justify-center gap-2 text-xl font-black leading-none sm:text-2xl">
+      <span className="flex items-center justify-center gap-2 text-xl font-black leading-none card-min:text-lg card-tall:text-2xl">
         {hint && (
           <span className="text-sm font-bold opacity-60" aria-hidden>
             {hint}
@@ -1433,8 +1491,12 @@ function AnswerButton({
             speak a third language beside the gauge above it and the payout below */}
         <span className="tabular text-[15px] font-bold opacity-80">{pct(price)}</span>
       </span>
+      {/* On a 320px screen the full line wraps and the button grows by 19px it does not
+          have; the two words it drops there are the ones the row under the buttons is
+          already saying ("הסכום מחייב · מספר התשובות משוער"). */}
       <span className="tabular mt-1 block text-[13px] font-semibold opacity-90">
-        {money(stake)} ← ≈{money(payout)} אם צדקת
+        {money(stake)} ← ≈{money(payout)}
+        <span className="card-bare:hidden card-narrow:hidden"> אם צדקת</span>
       </span>
     </button>
   );
@@ -1450,6 +1512,7 @@ function StakeBar({
   outOfMoney,
   showKeys,
   dimmed,
+  position,
 }: {
   stake: number;
   /** the deck's own setter — it knows whether the choice goes to the account or to the browser */
@@ -1459,15 +1522,19 @@ function StakeBar({
   outOfMoney: boolean;
   showKeys: boolean;
   dimmed: boolean;
+  /** where the run stands: on a phone this strip carries it, since the deck's own counter row is gone */
+  position: { index: number; total: number };
 }) {
   return (
     // Under the deck on a phone the panel is a strip, and every row it takes is a row the
-    // card loses — so the label, the amount and the slider share one line there. From lg it
-    // has a column to itself and goes back to stacking.
-    <div className={`card shrink-0 p-2.5 transition-opacity lg:p-3 ${dimmed ? "opacity-50" : ""}`}>
-      <div className="flex items-center gap-3 lg:block">
+    // card loses — so on a phone the amount, the slider and the one line of status share a
+    // single row. From lg it has a column to itself and goes back to stacking.
+    <div className={`card shrink-0 p-2.5 transition-opacity short:p-1.5 lg:p-3 ${dimmed ? "opacity-50" : ""}`}>
+      <div className="flex items-center gap-3 short:gap-2 lg:block">
         <div className="flex shrink-0 items-baseline justify-between gap-2 lg:w-full">
-          <label htmlFor="rapid-stake" className="text-[13px] font-semibold text-text lg:text-xs">
+          {/* on the phone strip there is no room for the label, and the slider carries it
+              as an aria-label instead */}
+          <label htmlFor="rapid-stake" className="text-[13px] font-semibold text-text short:hidden lg:text-xs">
             סכום מחייב לכל תשובה
           </label>
           <span className="tabular text-xl font-black text-text-strong lg:text-2xl">{money(stake)}</span>
@@ -1481,14 +1548,35 @@ function StakeBar({
           value={stake}
           onChange={(e) => onStake(Number(e.target.value))}
           className="slider min-w-0 flex-1 lg:mt-1 lg:w-full"
+          aria-label="סכום מחייב לכל תשובה"
           aria-describedby="rapid-stake-range"
         />
+        {/* Where the run stands and what is left to bet with, on the same line as the
+            slider. Both used to sit in a row of their own above the deck; on a phone that
+            row and this one were 100px of chrome around a 200px card. */}
+        <p className="tabular hidden min-w-0 shrink truncate text-[13px] text-muted-2 short:block">
+          <span className="text-muted">
+            {position.index}/{position.total}
+          </span>
+          {available != null && (
+            <>
+              {" · "}
+              <span className={outOfMoney ? "text-no" : broke ? "text-no" : "text-yes"}>
+                {outOfMoney ? "נגמרו הנקודות" : `נותרו ${money(Math.max(0, available))}`}
+              </span>
+            </>
+          )}
+        </p>
       </div>
       {/* the presets and the range note share a line while there is width for it, and
-          wrap onto two in the narrow lg column */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 lg:mt-2">
-        {/* on a short screen the slider carries the whole range on its own */}
-        <div className="scrollbar-none flex gap-1.5 overflow-x-auto short:hidden">
+          wrap onto two in the narrow lg column. On a phone the strip is one row and the
+          slider carries the whole range on its own. */}
+      {/* ...and in the side column a phone held sideways gets them back: there the strip
+          is not paying for its rows out of the card's height. */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 short:hidden flat:flex lg:mt-2">
+        {/* in the narrow side column they wrap onto two rows rather than scroll: the column
+            has the height to spare, and a preset half off the edge is a preset nobody taps */}
+        <div className="scrollbar-none flex gap-1.5 overflow-x-auto flat:flex-wrap">
           {RAPID_STAKE_PRESETS.map((p) => (
             <button
               key={p}
@@ -1503,24 +1591,14 @@ function StakeBar({
             </button>
           ))}
         </div>
-        {/* One line on the phone strip, where it has room for one fact only — how far the
-            balance stretches, the fact the slider itself does not already carry. In the lg
-            column it takes a line of its own and says everything. */}
         <p id="rapid-stake-range" className="tabular min-w-0 flex-1 truncate text-[13px] text-muted-2 lg:basis-full">
           <span className="hidden lg:inline">
             טווח {RAPID_MIN_STAKE}–{RAPID_MAX_STAKE} נקודות · יורד מהניקוד מיד{available != null ? " · " : ""}
           </span>
           {available != null && (
-            <>
-              {/* the deck's balance chip is hidden on a short screen — this is where it lands */}
-              <span className={`hidden short:inline ${outOfMoney ? "text-no" : "text-yes"}`}>
-                נותרו {money(Math.max(0, available))}
-                {" · "}
-              </span>
-              <span className={broke ? "text-no" : ""}>
-                {outOfMoney ? "נגמרו הנקודות" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
-              </span>
-            </>
+            <span className={broke ? "text-no" : ""}>
+              {outOfMoney ? "נגמרו הנקודות" : `מספיק ל־${Math.max(0, Math.floor(available / stake))} תשובות`}
+            </span>
           )}
         </p>
       </div>
@@ -1562,8 +1640,13 @@ function RunSummary({
   onRestart: () => void;
 }) {
   return (
-    <div className="card flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
-      <h2 className="text-2xl font-black text-text-strong">{done ? "סיימת את הרצף" : "לא ענית על אף שאלה"}</h2>
+    // It scrolls: on a landscape phone this panel is about 200px tall, and a summary that
+    // cannot scroll is a summary with its buttons cut off. The centring is on the inner
+    // box rather than on the scroller — a centred flex child that overflows a scroll
+    // container puts its own top out of reach.
+    <div className="card scrollbar-none h-full overflow-y-auto">
+      <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center short:gap-2.5 short:p-4">
+      <h2 className="text-2xl font-black text-text-strong short:text-xl">{done ? "סיימת את הרצף" : "לא ענית על אף שאלה"}</h2>
       {done ? (
         <>
           <p className="text-muted">
@@ -1597,19 +1680,20 @@ function RunSummary({
         stops answering, not the other way round.
       */}
       {showActions && (
-        <div className="flex flex-wrap justify-center gap-2">
-          <button onClick={onRestart} className="pressable inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">
+        <div className="flex w-full max-w-md flex-wrap justify-center gap-2">
+          <button onClick={onRestart} className="tap pressable inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-bold text-white hover:bg-accent-2">
             <BoltIcon size={16} />
             עוד סבב זריז
           </button>
-          <Link href="/portfolio" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
+          <Link href="/portfolio" className="tap inline-flex items-center justify-center rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
             לניקוד שלי
           </Link>
-          <Link href="/" className="rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
+          <Link href="/" className="tap inline-flex items-center justify-center rounded-xl border border-border-2 px-5 py-2.5 font-semibold hover:bg-surface-2">
             לכל השאלות
           </Link>
         </div>
       )}
+      </div>
     </div>
   );
 }

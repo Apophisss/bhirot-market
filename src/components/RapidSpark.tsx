@@ -58,7 +58,10 @@ export function RapidSpark({ spark, tradeCount }: { spark: Spark; tradeCount: nu
     // shrinks to nothing under a long question while its plot keeps its own height,
     // and a stretched SVG then paints straight over the price bar and the answer
     // buttons. With the floor here the card body scrolls instead, which is the deal.
-    <figure className="flex min-h-[72px] flex-1 flex-col gap-1 short:min-h-[62px]">
+    // On a card under 470px the floor comes down to 48px — still a readable curve, and
+    // low enough that a three-line question does not push the gauge off the card. Under
+    // 340px the card drops the chart altogether (see RapidDeck).
+    <figure className="flex min-h-[72px] flex-1 flex-col gap-1 card-lean:min-h-[48px]">
       {/* the padding is the room the end marker needs: it sits on the very last point,
           which is the top, the bottom or the right edge of the plot itself */}
       <div className="min-h-0 flex-1 py-1 pr-1.5">

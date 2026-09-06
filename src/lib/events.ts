@@ -132,6 +132,7 @@ export const CLICK_IDS: Record<string, string> = {
   "rapid-undo": "ביטול תשובה במצב זריז",
   "rapid-undo-dismiss": "החלקת סרגל הביטול למטה במצב זריז",
   "rapid-guest-gate": "חסימת אורח במצב זריז",
+  "rapid-guest-note": "שורת ההתחברות מעל החפיסה במצב זריז",
   "market-card": "כרטיס שוק ברשימה",
   "market-card-yes": "כפתור כן בכרטיס",
   "market-card-no": "כפתור לא בכרטיס",

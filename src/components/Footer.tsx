@@ -29,7 +29,16 @@ export async function Footer() {
             {SITE_NAME} הוא משחק ידע <strong className="text-white">בנקודות משחק בלבד</strong>. אין כאן כסף אמיתי, פרסים, תשלום או ייעוץ.
             השאלות נכתבות ומתעדכנות על ידי {SITE_TEAM} ומבוססות על פרסומים פומביים.
           </p>
-          <nav className="-my-1 flex shrink-0 flex-wrap gap-x-4">
+          {/*
+            `shrink-0` on a wrapping list of eleven links asked for all of them on one
+            line — 868px of them. Between 640 and 1023 CSS px (a phone held sideways, a
+            tablet in portrait) that is wider than the page, and because the site is RTL
+            the overflow lands *outside* the right edge: the whole layout paints shifted,
+            the header logo and the right-hand side of the rapid card go off screen, and
+            `overflow-x: clip` on <body> means there is no scrolling to them. The links
+            wrap instead; nothing else about the footer changes.
+          */}
+          <nav className="-my-1 flex min-w-0 flex-wrap gap-x-4">
             <Link href="/rapid" data-evt="footer-rapid" className="tap inline-flex min-w-11 items-center justify-center font-semibold text-white hover:text-white">מצב זריז</Link>
             <Link href="/about" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">איך זה עובד</Link>
             <Link href="/invite" data-evt="footer-link" className="tap inline-flex min-w-11 items-center justify-center hover:text-white">הזמינו חברים</Link>

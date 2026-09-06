@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  `short:` — a phone that is short, not a laptop that is wide.
+  `short:` — a phone, not a laptop that is wide.
 
   Rapid mode gives the deck exactly what is left of the screen, so on a 667px-tall
   phone (a 553px viewport once Safari's bars are counted) the page chrome above the
@@ -9,10 +9,73 @@
   chart there and none could show the price bar. Under this variant the chrome that
   is repeated on every other page steps aside so the card keeps its content.
 
-  The width bound matters: a laptop window is routinely 720px tall and has all the
-  room it needs — the deck is only starved when the screen is short AND narrow.
+  The bound was 720px and it was drawn in the wrong place: a Pixel 7 (412×730 in
+  Chrome) fell just outside it and came out *worse* than a phone 66px shorter —
+  measured, a 228px card against 310px, with the question itself scrolled out of
+  sight. Every phone in portrait is under 820px of viewport, and every one of them
+  is starved here, so the variant now covers all of them; the ones between 820 and
+  1023 CSS px tall have the room to keep the full chrome.
+
+  The width bound still matters: a laptop window is routinely 720px tall and has
+  all the room it needs — the deck is only starved when the screen is short AND
+  narrow.
 */
-@custom-variant short (@media (max-height: 720px) and (max-width: 1023px));
+@custom-variant short (@media (max-height: 820px) and (max-width: 1023px));
+
+/*
+  `flat:` — a phone on its side.
+
+  360 CSS px of height with the site header and the tab bar already spoken for
+  leaves the deck about 230px, which is less than the answer buttons and the
+  question need stacked. So the stake strip moves into a column beside the card,
+  exactly as it does on a laptop (`lg:`), and the card gets the whole height back.
+*/
+@custom-variant flat (@media (max-height: 540px) and (min-width: 560px) and (max-width: 1023px));
+
+/*
+  `tiny:` — the screens where the deck cannot pay for a second line of anything.
+
+  An iPhone SE in Safari is 320×454, and a phone on its side is shorter still. There
+  the page chrome around the card is not a matter of taste: 44px spent above the card
+  is 44px the question does not get, and measured on a 454px screen the card was left
+  with 15px of room for the question itself. What goes here is what the card already
+  says on its own.
+
+  The bound is drawn under the 553px viewport of an iPhone SE2/8 on purpose — that is
+  the commonest small phone there is, it has the room, and what `tiny:` takes away
+  there is the sign-in offer.
+*/
+@custom-variant tiny (@media (max-height: 500px) and (max-width: 1023px));
+
+/*
+  The rapid card sizes its own contents.
+  ---------------------------------------------------------------------------
+  What a card can show is decided by the height the card was actually given, not
+  by the height of the screen: the same 390px phone hands the card 310px as a
+  signed-in player and 240px with the sign-in banner over it, and a viewport-based
+  guess cannot tell those apart. The card is a size container, and everything
+  inside it drops out in order of what a rapid answer needs least — the byline,
+  then the subtitle, then the chart, then the gauge (whose two numbers are printed
+  on the answer buttons anyway).
+
+  The one thing that never drops out is the question.
+
+  The four steps are measured, not guessed: each one is the height at which what it
+  drops stops fitting beside a two-to-three line question and the two answer buttons.
+*/
+/* 470: the subtitle goes, and the chart stops asking for its full 72px */
+@custom-variant card-lean (@container rapidcard (max-height: 470px));
+/* 340: no room for a chart beside the question */
+@custom-variant card-tight (@container rapidcard (max-height: 340px));
+/* 300: the face goes, and so do the gauge's two numbers — they are on the buttons */
+@custom-variant card-min (@container rapidcard (max-height: 300px));
+/* 210: a 320×454 phone, or one held sideways. Only the question and the answers */
+@custom-variant card-bare (@container rapidcard (max-height: 210px));
+/* the other end: a tablet or a desktop column, where the card can breathe */
+@custom-variant card-tall (@container rapidcard (min-height: 560px));
+/* and the one width question the card has: on a folded Galaxy (280px, a 256px card)
+   half a button is 128px, and the payout line wraps onto a second row */
+@custom-variant card-narrow (@container rapidcard (max-width: 330px));
 
 @theme {
   --font-sans: var(--font-heebo), "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
@@ -325,7 +388,18 @@
      pixels of slack for the hairline borders the bars carry. */
   .deck-height {
     height: calc(100svh - 4.5rem - var(--nav-h) - env(safe-area-inset-bottom, 0px));
-    min-height: 360px;
+  }
+  /*
+    The floor is only a floor where the screen can pay for it. A landscape phone has
+    ~230px to give, and a 360px floor there does not buy a taller card — it pushes the
+    answer buttons under the tab bar and makes the page itself scroll, which fights the
+    deck's own snap scrolling. Above 440px of viewport there is room for the floor, and
+    it goes back to guarding against a collapsed deck.
+  */
+  @media (min-height: 440px) {
+    .deck-height {
+      min-height: 320px;
+    }
   }
   @media (min-width: 640px) {
     .deck-page {
@@ -335,6 +409,16 @@
       height: calc(100svh - 5.25rem - var(--nav-h) - env(safe-area-inset-bottom, 0px));
     }
   }
+  /*
+    The card measures itself, so its contents can answer to the height it really got
+    (see the `card-*` variants at the top). `size` rather than `inline-size` because
+    the whole question here is vertical; the card's own height comes from the panel
+    around it, never from what is inside it, so containing it costs nothing.
+  */
+  .rapid-card {
+    container: rapidcard / size;
+  }
+
   /* from `lg` the header carries the nav and the tab bar is gone */
   @media (min-width: 1024px) {
     .deck-height {

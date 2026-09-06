@@ -7,6 +7,7 @@ import { ensureSynced } from "@/lib/sync";
 import { listRapidCards } from "@/lib/rapid-feed";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE, RAPID_SORTS, type RapidSort } from "@/lib/rapid";
 import { CategoryTabs } from "@/components/CategoryTabs";
+import { CATEGORIES } from "@/lib/categories";
 import { RapidDeck } from "@/components/RapidDeck";
 import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
@@ -39,6 +40,8 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   await ensureSynced();
   const sp = await searchParams;
   const category = sp.category ?? "all";
+  /** the category the deck is filtered to, if it is filtered at all */
+  const activeCategory = CATEGORIES.find((c) => c.id === category) ?? null;
 
   const [session, user] = await Promise.all([auth(), currentUser()]);
   const loggedIn = Boolean(session?.user?.id);
@@ -118,9 +121,28 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   // the extra width to keep the card itself as wide as it is on a phone
   return (
     <div className="deck-page deck-height mx-auto flex w-full max-w-3xl flex-col gap-2 short:gap-1.5 sm:gap-3 lg:max-w-6xl">
-      <div className="scrollbar-none swipe-x -mx-3 flex shrink-0 items-center gap-1 px-3 text-xs sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
+      {/* `sm:flex-wrap` is for a wide window with room to spare. A phone held sideways is
+          wide and has none: wrapping there costs the card another 44px row, so the row
+          stays one line and scrolls, exactly as it does in portrait. */}
+      <div className="scrollbar-none swipe-x -mx-3 flex shrink-0 items-center gap-1 px-3 text-xs flat:flex-nowrap sm:mx-0 sm:flex-wrap sm:justify-between sm:px-0">
         <div className="flex shrink-0 items-center gap-1">
           <h1 className="me-1 inline-flex items-center gap-1 font-black text-text-strong"><BoltIcon /> מצב זריז</h1>
+          {/* The category the deck is serving, and the way out of it — on a phone, where
+              the strip of tabs below costs the card a row of its own (measured: a 375px
+              phone went from a 241px card to 187px, and the question stopped fitting).
+              This row is already here and scrolls sideways, so the same two facts —
+              which category, and how to leave it — cost nothing. */}
+          {activeCategory && (
+            <Link
+              href={link({ category: "all" })}
+              aria-label={`${activeCategory.label} — להצגת כל הקטגוריות`}
+              className="tap hidden shrink-0 items-center gap-1.5 rounded-lg border border-accent bg-accent/15 px-2.5 font-semibold text-accent-2 short:inline-flex"
+            >
+              <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: activeCategory.accent }} aria-hidden />
+              {activeCategory.label}
+              <span aria-hidden className="text-muted-2">✕</span>
+            </Link>
+          )}
           {RAPID_SORTS.map((s) => (
             <Link
               key={s.id}
@@ -146,9 +168,10 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         </div>
       </div>
 
-      {/* A short phone cannot afford a row that says nothing: with no category chosen the
-          tabs step aside, but once one is active they stay — otherwise the deck would look
-          like the whole board while quietly serving a single category, with no way back. */}
+      {/* A phone cannot afford a whole row of tabs above a card that is already short —
+          not even to say which category is on, which is what the chip in the row above
+          now says, with the way back to all of them on it. From `sm` up the strip is
+          back, and switching category is one tap again. */}
       <CategoryTabs
         active={category}
         params={{
@@ -156,10 +179,12 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
           all: includeAnswered === persisted.includeAnswered ? undefined : includeAnswered ? "1" : "0",
         }}
         basePath="/rapid"
-        className={`shrink-0 ${category === "all" ? "short:hidden" : ""}`}
+        className="shrink-0 short:hidden"
       />
 
-      {/* the free run, counted down in the browser rather than quoted from the server */}
+      {/* the free run, counted down in the browser rather than quoted from the server.
+          It is one row and one tap target on a phone, and steps aside entirely on the
+          shortest screens — see GuestRunBanner for what that costs and why. */}
       {!loggedIn && <GuestRunBanner />}
 
       {askSurvey && <SurveyPrompt next="/rapid" compact />}
