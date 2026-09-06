@@ -111,6 +111,22 @@ export function shares(v: number): string {
 }
 
 /**
+ * What a right answer is worth, in points.
+ *
+ * The one phrase for it, so no screen invents another. It is deliberately not
+ * "תשלום": a payment is what a betting site makes, it is the word an ad review
+ * and the gambling test both look for, and copy on this site has already been
+ * refused over it. Nothing is paid here — a right answer is worth points on a
+ * scoreboard, and that is exactly what this says.
+ *
+ * The number is the holding itself: a winning unit is worth one point, so the
+ * quantity and the payout are the same figure and the screen shows it once.
+ */
+export function pointsIfRight(v: number): string {
+  return `${money(v)} אם צדקתם`;
+}
+
+/**
  * What a quantity of a holding is called.
  *
  * It used to be called "תשובות", because a share on this board is bought by
@@ -119,10 +135,13 @@ export function shares(v: number): string {
  * 141.4)", and a confirm button offering "20 נק׳ · 27.9 תשובות". A player who
  * answered once was told they held a hundred and forty-one answers.
  *
- * So the word "תשובה" is kept for the act — one question, one answer — and the
- * quantity behind it gets a name of its own. Wherever the quantity is really a
- * payout (what the holding pays if the answer was right, which on this board is
- * the same number), the screen says points instead and skips the unit entirely.
+ * Naming the quantity was better than that and is still not right: "יחידות" is
+ * a trading word for a thing the player thinks of as their answer, and the copy
+ * dictionary has since settled on `pointsIfRight` above. The trade panel no
+ * longer uses this; what is left is the two activity feeds
+ * (`ActivityFeed`, `TradeList`), whose lines are built around the quantity and
+ * need rewriting rather than a find-and-replace. Until then the word lives here
+ * alone, in one place, and not in five.
  */
 export const UNITS_LABEL = "יחידות";
 

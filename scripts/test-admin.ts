@@ -5,7 +5,16 @@
  * No framework — plain assertions so it runs anywhere `tsx` runs. Run: npm test
  */
 import assert from "node:assert/strict";
-import { adminEmails, adminOpenInDev, adminTokenConfigured, checkAdminToken } from "../src/lib/admin";
+import { createHmac } from "node:crypto";
+import {
+  adminCookieValid,
+  adminCookieValue,
+  adminEmails,
+  adminOpenInDev,
+  adminTokenConfigured,
+  checkAdminToken,
+} from "../src/lib/admin";
+import { isAuthorizedAdmin } from "../src/lib/api-auth";
 import { israelLocalToIso, israelOffsetMinutes, isoToIsraelLocal } from "../src/lib/il-time";
 import { fallbackSlug, slugify, suggestSlug } from "../src/lib/slug";
 import { rateLimit } from "../src/lib/rate-limit";
@@ -91,6 +100,83 @@ test("the dashboard is open locally only when neither gate is configured", () =>
     assert.equal(adminOpenInDev(), false),
   );
 });
+
+test("a bearer token authenticates only when it is the token itself", () => {
+  const req = (auth: string) => new Request("https://bhirot-market.com/api/admin/bundle", { headers: { authorization: auth } });
+  withEnv({ ADMIN_TOKEN: "s3cret-token", CRON_SECRET: "cron-secret" }, () => {
+    assert.equal(isAuthorizedAdmin(req("Bearer s3cret-token")), true);
+    assert.equal(isAuthorizedAdmin(req("bearer s3cret-token")), true, "the scheme is case-insensitive");
+    for (const wrong of ["Bearer s3cret-toke", "Bearer s3cret-tokenx", "Bearer S3CRET-TOKEN", "Bearer ", "s3cret-token"]) {
+      assert.equal(isAuthorizedAdmin(req(wrong)), false, `${JSON.stringify(wrong)} must be rejected`);
+    }
+    // the cron secret opens the cron endpoints and nothing else
+    assert.equal(isAuthorizedAdmin(req("Bearer cron-secret")), false);
+    assert.equal(isAuthorizedAdmin(req("Bearer cron-secret"), { allowCron: true }), true);
+  });
+  // with nothing configured, no token is the right token
+  withEnv({ ADMIN_TOKEN: undefined, CRON_SECRET: undefined }, () => {
+    assert.equal(isAuthorizedAdmin(req("Bearer anything")), false);
+    assert.equal(isAuthorizedAdmin(req("Bearer anything"), { allowCron: true }), false);
+  });
+});
+
+/* ---------- the admin cookie ages out on its own ---------- */
+
+const DAY = 86_400_000;
+
+test("a cookie this server signed is accepted", () => {
+  withEnv({ ADMIN_TOKEN: "s3cret-token" }, () => {
+    const value = adminCookieValue();
+    assert.ok(value);
+    assert.equal(adminCookieValid(value), true);
+    // the token itself is never in the cookie
+    assert.equal(value!.includes("s3cret-token"), false);
+  });
+});
+
+test("a cookie stops working after thirty days", () => {
+  withEnv({ ADMIN_TOKEN: "s3cret-token" }, () => {
+    const issued = Date.parse("2026-09-01T10:00:00Z");
+    const value = adminCookieValue(issued)!;
+    assert.equal(adminCookieValid(value, issued + 29 * DAY), true, "still inside the window");
+    assert.equal(adminCookieValid(value, issued + 31 * DAY), false, "a copied cookie does not last forever");
+    // and a stamp from the future is not a clock problem, it is a made-up stamp
+    assert.equal(adminCookieValid(value, issued - DAY), false);
+  });
+});
+
+test("nothing but a cookie we signed verifies", () => {
+  withEnv({ ADMIN_TOKEN: "s3cret-token" }, () => {
+    const now = Date.parse("2026-09-06T10:00:00Z");
+    const value = adminCookieValue(now)!;
+    const [stamp, mac] = [value.slice(0, value.indexOf(".")), value.slice(value.indexOf(".") + 1)];
+    // moving the issue date forward to buy another month breaks the signature
+    assert.equal(adminCookieValid(`${Number(stamp) + 10 * 86_400}.${mac}`, now), false);
+    for (const bad of ["", ".", "abc", `${stamp}.`, `${stamp}.${mac.slice(0, -1)}`, mac]) {
+      assert.equal(adminCookieValid(bad, now), false, `${JSON.stringify(bad)} must be rejected`);
+    }
+    // the previous scheme — an HMAC of a constant, valid until the token rotated
+    const legacy = createHmac("sha256", "s3cret-token").update("bhirot-admin-v1").digest("hex");
+    assert.equal(adminCookieValid(legacy, now), false, "a cookie with no issue date is no longer accepted");
+    // a cookie minted with a different token is not ours either
+    const other = withCookieFrom("another-token", now);
+    assert.equal(adminCookieValid(other, now), false);
+  });
+  // and with no token configured there is nothing to verify against
+  withEnv({ ADMIN_TOKEN: undefined }, () => {
+    assert.equal(adminCookieValue(), null);
+    assert.equal(adminCookieValid("1757152800.deadbeef"), false);
+  });
+});
+
+/** A cookie as it would be signed by a server holding a different ADMIN_TOKEN. */
+function withCookieFrom(token: string, now: number): string {
+  let value = "";
+  withEnv({ ADMIN_TOKEN: token }, () => {
+    value = adminCookieValue(now)!;
+  });
+  return value;
+}
 
 /* ---------- deadlines in Israel time ---------- */
 

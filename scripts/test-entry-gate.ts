@@ -63,20 +63,38 @@ function installBrokenStore() {
 /* ------------------------------------------------------------ which pages -- */
 
 // the pages a visitor actually lands on, in and out of an account
-for (const path of ["/", "/market/netanyahu-testifies", "/category/polls", "/leaderboard", "/activity", "/portfolio", "/about", "/invite", "/leagues/abc"]) {
+for (const path of ["/", "/leaderboard", "/activity", "/portfolio", "/about", "/invite", "/leagues/abc"]) {
   check(`שער בכניסה ל-${path}`, pathWantsGate(path), true);
 }
 
-// and the ones where a window on top of the screen is the wrong thing to do
-for (const path of [...GATE_SKIP_PATHS, "/rapid?category=polls", "/login/", "/i/AB12CD", "/l/xyz", "/admin/markets", "/api/analytics/collect"]) {
+// and the ones where a window on top of the screen is the wrong thing to do.
+// A question and a category are on this list because someone who opened a link
+// to a question came for that question: the modal covered it, and its paragraph
+// became the page's LCP element.
+for (const path of [
+  ...GATE_SKIP_PATHS,
+  "/rapid?category=polls",
+  "/login/",
+  "/i/AB12CD",
+  "/l/xyz",
+  "/market/netanyahu-testifies",
+  "/market/netanyahu-testifies?side=yes",
+  "/category/polls",
+  "/admin/markets",
+  "/api/analytics/collect",
+]) {
   check(`בלי שער ב-${path}`, pathWantsGate(path), false);
 }
+// and the neighbours of those two prefixes are still ordinary pages
+check("‎/markets אינו ‎/market", pathWantsGate("/markets"), true);
+check("‎/categories אינו ‎/category", pathWantsGate("/categories"), true);
 
 // `/l` is a league link and `/leaderboard` is not: the skip list is segments, not text
 check("‎/leaderboard אינו ‎/l", pathWantsGate("/leaderboard"), true);
 check("‎/invite אינו ‎/i", pathWantsGate("/invite"), true);
 check("‎/rapid-old אינו ‎/rapid", pathWantsGate("/rapid-old"), true);
-check("סלאש בסוף לא משנה", pathWantsGate("/market/x/"), true);
+check("סלאש בסוף לא משנה", pathWantsGate("/leagues/abc/"), true);
+check("...גם לנתיב שמדלגים עליו", pathWantsGate("/market/x/"), false);
 check("כתובת שאינה נתיב", pathWantsGate("https://example.com/"), false);
 check("נתיב ריק", pathWantsGate(""), false);
 

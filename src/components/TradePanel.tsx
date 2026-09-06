@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { holdingValue, maxBuyAmount, PRICE_BAND, quoteBuy, quoteSell, type MarketState, type Side } from "@/lib/lmsr";
-import { otherSide, sellPrefill, sellSide, sharesOn } from "@/lib/sell";
+import { hasAnyShares, otherSide, sellPrefill, sellSide, sharesOn } from "@/lib/sell";
 import { MAX_BET } from "@/lib/limits";
-import { money, pct, shares as fmtShares, units, sharePrice, signedMoney, POINTS_SHORT, UNITS_LABEL } from "@/lib/format";
+import { money, pct, pointsIfRight, sharePrice, signedMoney, POINTS_SHORT } from "@/lib/format";
 import { track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
 import { gaEvent } from "@/lib/gtag";
@@ -48,7 +48,7 @@ type Action = "BUY" | "SELL";
 const NAV_CLEARANCE = 76;
 
 /** why there is a ceiling at all — a bare number reads as an arbitrary restriction */
-const CAP_REASON = `עד ${MAX_BET} נקודות לתשובה, כדי שתשובה בודדת לא תזיז את המד ותשאיר אותו הוגן לכולם`;
+const CAP_REASON = `עד ${MAX_BET} נקודות לתשובה, כדי שתשובה בודדת לא תזיז את הסיכוי ותשאיר אותו הוגן לכולם`;
 
 export function TradePanel({
   market,
@@ -62,7 +62,17 @@ export function TradePanel({
 }: TradePanelProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [action, setAction] = useState<Action>(initialAction);
+  /**
+   * Is there anything to take back?
+   *
+   * A visitor with no answer on this question was shown a "החזרה" tab that could
+   * only say "אין לך אחיזה בשאלה הזו" — a second tab whose whole content was an
+   * apology, on the screen where the first answer is supposed to be given. The
+   * tab now exists only for someone who has an answer here, and the way back to
+   * it is the position box at the bottom, which is where the answer is.
+   */
+  const hasPosition = hasAnyShares(position);
+  const [action, setAction] = useState<Action>(initialAction === "SELL" && hasPosition ? "SELL" : "BUY");
   // a sale can only ever be about a side that is held, so the sell tab never opens
   // on an empty one — see the note in src/lib/sell.ts
   const [side, setSide] = useState<Side>(() => (initialAction === "SELL" ? sellSide(position, initialSide) : initialSide));
@@ -72,6 +82,8 @@ export function TradePanel({
   const [input, setInput] = useState<string>(() =>
     initialAction === "SELL" ? sellPrefill(position, sellSide(position, initialSide)) : initialAmount ?? "",
   );
+  /** true while the box is showing a number the user did not type, because theirs was over the cap */
+  const [clamped, setClamped] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string; shareSide?: Side } | null>(null);
   /** the panel's own confirm button — the sticky bar below only appears once it is off screen */
@@ -170,8 +182,36 @@ export function TradePanel({
     MAX_BET <= Math.min(buyCap, balance ?? Infinity)
       ? `אפשר לשים עד ${money(MAX_BET)} על תשובה אחת`
       : buyCap <= (balance ?? Infinity)
-        ? `המרב לתשובה כרגע הוא ${money(buyLimit)} — מעבר לזה המד יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
-        : `הניקוד שלך מאפשר עד ${money(buyLimit)}`;
+        ? `המרב לתשובה כרגע הוא ${money(buyLimit)} — מעבר לזה הסיכוי יחצה את ${Math.round(PRICE_BAND.max * 100)}%`
+        : `הניקוד שלכם מאפשר עד ${money(buyLimit)}`;
+
+  /**
+   * The box never holds a number the panel is not going to act on.
+   *
+   * Typing 500 used to leave 500 standing in the field while a line underneath
+   * said the cap was 100 and the confirm button quoted 100 — three numbers, one
+   * of them the user's, and the user's was the one being ignored. The value is
+   * clamped here instead, and `clamped` says so out loud, so the correction is
+   * visible rather than silent.
+   */
+  function setAmount(raw: string) {
+    if (raw === "") {
+      setInput("");
+      setClamped(false);
+      return;
+    }
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) return;
+    if (limit > 0 && n > limit + 1e-6) {
+      // whole points on the answer tab; a sale is a fraction of a holding and
+      // keeps the hundredths, or "everything" would round up past what is held
+      setInput(action === "BUY" ? String(Math.floor(limit)) : String(Math.floor(limit * 1e4) / 1e4));
+      setClamped(true);
+      return;
+    }
+    setInput(raw);
+    setClamped(false);
+  }
 
   const quote = useMemo(() => {
     if (qty <= 0) return null;
@@ -184,10 +224,10 @@ export function TradePanel({
 
   const sidePrice = side === "YES" ? market.probability : 1 - market.probability;
 
-  // what the holding is worth is what selling it would pay — the same figure the
-  // portfolio marks it at, and the one the "תקבל/י" row above quotes. Never
-  // shares × price: that is the marginal price, and it overstates the position
-  // (see the valuation note in lmsr.ts).
+  // what an answer is worth right now is what taking it back would return — the
+  // same figure the portfolio marks it at, and the one "מה יחזור לניקוד שלכם"
+  // quotes above. Never shares × price: that is the marginal price, and it
+  // overstates the position (see the valuation note in lmsr.ts).
   const worth = useMemo(
     () => holdingValue(state, position?.yesShares ?? 0, position?.noShares ?? 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -256,8 +296,8 @@ export function TradePanel({
           kind: "ok",
           text:
             action === "BUY"
-              ? `ענית ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount)} · ${money(data.quote.payout)} אם צדקת`
-              : `החזרת ${units(data.quote.shares)} תמורת ${money(data.quote.amount)}`,
+              ? `עניתם ${side === "YES" ? "כן" : "לא"} ב־${money(data.quote.amount)} · ${pointsIfRight(data.quote.payout)}`
+              : `ביטלתם את התשובה — ${money(data.quote.amount)} חזרו לניקוד שלכם`,
           // a prediction is worth sharing the moment it is made, and not after
           shareSide: action === "BUY" ? side : undefined,
         });
@@ -298,19 +338,42 @@ export function TradePanel({
         ) : (
           <p className="text-sm text-muted">מועד הסגירה עבר. השאלה ממתינה להכרעה על ידי צוות המערכת לפי קריטריוני ההכרעה.</p>
         )}
-        {position && (position.yesShares > 0 || position.noShares > 0) && (
+        {position && hasPosition && (
           <div className="mt-3 text-sm text-muted">
-            האחיזה שלך: {position.yesShares > 0 && <span className="text-yes">{units(position.yesShares)} כן</span>}
+            התשובה שלכם:{" "}
+            {position.yesShares > 0 && <span className="text-yes">כן · {pointsIfRight(position.yesShares)}</span>}
             {position.yesShares > 0 && position.noShares > 0 && " · "}
-            {position.noShares > 0 && <span className="text-no">{units(position.noShares)} לא</span>}
+            {position.noShares > 0 && <span className="text-no">לא · {pointsIfRight(position.noShares)}</span>}
           </div>
         )}
       </div>
     );
   }
 
-  // the shortcuts add to the amount, so they stay inside the MAX_BET cap
-  const quick = action === "BUY" ? [10, 25, 50, MAX_BET] : [0.25, 0.5, 0.75, 1];
+  /**
+   * The shortcuts are amounts, not additions.
+   *
+   * "+50" twice used to mean 100, and a third tap meant 100 again — the button
+   * kept saying "+50" while nothing moved, because the amount had silently
+   * saturated at the cap. An absolute value can be read off the screen ("this is
+   * a 50-point answer"), it is idempotent, and the one that is currently chosen
+   * is marked, so the field and the row always agree.
+   *
+   * Each chip is labelled with the amount it will actually set, and a chip above
+   * the ceiling is dropped rather than quietly capped — a button reading "50"
+   * that puts 30 in the box is the same silent replacement in a smaller place.
+   */
+  const quick: { value: number; label: string }[] =
+    action === "BUY"
+      ? [...new Set([10, 25, 50, MAX_BET].map((q) => Math.min(q, Math.floor(limit))))]
+          .filter((v) => v > 0)
+          .map((v) => ({ value: v, label: money(v) }))
+      : [0.25, 0.5, 0.75, 1].map((f) => ({
+          // truncate, never round up: a value above what is held would be refused.
+          // "100%" leaves at most 0.0001, which the engine writes off.
+          value: Math.floor(held * f * 1e4) / 1e4,
+          label: `${Math.round(f * 100)}%`,
+        }));
 
   // the confirm button's own label, reused by the sticky bar below so the two can
   // never drift apart
@@ -320,7 +383,7 @@ export function TradePanel({
       ? "מבצע…"
       : action === "BUY"
         ? `תשובה: ${side === "YES" ? "כן" : "לא"}`
-        : `החזרה: ${side === "YES" ? "כן" : "לא"}`;
+        : `לבטל את התשובה: ${side === "YES" ? "כן" : "לא"}`;
   const confirmTone = !loggedIn ? "bg-accent hover:bg-accent-2" : side === "YES" ? "bg-yes hover:bg-yes-2" : "bg-no hover:bg-no-2";
   // What the button is about to do, in one line: what it costs and what it pays.
   // The share count that used to sit here IS the payout — a winning unit pays one
@@ -328,33 +391,39 @@ export function TradePanel({
   // a single answer read as "27.9 תשובות".
   const confirmSummary = quote
     ? action === "BUY"
-      ? `${money(Math.min(qty, buyLimit))} ← ${money(quote.payout)} אם צדקת`
-      : `${units(Math.min(qty, held))} · ${money(quote.amount)}`
+      ? `${money(Math.min(qty, buyLimit))} ← ${pointsIfRight(quote.payout)}`
+      : money(quote.amount)
     : null;
 
   return (
     <div ref={rootRef} className="card p-4 sm:p-5">
-      <div className="mb-4 flex gap-1 rounded-lg bg-surface-2 p-1">
-        {(["BUY", "SELL"] as Action[]).map((a) => (
-          <button
-            key={a}
-            onClick={() => {
-              // "מכירה" lands on a side that is actually held: the selector is shared
-              // with "קנייה", where כן is a fine default and here it is not.
-              setAction(a);
-              pickSide(a === "SELL" ? sellSide(position, side) : side, a);
-              if (a === "BUY") setInput("");
-              setMsg(null);
-            }}
-            className={`tap pressable flex-1 rounded-md text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
-          >
-            {a === "BUY" ? "תשובה" : "החזרה"}
-          </button>
-        ))}
-      </div>
+      {/* two tabs only for someone who has an answer here; for everybody else
+          this screen has exactly one thing on it, which is answering */}
+      {hasPosition && (
+        <div className="mb-4 flex gap-1 rounded-lg bg-surface-2 p-1">
+          {(["BUY", "SELL"] as Action[]).map((a) => (
+            <button
+              key={a}
+              onClick={() => {
+                // taking an answer back lands on a side that is actually held: the
+                // selector is shared with answering, where כן is a fine default and
+                // here it is not.
+                setAction(a);
+                pickSide(a === "SELL" ? sellSide(position, side) : side, a);
+                if (a === "BUY") setInput("");
+                setClamped(false);
+                setMsg(null);
+              }}
+              className={`tap pressable flex-1 rounded-md text-sm font-bold transition ${action === a ? "bg-surface text-accent shadow-sm" : "text-muted hover:text-text"}`}
+            >
+              {a === "BUY" ? "תשובה" : "לבטל תשובה"}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* in "מכירה" each button also says what is held on that side, so the choice
-          is not a guess: a sale is about a holding, not about a price */}
+      {/* when an answer is being taken back, each button also says what is on
+          that side, so the choice is not a guess */}
       <div className="grid grid-cols-2 gap-2">
         {(["YES", "NO"] as Side[]).map((s) => {
           const on = side === s;
@@ -380,7 +449,7 @@ export function TradePanel({
               <span className="tabular text-[15px] font-semibold opacity-90">{pct(s === "YES" ? market.probability : 1 - market.probability)}</span>
               {action === "SELL" && (
                 <span className="tabular block text-[13px] font-semibold opacity-80">
-                  {heldHere > 0 ? units(heldHere) : `אין ${UNITS_LABEL}`}
+                  {heldHere > 0 ? pointsIfRight(heldHere) : "אין תשובה כאן"}
                 </span>
               )}
             </button>
@@ -391,35 +460,38 @@ export function TradePanel({
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between text-xs text-muted">
           <span title={action === "BUY" ? CAP_REASON : undefined}>
-            {action === "BUY" ? `נקודות (עד ${money(MAX_BET)} לתשובה)` : `${UNITS_LABEL} להחזרה (יש לך ${fmtShares(held)})`}
+            {action === "BUY" ? "כמה נקודות על התשובה" : `כמה לבטל (מתוך ${money(held)})`}
           </span>
           {balance != null && action === "BUY" && <span className="tabular">ניקוד: {money(balance)}</span>}
         </div>
         {buyBlocked ? (
           <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
-            הצד הזה הגיע לתקרה ({Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לענות עוד. החזרה של תשובות שכבר יש לכם עדיין אפשרית.
+            הצד הזה הגיע לתקרה ({Math.round(PRICE_BAND.max * 100)}%) ואי אפשר לענות עוד. אפשר עדיין לבטל תשובה שכבר יש לכם.
           </p>
         ) : action === "SELL" && held <= 0 ? (
-          // never leave a disabled sell button unexplained: a holder who lands on the
-          // wrong side has to be told which side their position is on, and get there
-          // in one click
+          // never leave a disabled button unexplained: whoever lands on the wrong
+          // side has to be told which side their answer is on, and get there in one click
           <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
             {heldOther > 0 ? (
               <>
-                אין לך {UNITS_LABEL} של {side === "YES" ? "כן" : "לא"} בשאלה הזו. יש לך {units(heldOther)} של{" "}
-                {flip === "YES" ? "כן" : "לא"} —{" "}
+                התשובה שלכם כאן היא ״{flip === "YES" ? "כן" : "לא"}״ ({pointsIfRight(heldOther)}) ולא ״
+                {side === "YES" ? "כן" : "לא"}״ —{" "}
                 <button onClick={() => pickSide(flip)} className="font-bold underline hover:text-text-strong">
-                  להחזרה שלהן
+                  לבטל אותה
                 </button>
               </>
             ) : (
-              "אין לך אחיזה בשאלה הזו, אז אין מה להחזיר. אפשר לענות בלשונית ״תשובה״."
+              "אין לכם תשובה בשאלה הזו, אז אין מה לבטל."
             )}
           </p>
         ) : (
-          overLimit && (
+          // The correction, said out loud: the box now holds the cap and not the
+          // number that was typed, and this line is why. `overLimit` is the same
+          // line for the one case typing cannot cause — switching sides moves the
+          // ceiling under an amount that was already in the box.
+          (clamped || overLimit) && (
             <p className="mb-1 rounded-md bg-warn/10 px-2 py-1 text-xs text-warn">
-              {action === "BUY" ? buyLimitNote : `יש לך ${units(limit)} להחזרה`}
+              {action === "BUY" ? buyLimitNote : `אפשר לבטל עד ${money(limit)} — זו כל התשובה שלכם כאן`}
             </p>
           )
         )}
@@ -428,33 +500,58 @@ export function TradePanel({
             type="number"
             inputMode="decimal"
             min={0}
+            max={limit > 0 ? limit : undefined}
             step="any"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setAmount(e.target.value)}
             placeholder="0"
-            className="tabular w-full rounded-xl border border-border bg-surface-2 py-3.5 pe-3 ps-10 text-2xl font-bold outline-none focus:border-accent"
+            className="tabular w-full rounded-xl border border-border bg-surface-2 py-3.5 pe-24 ps-10 text-2xl font-bold outline-none focus:border-accent"
           />
-          <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-sm text-muted">{action === "BUY" ? POINTS_SHORT : "#"}</span>
+          <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-sm text-muted">{POINTS_SHORT}</span>
+          {/* the ceiling lives inside the control it applies to, so it is read
+              before the number is typed rather than after it is refused. The unit
+              is already on the other side of the same box, so it is not repeated. */}
+          {limit > 0 && (
+            <span className="tabular pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs text-muted-2">
+              עד {action === "BUY" ? Math.floor(limit) : Math.round(limit)}
+            </span>
+          )}
         </div>
         <div className="mt-2 flex gap-2">
-          {quick.map((q) => (
+          {quick.map(({ value, label }) => {
+            const on = qty > 0 && Math.abs(qty - value) < 1e-4;
+            return (
+              <button
+                key={label}
+                onClick={() => {
+                  setInput(String(value));
+                  setClamped(false);
+                }}
+                aria-pressed={on}
+                className={`tap pressable flex-1 rounded-lg border text-xs font-semibold transition ${
+                  on
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border bg-surface-2 text-muted hover:border-border-2 hover:text-text-strong"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+          {/* only when the ceiling is not already one of the chips — two buttons
+              that set the same number is one button too many */}
+          {action === "BUY" && balance != null && !quick.some((q) => q.value === Math.floor(limit)) && (
             <button
-              key={q}
               onClick={() => {
-                if (action === "BUY") setInput(String(Math.min((Number(input) || 0) + q, limit)));
-                // truncate, never round up: a value above `held` would trip overLimit.
-                // "100%" leaves at most 0.0001 shares, which the engine writes off.
-                else setInput(String(Math.floor(held * q * 1e4) / 1e4));
+                setInput(String(Math.floor(limit)));
+                setClamped(false);
               }}
-              className="tap pressable flex-1 rounded-lg border border-border bg-surface-2 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
-            >
-              {action === "BUY" ? `+${q}` : `${Math.round(q * 100)}%`}
-            </button>
-          ))}
-          {action === "BUY" && balance != null && (
-            <button
-              onClick={() => setInput(String(Math.floor(limit)))}
-              className="tap pressable flex-1 rounded-lg border border-border bg-surface-2 text-xs font-semibold text-muted hover:border-border-2 hover:text-text-strong"
+              aria-pressed={qty > 0 && qty === Math.floor(limit)}
+              className={`tap pressable flex-1 rounded-lg border text-xs font-semibold transition ${
+                qty > 0 && qty === Math.floor(limit)
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-border bg-surface-2 text-muted hover:border-border-2 hover:text-text-strong"
+              }`}
             >
               מקס
             </button>
@@ -465,17 +562,26 @@ export function TradePanel({
       {/*
         One line, and the mechanics behind a tap.
 
-        These four rows (average price, units received, the meter afterwards, the
-        payout) pushed the confirm button from 1,043px to 1,285px on an 812px
+        These rows (average price, the quantity received, the chance afterwards,
+        the payout) pushed the confirm button from 1,043px to 1,285px on an 812px
         phone — the panel grew by exactly the height of the explanation, and the
-        thing being explained went off the bottom of the screen. Only one of the
-        four is the decision: what this costs and what it pays. The rest is how
-        the market maker got there, and it is one tap away for anyone who wants it.
+        thing being explained went off the bottom of the screen. Only one of them
+        is the decision: what this costs and what it is worth if the answer was
+        right. The rest is how the market maker got there, and it is one tap away
+        for anyone who wants it.
       */}
       <details className="group mt-3 rounded-xl border border-border bg-surface-2 px-3 py-2">
+        {/*
+          "תשלום" is gone from this line on purpose, and not only because it is
+          the wrong word for a score: it is the word Google's ad review and the
+          gambling test both read, and copy on this site has been refused over
+          it before. What a right answer is worth is points. The "(38%+)" that
+          used to sit beside it is gone too — a yield is what a trading screen
+          shows, and it says nothing a player of a knowledge game is deciding on.
+        */}
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-1 text-[15px] marker:content-none">
           <span className="text-muted">
-            {action === "BUY" ? "תשלום אם צדקת" : "תקבל/י"}
+            {action === "BUY" ? "ניקוד אם צדקתם" : "מה יחזור לניקוד שלכם"}
             <span className="ms-1.5 text-[13px] text-muted-2">
               פירוט <span className="inline-block transition group-open:rotate-180">▾</span>
             </span>
@@ -488,23 +594,23 @@ export function TradePanel({
               : quote
                 ? money(quote.amount)
                 : "—"}
-            {action === "BUY" && quote && qty > 0 && (
-              <span className="ms-1 text-[13px] font-normal text-muted">({((quote.payout / qty - 1) * 100).toFixed(0)}%+)</span>
-            )}
           </span>
         </summary>
         <dl className="mt-2 space-y-1.5 border-t border-border pt-2 text-[13px]">
           {action === "BUY" ? (
             <>
-              <Row label="מחיר ממוצע ליחידה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
-              <Row label={`${UNITS_LABEL} שתקבל/י`} value={quote ? fmtShares(quote.shares) : "—"} />
-              <Row label="המד אחרי התשובה" value={quote ? pct(quote.priceAfter, 1) : pct(sidePrice, 1)} muted />
+              <Row label="מחיר ממוצע לכל נקודה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
+              <Row
+                label={`הסיכוי ל״${side === "YES" ? "כן" : "לא"}״ אחרי התשובה`}
+                value={quote ? pct(quote.priceAfter, 1) : pct(sidePrice, 1)}
+                muted
+              />
             </>
           ) : (
             <>
-              <Row label="מחיר ממוצע בהחזרה" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
+              <Row label="מחיר ממוצע בביטול" value={quote ? sharePrice(quote.avgPrice) : sharePrice(sidePrice)} />
               <Row
-                label="רווח/הפסד על החלק שהוחזר"
+                label="רווח/הפסד על החלק שבוטל"
                 value={quote && held > 0 ? signedMoney(quote.amount - heldCost * (Math.min(qty, held) / held)) : "—"}
                 muted
               />
@@ -583,21 +689,42 @@ export function TradePanel({
         )}
       </div>
 
-      {position && (position.yesShares > 0 || position.noShares > 0) && (
+      {/*
+        The answer already given, and the only place the site offers to take one
+        back. The offer belongs here and not in a tab beside "תשובה": it is about
+        this answer, it is only ever shown to someone who has one, and it reads
+        as what it is instead of as a second thing to do on a first visit.
+      */}
+      {position && hasPosition && (
         <div className="mt-4 rounded-lg border border-border bg-surface-2 p-3 text-xs text-muted">
-          <div className="mb-1 font-semibold text-text" title="השווי הוא מה שתקבלו בפועל אם תחזירו את התשובות עכשיו, אחרי ההשפעה של ההחזרה עצמה על המד">
-            התשובות שלך
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="font-semibold text-text" title="השווי הוא מה שיחזור לניקוד שלכם אם תבטלו את התשובה עכשיו, אחרי ההשפעה של הביטול עצמו על הסיכוי">
+              התשובה שלכם
+            </span>
+            {action === "BUY" && (
+              <button
+                onClick={() => {
+                  setAction("SELL");
+                  pickSide(sellSide(position, side), "SELL");
+                  setClamped(false);
+                  setMsg(null);
+                }}
+                className="tap pressable font-semibold text-accent-2 hover:underline"
+              >
+                לבטל תשובה
+              </button>
+            )}
           </div>
           {position.yesShares > 0 && (
             <div className="flex justify-between">
-              <span className="text-yes">כן · {units(position.yesShares)}</span>
-              <span className="tabular">שווי בהחזרה {money(worth.yes)} · עלות {money(position.yesCost)}</span>
+              <span className="text-yes">כן · {pointsIfRight(position.yesShares)}</span>
+              <span className="tabular">שווי עכשיו {money(worth.yes)} · עלות {money(position.yesCost)}</span>
             </div>
           )}
           {position.noShares > 0 && (
             <div className="flex justify-between">
-              <span className="text-no">לא · {units(position.noShares)}</span>
-              <span className="tabular">שווי בהחזרה {money(worth.no)} · עלות {money(position.noCost)}</span>
+              <span className="text-no">לא · {pointsIfRight(position.noShares)}</span>
+              <span className="tabular">שווי עכשיו {money(worth.no)} · עלות {money(position.noCost)}</span>
             </div>
           )}
         </div>
