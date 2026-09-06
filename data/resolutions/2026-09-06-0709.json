@@ -61,6 +61,11 @@
       },
       "applied": {
         "at": "2026-09-06T07:25:41.467Z"
+      },
+      "published": {
+        "at": "2026-09-06T07:26:26.625Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
       }
     },
     {
@@ -119,6 +124,11 @@
       },
       "applied": {
         "at": "2026-09-06T07:25:41.467Z"
+      },
+      "published": {
+        "at": "2026-09-06T07:26:26.625Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
       }
     },
     {
@@ -170,6 +180,11 @@
       },
       "applied": {
         "at": "2026-09-06T07:25:41.467Z"
+      },
+      "published": {
+        "at": "2026-09-06T07:26:26.625Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
       }
     },
     {
@@ -233,6 +248,11 @@
       },
       "applied": {
         "at": "2026-09-06T07:25:41.467Z"
+      },
+      "published": {
+        "at": "2026-09-06T07:26:26.625Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
       }
     },
     {
@@ -292,7 +312,18 @@
       },
       "applied": {
         "at": "2026-09-06T07:25:41.467Z"
+      },
+      "published": {
+        "at": "2026-09-06T07:26:26.625Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
       }
     }
-  ]
+  ],
+  "publish": {
+    "at": "2026-09-06T07:26:26.625Z",
+    "target": "https://bhirot-market.com/api/admin/markets",
+    "ok": true,
+    "response": "{\"ok\":true,\"added\":[],\"updated\":[],\"resolved\":[\"another-party-quits-sat-night\",\"smotrich-inside-likud-report-sat-night\",\"haredi-parties-18-seats-poll-sat-night\",\"yashar-ahead-of-likud-saturday-night-poll-sat-night\",\"eisenkot-saturday-night-tv-interview-sat-night\"],\"skipped\":[\"another-party-quits-sat-night\",\"smotrich-inside-likud-report-sat-night\",\"haredi-parties-18-seats-poll-sat-night\",\"yashar-ahead-of-likud-saturday-night-poll-sat-night\",\"eisenkot-saturday-night-tv-interview-sat-night\"]}"
+  }
 }
