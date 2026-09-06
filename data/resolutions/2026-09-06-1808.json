@@ -1,0 +1,531 @@
+{
+  "version": 1,
+  "runId": "2026-09-06-1808",
+  "createdAt": "2026-09-06T18:08:55.690Z",
+  "createdBy": "editorial-routine",
+  "entries": [
+    {
+      "slug": "another-party-quits-sat-night",
+      "market": {
+        "title": "האם מפלגה נוספת תודיע עד מוצאי שבת (5.9, 23:59) על פרישה מהמרוץ או על מיזוג לרשימה אחרת?",
+        "subtitle": "אחרי פרישת מפלגת האחדות של ארדן ואדלשטיין - מי הבא בתור לפני הדדליין",
+        "resolutionCriteria": "\"כן\" אם בין שבת 5.9.2026 בשעה 12:00 למוצאי שבת 5.9.2026 בשעה 23:59 שעון ישראל תפרסם לפחות מפלגה או רשימה אחת נוספת — מעבר ל\"מפלגת האחדות\" של גלעד ארדן, שהודיעה על פרישתה כבר ביום שישי 4.9 — הודעה רשמית על פרישה מהמרוץ לכנסת ה-26, על כך שלא תגיש רשימת מועמדים, או על מיזוג או בלוק טכני עם רשימה אחרת. ההודעה חייבת להיות רשמית מטעם המפלגה או יו\"ר המפלגה ולהיות מדווחת בלפחות אחד מהמקורות: ynet, N12 (mako), כאן חדשות, ישראל היום, מעריב, הארץ. \"לא\" אם לא פורסמה הודעה כזו, וכן אם פורסמו רק דיווחים על מגעים, לחצים או כוונות. פרישה של מועמד יחיד מרשימה, להבדיל מפרישת מפלגה שלמה, אינה נחשבת \"כן\". אם לא מתרחש דבר בחלון הזמן — התוצאה היא \"לא\".",
+        "category": "general",
+        "closesAt": "2026-09-05T23:59:00+03:00",
+        "initialProbability": 0.25,
+        "sources": [
+          {
+            "title": "\"שהקולות לא ירדו לטמיון\": ארדן הודיע על פרישת מפלגת האחדות",
+            "url": "https://www.israelhayom.co.il/news/politics/article/21355002"
+          },
+          {
+            "title": "מי עם מי: המפלגות שעשויות להכריע את הבחירות - ויילחמו גם נגד אחוז החסימה",
+            "url": "https://www.ynet.co.il/news/article/hjnrm2uxml"
+          },
+          {
+            "title": "With only days left to submit slates, small parties are still jockeying for position",
+            "url": "https://www.timesofisrael.com/with-only-days-left-to-submit-slates-small-parties-are-still-jockeying-for-position/"
+          }
+        ]
+      },
+      "fingerprint": "9e4b082cc5c2f615",
+      "verdict": "NO",
+      "confidence": 0.78,
+      "note": "בחלון שבין שבת 5.9.2026 בשעה 12:00 למוצאי שבת 23:59 לא פורסמה הודעה רשמית של מפלגה נוספת על פרישה מהמרוץ, על אי-הגשת רשימה או על מיזוג. פרישת מפלגת האחדות של גלעד ארדן הוכרזה כבר ביום שישי 4.9 ולכן אינה נספרת, והמהלכים הבאים - מיזוג \"הבית הציוני\" של חילי טרופר לתוך \"ישר!\" של איזנקוט, פרישת איילת שקד וההסכם של יועז הנדל עם ירון זליכה - דווחו כולם רק ביום ראשון 6.9, אחרי סגירת השאלה. פרישה של מועמד יחיד מרשימה, כמו זו של ח\"כ צביקה פוגל מעוצמה יהודית, אינה נחשבת לפי קריטריון ההכרעה.",
+      "evidence": [
+        {
+          "title": "Times of Israel liveblog, September 4, 2026",
+          "url": "https://www.timesofisrael.com/liveblog-september-04-2026/",
+          "quote": "Despite the many efforts we have made, the support so far for the Unity Party that I founded does not guarantee with high probability that it will pass the electoral threshold.",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "מפלגה פרשה מהמרוץ לכנסת ה-26 הודעה 5 בספטמבר 2026 מיזוג רשימה",
+        "מפלגה הודיעה על פרישה מהמרוץ מוצאי שבת 5.9.2026 בחירות 2026 לא תתמודד",
+        "בחירות 2026 מיזוג רשימות הודעה \"מוצ\\\"ש\" 5 בספטמבר טרופר בית ציוני איזנקוט",
+        "Times of Israel liveblog September 5 2026 - כל כותרות היום, ללא הודעת פרישה או מיזוג של מפלגה"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "9359fb97671aa3aa"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
+      }
+    },
+    {
+      "slug": "smotrich-inside-likud-report-sat-night",
+      "market": {
+        "title": "האם ידווח עד מוצאי שבת 5.9.2026 שסוכם כי סמוטריץ' והציונות הדתית ירוצו ברשימת הליכוד?",
+        "subtitle": "אחרי שבן גביר ווינטר סירבו, זו אחת האפשרויות הבודדות שנותרו לנתניהו",
+        "resolutionCriteria": "\"כן\" אם עד מוצאי שבת 5.9.2026 בשעה 23:59 שעון ישראל ידווח לפחות כלי תקשורת ישראלי מרכזי אחד — חדשות 12/N12 (לרבות דיווח של הפרשן עמית סגל), חדשות 13, כאן 11, ynet, ישראל היום, מעריב, ערוץ 14 או מקור ראשון — כי סוכם או כי הוחלט שבצלאל סמוטריץ' והציונות הדתית ירוצו בתוך רשימת הליכוד בבחירות לכנסת ה-26, בין כמיזוג מלא ובין כשיבוץ מועמדיה ברשימת הליכוד. הודעה רשמית של הליכוד או של הציונות הדתית על כך תיחשב גם היא \"כן\". אינם מספיקים: דיווח על \"הצעה\", \"לחץ של נתניהו\", \"בחינת אפשרות\", \"מגעים\" או \"מתווה נשקל\" — נדרש דיווח על סיכום או החלטה שהתקבלה. אם עד המועד לא פורסם דיווח או הודעה כאמור — התוצאה \"לא\".",
+        "category": "media",
+        "closesAt": "2026-09-05T23:59:00+03:00",
+        "initialProbability": 0.1,
+        "sources": [
+          {
+            "title": "בן גביר פסל סופית, וינטר רוצה להיות \"כליא ברק\" | האופציות הפוחתות של נתניהו",
+            "url": "https://www.ynet.co.il/news/elections2026/article/skhd45g00ze"
+          },
+          {
+            "title": "נתניהו חושש מפיצולים בגוש - ומנסה לייצר סדר בבלגן: \"זה להיות או לחדול\"",
+            "url": "https://www.ynet.co.il/news/article/hkse9ewdge"
+          },
+          {
+            "title": "ביקורת בעוצמה יהודית על בן גביר: \"פסל איחוד מהר מדי\". מגעים בין סמוטריץ' לפייגלין",
+            "url": "https://www.ynet.co.il/news/elections2026/article/bjjkhgk00mx"
+          }
+        ]
+      },
+      "fingerprint": "ee92098d16aaa550",
+      "verdict": "NO",
+      "confidence": 0.85,
+      "note": "עד מוצאי שבת 5.9.2026 בשעה 23:59 לא פורסם דיווח של כלי תקשורת ישראלי מרכזי - ולא הודעה רשמית - על כך שסוכם או הוחלט שסמוטריץ' והציונות הדתית ירוצו בתוך רשימת הליכוד. להפך: ב-1.9.2026 הודיעו סמוטריץ' ומשה פייגלין על ריצה משותפת כבלוק טכני של הציונות הדתית וזהות, בנפרד מהליכוד. הדיווח היחיד שנמצא על שילוב סמוטריץ' ברשימת הליכוד הוא של מעריב מ-10.7.2026, והוא מדבר על בחינת אפשרות ולא על סיכום - מה שקריטריון ההכרעה מוציא במפורש.",
+      "evidence": [
+        {
+          "title": "Smotrich, Feiglin announce joint election run, urge other right-wing parties to join",
+          "url": "https://www.timesofisrael.com/smotrich-feiglin-announce-joint-election-run-urge-other-right-wing-parties-to-join/",
+          "quote": "Finance Minister Bezalel Smotrich, who chairs the far-right Religious Zionism party, on Monday announced a joint run as a technical bloc for the upcoming elections with the Zehut party, led by Moshe Feiglin.",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "סמוטריץ' הציונות הדתית רשימת הליכוד סוכם ספטמבר 2026",
+        "סמוטריץ' ירוץ ברשימת הליכוד דיווח עמית סגל ספטמבר 2026 מיזוג ציונות דתית ליכוד",
+        "Religious Zionism Smotrich Likud slate merger report September 2026 Knesset list"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "54d8ba1f4f0c020e"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
+      }
+    },
+    {
+      "slug": "haredi-parties-18-seats-poll-sat-night",
+      "market": {
+        "title": "האם יפורסם עד חצות מוצאי שבת 5.9 סקר שבו ש\"ס ויהדות התורה מקבלות יחד 18 מנדטים או יותר?",
+        "subtitle": "ממוצע הסקרים מעמיד את הגוש החרדי על 16 בלבד",
+        "resolutionCriteria": "'כן' אם בין שבת 5.9.2026 בשעה 12:00 לבין חצות שבין 5.9 ל-6.9 (00:00) יתפרסם בישראל סקר מנדטים חדש כלשהו — בחדשות 12, חדשות 13, כאן 11, ערוץ 14, מעריב, ישראל היום, ynet או במאגר 'סקר הסקרים' — שבו סכום המנדטים של ש\"ס ויהדות התורה באותו סקר בודד עומד על 18 או יותר. 'לא' אם באותו חלון לא יתפרסם שום סקר מנדטים חדש, או אם בכל הסקרים שיתפרסמו הסכום נמוך מ-18. סקר שפורסם לפני שבת 5.9 בשעה 12:00 אינו נספר, גם אם צוטט מחדש בחלון הזמן. ממוצע סקרים או 'סקר סקרים' אינו נחשב סקר בודד לצורך ההכרעה.",
+        "category": "polls",
+        "closesAt": "2026-09-06T00:00:00+03:00",
+        "initialProbability": 0.15,
+        "sources": [
+          {
+            "title": "מדד וממוצע סקרים 2026 | סקר הסקרים",
+            "url": "https://www.skarim.org/average-poll"
+          }
+        ]
+      },
+      "fingerprint": "885a81ddbf03b5c7",
+      "verdict": "NO",
+      "confidence": 0.85,
+      "note": "בין שבת 5.9.2026 בשעה 12:00 לחצות שבין 5.9 ל-6.9 לא פורסם בישראל שום סקר מנדטים חדש: במאגר \"סקר הסקרים\" הסקר האחרון שקדם לחלון הוא של מעריב מ-4.9.2026, והסקר הבא אחריו הוא של כאן 11 המתוארך 6.9.2026. גם בסקר כאן 11 הזה, שפורסם אחרי החלון, סכום המנדטים של ש\"ס (7) ויהדות התורה (8) עומד על 15 בלבד - מתחת ל-18 שהשאלה דרשה.",
+      "evidence": [
+        {
+          "title": "סקר כאן 11 06.09.2026 – מנדטים לפי מפלגות | סקר הסקרים",
+          "url": "https://www.skarim.org/polls/11-2026-09-06",
+          "quote": "סקר כאן 11 06.09.2026 – מנדטים לפי מפלגות",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "סקר בחירות 2026 ש\"ס יהדות התורה מנדטים 5 בספטמבר 2026",
+        "skarim.org/polls - רשימת כל הסקרים לפי תאריך: אין סקר המתוארך 05.09.2026",
+        "סקר מנדטים מוצאי שבת 5.9.2026 חדשות 12 ישר איזנקוט ליכוד"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "826db447a900f61e"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
+      }
+    },
+    {
+      "slug": "yashar-ahead-of-likud-saturday-night-poll-sat-night",
+      "market": {
+        "title": "האם סקר של חדשות 12, 13 או כאן במוצאי שבת (5.9) יראה את \"ישר!\" מעל הליכוד?",
+        "subtitle": "סוף השבוע האחרון של סקרים לפני דדליין הרשימות ב-9–10.9",
+        "resolutionCriteria": "\"כן\" אם בין שבת 5.9.2026 בשעה 12:00 לבין יום ראשון 6.9.2026 בשעה 02:00 (שעון ישראל) יפורסם לפחות סקר מנדטים אחד מטעם חדשות 12 (קשת/mako), חדשות 13 (רשת/13tv) או כאן 11 (תאגיד השידור הישראלי), שבו מספר המנדטים המיוחס לרשימת \"ישר!\" בראשות גדי איזנקוט גבוה ממספר המנדטים המיוחס לליכוד — ולו במנדט אחד. הפרסום יכול להיות במהדורה המרכזית, בתוכנית אולפן, באתר הערוץ או בעמודים הרשמיים שלו ברשתות החברתיות. אם הסקר כולל כמה תרחישים, יקבע התרחיש הראשי שבו כל מפלגה רצה במתכונתה הנוכחית. \"לא\" אם כל הסקרים שיפורסמו בשלושת הערוצים האלה בחלון הזה יראו את הליכוד שווה או גדול מ\"ישר!\", וכן \"לא\" אם אף אחד משלושת הערוצים לא יפרסם סקר מנדטים כלל בחלון הזה. סקרים של ערוץ 14, מעריב, ישראל היום, ynet, הארץ או כל גורם אחר שאינו אחד משלושת הערוצים — אינם נחשבים. המקור המכריע: הפרסום הרשמי של הערוץ המשדר (mako.co.il לחדשות 12, 13tv.co.il לחדשות 13, kan.org.il לכאן 11).",
+        "category": "polls",
+        "closesAt": "2026-09-06T02:00:00+03:00",
+        "initialProbability": 0.65,
+        "sources": [
+          {
+            "title": "Poll: Likud Sinks to 19 Seats as New Right-wing Party Falls Below Threshold | Haaretz",
+            "url": "https://www.haaretz.com/israel-news/elections/2026-08-26/ty-article/poll-likuds-decline-continues-new-right-wing-party-fails-to-cross-threshold/000001a0-3f77-d1ec-a7ec-7fff54df0000"
+          },
+          {
+            "title": "סקר מנדטים חריג: טלטלה במפת הגושים - הליכוד מתחזק | מעריב",
+            "url": "https://www.maariv.co.il/news/elections-2026/article-1362451"
+          },
+          {
+            "title": "שינוי במפת הגושים: נתניהו ואיזנקוט בשוויון דרמטי בצמרת | חדשות 13",
+            "url": "https://13tv.co.il/item/news/politics/politics/dnxub-905274776/"
+          },
+          {
+            "title": "Yashar party pulls further ahead in pre-election poll, despite Likud primaries | The Jerusalem Post",
+            "url": "https://www.jpost.com/israel-election-2026/article-906183"
+          }
+        ]
+      },
+      "fingerprint": "e5a0e773a72f7d6a",
+      "verdict": "NO",
+      "confidence": 0.72,
+      "note": "בין שבת 5.9.2026 בשעה 12:00 ליום ראשון 6.9.2026 בשעה 02:00 לא פורסם סקר מנדטים של חדשות 12, חדשות 13 או כאן 11. במאגר \"סקר הסקרים\", שמתעד כל סקר לפי יום פרסום, אין סקר כלשהו המתוארך 5.9.2026: הסקר שלפני החלון הוא של מעריב מ-4.9, והסקר הבא הוא של כאן 11 המתוארך 6.9.2026 - כלומר אחרי סגירת השאלה (בסקר הזה \"ישר!\" מקבלת 23 מנדטים מול 20 לליכוד, אך הוא מחוץ לחלון). אזהרה לקורא: לא נמצא עמוד שנוקב בשעת הפרסום המדויקת של סקר כאן, ולכן ההכרעה נשענת על התיארוך של המאגר ועל כך שסקרי כאן מתפרסמים במהדורות של ימי חול.",
+      "evidence": [
+        {
+          "title": "סקר כאן 11 06.09.2026 – מנדטים לפי מפלגות | סקר הסקרים",
+          "url": "https://www.skarim.org/polls/11-2026-09-06",
+          "quote": "סקר כאן 11 06.09.2026 – מנדטים לפי מפלגות",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "סקר מנדטים מוצאי שבת 5.9.2026 חדשות 12 ישר איזנקוט ליכוד",
+        "סקר כאן 11 מנדטים 6.9.2026 איזנקוט ליכוד 20",
+        "\"סקר\" \"מוצאי שבת\" בחירות 2026 5 בספטמבר חדשות 13 מנדטים",
+        "skarim.org/polls - אין סקר המתוארך 05.09.2026"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "5bd947253990545a"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
+      }
+    },
+    {
+      "slug": "eisenkot-saturday-night-tv-interview-sat-night",
+      "market": {
+        "title": "האם איזנקוט יתראיין בחדשות 12, חדשות 13, כאן 11 או ערוץ 14 בשבת 5.9 עד חצות?",
+        "subtitle": "ארבעה ימים לפני שהוא חייב להגיש את רשימת \"ישר!\"",
+        "resolutionCriteria": "\"כן\" אם בין שבת 5.9.2026 בשעה 12:00 לבין יום ראשון 6.9.2026 בשעה 02:00 (שעון ישראל) ישודר ריאיון עם גדי איזנקוט — חי או מוקלט מראש — באחד מאלה: חדשות 12 / קשת 12 (כולל \"פגוש את העיתונות\"), חדשות 13 / רשת 13, כאן 11, או ערוץ 14. הריאיון חייב להיות עם איזנקוט עצמו ולא עם דובר, נציג או איש מטעמו. \"לא\" אם בחלון הזה ישודרו רק ציטוטים, קטעי ארכיון, נאומים או הודעות מוקלטות שלו ללא ריאיון, וכן \"לא\" אם הוא כלל לא יופיע. ריאיונות לרדיו, לפודקאסטים, לאתרי אינטרנט או לערוצים אחרים (i24NEWS, גלי צה\"ל, ynet) אינם נחשבים. המקור המכריע להכרעה בדיעבד: פרסום כתוב של הערוץ המשדר או של אתר החדשות שלו (mako/N12, חדשות 13, kan.org.il, ערוץ 14), או דיווח בכלי תקשורת ישראלי מרכזי (ynet, ישראל היום, מעריב, הארץ, זמן ישראל), שממנו עולה כי הריאיון שודר בערוץ ובחלון הזמן האמורים. אם לא נמצא פרסום או דיווח כזה — התוצאה \"לא\".",
+        "category": "media",
+        "closesAt": "2026-09-06T02:00:00+03:00",
+        "initialProbability": 0.38,
+        "sources": [
+          {
+            "title": "איזנקוט: לא עזבתי את גנץ כדי להיות מספר 2 של בנט (ריאיון ל\"פגוש את העיתונות\") | N12",
+            "url": "https://www.mako.co.il/news-politics/2026_q1/Article-12887de35b33d91026.htm"
+          },
+          {
+            "title": "פגוש את העיתונות - העמוד הרשמי (שבת 18:00, עמית סגל ובן כספית)",
+            "url": "https://www.facebook.com/pgoshmtp/"
+          },
+          {
+            "title": "גדי איזנקוט בריאיון מיוחד ל\"שבע\" עם קרן מרציאנו | N12",
+            "url": "https://www.mako.co.il/news-israel-elections/2026/Article-98ba0043866ff91027.htm"
+          }
+        ]
+      },
+      "fingerprint": "980b1cd6441d3cd9",
+      "verdict": "NO",
+      "confidence": 0.7,
+      "note": "לא נמצא פרסום או דיווח על ריאיון עם גדי איזנקוט שהתראיין בעצמו בחדשות 12, חדשות 13, כאן 11 או ערוץ 14 בין שבת 5.9.2026 בשעה 12:00 ליום ראשון 6.9.2026 בשעה 02:00. בבלוג החי של טיימס אוף ישראל ל-5.9, שמתעד את כל אירועי היום, אין ריאיון כזה, וההופעה המתועדת האחרונה של איזנקוט לפני החלון היא באירוע \"שישי תרבות\" בראשון לציון ביום שישי 4.9. הריאיונות המיוחדים שלו לחדשות 12 שנמצאו בחיפוש הם מוקדמים יותר. אזהרה לקורא: אתר mako חוסם שליפה אוטומטית, ולכן לא ניתן היה לשלול ריאיון ששודר ולא דווח בכלי תקשורת אחר.",
+      "evidence": [],
+      "searchedFor": [
+        "איזנקוט ריאיון מוצאי שבת 5.9.2026 חדשות 12 \"פגוש את העיתונות\" ישר",
+        "איזנקוט אמר בריאיון לחדשות 12 מוצאי שבת ספטמבר 2026 סגירת הרשימות",
+        "\"איזנקוט\" ריאיון \"ערוץ 14\" OR \"כאן 11\" OR \"חדשות 13\" 5 בספטמבר 2026 שבת",
+        "גדי איזנקוט 6.9.2026 ריאיון הצהרה מסיבת עיתונאים ישר הרשימה"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "2e9617c2718b82d3"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
+      }
+    },
+    {
+      "slug": "elections-committee-elector-ruling-sunday-1700",
+      "market": {
+        "title": "האם מליאת ועדת הבחירות תתיר דיווחי קלפיות בזמן אמת (\"אלקטור\") עד 6.9 בשעה 17:00?",
+        "subtitle": "בג\"ץ העביר את ההכרעה מסולברג למליאה - שבה לקואליציה יש רוב - עם דיון שנקבע ליום ראשון",
+        "resolutionCriteria": "\"כן\" אם עד יום ראשון 6.9.2026 בשעה 17:00 שעון ישראל תתקבל במליאת ועדת הבחירות המרכזית לכנסת ה-26 החלטה המתירה לנציגי הסיעות בקלפיות להעביר מידע בזמן אמת על מי הצביע (גם אם ההיתר מסויג בתנאים או במגבלות), כפי שידווח באתר ועדת הבחירות המרכזית (bechirot.gov.il) או באחד מהמקורות ynet, N12 (מאקו), חדשות 13, כאן 11, הארץ, ישראל היום או כלכליסט. \"לא\" בכל מקרה אחר - לרבות אם המליאה מותירה את איסור סולברג על כנו, דוחה את ההכרעה למועד מאוחר יותר, כלל לא מתכנסת, או שלא מתקבלת החלטה כלשהי עד השעה 17:00. היעדר כל דיווח על החלטה = \"לא\".",
+        "category": "election-day",
+        "closesAt": "2026-09-06T17:00:00+03:00",
+        "initialProbability": 0.62,
+        "sources": [
+          {
+            "title": "בהתערבות בג\"ץ: הפעלת האלקטור חוזרת לוועדת הבחירות - שם יש רוב לקואליציה - ynet",
+            "url": "https://www.ynet.co.il/news/article/sjbxn2sdfx"
+          },
+          {
+            "title": "בג\"ץ מעביר את ההכרעה בעתירת הליכוד לוועדת הבחירות - כיכר השבת",
+            "url": "https://www.kikar.co.il/law-and-order/supreme-court-election-committee-decision"
+          }
+        ]
+      },
+      "fingerprint": "aa60c3ca5a594a6b",
+      "verdict": "YES",
+      "confidence": 0.9,
+      "note": "מליאת ועדת הבחירות המרכזית התכנסה ביום ראשון 6.9.2026 והפכה את החלטת יו\"ר הוועדה השופט נעם סולברג: השימוש באפליקציות ייעודיות, ובהן \"אלקטור\", אושר, כך שנציגי הסיעות בקלפיות יוכלו להעביר בזמן אמת מידע על מי שכבר הצביע. ההחלטה התקבלה ברוב של 19 בעד, 11 נגד ו-3 נמנעים, ולפי הדיווח היא נפלה בצהרי יום ראשון - כלומר לפני שעת הסגירה 17:00.",
+      "evidence": [
+        {
+          "title": "הוועדה הפכה את החלטת סולברג: המפלגות יוכלו להשתמש באלקטור | ynet",
+          "url": "https://www.ynet.co.il/news/article/b1s00t3qomx",
+          "quote": "ועדת הבחירות המרכזית אישרה היום (ראשון) את השימוש באפליקציית אלקטור, שמאפשרת דיווח למפלגות בזמן אמת בבחירות על אזרחים שאינם מצביעים. השימוש אושר לאחר דיון ארוך, ברוב של 19 קולות בעד לעומת 11 נגד.",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        },
+        {
+          "title": "ועדת הבחירות הפכה החלטת סולברג: המפלגות יקבלו נתונים בזמן אמת מי הצביע | חרדים10",
+          "url": "https://ch10.co.il/news/1099969/",
+          "quote": "ועדת הבחירות המרכזית הפכה בצהריים (ראשון) את פסיקת יושב הראש של הוועדה, השופט נעם סולברג, ואישרה את השימוש באפליקציות ייעודיות - ובהן יישומון 'אלקטור' - ביום הבחירות",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "ועדת הבחירות המרכזית החלטה אלקטור דיווח בזמן אמת קלפיות 6 בספטמבר 2026 מליאה",
+        "\"ועדת הבחירות\" אלקטור הפכה החלטת סולברג 19 בעד 11 נגד היום ראשון"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "c09d26820427f47e"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
+      }
+    },
+    {
+      "slug": "netanyahu-cabinet-remarks-draft-ruling-sunday",
+      "market": {
+        "title": "האם נתניהו יתייחס לפסיקת בג\"ץ על חוק הקפאת המעצרים בדברי הפתיחה לישיבת הממשלה ב-6.9?",
+        "subtitle": "הבמה הרשמית הראשונה של רה\"מ מאז הפסיקה — או שהנושא יישאר מחוץ לפרוטוקול",
+        "resolutionCriteria": "\"כן\" אם עד יום ראשון 6.9.2026 בשעה 18:00 שעון ישראל יפורסמו דברי הפתיחה של בנימין נתניהו לישיבת הממשלה — על ידי לשכת ראש הממשלה, בערוצים הרשמיים של הממשלה, או בציטוט מהם אצל לפחות אחד מהבאים: ynet, N12, כאן 11, ישראל היום — ובהם התייחסות מפורשת לפסיקת בג\"ץ בעניין חוק הקפאת מעצרי העריקים (תיקון 28 לחוק שירות ביטחון) או לביטולו של החוק. כל התייחסות מפורשת נחשבת, בין אם תומכת ובין אם מבקרת. \"לא\" בכל מקרה אחר, ובכלל זה: אם ישיבת הממשלה לא תתקיים כלל בחלון הזמן, אם היא תתקיים ללא דברי פתיחה מפורסמים, אם הדברים יפורסמו ללא אזכור הפסיקה, או אם נתניהו יתייחס לפסיקה רק מחוץ לישיבת הממשלה (בריאיון, בפוסט או בהודעת דוברות). התבטאות של שר אחר, של דובר או של \"גורם בלשכה\" אינה נחשבת.",
+        "category": "netanyahu",
+        "closesAt": "2026-09-06T18:00:00+03:00",
+        "initialProbability": 0.28,
+        "sources": [
+          {
+            "title": "9 בעד, 0 נגד: בג\"ץ ביטל את חוק הקפאת מעצרי העריקים החרדים",
+            "url": "https://www.ynet.co.il/news/article/bk3u0mpoze"
+          },
+          {
+            "title": "Liveblog September 3, 2026 — The Times of Israel",
+            "url": "https://www.timesofisrael.com/liveblog-september-03-2026/"
+          },
+          {
+            "title": "בג\"ץ הורה על ביטול חוק הקפאת מעצרי העריקים החרדים",
+            "url": "https://news.walla.co.il/item/3865443"
+          }
+        ]
+      },
+      "fingerprint": "096c9a70c79c8092",
+      "verdict": "NO",
+      "confidence": 0.8,
+      "note": "דברי הפתיחה של נתניהו לישיבת הממשלה ביום ראשון 6.9.2026, כפי שפורסמו בסרטון מטעם לשכתו מאירוע לקראת ראש השנה בישיבה, עסקו באיראן ובביטחון - \"סופו של המשטר קרב\" ואיום על תגובה אם איראן תתקוף - ולא כללו התייחסות לפסיקת בג\"ץ שביטלה את חוק הקפאת מעצרי העריקים החרדים. בחיפושים בעברית ובאנגלית לא נמצא דיווח על התייחסות כזו בדברי הפתיחה עד השעה 18:00.",
+      "evidence": [
+        {
+          "title": "Times of Israel liveblog, September 6, 2026",
+          "url": "https://www.timesofisrael.com/liveblog-september-06-2026/",
+          "quote": "Prime Minister Benjamin Netanyahu asserts Israel's determination to \"complete the mission\" of toppling Iran's regime, declaring that \"its end is near,\" in a Hebrew-language video message released by his office from a pre-Rosh Hashanah event at today's cabinet meeting.",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "נתניהו דברי פתיחה ישיבת הממשלה 6.9.2026 בג\"ץ חוק הקפאת מעצרי העריקים",
+        "Netanyahu cabinet meeting September 6 2026 remarks High Court draft law ruling",
+        "נתניהו ישיבת הממשלה היום ראשון 6.9.2026 \"בפתח ישיבת הממשלה\" אמר"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "83bbb1392c85ebb1"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
+      }
+    },
+    {
+      "slug": "idf-lebanon-strike-announcement-sunday-eve",
+      "market": {
+        "title": "האם דובר צה\"ל יודיע רשמית על תקיפה בלבנון עד יום ראשון 6.9 בשעה 20:00?",
+        "subtitle": "החזית הצפונית בוערת בעצימות נמוכה — האם יבוא גל תקיפות נוסף עד מוצאי יום ראשון?",
+        "resolutionCriteria": "\"כן\" אם עד יום ראשון 6.9.2026 בשעה 20:00 שעון ישראל יפרסם דובר צה\"ל הודעה על תקיפה שביצע צה\"ל בשטח לבנון — בערוצים הרשמיים (אתר צה\"ל, ערוץ הטלגרם או חשבון ה-X של דובר צה\"ל) או בציטוט מפורש בשמו באחד מאלה: ynet, Times of Israel, כאן חדשות. נספרת תקיפה מכל סוג: מהאוויר, בכטב\"ם, בארטילריה או בירי מכוון על מטרות חיזבאללה. הודעה על יירוט או על הפלת כטב\"ם בלבד, בלי תקיפה, אינה נספרת, וכך גם חזרה על הודעות שכבר פורסמו עד 4.9.2026 כולל. \"לא\" אם לא תפורסם הודעה כזו בחלון הזמן — לרבות המקרה שבו כלי תקשורת לבנוניים ידווחו על תקיפה אך צה\"ל לא ייקח עליה אחריות עד מועד הסגירה.",
+        "category": "security",
+        "closesAt": "2026-09-06T20:00:00+03:00",
+        "initialProbability": 0.85,
+        "sources": [
+          {
+            "title": "Sept. 4: Rabbis meeting Trump reportedly asked him to help yeshiva students seeking to evade IDF service | The Times of Israel",
+            "url": "https://www.timesofisrael.com/liveblog-september-04-2026/"
+          },
+          {
+            "title": "Sept. 3: US says its mediated talks led to Israeli handover of Lebanese detainees | The Times of Israel",
+            "url": "https://www.timesofisrael.com/liveblog-september-03-2026/"
+          },
+          {
+            "title": "דיווח: שני הרוגים בתקיפת צה\"ל בדרום לבנון - ynet",
+            "url": "https://www.ynet.co.il/news/article/s1gwc8tfmg"
+          }
+        ]
+      },
+      "fingerprint": "57c78762860817fd",
+      "verdict": "YES",
+      "confidence": 0.92,
+      "note": "דובר צה\"ל פרסם בחלון הזמן הודעות על תקיפות שביצע צה\"ל בלבנון. בשבת בבוקר, 5.9.2026, מסר צה\"ל כי התקיפות שביצע כוונו לפעילי חיזבאללה ולתשתיות, ובהן מחסני אמל\"ח שיועדו לתקיפות נגד ישראל. ביום ראשון 6.9.2026, בדיווח שפורסם ב-13:47 - לפני שעת הסגירה 20:00 - מסר צה\"ל כי תקף תשתיות ופעילי חיזבאללה בתגובה לשיגור כטב\"מים לעבר כוחות ברכס עלי א-טאהר, וכינה את השיגור הפרה בוטה של הפסקת האש. שתי ההודעות חדשות ואינן חזרה על פרסומים מ-4.9 ומוקדם יותר.",
+      "evidence": [
+        {
+          "title": "3 said killed in IDF strikes in Lebanon after Hezbollah drone attack on troops | The Times of Israel",
+          "url": "https://www.timesofisrael.com/3-said-killed-in-idf-strikes-in-lebanon-after-hezbollah-drone-attack-on-troops/",
+          "quote": "The IDF said Saturday morning that its strikes targeted Hezbollah members and infrastructure, including weapons depots intended for attacks on Israel.",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        },
+        {
+          "title": "7 said killed as Israel strikes south Lebanon after Hezbollah drones target troops | The Times of Israel",
+          "url": "https://www.timesofisrael.com/4-killed-as-israel-strikes-south-lebanon-after-hezbollah-drones-target-troops",
+          "quote": "The IDF called the drone attack a \"blatant violation\" of the ceasefire and said it struck Hezbollah infrastructure and operatives in response.",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "דובר צה\"ל תקיפה בלבנון 5 בספטמבר 2026 הודעה חיזבאללה",
+        "Israeli strike Mayfadoun Lebanon September 5 2026 IDF said",
+        "IDF announcement strike Lebanon \"September 6, 2026\" Nabatieh killed three"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "abe923e49f72e3aa"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
+      }
+    },
+    {
+      "slug": "netanyahu-responds-hcj-draft-arrests-sunday",
+      "market": {
+        "title": "האם נתניהו יתייחס בפומבי לפסיקת בג\"ץ על מעצרי העריקים החרדים, עד יום ראשון 6.9 בשעה 20:00?",
+        "subtitle": "התייחסות פומבית של רה\"מ לפסיקה הדרמטית, בישיבת הממשלה או בכל ערוץ רשמי אחר",
+        "resolutionCriteria": "\"כן\" אם בין 5.9.2026 בשעה 12:00 לבין יום ראשון 6.9.2026 בשעה 20:00 שעון ישראל, בנימין נתניהו יתייחס במפורש ובפומבי לפסיקת בג\"ץ בעניין חוק הקפאת מעצרי העריקים — בדברי הפתיחה לישיבת הממשלה כפי שיפורסמו על ידי לשכת ראש הממשלה, בהודעה רשמית מטעמו, בפוסט בחשבונות הרשמיים שלו, או בראיון — כפי שיפורסם או ידווח על ידי לפחות אחד מהבאים: ynet, N12, כאן 11, ישראל היום. כל התייחסות מפורשת נחשבת, בין אם תומכת ובין אם מבקרת. \"לא\" אם לא תהיה התייחסות מפורשת שלו לפסיקה עד המועד — לרבות במקרה שבו ישיבת הממשלה לא תתקיים כלל, תתקיים ללא דברי פתיחה מפורסמים, או שנתניהו יימנע מהנושא. התבטאות של שר אחר, של דובר או של \"גורם בלשכה\" אינה נחשבת.",
+        "category": "legal",
+        "closesAt": "2026-09-06T20:00:00+03:00",
+        "initialProbability": 0.6,
+        "sources": [
+          {
+            "title": "9 בעד, 0 נגד: בג\"ץ ביטל את חוק הקפאת מעצרי העריקים החרדים",
+            "url": "https://www.ynet.co.il/news/article/bk3u0mpoze"
+          },
+          {
+            "title": "0-9: בג\"ץ ביטל את החוק שהביא להקפאת מעצר עריקים",
+            "url": "https://www.israelhayom.co.il/news/law/article/21350542"
+          },
+          {
+            "title": "Sept. 3, 2026 liveblog — The Times of Israel",
+            "url": "https://www.timesofisrael.com/liveblog-september-03-2026/"
+          }
+        ]
+      },
+      "fingerprint": "89a064007fbcea8f",
+      "verdict": "NO",
+      "confidence": 0.75,
+      "note": "בין 5.9.2026 בשעה 12:00 ליום ראשון 6.9.2026 בשעה 20:00 לא נמצאה התייחסות פומבית מפורשת של בנימין נתניהו לפסיקת בג\"ץ שביטלה את חוק הקפאת מעצרי העריקים החרדים. דברי הפתיחה שלו לישיבת הממשלה ב-6.9, שפורסמו בסרטון מטעם לשכתו, עסקו באיראן ובראש השנה, ולא נמצא דיווח ב-ynet, N12, כאן 11 או ישראל היום על הודעה, פוסט או ריאיון שבהם התייחס לפסיקה בחלון הזמן. התבטאויותיו הידועות על כישלון חוק המעצרים הן מוקדמות יותר ונאמרו בדיון סגור.",
+      "evidence": [
+        {
+          "title": "Times of Israel liveblog, September 6, 2026",
+          "url": "https://www.timesofisrael.com/liveblog-september-06-2026/",
+          "quote": "Prime Minister Benjamin Netanyahu asserts Israel's determination to \"complete the mission\" of toppling Iran's regime, declaring that \"its end is near,\" in a Hebrew-language video message released by his office from a pre-Rosh Hashanah event at today's cabinet meeting.",
+          "checkedAt": "2026-09-06T21:20:00+03:00"
+        }
+      ],
+      "searchedFor": [
+        "נתניהו התייחס לפסיקת בג\"ץ חוק הקפאת המעצרים ספטמבר 2026 ישיבת הממשלה",
+        "נתניהו תגובה לפסיקת בג\"ץ ביטול חוק המעצרים 5-6 בספטמבר 2026 \"נתניהו\" הגיב",
+        "Netanyahu cabinet meeting September 6 2026 remarks High Court draft law ruling"
+      ],
+      "researchedAt": "2026-09-06T21:20:00+03:00",
+      "approval": {
+        "decision": "approved",
+        "by": "ofirzlot@gmail.com",
+        "at": "2026-09-06T18:25:07.234Z",
+        "proposalFingerprint": "fcc0c7920d697fbd"
+      },
+      "applied": {
+        "at": "2026-09-06T18:25:11.709Z"
+      },
+      "published": {
+        "at": "2026-09-06T18:25:51.922Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "resolved"
+      }
+    }
+  ],
+  "publish": {
+    "at": "2026-09-06T18:25:51.922Z",
+    "target": "https://bhirot-market.com/api/admin/markets",
+    "ok": true,
+    "response": "{\"ok\":true,\"added\":[],\"updated\":[],\"resolved\":[\"elections-committee-elector-ruling-sunday-1700\",\"netanyahu-cabinet-remarks-draft-ruling-sunday\",\"idf-lebanon-strike-announcement-sunday-eve\",\"netanyahu-responds-hcj-draft-arrests-sunday\"],\"skipped\":[\"another-party-quits-sat-night\",\"smotrich-inside-likud-report-sat-night\",\"haredi-parties-18-seats-poll-sat-night\",\"yashar-ahead-of-likud-saturday-night-poll-sat-night\",\"eisenkot-saturday-night-tv-interview-sat-night\",\"elections-committee-elector-ruling-sunday-1700\",\"netanyahu-cabinet-remarks-draft-ruling-sunday\",\"idf-lebanon-strike-announcement-sunday-eve\",\"netanyahu-responds-hcj-draft-arrests-sunday\"]}"
+  }
+}
