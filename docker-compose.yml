@@ -31,6 +31,25 @@ services:
       - ./scripts/cron-refresh.sh:/cron-refresh.sh:ro
     entrypoint: ['/bin/sh', '/cron-refresh.sh']
 
+  # The short clock, same script, different target: every ten minutes it asks the
+  # app to nudge the quote of the markets nobody has answered in hours, so the
+  # board is never frozen for the length of a visit (src/lib/drift.ts). Separate
+  # from the hourly container on purpose — the question generator can take
+  # minutes, and the drift must not wait behind it.
+  drift:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      CRON_SECRET: ${CRON_SECRET:-}
+      CRON_TARGET: http://app:3000/api/cron/drift
+      CRON_INTERVAL_SECONDS: '600'
+      CRON_TAG: cron-drift
+    volumes:
+      - ./scripts/cron-refresh.sh:/cron-refresh.sh:ro
+    entrypoint: ['/bin/sh', '/cron-refresh.sh']
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped

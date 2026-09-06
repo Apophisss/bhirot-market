@@ -1,5 +1,5 @@
 #!/bin/sh
-# The clock for the hourly content refresh.
+# The clock behind the site's scheduled jobs.
 #
 # On Vercel this was `vercel.json`'s cron entry; that file only means anything
 # to Vercel, so the self-hosted deployment needs its own clock. This is it: a
