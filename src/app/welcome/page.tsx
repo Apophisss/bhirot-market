@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { daysUntil, money } from "@/lib/format";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
+import { GUEST_LIMIT } from "@/lib/rapid-guest";
 import { shareCard } from "@/lib/seo";
 import { displayOpenCount } from "@/lib/display-stats";
 
@@ -32,8 +33,19 @@ export const metadata: Metadata = {
   ...shareCard({ title: `משחק ידע על הפוליטיקה הישראלית | ${SITE_NAME}`, description: DESCRIPTION, path: "/welcome" }),
 };
 
-/** The single destination every button on this page points at. */
-const CTA = "/login?callbackUrl=%2Frapid";
+/**
+ * The single destination every button on this page points at: the deck itself.
+ *
+ * It used to be `/login?callbackUrl=/rapid` — an ad promising a free game, and a
+ * Google account demanded before a single question had been seen. The deck has let
+ * a visitor answer without an account for a while now (`GUEST_LIMIT` answers, kept
+ * in the browser and redeemed on the way back from Google — see `rapid-guest.ts`),
+ * so the sign-in is asked where it means something: after the free run, in order to
+ * keep answers that already exist.
+ */
+const CTA = "/rapid";
+/** for the minority who already have an account and just want back in */
+const LOGIN = "/login?callbackUrl=%2Frapid";
 
 /**
  * Below this, the number of open questions is not a sign of scale — it is a
@@ -110,9 +122,11 @@ export default async function WelcomePage() {
             href={CTA}
             className="tap pressable inline-flex items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-extrabold text-brand-deep shadow-lg hover:bg-white/90 sm:text-lg"
           >
-            להתחיל לשחק — חינם
+            להתחיל לשחק — בלי הרשמה
           </Link>
-          <p className="text-sm text-white/70">התחברות בלחיצה עם Google. בלי אשראי, בלי טופס.</p>
+          <p className="text-sm text-white/70">
+            {GUEST_LIMIT} השאלות הראשונות בלי חשבון בכלל. אחר כך התחברות בלחיצה עם Google — בלי אשראי, בלי טופס.
+          </p>
         </div>
       </section>
 
@@ -130,8 +144,8 @@ export default async function WelcomePage() {
             )}
           </div>
           <p className="text-sm leading-relaxed text-muted">
-            שאלות אמיתיות מהלוח, עם מד הביטחון של השחקנים בהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
-            ונהפוך אותה לתשובה שנספרת בניקוד, ב-{money(RAPID_DEFAULT_STAKE)}, ברגע שתתחברו.
+            שאלות אמיתיות מהלוח, עם מד הביטחון של השחקנים בהן ברגע זה. עונים כאן בלי חשבון וממשיכים ישר למצב זריז —
+            התשובה נשמרת, והיא תיכנס לניקוד ב-{money(RAPID_DEFAULT_STAKE)} ברגע שתתחברו.
           </p>
           {/* Real, current markets that answer back — a static card is a screenshot,
               a card that responds is a demonstration. */}
@@ -166,13 +180,22 @@ export default async function WelcomePage() {
         </p>
       </section>
 
-      <section className="pb-4 text-center">
+      <section className="space-y-2.5 pb-4 text-center">
         <Link
           href={CTA}
           className="tap pressable inline-flex items-center justify-center rounded-xl bg-accent px-8 py-4 text-base font-extrabold text-white hover:bg-accent-2 sm:text-lg"
         >
-          לבדוק כמה אתם מכירים — חינם
+          לבדוק כמה אתם מכירים — בלי הרשמה
         </Link>
+        {/* The one place on the page that still leads straight to Google: someone who
+            already has an account is not here to be pitched, and should not have to
+            answer four questions to get back to their own score. */}
+        <p className="text-sm text-muted">
+          כבר יש לכם חשבון?{" "}
+          <Link href={LOGIN} className="font-semibold text-accent hover:underline">
+            התחברות
+          </Link>
+        </p>
       </section>
     </div>
   );
