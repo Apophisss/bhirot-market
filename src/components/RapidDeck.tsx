@@ -20,6 +20,7 @@ import { setRapidStake, useRapidStake } from "@/lib/settings-client";
 import { addSkips, openSkipSnapshot, serverSkipSnapshot, skipSnapshot, subscribeSkipSnapshot } from "@/lib/rapid-skips";
 import {
   GUEST_LIMIT,
+  GUEST_RECAP_LIMIT,
   addGuestAnswer,
   guestGateReached,
   readGuestAnswers,
@@ -825,7 +826,7 @@ export function RapidDeck({
         />
       )}
 
-      {/* the free run is over, and the four answers behind this are the argument */}
+      {/* the free run is over, and the answers behind this are the argument */}
       {guestGate && <GuestGate answers={guestAnswers} />}
 
       <aside className="scrollbar-none shrink-0 lg:w-72 lg:overflow-y-auto xl:w-80">
@@ -849,21 +850,34 @@ export function RapidDeck({
  * The wall a signed-out visitor meets after `GUEST_LIMIT` answers.
  *
  * It is deliberately built out of what they just did rather than out of what the
- * site wants: the four questions are listed with the side they picked, because
- * "you have already answered four questions — sign in and they start counting"
- * is an entirely different proposition from "sign in to continue".
+ * site wants: the questions are listed with the side that was picked, because
+ * "you have already answered ten questions — sign in and they start counting" is
+ * an entirely different proposition from "sign in to continue".
+ *
+ * What it adds to that is the answer to the question a stranger actually has at
+ * this moment, which is not "why should I" but "what does this cost me": the
+ * account is free, it is one click of a Google button, and it opens the rest of
+ * the game rather than merely removing an obstacle. Those three are stated here,
+ * on the screen that asks, rather than left on a marketing page nobody is on.
+ *
+ * Only the last `GUEST_RECAP_LIMIT` answers are named. Ten rows plus a heading is
+ * taller than a phone, and the row that would be pushed off the bottom is the
+ * button — the recap is here to make the ask concrete, not to bury it.
  */
 function GuestGate({ answers }: { answers: GuestAnswer[] }) {
+  const listed = answers.slice(-GUEST_RECAP_LIMIT).reverse();
+  const rest = answers.length - listed.length;
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-bg/92 p-3 backdrop-blur-sm">
       <div className="card max-h-full w-full max-w-md overflow-y-auto p-4 text-center sm:p-6">
         <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענית על {answers.length} שאלות</h2>
         <p className="mt-1.5 text-sm text-muted">
-          התחברו והן ייכנסו לניקוד שלכם, יחד עם {money(STARTING_BALANCE)} להמשך.
+          הרשמה חינם, בלחיצה אחת עם Google — התשובות שכבר נתתם נכנסות לניקוד, ואיתן{" "}
+          {money(STARTING_BALANCE)} להמשך.
         </p>
 
         <ul className="mt-4 space-y-1.5 text-right">
-          {answers.map((a) => (
+          {listed.map((a) => (
             <li key={a.marketSlug} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-2">
               <span className={`shrink-0 text-sm font-black ${a.side === "YES" ? "text-yes" : "text-no"}`}>
                 {a.side === "YES" ? "כן" : "לא"}
@@ -872,6 +886,19 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
               <span className="tabular shrink-0 text-[13px] text-muted-2">{pct(a.priceAtAnswer)}</span>
             </li>
           ))}
+          {rest > 0 && (
+            <li className="rounded-lg bg-surface-2 px-2.5 py-1.5 text-[13px] text-muted">
+              ועוד {rest} {rest === 1 ? "תשובה" : "תשובות"} שנשמרו לכם
+            </li>
+          )}
+        </ul>
+
+        {/* what the account opens, in the words of things to do — not "הטבות" */}
+        <ul className="mt-3 grid list-inside list-disc gap-1 text-right text-[13px] leading-snug text-muted">
+          <li>להמשיך לענות בלי הגבלה, על כל הלוח</li>
+          <li>לעלות בטבלת המובילים ולראות כמה פעמים צדקתם</li>
+          <li>לפתוח ליגה עם חברים ולראות מי מוביל</li>
+          <li>לעקוב אחרי התיק שלכם — כמה שווה כל תשובה עכשיו</li>
         </ul>
 
         <Link
@@ -879,10 +906,10 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
           data-evt="rapid-guest-gate"
           className="tap pressable mt-4 flex w-full items-center justify-center rounded-xl bg-accent px-5 text-base font-extrabold text-white shadow-md shadow-accent/25 hover:bg-accent-2"
         >
-          התחברות · והתשובות נשמרות
+          הרשמה חינם · והתשובות נשמרות
         </Link>
         <p className="mt-2 text-[13px] text-muted-2">
-          התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
+          בלי אשראי ובלי טופס — שם, אימייל ותמונה מ-Google. התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
         </p>
       </div>
     </div>

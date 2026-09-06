@@ -10,11 +10,11 @@ import { CategoryTabs } from "@/components/CategoryTabs";
 import { RapidDeck } from "@/components/RapidDeck";
 import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
-import { GUEST_LIMIT } from "@/lib/rapid-guest";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 import { getSettings } from "@/lib/settings-store";
 import { parseRapidSort, type SettingsPatch } from "@/lib/settings";
 import { RememberDeckView } from "@/components/RememberDeckView";
+import { GuestRunBanner } from "@/components/GuestRunBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -159,15 +159,8 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         className={`shrink-0 ${category === "all" ? "short:hidden" : ""}`}
       />
 
-      {!loggedIn && (
-        <p className="shrink-0 rounded-xl border border-accent/40 bg-accent/10 px-3 py-1.5 text-[13px] leading-snug text-text short:py-1 short:text-xs sm:py-2 sm:text-sm">
-          {GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות, ו
-          <Link href="/login?callbackUrl=%2Frapid" className="inline-flex min-h-11 items-center font-bold text-accent-2 hover:underline">
-            התחברות
-          </Link>{" "}
-          מכניסה אותן לניקוד שלכם.
-        </p>
-      )}
+      {/* the free run, counted down in the browser rather than quoted from the server */}
+      {!loggedIn && <GuestRunBanner />}
 
       {askSurvey && <SurveyPrompt next="/rapid" compact />}
 
