@@ -77,6 +77,13 @@ jobs:
       # is in the page source of every site that uses it), and a write-only
       # secret would mean nobody can check which stream the site reports to.
       # Unset simply builds an image with no analytics in it.
+      #
+      # BUILD_SHA is the commit this image was built from, and it is passed for
+      # the same build-time reason: it is stamped onto every pageview, into
+      # /api/health and into the data bundle, so a number measured after a
+      # deploy can be told apart from the same number measured before it.
+      # Without it every before/after comparison is a guess about which build
+      # produced which half of the window.
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -87,6 +94,7 @@ jobs:
             ${{ env.IMAGE }}:latest
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://${{ env.DOMAIN }}
+            NEXT_PUBLIC_BUILD_SHA=${{ github.sha }}
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ vars.GA_MEASUREMENT_ID }}
             NEXT_PUBLIC_ADS_ID=${{ vars.ADS_ID }}
             NEXT_PUBLIC_ADS_LABEL_SIGNUP=${{ vars.ADS_LABEL_SIGNUP }}

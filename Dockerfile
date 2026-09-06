@@ -32,6 +32,13 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 # default for a local or unconfigured build.
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=""
 ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
+# The commit this image was built from — the same build-time rule again, and here
+# it is the whole point: the value is baked into the bundle so that every pageview
+# it sends carries the build that sent it, and a metric measured after a deploy can
+# be told apart from the same metric measured before it. Unset means a build that
+# no deploy produced, and everything reading it says "dev".
+ARG NEXT_PUBLIC_BUILD_SHA=""
+ENV NEXT_PUBLIC_BUILD_SHA=$NEXT_PUBLIC_BUILD_SHA
 # Google Ads conversion tracking — same build-time rule as GA above: unset here
 # means the campaign reports nothing, no matter what the server's .env says.
 ARG NEXT_PUBLIC_ADS_ID=""

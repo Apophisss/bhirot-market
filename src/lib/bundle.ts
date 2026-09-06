@@ -24,20 +24,35 @@ import {
   getPaidCampaigns,
   getPaidFunnel,
   getPaidLanguages,
+  getPropBreakdowns,
+  getRapidCards,
+  getRapidRuns,
+  getRapidSummary,
   getRetention,
+  getRetentionBySource,
+  getRouteVitals,
   getSearchTerms,
   getSlowPages,
+  getTimeToFirstTrade,
   getTopPages,
   getTopReferrers,
   getTraffic,
   getTradingStats,
   getUserStats,
   getWebVitals,
+  getWebVitalsByDevice,
   range,
   TZ_NAME,
 } from "./stats";
 
-export const BUNDLE_VERSION = 1;
+/**
+ * 2: the deck got a section of its own (`rapid`), users got an acquisition split
+ * (`bySource`, `firstTrade`), performance got a device split, and the general
+ * funnel's second stage was renamed — `market_view` is now `question_view`, and it
+ * counts the deck too. A reader that looks for the old key will not find it, which
+ * is what this number is for.
+ */
+export const BUNDLE_VERSION = 2;
 
 /** What the analysis agent gets told about the site before it looks at a single number. */
 function guide(days: number) {
@@ -47,15 +62,25 @@ function guide(days: number) {
       "התחילו מ-issues: זו רשימת הבעיות שהאתר זיהה על עצמו, ממוינת לפי חומרה, עם רמז לאיפה בקוד לתקן.",
       "אחר כך funnel: איפה נופלים המשתמשים בין כניסה לאתר לבין עסקה ראשונה.",
       "paid הוא המשפך של מי שהגיע מקמפיין ממומן (utm), סשן אחרי סשן: נחיתה → לחיצה → חפיסה → תשובה כאורח → מסך התחברות → חשבון → עסקה. השלב שבו המספר נופל לאפס הוא המקום לתקן. paid.languages היא שפת הדפדפן — התחליף היחיד למדינה, כי אין כותרת גיאוגרפית מאחורי השרת.",
+      "rapid הוא החפיסה — המשטח המרכזי של המוצר: summary אומר כמה ריצות היו וכמה עמוק הן הגיעו, runDepth הוא היסטוגרמת עומק הריצה מול שתי המדרגות שמעצבות אותה (הצעה רכה אחרי 3 תשובות, חסימה אחרי 10), ו-byMarket הוא שיעור הדילוג לכל שאלה — הסימן החד ביותר לאיכות של שאלה.",
       "markets.byMarket מראה אילו שאלות מושכות צפיות אך לא עסקאות — זה בדרך כלל בעיה בניסוח השאלה או בתמחור.",
-      "performance מכיל Core Web Vitals אמיתיים מהשדה; מעל 2500ms ב-LCP p75 שווה עבודה.",
+      "users.bySource ו-users.firstTrade מפצלים שימור וזמן-לתשובה-ראשונה לפי מאיפה הגיע החשבון (קמפיין / הזמנה / אורגני). קראו את המכנה: eligibleD1 ו-eligibleD7 הם החשבונות שהחלון בכלל נסגר עליהם.",
+      "engagement.props מסכם props שנאספים מזמן ולא סוכמו: webview (דפדפן in-app — Google מסרב לחלקם, וזו הרשמה שנופלת מסיבה שאף מדד אחר לא רואה), first (חדש מול חוזר), שגיאות התחברות ומסחר.",
+      "performance מכיל Core Web Vitals אמיתיים מהשדה; מעל 2500ms ב-LCP p75 שווה עבודה. performance.byDevice הוא הפילוח שקובע — 82% מהמבקרים בנייד, ומספר כלל-אתרי מסתיר את הנייד בתוך תערובת.",
       "הציעו שינויים קונקרטיים בקבצים שמופיעים ב-repoMap, והסבירו כל שינוי במונחי המדד שהוא אמור להזיז.",
     ],
     metricsGlossary: {
       visitors: "דפדפן ייחודי ביום. מבוסס על hash מתחלף של IP+User-Agent — אין קוקי ואין זיהוי חוצה-ימים.",
       sessions: "ביקור בטאב אחד (sessionStorage).",
       bounceRate: "אחוז הסשנים עם צפייה בעמוד אחד בלבד.",
-      conversion: "בשוק: סוחרים ייחודיים חלקי מבקרים ייחודיים בעמוד השוק.",
+      conversion:
+        "בשוק: סוחרים ייחודיים חלקי reach — כל מי שהשאלה הוצגה לו, בדף השאלה או בחפיסה. מוגבל ל-100%: המונה הוא חשבונות והמכנה דפדפן-ימים, ולכן הם יכולים להצטלב.",
+      reach: "כמה דפדפנים ייחודיים ראו את השאלה בכלל — pageview בדף השאלה או rapid_seen בחפיסה. במצב זריז עונים בלי לפתוח את דף השאלה, ולכן מבקרי הדף לבדם אינם הקהל.",
+      build: "meta.build ו-props.build על כל pageview: ה-commit שממנו נבנתה הגרסה שהגישה את המספר. בלעדיו השוואת לפני/אחרי סביב פריסה היא ניחוש.",
+      d1d7:
+        "users.bySource: D1 = חזרו ביום שאחרי ההרשמה (24–48 שעות), D7 = חזרו בשבוע הראשון (24 שעות עד 7 ימים). ״חזרו״ = כל אירוע או עסקה. המכנה הוא eligibleD1/eligibleD7 — רק חשבונות שהחלון כבר נסגר עליהם.",
+      rapidSession:
+        "rapid.summary ו-rapid.runDepth נבנים מאירוע rapid_session שנשלח כשעוזבים את החפיסה: shown/answered/skipped/seconds/guest. rapid.byMarket משתמש ב-rapid_seen — ״הכרטיס הפך לעליון״ — כמכנה שלא היה קיים עד עכשיו; skipped שם נגזר (הוצג פחות נענה), ולכן הכרטיס האחרון בכל ריצה נספר כדילוג.",
       paidSession: "סשן שהצפייה הראשונה בו נשאה utm_medium או gclid (קליק על מודעה). ששת השלבים הראשונים ב-paid.funnel נספרים בסשנים; ״נרשמו״ ו״ביצעו עסקה״ נספרים בחשבונות שעליהם נשמר שיוך לקמפיין בעת ההרשמה, ולכן אין להם אחוז מהשלב הקודם. paid.landings = קליקים שהשרת ראה נוחתים על /welcome, לפני JavaScript; ההפרש מהשלב הראשון הוא מי שעזב לפני שהמדידה רצה.",
       landing: "paid.landing — מה מבקרי הקמפיין עשו בדף הנחיתה: חציון שניות (לא ממוצע), חלוקה לרצועות זמן, ועומק הגלילה — גם אצל מי שלא נגע בכלום, כדי לדעת אם הכרטיס בכלל היה על המסך.",
       brierInitial:
@@ -123,11 +148,19 @@ export async function buildBundle(opts: BundleOptions = {}) {
     contentHealth,
     users,
     cohorts,
+    retentionBySource,
+    firstTrade,
     trading,
     hours,
     vitals,
+    vitalsByDevice,
+    routeVitals,
     slowPages,
     errors,
+    props,
+    rapidSummary,
+    rapidCards,
+    rapidRuns,
     agentRuns,
     issues,
     size,
@@ -155,11 +188,19 @@ export async function buildBundle(opts: BundleOptions = {}) {
     getContentHealth(),
     getUserStats(r),
     getRetention(12),
+    getRetentionBySource(days),
+    getTimeToFirstTrade(days),
     getTradingStats(r),
     getHourHistogram(r),
     getWebVitals(r),
+    getWebVitalsByDevice(r),
+    getRouteVitals(r, ["LCP", "INP"], { limit: 30 }),
     getSlowPages(r, 15),
     getClientErrors(r, 25),
+    getPropBreakdowns(r),
+    getRapidSummary(r),
+    getRapidCards(r, 40),
+    getRapidRuns(r),
     getAgentRuns(30),
     // the issue rules read the paid funnel too; computed once above, handed in here
     getPaidFunnel(r).then((paid) => getIssues(r, { paid })),
@@ -175,6 +216,11 @@ export async function buildBundle(opts: BundleOptions = {}) {
       rangeTo: new Date(r.to).toISOString(),
       timezone: TZ_NAME,
       site: { name: SITE_NAME, tagline: SITE_TAGLINE, url: SITE_URL, electionDate: ELECTION_DATE },
+      // The commit the running image was built from (Dockerfile / deploy.yml), and
+      // the same stamp every pageview carries in props.build. Two bundles taken
+      // across a deploy can be compared only if it is known which build produced
+      // each of them; "dev" is a build that no deploy made.
+      build: process.env.NEXT_PUBLIC_BUILD_SHA || "dev",
       analytics: {
         storedEvents: size.events,
         oldestEvent: size.oldest?.toISOString() ?? null,
@@ -221,11 +267,12 @@ export async function buildBundle(opts: BundleOptions = {}) {
       countries,
       hourOfDay: hours,
     },
-    engagement: { events, clicks, searches },
+    engagement: { events, clicks, searches, props },
+    rapid: { summary: rapidSummary, byMarket: rapidCards, runDepth: rapidRuns },
     business: { daily: dailyBusiness, trading },
     markets: { health: contentHealth, calibration, byCategory: categories, byMarket: markets },
-    users: { stats: users, cohorts },
-    performance: { webVitals: vitals, slowPages, clientErrors: errors },
+    users: { stats: users, cohorts, bySource: retentionBySource, firstTrade },
+    performance: { webVitals: vitals, byDevice: vitalsByDevice, routeVitals, slowPages, clientErrors: errors },
     editorial: { agentRuns },
   };
 }
@@ -365,10 +412,37 @@ export function bundleToMarkdown(b: Bundle): string {
     "",
   );
 
+  const R = b.rapid.summary;
+  out.push("## החפיסה (מצב זריז)", "");
+  out.push(
+    `${n(R.runs)} ריצות (${n(R.guestRuns)} בלי חשבון) · ${n(R.shown)} כרטיסים הוצגו · ${n(R.answered)} נענו (${p(R.answerRate)}) · ${n(R.answersPerRun)} תשובות לריצה · ${n(R.avgSeconds)} שנ׳ לריצה בממוצע`,
+    "",
+  );
+  if (b.rapid.runDepth.length) {
+    out.push("עומק הריצה — כמה תשובות ניתנו לפני שהריצה נגמרה (ההצעה הרכה ב-3, החסימה ב-10):", "");
+    out.push(
+      table(
+        ["תשובות בריצה", "ריצות", "מתוכן אורחים", "כרטיסים בממוצע", "שניות בממוצע"],
+        b.rapid.runDepth.map((d) => [d.label, n(d.runs), n(d.guestRuns), n(d.avgShown), n(d.avgSeconds)]),
+      ),
+      "",
+    );
+  }
+  if (b.rapid.byMarket.length) {
+    out.push("השאלות שהכי מדלגים עליהן בחפיסה (מינימום 3 הצגות):", "");
+    out.push(
+      table(
+        ["שאלה", "הוצגה", "נענתה", "דילוג"],
+        b.rapid.byMarket.slice(0, 20).map((m) => [m.title.slice(0, 70), n(m.shown), n(m.answered), p(m.skipRate)]),
+      ),
+      "",
+    );
+  }
+
   out.push("## שווקים לפי מעורבות", "");
   out.push(
     table(
-      ["שוק", "קטגוריה", "סטטוס", "צפיות", "מבקרים", "עסקאות", "נפח", "המרה"],
+      ["שוק", "קטגוריה", "סטטוס", "צפיות", "מבקרים", "נחשפו (דף+חפיסה)", "עסקאות", "נפח", "המרה"],
       b.markets.byMarket
         .slice(0, 30)
         .map((m) => [
@@ -377,6 +451,7 @@ export function bundleToMarkdown(b: Bundle): string {
           m.status,
           n(m.views),
           n(m.visitors),
+          n(m.reach),
           n(m.trades),
           n(m.volume),
           p(m.conversion),
@@ -403,6 +478,32 @@ export function bundleToMarkdown(b: Bundle): string {
     "",
   );
 
+  out.push("## שימור וזמן לתשובה ראשונה, לפי מקור", "");
+  if (b.users.bySource.length) {
+    out.push(
+      table(
+        ["מקור", "חשבונות", "ענו אי פעם", "D1", "D7"],
+        b.users.bySource.map((u) => [
+          u.key,
+          n(u.users),
+          n(u.traded),
+          u.eligibleD1 ? `${n(u.d1)}/${n(u.eligibleD1)} (${p(u.d1 / u.eligibleD1)})` : "—",
+          u.eligibleD7 ? `${n(u.d7)}/${n(u.eligibleD7)} (${p(u.d7 / u.eligibleD7)})` : "—",
+        ]),
+      ),
+      "",
+      "D1 = חזרו ביום שאחרי (24–48 שעות), D7 = חזרו תוך שבוע. המכנה הוא רק חשבונות שהחלון כבר נסגר עליהם, ולכן ״—״ = מוקדם מדי לדעת.",
+      "",
+    );
+    out.push(
+      table(
+        ["מקור", "חשבונות", "ענו", "חציון דקות לתשובה הראשונה", "ענו באותו יום"],
+        b.users.firstTrade.map((f) => [f.key, n(f.accounts), n(f.traded), f.traded ? n(f.medianMinutes) : "—", n(f.sameDay)]),
+      ),
+      "",
+    );
+  } else out.push("_אין עדיין חשבונות בטווח הזה._", "");
+
   if (b.performance.webVitals.length) {
     out.push("## ביצועים (Core Web Vitals)", "");
     out.push(
@@ -412,6 +513,26 @@ export function bundleToMarkdown(b: Bundle): string {
       ),
       "",
     );
+    if (b.performance.byDevice.length) {
+      out.push("לפי מכשיר — זה הפילוח שקובע, כי רוב המבקרים בנייד:", "");
+      out.push(
+        table(
+          ["מדד", "מכשיר", "דגימות", "p50", "p75", "p95"],
+          b.performance.byDevice.map((v) => [v.metric, v.device, n(v.samples), n(v.p50), n(v.p75), n(v.p95)]),
+        ),
+        "",
+      );
+    }
+    if (b.performance.routeVitals.length) {
+      out.push("הנתיבים האיטיים ביותר (p75, לפי מכשיר):", "");
+      out.push(
+        table(
+          ["מדד", "נתיב", "מכשיר", "דגימות", "p75"],
+          b.performance.routeVitals.slice(0, 20).map((v) => [v.metric, v.path, v.device, n(v.samples), n(v.p75)]),
+        ),
+        "",
+      );
+    }
   }
 
   out.push("## שאלות מומלצות לניתוח", "");
