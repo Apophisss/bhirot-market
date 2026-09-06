@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CATEGORIES, findCategory } from "@/lib/categories";
-import { listMarkets, getCategoryCounts } from "@/lib/markets";
+import { getCategoryBoard } from "@/lib/board-cache";
 import { ensureSynced } from "@/lib/sync";
 import { RapidCta } from "@/components/RapidCta";
 import { MarketBrowser, PAGE, parseSort } from "@/components/MarketBrowser";
@@ -53,10 +53,10 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   const q = sp.q?.trim() || undefined;
   const show = Math.min(Math.max(Number(sp.show) || PAGE, PAGE), 600);
 
-  const [markets, counts] = await Promise.all([
-    listMarkets({ category: cat.id, q, sort, status, limit: 600 }),
-    getCategoryCounts(status),
-  ]);
+  // the same in-process cache the home board reads from (src/lib/board-cache.ts): the
+  // category counters are one entry shared with it, and the listing is up to 45 seconds
+  // stale in exactly the ways that file documents
+  const { markets, counts } = await getCategoryBoard({ category: cat.id, q, sort, status });
   const visible = markets.slice(0, show);
   const openCount = counts[cat.id] ?? markets.length;
 

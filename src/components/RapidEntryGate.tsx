@@ -22,6 +22,11 @@ import { gateOffered, markGateOffered, pathWantsGate } from "@/lib/entry-gate";
  * אחרי ה-mount הוא הפעולה עצמה — `showModal()`, שמביא איתו את הרקע המוכהה, את לכידת
  * הפוקוס ואת הסגירה ב-Esc — ולא רינדור מחדש.
  *
+ * הפתיחה מחכה ל-`load` ואז ל-idle, ולא נעשית ברגע ההידרציה. `<dialog>` פתוח הוא
+ * הטקסט הגדול והמרכזי בעמוד, ולכן הדפדפן בוחר בפסקה שלו כ-LCP — הפתיחה המוקדמת
+ * הפכה חלון על משהו אחר למדד המהירות של הדף שמתחתיו. אחרי `load` הצביעה כבר
+ * נמדדה, וההצעה עולה על עמוד שכבר עומד.
+ *
  * פעם אחת בביקור: הסימון נכתב ברגע ההצגה ולא בלחיצה, כדי שגם מי שסגר ב-Esc או
  * בלחיצה על הרקע לא יפגוש אותו שוב בעמוד הבא. ההחלטה נופלת פעם אחת, על הכתובת שבה
  * המבקר נחת — ההדר שורד ניווט פנימי, וכניסה לאתר היא הטעינה, לא כל לחיצה בתוכו.
@@ -37,9 +42,28 @@ export function RapidEntryGate({ loggedIn }: { loggedIn: boolean }) {
     decided.current = true;
     const path = pathname || "/";
     if (!pathWantsGate(path) || gateOffered()) return;
-    markGateOffered();
-    ref.current?.showModal();
-    track(EVENTS.rapidGate, { path, props: { action: "shown", loggedIn: loggedIn ? 1 : 0 } });
+
+    const open = () => {
+      const dialog = ref.current;
+      // nothing to show once the header is gone: leaving the visit unmarked is
+      // the right way to be wrong here, because the offer can still be made on
+      // the next page and a marked visit never shows it again
+      if (!dialog || dialog.open) return;
+      markGateOffered();
+      dialog.showModal();
+      track(EVENTS.rapidGate, { path, props: { action: "shown", loggedIn: loggedIn ? 1 : 0 } });
+    };
+    const whenIdle = () => {
+      // `requestIdleCallback` is still missing on Safari; the timeout is both the
+      // fallback and the cap, so the offer is never lost on a page that stays busy
+      if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(open, { timeout: 2000 });
+      else window.setTimeout(open, 300);
+    };
+    // no cleanup on purpose: both callbacks fire once and both check the dialog
+    // before touching anything, and removing them would mean React's development
+    // double-mount cancels the only scheduled opening
+    if (document.readyState === "complete") whenIdle();
+    else window.addEventListener("load", whenIdle, { once: true });
   }, [pathname, loggedIn]);
 
   return (
@@ -68,11 +92,13 @@ export function RapidEntryGate({ loggedIn }: { loggedIn: boolean }) {
                 : `${GUEST_LIMIT} התשובות הראשונות הן בלי חשבון בכלל, והן נשמרות לכם.`}
             </p>
           </div>
+          {/* 44px ולא 36: זה הכפתור שסוגר חלון שאיש לא ביקש, והוא היה יעד המגע
+              הקטן ביותר במסך הראשון של כל ביקור */}
           <button
             type="button"
             onClick={() => ref.current?.close()}
             aria-label="סגירה"
-            className="pressable -ml-2 -mt-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-text-strong"
+            className="pressable -ml-2 -mt-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-text-strong"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
               <path d="M6 6l12 12M18 6L6 18" />

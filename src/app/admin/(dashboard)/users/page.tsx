@@ -1,7 +1,7 @@
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { getTopTradersForAdmin } from "@/lib/portfolio";
 import { money, signedMoney, pnlTone } from "@/lib/format";
-import { getDailyBusiness, getRetention, getTradingStats, getUserStats, range } from "@/lib/stats";
+import { getDailyBusiness, getRetention, getRetentionBySource, getTimeToFirstTrade, getTradingStats, getUserStats, range } from "@/lib/stats";
 import { BarSeries, Card, Kpi, fmt, shortDay } from "@/components/admin/Charts";
 
 export const dynamic = "force-dynamic";
@@ -10,9 +10,13 @@ export const metadata = { title: "משתמשים" };
 export default async function AdminUsers({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
   const days = Number((await searchParams).days) || 7;
   const r = range(days);
-  const [users, cohorts, business, trading, leaders] = await Promise.all([
+  const [users, cohorts, bySource, firstTrade, business, trading, leaders] = await Promise.all([
     getUserStats(r),
     getRetention(10),
+    // 90 days and not the page's range: a cohort needs a week to have a D7 at all,
+    // and asking "did they come back" of accounts opened this morning answers itself
+    getRetentionBySource(90),
+    getTimeToFirstTrade(90),
     getDailyBusiness(r),
     getTradingStats(r),
     getTopTradersForAdmin(15),
@@ -73,6 +77,82 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 <tr>
                   <td colSpan={4} className="px-3 py-6 text-center text-muted-2">
                     עדיין אין נרשמים.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* The cohort table above asks one crude question of everyone at once ("did they
+          ever come back"). These two ask it of each source separately, which is the
+          split that decides whether a campaign is worth its money — and they print the
+          denominator, because an account that opened this morning cannot have a D1 and
+          counting it as a miss makes every recent day look like a collapse. */}
+      <Card title="שימור לפי מקור" hint="90 יום · D1 = חזרו ביום שאחרי · D7 = חזרו תוך שבוע · המכנה הוא רק חשבונות שהחלון נסגר עליהם">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-surface-2 text-xs text-muted">
+              <tr>
+                <th className="px-3 py-2 text-right font-medium">מקור</th>
+                <th className="px-3 py-2 text-right font-medium">חשבונות</th>
+                <th className="px-3 py-2 text-right font-medium">ענו אי פעם</th>
+                <th className="px-3 py-2 text-right font-medium">D1</th>
+                <th className="px-3 py-2 text-right font-medium">D7</th>
+                <th className="px-3 py-2 text-right font-medium">חציון דקות לתשובה הראשונה</th>
+                <th className="px-3 py-2 text-right font-medium">ענו באותו יום</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {bySource.map((u) => {
+                const t = firstTrade.find((f) => f.key === u.key);
+                return (
+                  <tr key={u.key}>
+                    <td className="px-3 py-2" dir="ltr">
+                      {u.key}
+                    </td>
+                    <td className="tabular px-3 py-2 font-semibold">{fmt(u.users)}</td>
+                    <td className="tabular px-3 py-2">{fmt(u.traded)}</td>
+                    <td className="tabular px-3 py-2">
+                      {u.eligibleD1 ? (
+                        <>
+                          {fmt(u.d1)}
+                          <span className="text-xs text-muted-2">
+                            {" "}
+                            / {fmt(u.eligibleD1)} ({fmt((u.d1 / u.eligibleD1) * 100)}%)
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-muted-2" title="עוד לא עברו יומיים מההרשמה">
+                          מוקדם מדי
+                        </span>
+                      )}
+                    </td>
+                    <td className="tabular px-3 py-2">
+                      {u.eligibleD7 ? (
+                        <>
+                          {fmt(u.d7)}
+                          <span className="text-xs text-muted-2">
+                            {" "}
+                            / {fmt(u.eligibleD7)} ({fmt((u.d7 / u.eligibleD7) * 100)}%)
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-muted-2" title="עוד לא עבר שבוע מההרשמה">
+                          מוקדם מדי
+                        </span>
+                      )}
+                    </td>
+                    <td className="tabular px-3 py-2">{t?.traded ? fmt(t.medianMinutes) : <span className="text-muted-2">—</span>}</td>
+                    <td className="tabular px-3 py-2 text-muted">{fmt(t?.sameDay ?? 0)}</td>
+                  </tr>
+                );
+              })}
+              {!bySource.length && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-6 text-center text-muted-2">
+                    עדיין אין חשבונות ב-90 הימים האחרונים.
                   </td>
                 </tr>
               )}

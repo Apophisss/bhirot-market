@@ -2,10 +2,22 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { executeTrade, TradeError } from "@/lib/trade";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { track } from "@/lib/analytics";
 import { EVENTS } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * The ceiling on answers from one account, per minute.
+ *
+ * The endpoint that moves points had no limit at all while the contact form
+ * had one. This is not there to slow anyone down — a fast run in rapid mode is
+ * a handful of answers a minute and the panel is slower still — it is there so
+ * a script cannot walk the price of a market with a thousand calls before
+ * anybody notices.
+ */
+const PER_MINUTE = 60;
 
 const Body = z.object({
   marketId: z.string().min(1),
@@ -18,6 +30,13 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ ok: false, error: "צריך להתחבר כדי לענות" }, { status: 401 });
+  }
+  const limited = rateLimit(`trade:${clientKey(req, session.user.id)}`, PER_MINUTE, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { ok: false, error: "יותר מדי תשובות בזמן קצר — רגע אחד" },
+      { status: 429, headers: { "retry-after": String(limited.retryAfter) } },
+    );
   }
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {

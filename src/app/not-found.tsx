@@ -1,11 +1,33 @@
 import Link from "next/link";
 import { BoltIcon } from "@/components/BoltIcon";
 import type { Metadata } from "next";
+import { SITE_NAME } from "@/lib/config";
+import { shareCard } from "@/lib/seo";
 
-// Next emits its own `noindex` on this boundary and the response is a real 404, so
-// only the title is missing: without it every dead link is labelled with the site default.
+const DESCRIPTION = "הקישור הזה לא מוביל לשום דף באתר. יש עוד הרבה שאלות פתוחות שמחכות לתשובה.";
+
+/*
+  Two things were wrong here, and both came from what this page did *not* say.
+
+  Next emits its own `<meta name="robots" content="noindex">` on the not-found
+  boundary — but metadata is merged from the root layout down, and the layout says
+  `index, follow`, so a 404 shipped both and which one a crawler believed was its own
+  business. `robots: null` is the fix rather than `robots: { index: false }`: the
+  latter only replaces the contradiction with a duplicate, because Next's own tag is
+  emitted either way. Null drops the inherited rule and leaves exactly one noindex,
+  which is the one the framework already got right.
+
+  The share card was inherited whole for the same reason, and its og:url is the
+  layout's "/" — so a dead link forwarded into a chat previewed as the home page and
+  claimed to *be* the home page. There is no way to name the URL that was actually
+  requested from a static `metadata` export, but /404 is at least honest: it is a URL
+  that renders this page and answers 404, which is precisely what this is.
+*/
 export const metadata: Metadata = {
   title: "הדף לא נמצא",
+  description: DESCRIPTION,
+  robots: null,
+  ...shareCard({ title: `הדף לא נמצא | ${SITE_NAME}`, description: DESCRIPTION, path: "/404" }),
 };
 
 export default function NotFound() {

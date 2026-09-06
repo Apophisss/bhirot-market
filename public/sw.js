@@ -39,6 +39,16 @@ self.addEventListener("activate", (event) => {
     (async () => {
       const keys = await caches.keys();
       await Promise.all(keys.filter((k) => k !== SHELL).map((k) => caches.delete(k)));
+      // A worker that answers navigations has to be running before the browser may
+      // issue the request, and starting one costs 50-250ms on a mid-range Android —
+      // paid on every repeat visit, in front of a page this worker then fetches from
+      // the network anyway. Navigation preload lets the browser send that request in
+      // parallel with the startup instead of behind it; the fetch handler below reads
+      // the answer from `event.preloadResponse`. Not supported everywhere, hence the
+      // guard: where it is missing the handler falls back to fetching itself.
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
       await self.clients.claim();
     })(),
   );
@@ -56,6 +66,11 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       (async () => {
         try {
+          // the request the browser already sent while this worker was booting up
+          // (see `navigationPreload` in `activate`); on a browser without it, or on a
+          // navigation the browser chose not to preload, this resolves to undefined
+          const preloaded = await event.preloadResponse;
+          if (preloaded) return preloaded;
           return await fetch(request);
         } catch {
           const cache = await caches.open(SHELL);

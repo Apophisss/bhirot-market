@@ -85,6 +85,15 @@ export default async function LeaderboardPage() {
           בניקוד אבל לא ברווח/הפסד, שמודד ניחוש בלבד.{" "}
           <span className="text-text">הלוח אנונימי</span> — כל שחקן/ית מופיע/ה בכינוי אקראי וקבוע, בלי שם ובלי תמונה.
         </p>
+        {/* The disclosure was on /about and nowhere near the table it is about. The
+            board is `buildBoard(real, { fakeCount: … })` — a handful of real accounts
+            inside a crowd sized to the hero's own number — and a visitor comparing
+            their place to it deserves to know that on the page where they read it. One
+            line, once. */}
+        <p className="mt-2 text-[13px] text-muted sm:text-sm">
+          הלוח כולל <span className="text-text">שחקני הדגמה</span> לצד השחקנים האמיתיים, כדי להראות איך הוא נראה מלא. הם אינם עונים על שאלות
+          ואינם משפיעים על אף מד, על הניקוד שלכם או על המקום שלכם.
+        </p>
       </div>
 
       {provisional && (

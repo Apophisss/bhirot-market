@@ -249,7 +249,14 @@ export const priceHistory = sqliteTable(
      */
     source: text("source").$type<PriceSource>().notNull().default("trade"),
   },
-  (p) => [index("price_history_market_idx").on(p.marketId, p.ts)],
+  (p) => [
+    index("price_history_market_idx").on(p.marketId, p.ts),
+    // The drift pass asks three questions every ten minutes — the last traded row per
+    // market, the last drift row per market, and which old drift rows to thin — and all
+    // three filter on `source` before they order by `ts`. Without this they are
+    // full scans of a table that grows by thousands of rows a day.
+    index("price_history_source_idx").on(p.marketId, p.source, p.ts),
+  ],
 );
 
 export const comments = sqliteTable(

@@ -54,6 +54,11 @@ export function ActivityFeed({
         const sideLabel = t.side === "YES" ? "כן" : "לא";
         // the same two verbs the trade panel's tabs and its confirm button use
         const verb = t.action === "BUY" ? "נענו" : "הוחזרו";
+        // The key already carries the provenance ("f:" fabricated, "t:" a real trade),
+        // so the row can say which it is instead of leaving a reader to assume. Without
+        // the chip the two kinds are identical on screen, and on this board almost
+        // every row is the fabricated kind.
+        const demo = t.key.startsWith("f:");
         return (
           <li key={t.key} className="flex items-start gap-2.5 py-3 sm:items-center sm:gap-3">
             <span className="relative shrink-0">
@@ -74,6 +79,7 @@ export function ActivityFeed({
                 <span className="text-muted">ב־</span>
                 <span className="tabular font-semibold text-text">{money(t.amount)}</span>
                 <span className="text-muted-2">({pct(t.priceAfter, 1)} אחרי)</span>
+                {demo && <span className="rounded bg-surface-2 px-1 py-0.5 text-[13px] font-semibold text-muted-2">הדגמה</span>}
               </div>
               {t.marketTitle && (
                 <Link href={`/market/${t.marketId}`} className="line-clamp-1 text-xs text-accent-2 hover:underline">

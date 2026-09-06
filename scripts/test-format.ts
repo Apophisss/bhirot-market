@@ -22,7 +22,7 @@
  *
  * Exits 1 on the first violations and prints the failing cases.
  */
-import { money, signedMoney, signedPct, pnlSign, sharePrice, POINTS_SHORT } from "../src/lib/format";
+import { money, signedMoney, signedPct, pnlSign, pointsIfRight, sharePrice, POINTS_SHORT } from "../src/lib/format";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail?: unknown) {
@@ -76,6 +76,18 @@ eq("compact rounds a normal volume", money(1234.56, { compact: true }), "1,235 �
 eq("a win of twelve points", signedMoney(12), "+12 נק׳");
 eq("a loss of twelve points", signedMoney(-12), "-12 נק׳");
 eq("the cost of one answer always shows hundredths", sharePrice(0.42), "0.42 נק׳");
+
+// ---- what a right answer is worth -------------------------------------------
+//
+// One phrase for it, addressed in the plural, in points. Never "תשלום": that is
+// the word an ad review and the gambling test read, and copy here has been
+// refused over it before — so the test asserts its absence, not only the digits.
+
+eq("a right answer is worth points", pointsIfRight(141.4), "141 נק׳ אם צדקתם");
+eq("and it is the same rounding as every other amount", pointsIfRight(0.4), "0 נק׳ אם צדקתם");
+check("the payout is never called a payment", !pointsIfRight(100).includes("תשלום"), pointsIfRight(100));
+check("nor a prize or a win", !/פרס|זכי/.test(pointsIfRight(100)), pointsIfRight(100));
+check("and the reader is addressed in the plural", pointsIfRight(100).includes("צדקתם"), pointsIfRight(100));
 
 // ---- a displayed zero is unsigned, and is neither a win nor a loss -----------
 //

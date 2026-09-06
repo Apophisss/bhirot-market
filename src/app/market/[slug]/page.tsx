@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { auth, currentUser } from "@/lib/auth";
 import { getMarket, getRecentTrades, getComments, getRelatedMarkets } from "@/lib/markets";
 import { getChartHistory } from "@/lib/display-history";
-import { fakeMarketTrades, mergeTrades } from "@/lib/fake-market-stats";
 import { getPosition } from "@/lib/portfolio";
 import { ensureSynced } from "@/lib/sync";
 import { getCategory } from "@/lib/categories";
@@ -12,7 +11,7 @@ import { SITE_NAME, SITE_TEAM, isTeamAuthored } from "@/lib/config";
 import { absUrl, clamp, marketGraph, shareCard } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 import { getPerson } from "@/lib/content";
-import { money, fmtDateTime, closesLabel, timeAgo } from "@/lib/format";
+import { money, pct, fmtDateTime, closesLabel, timeAgo } from "@/lib/format";
 import { PriceChart } from "@/components/PriceChart";
 import { TradePanel } from "@/components/TradePanel";
 import { TradeList } from "@/components/TradeList";
@@ -99,10 +98,19 @@ export default async function MarketPage({ params, searchParams }: { params: Par
   const prefill = amount && /^\d+(\.\d{1,2})?$/.test(amount) && Number(amount) > 0 ? amount : undefined;
   const cat = getCategory(market.category);
   const people = market.people.map((id) => getPerson(id)).filter(Boolean);
-  // The trade list is a display-only merge (see fake-market-stats.ts): the real rows
-  // are shown verbatim, with fabricated ones interleaved by timestamp. The comment
-  // thread below is NOT — every comment on this page was written by a real account.
-  const recentShown = mergeTrades(recent, fakeMarketTrades({ ...market, probability: market.probability }, 12), 25);
+  /*
+    The caveat below reads `market.tradeCount`, the recorded count, not
+    `displayTradeCount`, which is fabricated with a floor of 4 against a threshold of
+    3 — which is why the line added after a single 7,110-point answer moved a question
+    from 50% to 1% has never once appeared on an open question.
+  */
+  const thin = market.status === "open" && market.tradeCount < THIN_MARKET_TRADES;
+  const answers =
+    market.tradeCount === 0
+      ? "עדיין אין תשובות של שחקנים"
+      : market.tradeCount === 1
+        ? "יש תשובה אחת של שחקנים"
+        : `יש ${market.tradeCount} תשובות של שחקנים`;
 
   // The single column is capped explicitly: an implicit `auto` track grows to its widest
   // item's min-content (the comment input), which scrolls the whole document on a phone.
@@ -122,10 +130,15 @@ export default async function MarketPage({ params, searchParams }: { params: Par
               <span className="cat-chip rounded-md px-1.5 py-0.5 font-semibold" style={{ "--cat": cat.accent, "--cat-dark": cat.accentDark } as CSSProperties}>
                 {cat.label}
               </span>
-              {/* the display pair, never the recorded one — see src/lib/fake-market-stats.ts */}
-              <span className="tabular">
-                {`${money(market.displayVolume, { compact: true })} · ${market.displayTradeCount} תשובות`}
-              </span>
+              {/* the display pair (src/lib/fake-market-stats.ts), and only on a question
+                  that has actually been answered — on the others the caveat under the
+                  headline says what the price is instead, and the two cannot both be on
+                  the same screen without contradicting each other */}
+              {!thin && (
+                <span className="tabular">
+                  {`${money(market.displayVolume, { compact: true })} · ${market.displayTradeCount} תשובות`}
+                </span>
+              )}
               <span>·</span>
               <span>{market.status === "open" ? closesLabel(market.closesAt) : market.status === "resolved" ? `הוכרע ${market.resolvedAt ? timeAgo(market.resolvedAt) : ""}` : "בוטל"}</span>
               {isTeamAuthored(market.createdBy) && <span>· נוסף על ידי {SITE_TEAM}</span>}
@@ -134,11 +147,13 @@ export default async function MarketPage({ params, searchParams }: { params: Par
             {/*
               A price that one or two answers put there is an opening estimate, not a
               crowd's answer, and presenting it as the latter is what let a single
-              7,110-point answer read as "the players say 1%".
+              7,110-point answer read as "the players say 1%". Said as what it is
+              rather than as an apology: the number is the editorial team's honest
+              estimate, and the first answers are what will move it.
             */}
-            {market.status === "open" && market.displayTradeCount < THIN_MARKET_TRADES && (
+            {thin && (
               <p className="mt-1.5 inline-flex rounded-md bg-warn/10 px-2 py-1 text-[13px] font-semibold text-warn">
-                מד ראשוני · עוד כמעט לא ענו — התשובות הראשונות הן שיקבעו אותו
+                ההערכה של המערכת: {pct(market.probability)} · {answers} — התשובות הראשונות הן שיקבעו את המד
               </p>
             )}
             {market.subtitle && <p className="mt-1 text-sm text-muted">{market.subtitle}</p>}
@@ -171,12 +186,16 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           </div>
         )}
 
+        {/* the recorded count, because this is the prop that decides whether the chart
+            calls the curve traded: handed the display pair it read every question as
+            busy and never drew the "עדיין אין תשובות" note under a purely estimated
+            line */}
         <PriceChart
           points={chart.points}
           current={market.probability}
           isOpen={market.status === "open"}
           estimateBand={chart.synthetic ? chart.maxDeviation : undefined}
-          tradeCount={market.displayTradeCount}
+          tradeCount={market.tradeCount}
           now={chart.now}
         />
 
@@ -234,9 +253,18 @@ export default async function MarketPage({ params, searchParams }: { params: Par
           )}
         </section>
 
+        {/*
+          Recorded trades only. This is a list of rows, each with a side, an amount, a
+          price and a time, and a reader takes every one of them for something a person
+          did — so it used to be `mergeTrades(recent, fakeMarketTrades(...))`:
+          fabricated answers interleaved with the real ones by timestamp, wearing no
+          mark of any kind, with no way to tell which was which. An empty list is a
+          smaller loss than a list that cannot be trusted, and the comment thread right
+          below it has always been real.
+        */}
         <section className="card p-3.5 sm:p-5">
           <h2 className="mb-2 font-bold text-text-strong">תשובות אחרונות</h2>
-          <TradeList trades={recentShown} />
+          <TradeList trades={recent} emptyText="עדיין אין תשובות של שחקנים על השאלה הזאת — התשובה שלכם תהיה הראשונה כאן" />
         </section>
 
         <Comments marketId={market.id} comments={comments} loggedIn={Boolean(session?.user)} />

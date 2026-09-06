@@ -339,6 +339,65 @@ export function approvalProblem(entry: ResolutionEntry): string | null {
   return null;
 }
 
+/* ------------------------------------------------------- the settlement gate */
+
+/*
+ * Everything above decides whether a resolution may be WRITTEN — into
+ * data/markets.json, by `applyResolution`. The three functions below decide
+ * whether one may be SETTLED — credited to people's balances, by `settleMarket`
+ * through `upsertMarkets` in ../sync.
+ *
+ * They exist because those are two different doors into the same room. Every
+ * caller of `upsertMarkets` hands it a plain `MarketContent`, and a MarketContent
+ * that happens to say `"status": "resolved"` looks exactly the same whether a
+ * human approved it or a model invented it thirty seconds ago — the approval,
+ * the evidence and the fingerprint all live in the run file, which never travels
+ * with the market. The hourly generator (../agent/generate.ts) used to walk
+ * straight through that door.
+ *
+ * So the gate is on the one thing that does travel: who is asking. A payload may
+ * settle only if it arrives from a path whose resolutions have already passed
+ * `isApproved()` somewhere upstream, and there are exactly two of those.
+ */
+
+/**
+ * `scripts/resolve.ts publish` stamps its POST with `resolve-<runId>`, and it
+ * sends only entries that `isApproved()` returned true for and that `apply`
+ * already wrote to the file. That prefix is therefore the signature of the
+ * pipeline's own last step. Keep `publishSource()` and the CLI in step.
+ */
+export const PUBLISH_SOURCE_PREFIX = "resolve-";
+
+/** The `source` the publish step sends; 40 chars is the API's own cap on the field. */
+export function publishSource(runId: string): string {
+  return `${PUBLISH_SOURCE_PREFIX}${runId}`.slice(0, 40);
+}
+
+/**
+ * The other approved path: a sync of data/markets.json itself. The resolution
+ * fields in that file can only have been written by `applyResolution()` above,
+ * which refuses without `approvalProblem() === null` — so the human approval is
+ * baked into the file before it ever reaches a database. `syncFromContent` in
+ * ../sync is the only caller allowed to pass this, and it passes it explicitly
+ * rather than by naming itself, so a new caller of it cannot acquire the right
+ * by accident.
+ */
+export const CONTENT_SETTLEMENT_SOURCE = "markets-file";
+
+/** May a payload arriving from `source` close a market and pay out on it? */
+export function maySettle(source: string): boolean {
+  return source === CONTENT_SETTLEMENT_SOURCE || source.startsWith(PUBLISH_SOURCE_PREFIX);
+}
+
+/**
+ * The line the server logs when it refuses one — written for whoever reads it in
+ * the deploy log at two in the morning, which is why it names the way out.
+ */
+export function settlementRefusal(source: string): string | null {
+  if (maySettle(source)) return null;
+  return `הכרעה שהגיעה מ-"${source}" לא בוצעה: רק אישור אדם מכריע. הריצו npm run resolve -- propose/report/approve/apply/publish`;
+}
+
 /* ------------------------------------------------------------------ apply */
 
 export class ResolutionError extends Error {}

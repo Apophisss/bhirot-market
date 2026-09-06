@@ -5,7 +5,11 @@ import nextTs from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  { ignores: [".next/**", "node_modules/**", "drizzle/**"] },
+  // .claude/worktrees is where parallel agents check the repo out (Agent tool,
+  // isolation: worktree). Each one is a full copy of src/, so without this eslint
+  // lints the same file once per worktree — and a file an agent deletes mid-run
+  // makes the whole lint exit with ENOENT rather than a lint error.
+  { ignores: [".next/**", "node_modules/**", "drizzle/**", ".claude/worktrees/**"] },
   // The fabricated chart history is display-only. Keep the generator sealed: it may
   // not reach the database, the market maker or the content pipeline...
   {

@@ -3,10 +3,22 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { executeTrade, isBusyError, TradeError } from "@/lib/trade";
 import { RAPID_MAX_STAKE, RAPID_MIN_STAKE } from "@/lib/rapid";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { track } from "@/lib/analytics";
 import { EVENTS } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * The ceiling on answers from one account, per minute — deliberately far above
+ * real play: the deck is meant to be fast, a quick run is a card every few
+ * seconds, and nobody who is actually reading the questions will ever meet it.
+ * What it stops is a loop.
+ *
+ * The quota is shared with /api/trade (the same `trade:` key), because it is one
+ * ceiling on how fast one account may move money, not one per screen.
+ */
+const PER_MINUTE = 60;
 
 /**
  * One answer in "מצב זריז": a binding BUY of `stake` points on one side of one question.
@@ -26,6 +38,13 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ ok: false, error: "צריך להתחבר כדי לענות", code: "UNAUTHORIZED" }, { status: 401 });
+  }
+  const limited = rateLimit(`trade:${clientKey(req, session.user.id)}`, PER_MINUTE, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { ok: false, error: "יותר מדי תשובות בזמן קצר — רגע אחד", code: "RATE_LIMITED" },
+      { status: 429, headers: { "retry-after": String(limited.retryAfter) } },
+    );
   }
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {

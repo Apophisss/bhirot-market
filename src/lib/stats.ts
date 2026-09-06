@@ -298,6 +298,83 @@ export async function getLiveVisitors(minutes = 5): Promise<number> {
   return row?.n ?? 0;
 }
 
+/* ----------------------------- prop breakdowns --------------------------- */
+
+/**
+ * Counts one (or two) props of one event, most common first.
+ *
+ * Half the site's props have been collected since the day they were added and
+ * summarised nowhere: `webview`, `first`, `install_app.action`, `login_error.error`.
+ * They are all the same question — "how does this split?" — so they get one query
+ * rather than seven near-identical ones. The JSON path is a bound parameter and
+ * never string-built, and a missing value is reported as "?" rather than dropped: a
+ * prop absent from half the rows is itself the finding (a field added later, or an
+ * event fired from somewhere that does not set it).
+ */
+export async function getPropBreakdown(
+  r: Range,
+  event: string,
+  props: string | string[],
+  opts: { limit?: number; extra?: SQL } = {},
+): Promise<NamedCount[]> {
+  const parts = (Array.isArray(props) ? props : [props]).map(
+    (p) => sql`coalesce(nullif(cast(json_extract(props, ${`$.${p}`}) as text), ''), '?')`,
+  );
+  return all<NamedCount>(sql`
+    select ${sql.join(parts, sql` || ' · ' || `)} as key,
+           count(*) as count, count(distinct visitorId) as visitors
+    from analytics_event
+    where ts >= ${r.from} and ts < ${r.to} and name = ${event} ${opts.extra ?? sql``}
+    group by key order by count desc limit ${opts.limit ?? 20}
+  `);
+}
+
+export interface PropBreakdowns {
+  /** pageview.first — 1 is this browser's first ever visit, 0 a returning one */
+  firstVisit: NamedCount[];
+  /** pageview.webview — 1 is an embedded in-app browser */
+  webview: NamedCount[];
+  /** install_app.action, crossed with the platform it was offered on */
+  installApp: NamedCount[];
+  /** trade_error.reason — why an answer was refused */
+  tradeErrors: NamedCount[];
+  /** login_error.error — what the provider came back with */
+  loginErrors: NamedCount[];
+  /** survey.status */
+  survey: NamedCount[];
+  /** guest_gate.n — how many answers were behind the wall when it went up */
+  guestGate: NamedCount[];
+  /** landing.webview — the same in-app question, on the server's own row */
+  landingWebview: NamedCount[];
+  /** landing.lang — the browser language the ad click arrived with */
+  landingLang: NamedCount[];
+}
+
+/**
+ * The props that are already collected and were never aggregated.
+ *
+ * `webview` is the one to read first: Google's sign-in refuses some in-app
+ * browsers outright, and Demand Gen serves inside exactly those apps — so a paid
+ * visitor can be unable to open an account for a reason that appears in no other
+ * metric, and the share of pageviews arriving inside one is the size of that hole.
+ * `first` says how much of the traffic is new; the two error breakdowns say whether
+ * something is refusing people at the moment they finally tried.
+ */
+export async function getPropBreakdowns(r: Range): Promise<PropBreakdowns> {
+  const [firstVisit, webview, installApp, tradeErrors, loginErrors, survey, guestGate, landingWebview, landingLang] = await Promise.all([
+    getPropBreakdown(r, EVENTS.pageview, "first", { limit: 4 }),
+    getPropBreakdown(r, EVENTS.pageview, "webview", { limit: 4 }),
+    getPropBreakdown(r, EVENTS.installApp, ["action", "platform"], { limit: 20 }),
+    getPropBreakdown(r, EVENTS.tradeError, "reason", { limit: 15 }),
+    getPropBreakdown(r, EVENTS.loginError, "error", { limit: 15 }),
+    getPropBreakdown(r, EVENTS.survey, "status", { limit: 10 }),
+    getPropBreakdown(r, EVENTS.guestGate, "n", { limit: 15 }),
+    getPropBreakdown(r, EVENTS.landing, "webview", { limit: 4 }),
+    getPropBreakdown(r, EVENTS.landing, "lang", { limit: 10 }),
+  ]);
+  return { firstVisit, webview, installApp, tradeErrors, loginErrors, survey, guestGate, landingWebview, landingLang };
+}
+
 /* -------------------------------- funnel -------------------------------- */
 
 export interface FunnelStage {
@@ -309,18 +386,47 @@ export interface FunnelStage {
 }
 
 /**
- * Visitor -> market page -> trade panel -> account -> trade -> repeat trade.
- * The first three stages come from the browser log, the last three from the DB,
- * so an ad-blocker can dent the top of the funnel but never the bottom.
+ * An answer given inside the deck, whoever gave it.
+ *
+ * A signed-in answer is a trade the rapid endpoint stamped as such
+ * (`src/app/api/rapid/answer/route.ts` writes `props.rapid`), and a guest's answer
+ * never becomes a trade at all — it lives in the browser until sign-in, and
+ * `guest_answer` with `surface=deck` is the only record that it happened.
+ */
+const DECK_ANSWER = sql`(
+  (name = ${EVENTS.trade} and json_extract(props, '$.rapid') = 1)
+  or (name = ${EVENTS.guestAnswer} and json_extract(props, '$.surface') = 'deck')
+)`;
+
+/**
+ * Visitor -> saw a question -> tried to answer -> account -> trade -> repeat trade.
+ * The first stages come from the browser log, the last three from the DB, so an
+ * ad-blocker can dent the top of the funnel but never the bottom.
+ *
+ * The second stage used to count market pages alone, which was the funnel measuring
+ * a path most of the traffic no longer takes: rapid mode answers a question without
+ * ever opening its page, so a visitor who played the deck for five minutes fell out
+ * of the funnel at stage two and the drop printed there was an artifact of the
+ * measurement rather than anything a visitor did. "Saw a question" is now a market
+ * page *or* the deck, and "ניסו לענות" counts the deck's answers beside the trade
+ * panel's — with the deck's own share printed under it.
+ *
+ * Every stage is a subset of the one above it, deliberately: a stage that is not
+ * cannot have a conversion rate, only a ratio, and a ratio over 100% printed as a
+ * conversion is how the old per-market number came to read 400%.
  */
 export async function getFunnel(r: Range): Promise<FunnelStage[]> {
-  const [v, mv, ta] = await Promise.all([
+  const [v, mv, ta, deck] = await Promise.all([
     one<{ n: number }>(sql`select count(distinct visitorId) as n from analytics_event
       where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview}`),
     one<{ n: number }>(sql`select count(distinct visitorId) as n from analytics_event
-      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview} and marketId is not null`),
+      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.pageview}
+        and (marketId is not null or path = '/rapid')`),
     one<{ n: number }>(sql`select count(distinct visitorId) as n from analytics_event
-      where ts >= ${r.from} and ts < ${r.to} and name in (${EVENTS.tradeAttempt}, ${EVENTS.trade})`),
+      where ts >= ${r.from} and ts < ${r.to}
+        and (name in (${EVENTS.tradeAttempt}, ${EVENTS.trade}) or ${DECK_ANSWER})`),
+    one<{ n: number }>(sql`select count(distinct visitorId) as n from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and ${DECK_ANSWER}`),
   ]);
   const signups = await one<{ n: number }>(sql`select count(*) as n from user where createdAt >= ${r.from} and createdAt < ${r.to}`);
   const traders = await one<{ n: number }>(sql`select count(distinct userId) as n from trade where createdAt >= ${r.from} and createdAt < ${r.to}`);
@@ -329,16 +435,23 @@ export async function getFunnel(r: Range): Promise<FunnelStage[]> {
       select userId from trade where createdAt >= ${r.from} and createdAt < ${r.to} group by userId having count(*) >= 2
     )`);
 
-  const raw = [
+  // `signup` is the same unit break the paid funnel marks: everything above it is
+  // browser-days, everything from it down is accounts, and a percentage across that
+  // line is arithmetic and not a conversion
+  const raw: { id: string; label: string; count: number; unitBreak?: boolean }[] = [
     { id: "visitors", label: "מבקרים", count: v?.n ?? 0 },
-    { id: "market_view", label: "פתחו עמוד שוק", count: mv?.n ?? 0 },
-    { id: "trade_intent", label: "ניסו לסחור", count: ta?.n ?? 0 },
-    { id: "signup", label: "נרשמו", count: signups?.n ?? 0 },
+    { id: "question_view", label: "ראו שאלה (דף שאלה או חפיסה)", count: mv?.n ?? 0 },
+    { id: "trade_intent", label: "ניסו לענות (בחפיסה או בפאנל המסחר)", count: ta?.n ?? 0 },
+    { id: "deck_answer", label: "מתוכם: ענו בחפיסה", count: deck?.n ?? 0 },
+    { id: "signup", label: "נרשמו", count: signups?.n ?? 0, unitBreak: true },
     { id: "trade", label: "ביצעו עסקה", count: traders?.n ?? 0 },
     { id: "repeat", label: "חזרו לעסקה שנייה", count: repeat?.n ?? 0 },
   ];
   // a stage after an empty one has no meaningful conversion — report 0, not 100%
-  return raw.map((s, i) => ({ ...s, rate: i === 0 ? 1 : raw[i - 1].count ? s.count / raw[i - 1].count : 0 }));
+  return raw.map(({ unitBreak, ...s }, i) => ({
+    ...s,
+    rate: i === 0 ? 1 : unitBreak ? null : raw[i - 1].count ? s.count / raw[i - 1].count : 0,
+  }));
 }
 
 /* ------------------------------- markets -------------------------------- */
@@ -353,13 +466,27 @@ export interface MarketMetrics {
   createdBy: string;
   createdAt: number;
   closesAt: number;
+  /** views of the question's own page */
   views: number;
+  /** visitors to the question's own page */
   visitors: number;
+  /**
+   * Everyone the question was actually put in front of: its page, or the deck.
+   * The deck shows a question without opening its page, so page visitors alone are
+   * not the audience — and using them as the denominator is what printed 200% and
+   * 400% conversions for questions that were answered almost entirely in the deck.
+   */
+  reach: number;
   trades: number;
   traders: number;
   volume: number;
   comments: number;
-  /** traders / unique viewers — how well the question converts curiosity into a bet */
+  /**
+   * traders / reach — how well the question converts being seen into an answer.
+   * Capped at 1: the numerator is accounts and the denominator browser-days, so the
+   * two can still cross on a question one account answered over several days, and a
+   * rate above 100% is a unit mismatch rather than news.
+   */
   conversion: number;
 }
 
@@ -370,11 +497,12 @@ export async function getMarketMetrics(r: Range, opts: { limit?: number; status?
            m.createdBy, m.createdAt, m.closesAt,
            coalesce(a.views, 0) as views,
            coalesce(a.visitors, 0) as visitors,
+           coalesce(s.reach, 0) as reach,
            coalesce(t.trades, 0) as trades,
            coalesce(t.traders, 0) as traders,
            coalesce(t.volume, 0) as volume,
            coalesce(c.n, 0) as comments,
-           case when coalesce(a.visitors, 0) > 0 then cast(coalesce(t.traders, 0) as real) / a.visitors else 0 end as conversion
+           case when coalesce(s.reach, 0) > 0 then min(1.0, cast(coalesce(t.traders, 0) as real) / s.reach) else 0 end as conversion
     from market m
     left join (
       select marketId, count(*) as views, count(distinct visitorId) as visitors
@@ -383,12 +511,22 @@ export async function getMarketMetrics(r: Range, opts: { limit?: number; status?
       group by marketId
     ) a on a.marketId = m.id
     left join (
+      select marketId, count(distinct visitorId) as reach
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and marketId is not null
+        and (name = ${EVENTS.pageview} or name = ${EVENTS.rapidSeen})
+      group by marketId
+    ) s on s.marketId = m.id
+    left join (
       select marketId, count(*) as trades, count(distinct userId) as traders, sum(amount) as volume
       from trade where createdAt >= ${r.from} group by marketId
     ) t on t.marketId = m.id
     left join (select marketId, count(*) as n from comment group by marketId) c on c.marketId = m.id
     ${opts.status === "open" ? sql`where m.status = 'open'` : sql``}
-    order by (coalesce(a.views, 0) + coalesce(t.trades, 0) * 5) desc, m.createdAt desc
+    -- reach and not views: a question the deck showed a hundred times and whose page
+    -- nobody opened is one of the most-seen questions on the site, and ordering by
+    -- page views alone kept it off the table an analyst reads
+    order by (coalesce(s.reach, 0) + coalesce(a.views, 0) + coalesce(t.trades, 0) * 5) desc, m.createdAt desc
     limit ${limit}
   `);
   return rows;
@@ -401,6 +539,7 @@ export interface CategoryMetrics {
   views: number;
   trades: number;
   volume: number;
+  /** traders / reach over the category's questions — the same capped rate `MarketMetrics.conversion` reports */
   avgConversion: number;
 }
 
@@ -412,8 +551,8 @@ export async function getCategoryMetrics(r: Range): Promise<CategoryMetrics[]> {
            coalesce(sum(a.views), 0) as views,
            coalesce(sum(t.trades), 0) as trades,
            coalesce(sum(t.volume), 0) as volume,
-           case when coalesce(sum(a.visitors), 0) > 0
-                then cast(coalesce(sum(t.traders), 0) as real) / sum(a.visitors) else 0 end as avgConversion
+           case when coalesce(sum(s.reach), 0) > 0
+                then min(1.0, cast(coalesce(sum(t.traders), 0) as real) / sum(s.reach)) else 0 end as avgConversion
     from market m
     left join (
       select marketId, count(*) as views, count(distinct visitorId) as visitors
@@ -422,12 +561,157 @@ export async function getCategoryMetrics(r: Range): Promise<CategoryMetrics[]> {
       group by marketId
     ) a on a.marketId = m.id
     left join (
+      select marketId, count(distinct visitorId) as reach
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and marketId is not null
+        and (name = ${EVENTS.pageview} or name = ${EVENTS.rapidSeen})
+      group by marketId
+    ) s on s.marketId = m.id
+    left join (
       select marketId, count(*) as trades, count(distinct userId) as traders, sum(amount) as volume
       from trade where createdAt >= ${r.from} group by marketId
     ) t on t.marketId = m.id
     group by m.category
     order by views desc
   `);
+}
+
+/* --------------------------- the deck (מצב זריז) -------------------------- */
+
+export interface RapidCardRow {
+  marketId: string;
+  title: string;
+  status: string;
+  /** times the card became the top card of a run */
+  shown: number;
+  /** answers given on it inside the deck, guests included */
+  answered: number;
+  /** shown and not answered — the run moved on */
+  skipped: number;
+  /** skipped / shown */
+  skipRate: number;
+}
+
+/**
+ * Every question the deck put in front of someone, and what happened to it.
+ *
+ * The deck is the site's main surface and the one place where a question is shown
+ * to a person who did not choose it, which makes "how many of the people who saw
+ * this question answered it" the sharpest quality signal the board has — sharper
+ * than views on the question's own page, which only people who were already
+ * interested ever open. `skipped` is derived (`shown - answered`) rather than
+ * counted: the browser writes a skip to `rapid_skip` for an account only, and the
+ * free run — the traffic this is meant to measure — has no account to write to.
+ * The last card of a run is therefore counted as a skip, which costs at most one
+ * card per run and never changes the ordering.
+ */
+export async function getRapidCards(r: Range, limit = 25, minShown = 3): Promise<RapidCardRow[]> {
+  return all<RapidCardRow>(sql`
+    with seen as (
+      select marketId, count(*) as shown
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.rapidSeen} and marketId is not null
+      group by marketId
+    ),
+    answered as (
+      select marketId, count(*) as n
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and marketId is not null and ${DECK_ANSWER}
+      group by marketId
+    )
+    select s.marketId,
+           coalesce(m.title, s.marketId) as title,
+           coalesce(m.status, '?') as status,
+           s.shown,
+           min(s.shown, coalesce(a.n, 0)) as answered,
+           max(0, s.shown - coalesce(a.n, 0)) as skipped,
+           cast(max(0, s.shown - coalesce(a.n, 0)) as real) / s.shown as skipRate
+    from seen s
+    left join answered a on a.marketId = s.marketId
+    left join market m on m.id = s.marketId
+    where s.shown >= ${minShown}
+    order by skipRate desc, s.shown desc
+    limit ${limit}
+  `);
+}
+
+export interface RapidRunRow {
+  /** answers given in the run; the last bucket is everything at or above it */
+  answers: number;
+  label: string;
+  runs: number;
+  /** of those runs, how many were played without an account */
+  guestRuns: number;
+  avgShown: number;
+  avgSeconds: number;
+}
+
+/** The deepest bucket: `GUEST_LIMIT` is 10, so "11+" is a run that outlived the free one. */
+const RUN_BUCKETS = 11;
+
+/**
+ * How far a run gets before it ends — the histogram the free run was designed
+ * around and nobody could see.
+ *
+ * The two numbers that shape the deck are `GUEST_SOFT_ASK` (3) and `GUEST_LIMIT`
+ * (10, src/lib/rapid-guest.ts): the first ask arrives after three answers and the
+ * wall after ten. Whether a run dies at two, at four or at nine is the difference
+ * between an ask that is too early, one that is too late, and a deck that is simply
+ * not interesting enough to reach either — and a mean over the runs cannot tell the
+ * three apart. One row per number of answers, guests counted separately, because
+ * only the guest half of it meets those two walls at all.
+ */
+export async function getRapidRuns(r: Range): Promise<RapidRunRow[]> {
+  const rows = await all<{ answers: number; runs: number; guestRuns: number; avgShown: number; avgSeconds: number }>(sql`
+    select min(${RUN_BUCKETS}, cast(coalesce(json_extract(props, '$.answered'), 0) as integer)) as answers,
+           count(*) as runs,
+           sum(case when json_extract(props, '$.guest') = 1 then 1 else 0 end) as guestRuns,
+           avg(cast(coalesce(json_extract(props, '$.shown'), 0) as integer)) as avgShown,
+           avg(cast(coalesce(json_extract(props, '$.seconds'), 0) as integer)) as avgSeconds
+    from analytics_event
+    where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.rapidSession}
+    group by answers
+    order by answers
+  `);
+  return rows.map((row) => ({ ...row, label: row.answers >= RUN_BUCKETS ? `${RUN_BUCKETS}+` : String(row.answers) }));
+}
+
+export interface RapidSummary {
+  runs: number;
+  guestRuns: number;
+  /** cards shown across every run in the range */
+  shown: number;
+  answered: number;
+  /** answers per run — the number the deck exists to raise */
+  answersPerRun: number;
+  /** share of the cards shown that were answered */
+  answerRate: number;
+  avgSeconds: number;
+}
+
+/** The deck in one line: how many runs, how deep, how long. */
+export async function getRapidSummary(r: Range): Promise<RapidSummary> {
+  const row = await one<{ runs: number; guestRuns: number; shown: number; answered: number; seconds: number | null }>(sql`
+    select count(*) as runs,
+           sum(case when json_extract(props, '$.guest') = 1 then 1 else 0 end) as guestRuns,
+           coalesce(sum(cast(coalesce(json_extract(props, '$.shown'), 0) as integer)), 0) as shown,
+           coalesce(sum(cast(coalesce(json_extract(props, '$.answered'), 0) as integer)), 0) as answered,
+           avg(cast(coalesce(json_extract(props, '$.seconds'), 0) as integer)) as seconds
+    from analytics_event
+    where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.rapidSession}
+  `);
+  const runs = row?.runs ?? 0;
+  const shown = row?.shown ?? 0;
+  const answered = row?.answered ?? 0;
+  return {
+    runs,
+    guestRuns: row?.guestRuns ?? 0,
+    shown,
+    answered,
+    answersPerRun: runs ? answered / runs : 0,
+    answerRate: shown ? answered / shown : 0,
+    avgSeconds: row?.seconds ?? 0,
+  };
 }
 
 /* -------------------------------- users --------------------------------- */
@@ -495,6 +779,144 @@ export async function getRetention(weeks = 8): Promise<CohortRow[]> {
     where u.createdAt >= ${from}
     group by week order by week
   `);
+}
+
+
+/**
+ * Where an account came from, in one key.
+ *
+ * The campaign's own name when there is one; "invite" when the account arrived
+ * through someone's invite link (`referredBy`); "paid" for a click Google
+ * auto-tagged with a gclid and no utm_* at all — which is a real case, and letting
+ * it fall into "organic" would credit the campaign's own visitors to nobody; and
+ * "organic" for everyone else. `u` is the alias every query below gives the user
+ * table.
+ */
+const ACQUISITION_KEY = sql`coalesce(
+  nullif(u.utmCampaign, ''),
+  case when u.referredBy is not null then 'invite'
+       when u.gclid is not null or coalesce(u.utmMedium, '') <> '' then 'paid'
+       else 'organic' end
+)`;
+
+export interface SourceRetentionRow {
+  /** campaign name | invite | paid | organic */
+  key: string;
+  users: number;
+  traded: number;
+  /** accounts old enough for the D1 window to have closed — the denominator of `d1` */
+  eligibleD1: number;
+  /** of those, came back on the day after signing up (24–48h) */
+  d1: number;
+  /** accounts old enough for the week to have passed — the denominator of `d7` */
+  eligibleD7: number;
+  /** of those, came back at any point between 24 hours and 7 days after signing up */
+  d7: number;
+}
+
+/**
+ * Retention split by where the account came from, which is the split that decides
+ * whether a campaign is worth its money.
+ *
+ * `getRetention` above answers one cruder question — "did this account ever come
+ * back after a day" — for everyone at once, so a cohort of six accounts from three
+ * different sources reads as one number that describes none of them. Two things are
+ * fixed here: the acquisition split, and the denominators. An account that signed up
+ * this morning cannot have a D1, and counting it in the denominator makes every
+ * recent day look like a retention collapse; `eligibleD1`/`eligibleD7` are the
+ * accounts the window has actually closed on, and they are the only honest
+ * denominators for the two columns beside them.
+ *
+ * D1 is the day after (24–48h), D7 is anywhere in the first week after that first
+ * day — "חזרו ביום שאחרי" and "חזרו תוך שבוע", which is what the metric table asks
+ * for. "Came back" is any event or trade the account left, the same signal
+ * `getRetention` uses.
+ */
+export async function getRetentionBySource(days = 30, now = Date.now()): Promise<SourceRetentionRow[]> {
+  const from = now - Math.max(1, days) * 86_400_000;
+  const DAY = 86_400_000;
+  const back = (after: number, before: number) => sql`(
+    exists (select 1 from trade t where t.userId = u.id and t.createdAt > u.createdAt + ${after} and t.createdAt <= u.createdAt + ${before})
+    or exists (select 1 from analytics_event e where e.userId = u.id and e.ts > u.createdAt + ${after} and e.ts <= u.createdAt + ${before})
+  )`;
+  return all<SourceRetentionRow>(sql`
+    select ${ACQUISITION_KEY} as key,
+           count(*) as users,
+           sum(case when exists (select 1 from trade t where t.userId = u.id) then 1 else 0 end) as traded,
+           sum(case when u.createdAt <= ${now - 2 * DAY} then 1 else 0 end) as eligibleD1,
+           sum(case when u.createdAt <= ${now - 2 * DAY} and ${back(DAY, 2 * DAY)} then 1 else 0 end) as d1,
+           sum(case when u.createdAt <= ${now - 7 * DAY} then 1 else 0 end) as eligibleD7,
+           sum(case when u.createdAt <= ${now - 7 * DAY} and ${back(DAY, 7 * DAY)} then 1 else 0 end) as d7
+    from user u
+    where u.createdAt >= ${from}
+    group by key
+    order by users desc
+  `);
+}
+
+export interface FirstTradeRow {
+  /** the same acquisition key `getRetentionBySource` groups by */
+  key: string;
+  accounts: number;
+  /** of those, how many ever answered anything */
+  traded: number;
+  /** median minutes from sign-up to the first answer, over the accounts that answered */
+  medianMinutes: number;
+  /** of those, how many answered on the same Israeli day they signed up */
+  sameDay: number;
+}
+
+/**
+ * How long it takes a new account to answer its first question, by source.
+ *
+ * The metric table asks for "הרשמה → תשובה ראשונה באותו יום" and nothing measured
+ * it: the only number the site had was "five of six accounts ever traded", which is
+ * true of an account that answered four minutes after signing up and of one that
+ * came back a week later, and those are different products. The median and not the
+ * mean, for the usual reason — one account that signed up on Sunday and answered on
+ * Thursday moves a mean over six accounts by a day.
+ */
+export async function getTimeToFirstTrade(days = 30, now = Date.now()): Promise<FirstTradeRow[]> {
+  const from = now - Math.max(1, days) * 86_400_000;
+  const accounts = await all<{ key: string; accounts: number }>(sql`
+    select ${ACQUISITION_KEY} as key, count(*) as accounts
+    from user u where u.createdAt >= ${from}
+    group by key
+  `);
+  // SQLite has no percentile_cont: rank each account's minutes inside its own key
+  // and take the first row at or above the halfway mark, exactly as the vitals and
+  // the landing page do above.
+  const medians = await all<{ key: string; traded: number; medianMinutes: number | null; sameDay: number }>(sql`
+    with firsts as (
+      select ${ACQUISITION_KEY} as key,
+             (min(t.createdAt) - u.createdAt) / 60000.0 as minutes,
+             case when ${day("u.createdAt")} = ${day("min(t.createdAt)")} then 1 else 0 end as sameDay
+      from user u join trade t on t.userId = u.id
+      where u.createdAt >= ${from}
+      group by u.id
+    ),
+    ranked as (
+      select key, minutes, sameDay,
+             row_number() over (partition by key order by minutes) as rn,
+             count(*) over (partition by key) as n
+      from firsts
+    )
+    select key,
+           max(n) as traded,
+           min(case when rn >= (n * 50 + 99) / 100 then minutes end) as medianMinutes,
+           sum(sameDay) as sameDay
+    from ranked group by key
+  `);
+  const byKey = new Map(medians.map((m) => [m.key, m]));
+  return accounts
+    .map((a) => ({
+      key: a.key,
+      accounts: a.accounts,
+      traded: byKey.get(a.key)?.traded ?? 0,
+      medianMinutes: Math.round(byKey.get(a.key)?.medianMinutes ?? 0),
+      sameDay: byKey.get(a.key)?.sameDay ?? 0,
+    }))
+    .sort((x, y) => y.accounts - x.accounts);
 }
 
 /* ------------------------------- trading -------------------------------- */
@@ -582,6 +1004,87 @@ export async function getWebVitals(r: Range): Promise<VitalRow[]> {
     }
     return out;
   });
+}
+
+export interface DeviceVitalRow extends VitalRow {
+  /** mobile | desktop | tablet | unknown, as `requestContext` classified the UA */
+  device: string;
+}
+
+/**
+ * The same vitals, split by device — which for this site is the only split that
+ * matters.
+ *
+ * Eighty-two percent of the visitors are on a phone, so a site-wide p75 is very
+ * nearly the mobile p75 with just enough desktop in it to look better than what a
+ * visitor actually gets, and a desktop that is fine cannot be told from a phone
+ * that is not. The percentiles are computed per (metric, device) rather than
+ * filtered afterwards: a p75 of a subset is not a subset of a p75.
+ */
+export async function getWebVitalsByDevice(r: Range, minSamples = 3): Promise<DeviceVitalRow[]> {
+  return all<DeviceVitalRow>(sql`
+    with v as (
+      select json_extract(props, '$.metric') as metric,
+             device,
+             value,
+             row_number() over (partition by json_extract(props, '$.metric'), device order by value) as rn,
+             count(*) over (partition by json_extract(props, '$.metric'), device) as n
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.webVital} and value is not null
+    )
+    select metric,
+           case when device = '' then 'unknown' else device end as device,
+           max(n) as samples,
+           min(case when rn >= (n * 50 + 99) / 100 then value end) as p50,
+           min(case when rn >= (n * 75 + 99) / 100 then value end) as p75,
+           min(case when rn >= (n * 95 + 99) / 100 then value end) as p95
+    from v
+    group by metric, device
+    having samples >= ${minSamples}
+    order by metric, samples desc
+  `);
+}
+
+export interface RouteVitalRow {
+  metric: string;
+  path: string;
+  device: string;
+  samples: number;
+  p75: number;
+}
+
+/**
+ * The slowest routes, per device — where the site-wide number above comes from.
+ *
+ * INP is here beside LCP because the deck is an interaction and not a page: a
+ * question answered on a phone with a 400ms response feels broken while every
+ * loading metric on the same page is green, and `/rapid` is the one route where
+ * that is the whole product.
+ */
+export async function getRouteVitals(r: Range, metrics: string[] = ["LCP", "INP"], opts: { limit?: number; minSamples?: number } = {}): Promise<RouteVitalRow[]> {
+  const names = sql.join(metrics.map((m) => sql`${m}`), sql`, `);
+  return all<RouteVitalRow>(sql`
+    with v as (
+      select json_extract(props, '$.metric') as metric,
+             path,
+             device,
+             value,
+             row_number() over (partition by json_extract(props, '$.metric'), path, device order by value) as rn,
+             count(*) over (partition by json_extract(props, '$.metric'), path, device) as n
+      from analytics_event
+      where ts >= ${r.from} and ts < ${r.to} and name = ${EVENTS.webVital} and value is not null
+        and json_extract(props, '$.metric') in (${names})
+    )
+    select metric, path,
+           case when device = '' then 'unknown' else device end as device,
+           max(n) as samples,
+           min(case when rn >= (n * 75 + 99) / 100 then value end) as p75
+    from v
+    group by metric, path, device
+    having samples >= ${opts.minSamples ?? 3}
+    order by p75 desc
+    limit ${opts.limit ?? 20}
+  `);
 }
 
 export async function getSlowPages(r: Range, limit = 10): Promise<{ path: string; samples: number; avgLcp: number }[]> {
@@ -984,11 +1487,12 @@ export interface Issue {
  * for an agent that is asked to improve the site.
  */
 export async function getIssues(r: Range, precomputed: { paid?: PaidFunnel } = {}): Promise<Issue[]> {
-  const [health, funnel, traffic, vitals, errors, markets, paid, pages] = await Promise.all([
+  const [health, funnel, traffic, vitals, routeVitals, errors, markets, paid, pages] = await Promise.all([
     getContentHealth(),
     getFunnel(r),
     getTraffic(r),
     getWebVitals(r),
+    getRouteVitals(r, ["INP"], { limit: 40 }),
     getClientErrors(r, 5),
     getMarketMetrics(r, { limit: 300, status: "open" }),
     precomputed.paid ?? getPaidFunnel(r),
@@ -1068,15 +1572,15 @@ export async function getIssues(r: Range, precomputed: { paid?: PaidFunnel } = {
       hint: "AGENT.md → תמהיל מועדים",
     });
   }
-  const view = stage("market_view");
+  const view = stage("question_view");
   const intent = stage("trade_intent");
   if (view && intent && view.count >= 20 && intent.count / Math.max(1, view.count) < 0.1) {
     issues.push({
       id: "low-trade-intent",
       severity: "high",
-      title: "פחות מ-10% מהמבקרים בעמוד שוק מנסים לסחור",
-      detail: `${intent.count} מתוך ${view.count}. פאנל המסחר, ההסבר או הצורך בהתחברות הם החשודים המיידיים.`,
-      hint: "src/components/TradePanel.tsx, src/components/HowToPlay.tsx",
+      title: "פחות מ-10% ממי שראה שאלה ניסה לענות עליה",
+      detail: `${intent.count} מתוך ${view.count} — דף שאלה והחפיסה יחד. הכרטיס עצמו, פאנל המסחר, ההסבר או הצורך בהתחברות הם החשודים המיידיים.`,
+      hint: "src/components/RapidDeck.tsx, src/components/TradePanel.tsx, src/components/HowToPlay.tsx",
     });
   }
   const signup = stage("signup");
@@ -1110,6 +1614,21 @@ export async function getIssues(r: Range, precomputed: { paid?: PaidFunnel } = {
       title: `LCP איטי (p75 = ${Math.round(lcp.p75)}ms)`,
       detail: "מעל 2.5 שניות נחשב איטי ופוגע גם בדירוג בגוגל וגם בהמרה.",
       hint: "src/app/page.tsx, src/components/MarketCard.tsx, next.config.ts",
+    });
+  }
+  // The deck is a tap, not a page: a card that answers 300ms after the finger left
+  // it is a game that feels broken while every loading metric on the same screen is
+  // green. 200ms is Google's own INP threshold, and the row that decides it is the
+  // phone's — that is where the players are.
+  const rapidRows = routeVitals.filter((v) => v.path === "/rapid" && v.samples >= 8);
+  const rapidInp = rapidRows.find((v) => v.device === "mobile") ?? rapidRows[0];
+  if (rapidInp && rapidInp.p75 > 200) {
+    issues.push({
+      id: "slow-inp-rapid",
+      severity: "high",
+      title: `החפיסה מגיבה לאט (INP p75 = ${Math.round(rapidInp.p75)}ms ב-${rapidInp.device})`,
+      detail: `מעל 200ms נחשב איטי לתגובה למגע, ובמצב זריז זה כל המוצר: ${rapidInp.samples} דגימות ב-/rapid. חשודים: עבודה בזמן הרינדור של הכרטיס הבא, אנימציית המעבר, והמאזינים על הגלילה.`,
+      hint: "src/components/RapidDeck.tsx, src/components/RapidSpark.tsx",
     });
   }
   if (errors.length && errors[0].count >= 5) {

@@ -118,7 +118,9 @@ export function PriceChart({
   // a market that opened minutes ago puts the boundary at the very edge — flip the
   // label inwards instead of letting it clip
   const openNearEdge = openAt !== null && x(openAt) > W - PAD.right - 80;
-  const bandLabel = estimateBand ? `עד ${(estimateBand * 100).toFixed(1)} נק׳` : null;
+  // "נק׳" on this site means game points, the thing a player wins — and this is a
+  // distance between two percentages. Written in points it read as a prize.
+  const bandLabel = estimateBand ? `עד ${(estimateBand * 100).toFixed(1)}%` : null;
 
   function onMove(e: React.PointerEvent<SVGSVGElement>) {
     const svg = svgRef.current;
@@ -156,8 +158,12 @@ export function PriceChart({
               {pct(hoverPt ? hoverPt.p : current, 1)}
             </span>
             {!hoverPt && change !== null && Math.abs(change) >= 0.0005 && (
+              // An arrow and a percentage, never "+1.7 נק׳": the gauge moves in
+              // percentage points and the points are what a player wins, and one string
+              // that means both is the site's own vocabulary contradicting itself on the
+              // screen where the two sit closest together.
               <span className={`tabular text-sm font-semibold ${change >= 0 ? "text-yes" : "text-no"}`}>
-                {`${change >= 0 ? "+" : "-"}${Math.abs(change * 100).toFixed(1)} נק׳`}
+                {`${change >= 0 ? "▲" : "▼"}${Math.abs(change * 100).toFixed(1)}%`}
               </span>
             )}
             {!hoverPt && !traded && (

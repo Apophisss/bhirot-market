@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { initialState } from "./lmsr";
 import { loadMarketsContent, type MarketContent } from "./content";
+import { CONTENT_SETTLEMENT_SOURCE, settlementRefusal } from "./resolution";
 import { settleMarket } from "./trade";
 
 const { markets, priceHistory, agentRuns } = schema;
@@ -11,18 +12,37 @@ export interface SyncResult {
   updated: string[];
   resolved: string[];
   skipped: string[];
+  /** markets that arrived already resolved from a path with no human approval behind it */
+  refused: string[];
 }
 
 /**
  * Upserts a list of markets (validated MarketContent) into the DB.
  * - new slug  -> create market with LMSR state matching initialProbability
  * - existing  -> update editorial fields (never touches prices / positions)
- * - status change to resolved/cancelled -> settle positions
+ * - status change to resolved/cancelled -> settle positions, but only from an
+ *   approved path (see `settlementSource` below and `maySettle` in ./resolution)
+ *
+ * Adding and editing a question are reversible and stay open to every caller;
+ * settling is not, so it is the one operation here that asks who is calling.
  */
-export async function upsertMarkets(items: MarketContent[], source = "sync"): Promise<SyncResult> {
+export async function upsertMarkets(
+  items: MarketContent[],
+  source = "sync",
+  /**
+   * Who is vouching for the resolutions in `items`, when that is not the same as
+   * who is writing them. Only `syncFromContent` passes it: the markets it hands
+   * over come from data/markets.json, where a resolution can only have been
+   * written by `applyResolution()` after a named human approved it, whatever the
+   * caller chose to call itself.
+   */
+  opts: { settlementSource?: string } = {},
+): Promise<SyncResult> {
   const db = await getDb();
-  const result: SyncResult = { added: [], updated: [], resolved: [], skipped: [] };
+  const result: SyncResult = { added: [], updated: [], resolved: [], skipped: [], refused: [] };
   const now = new Date();
+  // one decision for the whole batch — it is a property of the caller, not of a row
+  const refusal = settlementRefusal(opts.settlementSource ?? source);
 
   for (const m of items) {
     const existing = await db.query.markets.findFirst({ where: eq(markets.id, m.slug) });
@@ -85,17 +105,22 @@ export async function upsertMarkets(items: MarketContent[], source = "sync"): Pr
       }
     }
 
-    if (m.status === "resolved" && m.resolution) {
+    // Both branches settle, and both are irreversible: settleMarket credits balances
+    // and there is no screen on the site that takes them back. The editorial fields
+    // above were written either way — a refused resolution still gets its wording and
+    // its deadline synced, and the market simply stays open until the pipeline
+    // publishes it properly.
+    const verdict = m.status === "resolved" && m.resolution ? m.resolution : m.status === "cancelled" ? "CANCELLED" : null;
+    if (verdict) {
       const cur = existing ?? (await db.query.markets.findFirst({ where: eq(markets.id, m.slug) }));
       if (cur && cur.status === "open") {
-        await settleMarket(m.slug, m.resolution, m.resolutionNote, m.resolvedAt ? new Date(m.resolvedAt) : now);
-        result.resolved.push(m.slug);
-      }
-    } else if (m.status === "cancelled") {
-      const cur = existing ?? (await db.query.markets.findFirst({ where: eq(markets.id, m.slug) }));
-      if (cur && cur.status === "open") {
-        await settleMarket(m.slug, "CANCELLED", m.resolutionNote, m.resolvedAt ? new Date(m.resolvedAt) : now);
-        result.resolved.push(m.slug);
+        if (refusal) {
+          console.warn(`[sync] ${m.slug}: ${refusal}`);
+          result.refused.push(m.slug);
+        } else {
+          await settleMarket(m.slug, verdict, m.resolutionNote, m.resolvedAt ? new Date(m.resolvedAt) : now);
+          result.resolved.push(m.slug);
+        }
       }
     }
   }
@@ -117,7 +142,10 @@ export async function logAgentRun(source: string, summary: string, r: Partial<Sy
 /** Sync the bundled data/markets.json into the database. */
 export async function syncFromContent(source = "content"): Promise<SyncResult> {
   const file = loadMarketsContent();
-  const r = await upsertMarkets(file.markets, source);
+  // The file is the far end of the approval pipeline, not a caller of it: `npm run
+  // resolve -- apply` is the only thing that writes a resolution into it, and it
+  // refuses without a named human's approval of that exact verdict and evidence.
+  const r = await upsertMarkets(file.markets, source, { settlementSource: CONTENT_SETTLEMENT_SOURCE });
   if (r.added.length || r.resolved.length) {
     await logAgentRun(source, file.lastUpdateNote ?? "סנכרון מקובץ data/markets.json", r);
   }
@@ -134,7 +162,7 @@ export function ensureSynced(): Promise<SyncResult> {
     globalThis.__bhirotSynced = syncFromContent("startup").catch((err) => {
       console.error("[sync] failed", err);
       globalThis.__bhirotSynced = undefined;
-      return { added: [], updated: [], resolved: [], skipped: [] };
+      return { added: [], updated: [], resolved: [], skipped: [], refused: [] };
     });
   }
   return globalThis.__bhirotSynced;

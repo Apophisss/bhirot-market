@@ -124,7 +124,19 @@ export async function Header() {
                         )}
                       </span>
                       <span className="hidden max-w-28 truncate text-sm font-medium sm:inline">{user.name}</span>
-                      <span aria-hidden className="text-[13px] text-muted-2">▾</span>
+                      {/* drawn rather than typed: "▾" (U+25BE) lives in Heebo's `symbols`
+                          subset, and one character of it pulls a 23KB font file that
+                          nothing else on the page needs */}
+                      <svg
+                        aria-hidden
+                        width="10"
+                        height="10"
+                        viewBox="0 0 10 10"
+                        className="text-muted-2"
+                        fill="currentColor"
+                      >
+                        <path d="M1 3.5h8L5 8z" />
+                      </svg>
                     </>
                   }
                 >

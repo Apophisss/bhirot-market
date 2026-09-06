@@ -77,11 +77,33 @@ check(
     .tradeCount >= FAKE_TRADES_FLOOR,
 );
 
-check(
-  "the floor clears the thin-market caveat, so a fresh question is not flagged as untraded",
-  FAKE_TRADES_FLOOR >= THIN_MARKET_TRADES,
-  { FAKE_TRADES_FLOOR, THIN_MARKET_TRADES },
-);
+/*
+ * This used to assert the opposite of a promise: "the floor clears the thin-market
+ * caveat, so a fresh question is not flagged as untraded" — `FAKE_TRADES_FLOOR >=
+ * THIN_MARKET_TRADES`. The card and the market page compared this fabricated floor
+ * against that threshold, so pinning 4 above 3 made the ״מד ראשוני״ caveat, added
+ * after a single 7,110-point answer moved a question from 50% to 1%, impossible to
+ * reach on any open question on the board.
+ *
+ * Both surfaces now read `MarketView.tradeCount`, the recorded count. What has to hold
+ * is the property that makes that possible: this module never touches the recorded
+ * pair it was handed, so the caller still has the true number to decide on.
+ */
+{
+  const empty: ActivityInput = { id: "no-answers-yet", volume: 0, tradeCount: 0, createdAt: NOW - DAY, closesAt: NOW + DAY, status: "open" };
+  const a = marketActivity(empty, NOW);
+  check("a question nobody has answered still advertises activity", a.tradeCount >= FAKE_TRADES_FLOOR, { a });
+  check(
+    "...and the recorded pair it was built from is left alone, so the caveat can read it",
+    empty.tradeCount === 0 && empty.volume === 0,
+    empty,
+  );
+  check(
+    "...and that recorded count is below the thin-market threshold, so the caveat fires",
+    empty.tradeCount < THIN_MARKET_TRADES,
+    { THIN_MARKET_TRADES },
+  );
+}
 
 for (let i = 0; i < CASES; i++) {
   const m = randomMarket(i);

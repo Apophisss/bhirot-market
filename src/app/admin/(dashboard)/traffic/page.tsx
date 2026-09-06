@@ -13,11 +13,17 @@ import {
   getPaidCampaigns,
   getPaidFunnel,
   getPaidLanguages,
+  getPropBreakdowns,
+  getRapidCards,
+  getRapidRuns,
+  getRapidSummary,
+  getRouteVitals,
   getSearchTerms,
   getSlowPages,
   getTopPages,
   getTopReferrers,
   getWebVitals,
+  getWebVitalsByDevice,
   range,
 } from "@/lib/stats";
 import { BarSeries, Card, Funnel, TopList, fmt, shortDay } from "@/components/admin/Charts";
@@ -32,7 +38,7 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
   const days = Number((await searchParams).days) || 7;
   const r = range(days);
 
-  const [daily, pages, referrers, campaigns, devices, countries, hours, events, clicks, searches, vitals, slow, errors, paid, paidCampaigns, paidLanguages, paidAdGroups, landing] = await Promise.all([
+  const [daily, pages, referrers, campaigns, devices, countries, hours, events, clicks, searches, vitals, vitalsByDevice, routeVitals, slow, errors, paid, paidCampaigns, paidLanguages, paidAdGroups, landing, props, rapid, rapidRuns, rapidCards] = await Promise.all([
     getDailyTraffic(r),
     getTopPages(r, 20),
     getTopReferrers(r, 12),
@@ -44,6 +50,8 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
     getClickTotals(r, 20),
     getSearchTerms(r, 15),
     getWebVitals(r),
+    getWebVitalsByDevice(r),
+    getRouteVitals(r, ["LCP", "INP"], { limit: 12 }),
     getSlowPages(r, 8),
     getClientErrors(r, 10),
     getPaidFunnel(r),
@@ -51,6 +59,10 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
     getPaidLanguages(r, 6),
     getPaidAdGroups(r, 10),
     getLandingEngagement(r),
+    getPropBreakdowns(r),
+    getRapidSummary(r),
+    getRapidRuns(r),
+    getRapidCards(r, 12),
   ]);
 
   return (
@@ -143,6 +155,51 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
         </div>
       </div>
 
+      {/* The deck is the product, and until `rapid_seen` / `rapid_session` it was the
+          one surface with a numerator and no denominator: answers were counted and
+          impressions were not. Run depth is the free run measured against its own two
+          walls — the soft ask after 3 answers, the sign-in wall after 10. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card
+          title="החפיסה (מצב זריז)"
+          hint={`${fmt(rapid.runs)} ריצות · ${fmt(rapid.guestRuns)} בלי חשבון · ${fmt(rapid.shown)} כרטיסים הוצגו`}
+        >
+          {rapid.runs ? (
+            <>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+                <Stat label="תשובות לריצה" value={fmt(rapid.answersPerRun)} tone={rapid.answersPerRun < 3 ? "no" : undefined} />
+                <Stat label="מהכרטיסים נענו" value={`${fmt(rapid.answerRate * 100)}%`} tone={rapid.answerRate < 0.25 ? "no" : undefined} />
+                <Stat label="שניות לריצה" value={fmt(rapid.avgSeconds)} />
+              </dl>
+              <div className="mt-4">
+                <h3 className="mb-2 text-sm font-semibold text-text">עומק ריצה: כמה תשובות לפני שהריצה נגמרה</h3>
+                <BarSeries
+                  data={rapidRuns.map((d) => ({
+                    label: d.label,
+                    value: d.runs,
+                    hint: `${d.guestRuns} אורחים · ${fmt(d.avgShown)} כרטיסים · ${fmt(d.avgSeconds)} שנ׳`,
+                  }))}
+                />
+                <p className="mt-1 text-xs text-muted-2">ההצעה הרכה עולה אחרי 3 תשובות, החסימה אחרי 10 — עמודה שנגמרת לפני 3 היא ריצה שמתה לפני שנשאלה בכלל.</p>
+              </div>
+            </>
+          ) : (
+            <p className="py-6 text-center text-sm text-muted-2">אין עדיין ריצות מדודות בטווח הזה</p>
+          )}
+        </Card>
+        <Card title="השאלות שמדלגים עליהן" hint="מתוך מי שהשאלה הוצגה לו בחפיסה · מינימום 3 הצגות">
+          <TopList
+            rows={rapidCards.map((c) => ({
+              key: c.title,
+              value: Math.round(c.skipRate * 100),
+              hint: `${c.answered}/${c.shown} נענו`,
+            }))}
+            unit="%"
+            empty="אין עדיין כרטיסים שהוצגו בטווח הזה"
+          />
+        </Card>
+      </div>
+
       <Card title="שעות היום" hint="מתי נכנסים ומתי סוחרים — שעון ישראל">
         <BarSeries data={hours.map((h) => ({ label: `${h.hour}:00`, value: h.pageviews, hint: `${h.trades} עסקאות` }))} />
       </Card>
@@ -209,6 +266,43 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
         </Card>
       </div>
 
+      {/* Props that were recorded from the day they were added and summarised nowhere.
+          `webview` first, because it is the one that can explain a paid visitor who
+          never opened an account: Google's sign-in refuses some in-app browsers, and
+          Demand Gen serves inside exactly those apps. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="דפדפן in-app מול רגיל" hint="pageview.webview · 1 = דפדפן מוטמע (פייסבוק, אינסטגרם, ג׳ימייל) — Google מסרב לחלקם בהתחברות">
+          <TopList rows={props.webview.map((x) => ({ key: x.key === "1" ? "דפדפן in-app" : x.key === "0" ? "דפדפן רגיל" : x.key, value: x.count, hint: `${x.visitors} מבקרים` }))} />
+        </Card>
+        <Card title="ביקור ראשון מול חוזר" hint="pageview.first · 1 = הפעם הראשונה שהדפדפן הזה נכנס לאתר">
+          <TopList rows={props.firstVisit.map((x) => ({ key: x.key === "1" ? "ביקור ראשון" : x.key === "0" ? "חוזר" : x.key, value: x.count, hint: `${x.visitors} מבקרים` }))} />
+        </Card>
+        <Card title="שגיאות התחברות" hint="login_error.error — מה הספק החזיר">
+          <TopList rows={props.loginErrors.map((x) => ({ key: x.key, value: x.count }))} empty="אין שגיאות התחברות — מצוין" />
+        </Card>
+        <Card title="תשובות שנדחו" hint="trade_error.reason — למה עסקה לא נקלטה">
+          <TopList rows={props.tradeErrors.map((x) => ({ key: x.key, value: x.count }))} empty="לא נדחתה אף תשובה" />
+        </Card>
+        <Card title="הוספה למסך הבית" hint="install_app · פעולה × פלטפורמה">
+          <TopList rows={props.installApp.map((x) => ({ key: x.key, value: x.count }))} empty="ההצעה לא הוצגה בטווח" />
+        </Card>
+        <Card title="חסימת סוף הריצה החופשית" hint="guest_gate.n — כמה תשובות היו שמורות כשהחסימה עלתה">
+          <TopList rows={props.guestGate.map((x) => ({ key: `${x.key} תשובות`, value: x.count }))} empty="החסימה לא עלתה בטווח" />
+        </Card>
+        <Card title="שאלון העדפות" hint="survey.status">
+          <TopList rows={props.survey.map((x) => ({ key: x.key, value: x.count }))} empty="השאלון לא נענה בטווח" />
+        </Card>
+        <Card title="הנחיתות כפי שהשרת ראה אותן" hint="landing.webview / landing.lang — נרשם בשרת ברינדור /welcome, לפני JavaScript">
+          <TopList
+            rows={[
+              ...props.landingWebview.map((x) => ({ key: x.key === "1" ? "in-app" : x.key === "0" ? "דפדפן רגיל" : `webview ${x.key}`, value: x.count })),
+              ...props.landingLang.map((x) => ({ key: `שפה ${x.key}`, value: x.count })),
+            ]}
+            empty="אין נחיתות מקמפיין בטווח הזה"
+          />
+        </Card>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="מה מחפשים" hint="חיפושים מהשורה העליונה">
           <TopList rows={searches.map((x) => ({ key: x.key, value: x.count }))} empty="אין חיפושים בטווח" />
@@ -255,9 +349,63 @@ export default async function AdminTraffic({ searchParams }: { searchParams: Pro
         ) : (
           <p className="py-6 text-center text-sm text-muted-2">עדיין אין דגימות ביצועים.</p>
         )}
+        {/* The site-wide row above is very nearly the mobile row with just enough
+            desktop mixed in to look better than what a visitor actually gets: four
+            out of five visitors are on a phone. This is the split that decides. */}
+        {vitalsByDevice.length > 0 && (
+          <div className="mt-4 overflow-x-auto">
+            <h3 className="mb-2 text-sm font-semibold text-text">לפי מכשיר</h3>
+            <table className="w-full text-sm">
+              <thead className="bg-surface-2 text-xs text-muted">
+                <tr>
+                  <th className="px-3 py-2 text-right font-medium">מדד</th>
+                  <th className="px-3 py-2 text-right font-medium">מכשיר</th>
+                  <th className="px-3 py-2 text-right font-medium">דגימות</th>
+                  <th className="px-3 py-2 text-right font-medium">p50</th>
+                  <th className="px-3 py-2 text-right font-medium">p75</th>
+                  <th className="px-3 py-2 text-right font-medium">p95</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {vitalsByDevice.map((v) => {
+                  const budget = VITAL_BUDGET[v.metric];
+                  const bad = budget != null && v.p75 > budget;
+                  return (
+                    <tr key={`${v.metric}-${v.device}`}>
+                      <td className="px-3 py-2 font-semibold" dir="ltr">
+                        {v.metric}
+                      </td>
+                      <td className="px-3 py-2 text-muted" dir="ltr">
+                        {v.device}
+                      </td>
+                      <td className="tabular px-3 py-2 text-muted">{fmt(v.samples)}</td>
+                      <td className="tabular px-3 py-2">{fmt(v.p50)}</td>
+                      <td className={`tabular px-3 py-2 font-semibold ${bad ? "text-no" : "text-yes"}`}>{fmt(v.p75)}</td>
+                      <td className="tabular px-3 py-2 text-muted">{fmt(v.p95)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {routeVitals.length > 0 && (
+          <div className="mt-4">
+            <h3 className="mb-2 text-sm font-semibold text-text">הנתיבים האיטיים ביותר (p75, לפי מכשיר)</h3>
+            <TopList
+              rows={routeVitals.map((v) => ({
+                key: `${v.metric} · ${v.path} · ${v.device}`,
+                value: Math.round(v.p75),
+                hint: `${v.samples} דגימות`,
+              }))}
+              unit="ms"
+            />
+            <p className="mt-1 text-xs text-muted-2">INP מעל 200ms ב-/rapid הוא כל המוצר: החפיסה היא מגע, לא טעינה.</p>
+          </div>
+        )}
         {slow.length > 0 && (
           <div className="mt-4">
-            <h3 className="mb-2 text-sm font-semibold text-text">העמודים האיטיים ביותר (LCP ממוצע)</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text">העמודים האיטיים ביותר (LCP ממוצע, כל המכשירים)</h3>
             <TopList rows={slow.map((s) => ({ key: s.path, value: Math.round(s.avgLcp), hint: `${s.samples} דגימות` }))} unit="ms" />
           </div>
         )}
