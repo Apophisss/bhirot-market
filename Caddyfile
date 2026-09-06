@@ -27,5 +27,8 @@ www.{$DOMAIN} {
 # Catch-all on plain HTTP for any host that is not the domain above — mainly
 # the bare IP, so a deploy can be verified before DNS has propagated.
 :80 {
+	# Next no longer compresses its own output (next.config.ts → compress:false), so
+	# without this the bare-IP route serves the home page as a quarter of a megabyte.
+	encode zstd gzip
 	reverse_proxy app:3000
 }
