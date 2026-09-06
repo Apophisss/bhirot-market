@@ -26,3 +26,7 @@ data/resolutions/*.report.html
 
 # קריאייטיב למודעות — נוצר מחדש מ-data/markets.json בכל `npm run ads:creatives`
 ads/creatives/
+
+# עצי עבודה זמניים של סוכנים שרצים במקביל (Agent tool, isolation: worktree). מנוקים לבד
+# כשהסוכן מסיים, והתוכן עצמו מגיע דרך הענף שלהם — כאן זו רק תשתית.
+.claude/worktrees/
