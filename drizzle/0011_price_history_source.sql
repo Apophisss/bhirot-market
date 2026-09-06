@@ -1,0 +1,1 @@
+ALTER TABLE `price_history` ADD `source` text DEFAULT 'trade' NOT NULL;

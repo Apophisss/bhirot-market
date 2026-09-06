@@ -110,6 +110,25 @@ export function withinBand(state: MarketState): boolean {
   return p >= PRICE_BAND.min - 1e-9 && p <= PRICE_BAND.max + 1e-9;
 }
 
+/**
+ * The state whose YES price is exactly `p`, reached by moving the market maker's
+ * own inventory rather than by anyone trading.
+ *
+ * Only `qYes` moves — `qNo` is left alone — because the price depends on the
+ * difference alone, and keeping one leg fixed makes the write auditable: a
+ * single column changed, by exactly the amount `b × (logit p − logit p₀)`.
+ *
+ * The one caller is the quiet-market drift (`src/lib/market-drift.ts`), which is
+ * the house shading its own quote. Nothing about a trader's holding changes here:
+ * shares already bought stay bought, and what they are worth moves exactly as it
+ * would have if someone had traded the price to the same place. Clamped into the
+ * trading band so a nudge can never park the book somewhere buying is refused.
+ */
+export function stateAtProbability(state: MarketState, p: number): MarketState {
+  const clamped = Math.min(PRICE_BAND.max, Math.max(PRICE_BAND.min, p));
+  return { ...state, qYes: state.qNo + state.b * Math.log(clamped / (1 - clamped)) };
+}
+
 export interface Quote {
   shares: number;
   amount: number;

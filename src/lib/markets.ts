@@ -132,6 +132,15 @@ export async function getMarket(slug: string): Promise<MarketView | null> {
   return row ? toView(row) : null;
 }
 
+/**
+ * A market's recorded prices, oldest first.
+ *
+ * The row guard takes the NEWEST rows and turns them back around, never the
+ * oldest: a market that has been on the board for months carries a price row for
+ * every trade and every drift tick (`src/lib/drift.ts`), and a series that
+ * silently stopped before today would put a stale price at the end of the chart
+ * — the one point that has to be the current one.
+ */
 export async function getPriceHistory(slug: string, since?: Date) {
   const db = await getDb();
   const conds = [eq(priceHistory.marketId, slug)];
@@ -140,9 +149,9 @@ export async function getPriceHistory(slug: string, since?: Date) {
     .select({ probability: priceHistory.probability, ts: priceHistory.ts })
     .from(priceHistory)
     .where(and(...conds))
-    .orderBy(asc(priceHistory.ts))
+    .orderBy(desc(priceHistory.ts), desc(priceHistory.id))
     .limit(5000);
-  return rows.map((r) => ({ p: r.probability, t: r.ts.getTime() }));
+  return rows.reverse().map((r) => ({ p: r.probability, t: r.ts.getTime() }));
 }
 
 /**
@@ -150,9 +159,10 @@ export async function getPriceHistory(slug: string, since?: Date) {
  * The rapid feed draws a curve on every card it ships, and sixty separate queries per
  * page view is latency the deck cannot afford.
  *
- * Ordered by market and then by time, so if the row guard ever truncates, whole
- * markets drop out (and simply lose their curve) instead of every market silently
- * losing its newest prices.
+ * The guard is per market — the newest `PER_MARKET_ROWS` rows of each — rather than a
+ * flat cap on the result. A flat cap read in market order would hand the whole budget
+ * to the first few markets and leave the rest of the deck with no curve at all, which
+ * is exactly what happens once every market carries months of drift ticks.
  */
 export async function getPriceHistoryMany(ids: string[]): Promise<Map<string, { t: number; p: number }[]>> {
   const out = new Map<string, { t: number; p: number }[]>();
@@ -161,16 +171,27 @@ export async function getPriceHistoryMany(ids: string[]): Promise<Map<string, { 
   for (const id of unique) out.set(id, []);
 
   const db = await getDb();
+  // enough for the densest card curve; the deck downsamples to 32 points anyway
+  const PER_MARKET_ROWS = 400;
   // SQLite binds one parameter per id and caps the statement at 999 of them
   const CHUNK = 300;
   for (let i = 0; i < unique.length; i += CHUNK) {
     const slice = unique.slice(i, i + CHUNK);
-    const rows = await db
-      .select({ marketId: priceHistory.marketId, probability: priceHistory.probability, ts: priceHistory.ts })
+    const ranked = db
+      .select({
+        marketId: priceHistory.marketId,
+        probability: priceHistory.probability,
+        ts: priceHistory.ts,
+        rank: sql<number>`row_number() over (partition by ${priceHistory.marketId} order by ${priceHistory.ts} desc, ${priceHistory.id} desc)`.as("rank"),
+      })
       .from(priceHistory)
       .where(inArray(priceHistory.marketId, slice))
-      .orderBy(asc(priceHistory.marketId), asc(priceHistory.ts))
-      .limit(Math.min(20_000, slice.length * 400));
+      .as("ranked");
+    const rows = await db
+      .select({ marketId: ranked.marketId, probability: ranked.probability, ts: ranked.ts })
+      .from(ranked)
+      .where(lte(ranked.rank, PER_MARKET_ROWS))
+      .orderBy(asc(ranked.marketId), asc(ranked.ts));
     for (const r of rows) out.get(r.marketId)?.push({ p: r.probability, t: r.ts.getTime() });
   }
   return out;

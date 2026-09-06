@@ -93,6 +93,8 @@ export type MarketStatus = "open" | "resolved" | "cancelled";
 export type Resolution = "YES" | "NO";
 export type Side = "YES" | "NO";
 export type TradeAction = "BUY" | "SELL";
+/** What put a row in `price_history`: a person's trade (or the opening/settlement price), or the quiet-market drift. */
+export type PriceSource = "trade" | "drift";
 
 export const markets = sqliteTable(
   "market",
@@ -235,6 +237,17 @@ export const priceHistory = sqliteTable(
       .references(() => markets.id, { onDelete: "cascade" }),
     probability: real("probability").notNull(),
     ts: integer("ts", { mode: "timestamp_ms" }).notNull(),
+    /**
+     * What moved the price. "trade" (the default, and every row written before this
+     * column existed) covers the market's opening price, every executed trade and
+     * settlement — anything a person did. "drift" is the house market maker shading
+     * its own quote on a market nobody has answered in hours (`src/lib/drift.ts`).
+     *
+     * Both are real prices that were really quoted; the column exists so the two can
+     * be told apart afterwards — the drift centres itself on the last "trade" row,
+     * so without it a market could slowly walk away from its traders' last word.
+     */
+    source: text("source").$type<PriceSource>().notNull().default("trade"),
   },
   (p) => [index("price_history_market_idx").on(p.marketId, p.ts)],
 );
