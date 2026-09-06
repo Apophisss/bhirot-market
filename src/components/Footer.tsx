@@ -10,8 +10,12 @@ export async function Footer() {
   return (
     <footer className="mt-auto border-t border-ink bg-ink">
       <div className="mx-auto max-w-7xl px-4 py-7 text-xs leading-relaxed text-white/60 sm:px-6 sm:py-8">
-        {/* every category landing page is one click from every page on the site */}
-        <nav aria-label="קטגוריות" className="-mt-1 flex flex-wrap gap-x-4 gap-y-1 border-b border-white/10 pb-4">
+        {/* Every category landing page is one click from every page on the site.
+            Each link is its own 44px thumb target (`tap` plus `min-w-11`), and
+            `gap-y-2` keeps two wrapped rows from touching: eleven links this
+            close together on a phone are the easiest place on the site to hit
+            the wrong one. */}
+        <nav aria-label="קטגוריות" className="-mt-1 flex flex-wrap gap-x-4 gap-y-2 border-b border-white/10 pb-4">
           {CATEGORIES.map((c) => (
             <Link
               key={c.id}
@@ -25,8 +29,13 @@ export async function Footer() {
           ))}
         </nav>
         <div className="flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          {/* The disclosure, in the one wording the copy dictionary allows, said
+              once: points only, no real money, no prizes and no payment. The
+              word "תשלום" survives here and nowhere else on the site precisely
+              because here it is being denied — it is the term an ad reviewer
+              and the gambling test look for, and this line is the answer. */}
           <p>
-            {SITE_NAME} הוא משחק ידע <strong className="text-white">בנקודות משחק בלבד</strong>. אין כאן כסף אמיתי, פרסים, תשלום או ייעוץ.
+            {SITE_NAME} הוא משחק ידע <strong className="text-white">בנקודות משחק בלבד</strong>. אין כסף אמיתי, אין פרסים ואין תשלום — וגם לא ייעוץ.
             השאלות נכתבות ומתעדכנות על ידי {SITE_TEAM} ומבוססות על פרסומים פומביים.
           </p>
           {/*

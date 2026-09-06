@@ -13,9 +13,12 @@
  * "האם נתניהו יעמוד בראש הממשלה הבאה" from an "האם איזנקוט יעמוד בראש הממשלה
  * הבאה" on their own:
  *
- *   block  — the titles overlap past DUPLICATE_THRESHOLD. Rejected outright.
+ *   block  — the titles overlap past DUPLICATE_THRESHOLD, or one question
+ *            contains the other (same cast, same event verb, one window inside
+ *            the other): one event would decide both. Rejected outright.
  *   review — it resembles an open question some other way (same closing window,
- *            same criteria vocabulary, same cited articles, same words reversed).
+ *            same criteria vocabulary, same cited articles, same words reversed,
+ *            one cast and one verb inside one window).
  *            Rejected too, unless the batch entry carries a one-line
  *            `notDuplicateOf: { "<slug>": "<what resolves each one differently>" }`
  *            for that question. Writing that line is the check: it cannot be
@@ -23,11 +26,18 @@
  *
  * `notDuplicateOf` is a batch-only field — the schema strips it, so it never
  * reaches data/markets.json.
+ *
+ * A new question is also held to the rules the stored file is not (see
+ * `NewMarketContentSchema`): a title the hero will not cut at 95 characters, a
+ * subtitle when it closes inside a week, and an opening price inside the
+ * 15–85% band unless it is a long-horizon big-board question. Those are all
+ * things only the writer can still change, which is why the gate is here and
+ * not in `markets:validate`.
  */
 import fs from "node:fs";
 import { clampAppeal } from "../src/lib/appeal";
 import { clampTopicality } from "../src/lib/topicality";
-import { MarketsFileSchema, PeopleFileSchema, MarketContentSchema } from "../src/lib/content";
+import { archetypeWarnings, MarketsFileSchema, PeopleFileSchema, NewMarketContentSchema } from "../src/lib/content";
 import { duplicateRisk, REASON_TEXT, type Comparable } from "../src/lib/similarity";
 
 const [, , batchPath, ...rest] = process.argv;
@@ -70,6 +80,8 @@ const compareAgainst: Comparable[] = file.markets.filter((m) => m.status === "op
 const added: string[] = [];
 const rejected: { slug: string; reason: string }[] = [];
 const acknowledged: string[] = [];
+/** shapes the resolution routine keeps failing to settle — merged, but said out loud */
+const flagged: string[] = [];
 
 for (const item of incoming) {
   const m = item as Record<string, string | number | boolean | undefined | unknown>;
@@ -88,6 +100,9 @@ for (const item of incoming) {
     resolutionCriteria: String(m.resolutionCriteria ?? ""),
     closesAt: String(m.closesAt ?? ""),
     sources: Array.isArray(m.sources) ? (m.sources as { url: string }[]) : [],
+    // the containment screen needs the cast: "one event decides both" starts with
+    // the two questions being about the same people
+    people: Array.isArray(m.people) ? (m.people as string[]) : [],
   };
   // a note per slug the writer had to read to write it; anything else is ignored
   const cleared = new Map<string, string>(
@@ -121,7 +136,7 @@ for (const item of incoming) {
     continue;
   }
   const people = (Array.isArray(m.people) ? (m.people as string[]) : []).filter((id) => peopleIds.has(id));
-  const candidate = MarketContentSchema.safeParse({
+  const candidate = NewMarketContentSchema.safeParse({
     ...m,
     subtitle: m.subtitle || undefined,
     people,
@@ -147,6 +162,11 @@ for (const item of incoming) {
     rejected.push({ slug, reason: "closesAt is in the past or under an hour away" });
     continue;
   }
+  // an archetype is a warning and not a rejection: the shape is usually a bad
+  // question, but resolutionCriteria that name the outlet, the page and the
+  // moment can still rescue one — and a merge that refuses it silently would
+  // just get the same question back with the words shuffled
+  for (const why of archetypeWarnings(candidate.data)) flagged.push(`${slug}: ${why}`);
   file.markets.push(candidate.data);
   existingSlugs.add(slug);
   compareAgainst.push(candidate.data);
@@ -164,4 +184,5 @@ for (const r of rejected) console.log(`  rejected ${r.slug}: ${r.reason}`);
 // print what was let through on the writer's word, so the run's own log carries
 // the reasoning a reviewer would otherwise have to reconstruct
 for (const a of acknowledged) console.log(`  cleared as different — ${a}`);
+for (const f of flagged) console.log(`  WARN ${f}`);
 console.log(`total markets now: ${file.markets.length}`);

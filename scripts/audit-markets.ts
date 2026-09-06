@@ -19,7 +19,14 @@ import {
   TOPICALITY_LEVELS,
   TOPICALITY_REASON_THRESHOLD,
 } from "../src/lib/topicality";
-import { MarketsFileSchema, type MarketContent } from "../src/lib/content";
+import {
+  archetypeWarnings,
+  MarketsFileSchema,
+  OPENING_BAND,
+  SUBTITLE_REQUIRED_DAYS,
+  TITLE_LIMIT,
+  type MarketContent,
+} from "../src/lib/content";
 import { verdict } from "../src/lib/elasticity";
 import { duplicateRisk, DUPLICATE_THRESHOLD } from "../src/lib/similarity";
 
@@ -27,23 +34,52 @@ const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 /** merge-markets.ts refuses a new question whose title overlaps an existing one this much. */
 
-/** Outlets AGENT.md accepts as decisive sources, plus the reference sites the seed markets cite. */
+/**
+ * Outlets AGENT.md accepts as decisive sources, plus the reference sites the seed
+ * markets cite.
+ *
+ * The list has to be complete, not indicative. It used to warn on `haaretz.com`,
+ * `ynetnews.com` and `votes25.bechirot.gov.il` — the English editions and the
+ * results subdomain of outlets already on it — and 189 of the audit's 228
+ * warnings were that one line repeated, which is the same as having no warnings
+ * at all. Subdomains now match their parent domain (`listed`, below), and every
+ * outlet the open board actually cites is either here or on the weak list.
+ */
 const KNOWN_SOURCES = new Set([
-  "ynet.co.il", "haaretz.co.il", "kan.org.il", "n12.co.il", "mako.co.il", "13tv.co.il", "reshet.tv",
-  "now14.co.il", "c14.co.il", "maariv.co.il", "israelhayom.co.il", "walla.co.il", "news.walla.co.il",
+  "ynet.co.il", "ynetnews.com", "haaretz.co.il", "haaretz.com", "kan.org.il", "n12.co.il", "mako.co.il",
+  "13tv.co.il", "reshet.tv", "now14.co.il", "c14.co.il", "maariv.co.il", "israelhayom.co.il", "walla.co.il",
   "timesofisrael.com", "jpost.com", "globes.co.il", "makorrishon.co.il", "kikar.co.il", "srugim.co.il",
-  "i24news.tv", "calcalist.co.il", "themarker.com", "zman.co.il", "inn.co.il",
+  "i24news.tv", "calcalist.co.il", "themarker.com", "zman.co.il", "inn.co.il", "davar1.co.il", "ice.co.il",
+  "the7eye.org.il", "kipa.co.il", "jdn.co.il", "bhol.co.il", "kore.co.il", "okn.co.il", "mekomit.co.il",
+  "emess.co.il", "moti.org.il", "nadlancenter.co.il", "klikatnadlan.co.il", "jns.org", "theyeshivaworld.com",
+  // wire services and foreign desks a resolution may lean on
+  "aljazeera.com", "aa.com.tr", "upi.com", "npr.org", "nbcnews.com", "time.com", "fortune.com", "usnews.com",
+  "money.usnews.com", "aawsat.com", "un.org", "loc.gov",
   // aggregators, institutes and official publishers
   "skarim.org", "idi.org.il", "knesset.gov.il", "gov.il", "bechirot.gov.il", "court.gov.il", "elections.gov.il",
+  "cbs.gov.il", "boi.org.il", "mevaker.gov.il", "tase.co.il", "lawforum.org.il", "icgs.org.il", "dayan.org",
+  "adalah.org", "acitaskforce.org", "arabcenterdc.org", "washingtoninstitute.org", "fdd.org", "longwarjournal.org",
+  // market data, for the economy questions
+  "tradingeconomics.com", "tradingview.com", "investing.com", "spglobal.com", "moodys.com",
 ]);
-/** Fine as background, never decisive on its own. */
-const WEAK_SOURCES = new Set(["en.wikipedia.org", "he.wikipedia.org", "x.com", "twitter.com", "facebook.com", "t.me"]);
+/**
+ * Fine as background, never decisive on its own.
+ *
+ * Wikipedia and a calendar site are the two that keep arriving as the *only*
+ * source, and both describe the world rather than report it: a question whose
+ * evidence is a Wikipedia paragraph resolves on whoever edited it that week.
+ */
+const WEAK_SOURCES = new Set([
+  "en.wikipedia.org", "he.wikipedia.org", "he.wikisource.org", "wikipedia.org", "wikisource.org",
+  "hebcal.com", "calendar.google.com", "x.com", "twitter.com", "facebook.com", "t.me",
+]);
+/** A host counts as listed when it is the domain itself or a subdomain of it ("votes25.bechirot.gov.il"). */
+const listed = (set: Set<string>, host: string) => [...set].some((d) => host === d || host.endsWith(`.${d}`));
 /** resolutionCriteria has to say what happens when the event simply does not occur. */
 const NO_CASE = /["״'׳]לא["״'׳]|אחרת|לא\s+(?:יתפרסם|יפורסם|יוגש|יוכרז|יתקיים|יתרחש|יקרה|תוגש|תפורסם)|אינ(?:ו|ה|ם|ן)\s+נחשב|לא\s+נחשב/;
 const DEADLINE_WORDS = ["עד ", "לפני ", "מחר", "היום", "הערב", "הקרוב", "הקרובה", "הבא", "הבאה", "מוצאי", "בתוך "];
 /** MarketCard clamps the title at three lines: what a question is *about* has to fit. */
 const TITLE_TARGET = 80;
-const TITLE_MAX = 120;
 
 // piping into `head` closes stdout early; that is not an error worth a stack trace
 process.stdout.on("error", () => {});
@@ -138,6 +174,16 @@ for (const m of open) {
     warn(`${m.slug}: ${Math.round(m.initialProbability * 100)}% is outside the 5–95% band AGENT.md asks for — a near-certain question is not worth trading`);
   }
 }
+// what merge would refuse today: the tighter band, waived for the long-horizon
+// big board, where months of news still have to happen before anything resolves
+const outsideBand = open.filter(
+  (m) =>
+    hoursOut(m) / 24 <= 30 &&
+    (m.initialProbability < OPENING_BAND.min || m.initialProbability > OPENING_BAND.max),
+);
+info(
+  `${outsideBand.length}/${open.length} open markets price outside ${OPENING_BAND.min * 100}–${OPENING_BAND.max * 100}% inside a 30-day horizon — merge now refuses a new one there`,
+);
 const boldShort = open.filter((m) => hoursOut(m) > 0 && isShort(m) && m.initialProbability > 0.5);
 for (const m of boldShort) {
   warn(`${m.slug}: ${Math.round(m.initialProbability * 100)}% on a ${Math.round(hoursOut(m))}h question — in a 72h window most things do not happen; price above 50% only for something already scheduled`);
@@ -154,7 +200,15 @@ for (let i = 0; i < open.length; i++) {
   }
 }
 pairs.sort((x, y) => y.risk.title - x.risk.title);
-const blocking = pairs.filter((p) => p.risk.level === "block");
+// Containment is the one duplicate shape that is an error rather than a
+// judgement call: one event resolves both questions, so whatever the two prices
+// are, at least one of them is wrong, and the board says so in public.
+const contained = pairs.filter((p) => p.risk.reasons.includes("contains"));
+for (const p of contained) {
+  const narrow = p.risk.broader === p.a ? p.b : p.a;
+  err(`${p.risk.broader} contains ${narrow} — one event decides both; drop one or narrow the wider question`);
+}
+const blocking = pairs.filter((p) => p.risk.level === "block" && !p.risk.reasons.includes("contains"));
 for (const p of blocking.slice(0, 15)) {
   warn(
     `${p.risk.title.toFixed(2)} title overlap: ${p.a} ↔ ${p.b} — check they really ask different things, and expect merge to reject anything close to them`,
@@ -183,11 +237,13 @@ for (const m of open) {
     continue;
   }
   const h = hosts(m);
-  if (h.every((x) => WEAK_SOURCES.has(x))) {
-    warn(`${m.slug}: only weak sources (${h.join(", ")}) — add reporting a resolution can lean on`);
+  if (h.every((x) => listed(WEAK_SOURCES, x))) {
+    // an encyclopaedia or a calendar is not reporting: nothing on those pages
+    // says *when* something happened, and both are rewritten without notice
+    err(`${m.slug}: the only sources are reference sites (${h.join(", ")}) — a resolution cannot cite them; add reporting`);
   }
   for (const x of new Set(h)) {
-    if (!KNOWN_SOURCES.has(x) && !WEAK_SOURCES.has(x)) {
+    if (!listed(KNOWN_SOURCES, x) && !listed(WEAK_SOURCES, x)) {
       warn(`${m.slug}: unfamiliar source domain ${x} — confirm the outlet is one a resolution can cite`);
     }
   }
@@ -221,8 +277,20 @@ for (const m of open) {
     warn(`${m.slug}: title carries no deadline — the closing date has to be readable from the question itself`);
     criteriaFlags++;
   }
-  if (m.title.length > TITLE_MAX) {
-    warn(`${m.slug}: title is ${m.title.length} chars — the card clamps at three lines; keep the differentiators and move the rest into resolutionCriteria/subtitle (target ${TITLE_TARGET})`);
+  if (m.title.length > TITLE_LIMIT) {
+    warn(`${m.slug}: title is ${m.title.length} chars — the hero and the rapid card cut at ${TITLE_LIMIT}; move the rest into resolutionCriteria/subtitle (target ${TITLE_TARGET})`);
+    criteriaFlags++;
+  }
+  // the rapid card shows the title and the subtitle and nothing else, and a
+  // question closing this week is the one people meet there
+  const daysOut = hoursOut(m) / 24;
+  if (daysOut >= 0 && daysOut <= SUBTITLE_REQUIRED_DAYS && !m.subtitle?.trim()) {
+    warn(`${m.slug}: closes in ${Math.round(daysOut)}d with no subtitle — the rapid card has nothing else to show`);
+    criteriaFlags++;
+  }
+  // shapes the resolution routine keeps failing to settle from a public page
+  for (const why of archetypeWarnings(m)) {
+    warn(`${m.slug}: ${why}`);
     criteriaFlags++;
   }
 }

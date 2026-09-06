@@ -50,6 +50,28 @@ services:
       - ./scripts/cron-refresh.sh:/cron-refresh.sh:ro
     entrypoint: ['/bin/sh', '/cron-refresh.sh']
 
+  # The only copy of the database that is not the database. It reads the same
+  # volume the app writes and takes a live-safe `sqlite3 .backup` of it once a
+  # night into a volume of its own, keeping the last fourteen — see
+  # scripts/backup-db.sh, whose header carries the restore procedure.
+  #
+  # A separate volume on purpose: a backup inside `bhirot-data` disappears with
+  # exactly the accident it exists for.
+  backup:
+    image: alpine:3.22
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      # No secrets at all here — unlike `cron`, this container talks to nobody.
+      BACKUP_DB_PATH: /data/bhirot.db
+      BACKUP_KEEP: '14'
+    volumes:
+      - bhirot-data:/data
+      - bhirot-backups:/backups
+      - ./scripts/backup-db.sh:/backup-db.sh:ro
+    entrypoint: ['/bin/sh', '/backup-db.sh']
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -70,5 +92,6 @@ services:
 
 volumes:
   bhirot-data:
+  bhirot-backups:
   caddy-data:
   caddy-config:
