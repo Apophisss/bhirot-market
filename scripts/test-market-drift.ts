@@ -131,8 +131,14 @@ async function main() {
   await test("...and once it goes quiet, the wander is centred on the traded price", async () => {
     const id = justTraded; // the market answered in the previous test
     const traded = await getMarket(id);
-    const run = await runMarketDrift({ now: Date.now() + 7 * HOUR });
-    const step = run.steps.find((s) => s.marketId === id);
+    // Same reason as the dry-run test below: which moments ask for a step is a
+    // deterministic function of absolute time, so a single fixed offset made this
+    // pass or fail by the hour of day. What is under test is the anchor, not the
+    // timing — so take the first moment past the quiet window that does move.
+    let step: { marketId: string; anchor: number } | undefined;
+    for (let h = 7; h <= 30 && !step; h++) {
+      step = (await runMarketDrift({ now: Date.now() + h * HOUR })).steps.find((s) => s.marketId === id);
+    }
     assert.ok(step, "never woke up after the quiet window");
     assert.ok(Math.abs(step.anchor - traded.probability) < 1e-12, `anchored on ${step.anchor}, traded at ${traded.probability}`);
     const after = await getMarket(id);
@@ -180,10 +186,19 @@ async function main() {
 
   await test("a dry run reports the same move it would have written, and writes nothing", async () => {
     const id = await makeQuietMarket({ p: 0.33 });
-    const at = Date.now() + 3 * HOUR;
-    const dry = await runMarketDrift({ now: at, dryRun: true });
-    const planned = dry.steps.find((s) => s.marketId === id);
-    assert.ok(planned, "planned nothing for a quiet market");
+    // The target is deterministic value noise over *absolute* time, so whether a given
+    // moment asks for a step at all depends on where it falls in the wave — a moment
+    // near a turning point asks for less than `minStep` and the market is correctly
+    // skipped. Pinning one offset made this test pass or fail by the hour it ran at.
+    // So: walk forward until a move is actually planned (dry runs write nothing, which
+    // is half of what is under test here), then check that the write agrees with it.
+    let at = 0;
+    let planned: { marketId: string; to: number } | undefined;
+    for (let h = 1; h <= 24 && !planned; h++) {
+      at = Date.now() + h * HOUR;
+      planned = (await runMarketDrift({ now: at, dryRun: true })).steps.find((s) => s.marketId === id);
+    }
+    assert.ok(planned, "planned nothing for a quiet market in a whole day of candidate moments");
     assert.equal((await rowsFor(id)).length, 1, "a dry run wrote a row");
     const wet = await runMarketDrift({ now: at });
     const done = wet.steps.find((s) => s.marketId === id);
