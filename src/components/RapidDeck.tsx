@@ -39,7 +39,7 @@ import { GoogleIcon } from "./GoogleIcon";
 import { MarketImage } from "./MarketImage";
 import { RapidSpark } from "./RapidSpark";
 import { gaEvent } from "@/lib/gtag";
-import { track } from "@/lib/track";
+import { flush, track } from "@/lib/track";
 import { EVENTS } from "@/lib/events";
 import { checkAdConversions } from "@/components/AdConversions";
 
@@ -209,6 +209,20 @@ export function RapidDeck({
   const skipTimer = useRef(0);
   /** the furthest card the run has already judged — everything before it was answered or skipped */
   const judged = useRef(0);
+  /* ---------------------------------------------------------- the run, measured --
+   * The deck is the product, and until now the log held its answers and nothing
+   * else: no record that a card was ever shown, so every "how many skip this
+   * question" had no denominator, and no record of how long a run gets, so nobody
+   * could see where a free run dies against GUEST_SOFT_ASK and GUEST_LIMIT. These
+   * four are that record. They are refs and not state because the run's report is
+   * written while the component is going away, where a render will not come.
+   */
+  const seenCards = useRef(new Set<string>());
+  const answeredHere = useRef(0);
+  const skippedHere = useRef(0);
+  const runStartedAt = useRef(0);
+  /** the run is reported once — leaving after hiding the page must not send it twice */
+  const runReported = useRef(false);
 
   const stake = useRapidStake(savedStake);
   /** the account gets the choice written back to it; a guest gets the browser store */
@@ -507,7 +521,13 @@ export function RapidDeck({
       if (card && !answersRef.current[card.id]) ids.push(card.id);
     }
     judged.current = index;
-    if (ids.length) noteSkips(ids);
+    if (ids.length) {
+      // counted here rather than inside noteSkips: that one drops a question this
+      // browser had already skipped in an earlier run, and for the run's own report
+      // a card the user waved away is a card the user waved away
+      skippedHere.current += ids.length;
+      noteSkips(ids);
+    }
   }, [feed, index, noteSkips]);
 
   /*
@@ -534,6 +554,59 @@ export function RapidDeck({
     return () => window.removeEventListener("pagehide", onHide);
   }, [flushSkips]);
 
+  /* ------------------------------------------------------- the run, reported --
+   * `rapid_seen` is fired from `index` and not from the scroll handler: that
+   * handler runs inside a requestAnimationFrame on every scroll frame and has to
+   * stay the cheapest thing in the deck, while `index` changes exactly when a card
+   * becomes the top one — which is the moment being measured. Once per card per
+   * run, so scrolling back over a question already seen says nothing.
+   */
+  useEffect(() => {
+    const card = feed[index];
+    if (!card || seenCards.current.has(card.id)) return;
+    seenCards.current.add(card.id);
+    track(EVENTS.rapidSeen, { marketId: card.id, props: { pos: index + 1, loggedIn: loggedIn ? 1 : 0 } });
+  }, [feed, index, loggedIn]);
+
+  /*
+    The run itself, written down when the deck is left or the page is hidden.
+
+    Same rule as everything else here that must survive leaving — the held answers
+    above, the gathered skips: whichever of the two comes first sends it, once, and
+    `flush` pushes the queue out by beacon instead of leaving it to a timer that a
+    page on its way out will never reach. A run that never showed a card is a
+    remount and not a visit, exactly as `page_exit` treats a quarter-second view
+    (src/components/Analytics.tsx).
+  */
+  useEffect(() => {
+    runStartedAt.current = Date.now();
+    const report = () => {
+      const shown = seenCards.current.size;
+      if (runReported.current || !shown) return;
+      runReported.current = true;
+      track(EVENTS.rapidSession, {
+        props: {
+          shown,
+          answered: answeredHere.current,
+          skipped: skippedHere.current,
+          seconds: Math.round((Date.now() - runStartedAt.current) / 1000),
+          guest: loggedIn ? 0 : 1,
+        },
+      });
+      flush();
+    };
+    const onHide = () => {
+      if (document.visibilityState === "hidden") report();
+    };
+    window.addEventListener("pagehide", report);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      window.removeEventListener("pagehide", report);
+      document.removeEventListener("visibilitychange", onHide);
+      report();
+    };
+  }, [loggedIn]);
+
   /** Takes an answer back while its window is still open, and scrolls back to the card. */
   const undo = useCallback(
     (marketId: string) => {
@@ -543,6 +616,8 @@ export function RapidDeck({
       holdTimers.current.delete(marketId);
       holdJobs.current.delete(marketId);
       claimed.current.delete(marketId);
+      // an answer taken back is not an answer, and the run's report must not claim it
+      answeredHere.current = Math.max(0, answeredHere.current - 1);
       setAnswers((prev) => {
         if (prev[marketId]?.status !== "held") return prev;
         const next = { ...prev };
@@ -582,6 +657,7 @@ export function RapidDeck({
         // the free run was played at all. A change of mind (`known`) is not a new answer.
         const stored = readGuestAnswers().length;
         if (!known) {
+          answeredHere.current++;
           track(EVENTS.guestAnswer, {
             marketId: card.id,
             props: { surface: "deck", side, stored },
@@ -606,6 +682,9 @@ export function RapidDeck({
       }
       if (answers[card.id] || claimed.current.has(card.id) || broke) return; // answered already, or nothing left to bet
       claimed.current.add(card.id);
+      // the run's own counter: the answer stands from here on — the undo window
+      // below defers the sending, not the answer
+      answeredHere.current++;
       // one window at a time: answering the next card commits the previous answer,
       // which is what a user who has already moved on means by moving on
       for (const id of [...holdTimers.current.keys()]) release(id);

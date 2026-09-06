@@ -7,6 +7,14 @@ import { EVENTS } from "@/lib/events";
 import { disableTracking, flush, isFirstVisit, track } from "@/lib/track";
 
 /**
+ * The commit this bundle was built from, inlined at build time by the Dockerfile's
+ * `NEXT_PUBLIC_BUILD_SHA` build arg. Every pageview carries it, so a rate measured
+ * across a deploy can be split by the build that produced it instead of being one
+ * blended number that nothing can explain. A build no deploy made says "dev".
+ */
+const BUILD = process.env.NEXT_PUBLIC_BUILD_SHA || "dev";
+
+/**
  * React reports the same vital more than once (Strict Mode in dev, several roots),
  * so keep the "already sent" set on `window` — it is the one thing that is a singleton
  * no matter how many times the module is evaluated.
@@ -118,6 +126,9 @@ export function Analytics({ enabled = true }: { enabled?: boolean }) {
           // an embedded in-app browser: Google sign-in refuses some of them outright,
           // and Demand Gen serves inside exactly those apps
           webview: inAppBrowser() ? 1 : 0,
+          // the build that served this view — the one field that lets a before/after
+          // comparison across a deploy be an answer rather than a guess
+          build: BUILD,
         },
       });
       const q = sp.get("q")?.trim();

@@ -1,6 +1,8 @@
 /**
- * Tests for the paid-traffic funnel (src/lib/stats.ts → getPaidFunnel,
- * getPaidCampaigns, getPaidLanguages).
+ * Tests for the reporting queries in src/lib/stats.ts — the paid funnel it was
+ * written for (getPaidFunnel, getPaidCampaigns, getPaidLanguages), and everything
+ * else the optimisation loop reads: the general funnel, the deck's own telemetry,
+ * retention by source, the prop breakdowns and the vitals split by device.
  *
  * The campaign pays for every session this funnel counts, and the report it feeds
  * is what decides whether the landing page, the deck or the sign-in screen gets
@@ -19,6 +21,12 @@
  * Every paid session is preceded by a server-side `landing` (no session id), plus
  * one more than there are sessions: the click that left before the JavaScript ran.
  *
+ * The later tests add a second layer to the same file, because the queries they
+ * cover read the same rows: G–K are runs of the deck (G also opened a question's
+ * own page, K is signed in and so answers with a trade), P1–P3 carry the props
+ * that were never aggregated, the w/d/l sessions are web-vital samples, and r1/r2
+ * are accounts old enough for a retention window to have closed on them.
+ *
  * Run: npm run test:paid   (also part of `npm test`)
  */
 import assert from "node:assert/strict";
@@ -32,7 +40,23 @@ delete process.env.DATABASE_AUTH_TOKEN;
 
 import { getDb, schema } from "../src/lib/db";
 import { EVENTS } from "../src/lib/events";
-import { getIssues, getPaidCampaigns, getPaidFunnel, getPaidLanguages, range } from "../src/lib/stats";
+import {
+  getFunnel,
+  getIssues,
+  getMarketMetrics,
+  getPaidCampaigns,
+  getPaidFunnel,
+  getPaidLanguages,
+  getPropBreakdowns,
+  getRapidCards,
+  getRapidRuns,
+  getRapidSummary,
+  getRetentionBySource,
+  getRouteVitals,
+  getTimeToFirstTrade,
+  getWebVitalsByDevice,
+  range,
+} from "../src/lib/stats";
 
 const { analyticsEvents, users, markets, trades } = schema;
 
@@ -60,6 +84,11 @@ type Ev = {
   utm?: { source: string; medium: string; campaign: string } | null;
   props?: Record<string, unknown>;
   at?: number;
+  /** set on the rows that stand for a signed-in visitor (retention reads this) */
+  userId?: string;
+  marketId?: string;
+  device?: string;
+  value?: number;
 };
 
 async function main() {
@@ -76,11 +105,11 @@ async function main() {
     campaign: e.utm?.campaign ?? "",
     visitorId: e.visitor ?? `v-${e.session}`,
     sessionId: e.session,
-    userId: null,
-    marketId: null,
-    device: "mobile",
+    userId: e.userId ?? null,
+    marketId: e.marketId ?? null,
+    device: e.device ?? "mobile",
     country: "",
-    value: null,
+    value: e.value ?? null,
     props: JSON.stringify(e.props ?? {}),
     ts: new Date(e.at ?? (t += 1000)),
   });
@@ -207,6 +236,231 @@ async function main() {
     assert.ok(after.some((i) => i.id === "paid-no-touch"), "no-touch fires");
     // accounts exist, so no-signup must NOT fire
     assert.equal(after.some((i) => i.id === "paid-no-signup"), false, "there are paid signups");
+  });
+
+  /* ------------------------------------------------------------- the deck --
+   * A run of the deck, written the way the browser writes it: `rapid_seen` when a
+   * card becomes the top one, a `guest_answer` or a rapid `trade` when it is
+   * answered, and one `rapid_session` per run. G opened a question's own page as
+   * well; K is signed in, so their answer is a trade and not a guest answer.
+   */
+  await test("the deck's rows give every question a denominator", async () => {
+    await db.insert(markets).values({ id: "m2", title: "שאלה מדולגת", closesAt: new Date(NOW + 86_400_000) });
+    const seen = (session: string, marketId: string, pos: number, loggedIn = 0) =>
+      ev({ name: EVENTS.rapidSeen, session, path: "/rapid", marketId, props: { pos, loggedIn } });
+    await db.insert(analyticsEvents).values([
+      ev({ name: EVENTS.pageview, session: "G", path: "/market/m1", marketId: "m1" }),
+      ev({ name: EVENTS.pageview, session: "G", path: "/rapid" }),
+      seen("G", "m2", 1),
+      ev({ name: EVENTS.guestAnswer, session: "G", path: "/rapid", marketId: "m2", props: { surface: "deck", side: "YES", stored: 1 } }),
+      seen("G", "m1", 2),
+      ev({ name: EVENTS.pageview, session: "H", path: "/rapid" }),
+      seen("H", "m2", 1),
+      ev({ name: EVENTS.guestAnswer, session: "H", path: "/rapid", marketId: "m2", props: { surface: "deck", side: "NO", stored: 1 } }),
+      seen("H", "m1", 2),
+      ev({ name: EVENTS.pageview, session: "I", path: "/rapid" }),
+      seen("I", "m2", 1),
+      seen("I", "m1", 2),
+      ev({ name: EVENTS.pageview, session: "J", path: "/rapid" }),
+      seen("J", "m2", 1),
+      // K is signed in: the deck's answer is a trade the rapid endpoint stamped
+      ev({ name: EVENTS.pageview, session: "K", path: "/rapid" }),
+      seen("K", "m1", 1, 1),
+      ev({ name: EVENTS.trade, session: "K", path: "/rapid", marketId: "m1", value: 20, props: { side: "YES", action: "BUY", rapid: 1 } }),
+      // four runs, ending at four different depths
+      ev({ name: EVENTS.rapidSession, session: "G", path: "/rapid", props: { shown: 2, answered: 0, skipped: 2, seconds: 8, guest: 1 } }),
+      ev({ name: EVENTS.rapidSession, session: "H", path: "/rapid", props: { shown: 5, answered: 2, skipped: 3, seconds: 40, guest: 1 } }),
+      ev({ name: EVENTS.rapidSession, session: "I", path: "/rapid", props: { shown: 6, answered: 3, skipped: 3, seconds: 60, guest: 1 } }),
+      ev({ name: EVENTS.rapidSession, session: "K", path: "/rapid", props: { shown: 15, answered: 12, skipped: 3, seconds: 300, guest: 0 } }),
+    ]);
+
+    const cards = await getRapidCards(r, 10, 3);
+    const m2 = cards.find((c) => c.marketId === "m2");
+    const m1 = cards.find((c) => c.marketId === "m1");
+    assert.ok(m2 && m1, "both questions were shown enough times to be listed");
+    assert.equal(m2!.title, "שאלה מדולגת", "the title comes from the market table");
+    assert.deepEqual(
+      { shown: m2!.shown, answered: m2!.answered, skipped: m2!.skipped },
+      { shown: 4, answered: 2, skipped: 2 },
+      "G H I J saw it, G and H answered",
+    );
+    assert.deepEqual(
+      { shown: m1!.shown, answered: m1!.answered, skipped: m1!.skipped },
+      { shown: 4, answered: 1, skipped: 3 },
+      "a signed-in answer is a rapid trade, and it counts the same",
+    );
+    // the point of the ordering: the most-skipped question is the first thing read
+    assert.equal(cards[0].marketId, "m1", "ordered by skip rate");
+  });
+
+  await test("run depth is a histogram and not an average", async () => {
+    const runs = await getRapidRuns(r);
+    assert.deepEqual(
+      runs.map((d) => [d.label, d.runs, d.guestRuns]),
+      [
+        ["0", 1, 1],
+        ["2", 1, 1],
+        ["3", 1, 1],
+        ["11+", 1, 0],
+      ],
+      "one row per depth, guests counted apart — 11+ is a run that outlived the free one",
+    );
+    const s = await getRapidSummary(r);
+    assert.deepEqual(
+      { runs: s.runs, guestRuns: s.guestRuns, shown: s.shown, answered: s.answered },
+      { runs: 4, guestRuns: 3, shown: 28, answered: 17 },
+    );
+    assert.equal(s.answersPerRun, 17 / 4);
+    assert.equal(s.answerRate, 17 / 28);
+    assert.equal(s.avgSeconds, (8 + 40 + 60 + 300) / 4);
+  });
+
+  await test("the general funnel counts a question seen in the deck", async () => {
+    const f = await getFunnel(r);
+    const by = Object.fromEntries(f.map((s) => [s.id, s.count]));
+    // A and C from the paid fixture, then G H I J K: rapid mode never opens a
+    // market page, and before this stage two counted only those who did
+    assert.equal(by.question_view, 7, "market page or /rapid");
+    assert.equal(by.deck_answer, 5, "A C G H answered as guests, K as a signed-in trade");
+    assert.equal(by.trade_intent, 5, "nobody used the trade panel in this fixture");
+    assert.equal(f.find((s) => s.id === "signup")?.rate, null, "accounts are not browser-days");
+    // the property the whole fix is about: a subset never converts above 100%
+    assert.ok(
+      f.every((s) => s.rate == null || s.rate <= 1),
+      `a stage converted above 100%: ${JSON.stringify(f)}`,
+    );
+  });
+
+  await test("a question answered in the deck cannot convert above 100%", async () => {
+    const rows = await getMarketMetrics(r, { limit: 50 });
+    const m1 = rows.find((m) => m.slug === "m1");
+    assert.ok(m1, "m1 is in the table");
+    // one visitor opened the page, four were shown the question, two accounts
+    // answered it: the old denominator (page visitors) made that 200%
+    assert.equal(m1!.visitors, 1, "the page itself");
+    assert.equal(m1!.reach, 4, "page or deck — G H I K");
+    assert.equal(m1!.traders, 2);
+    assert.equal(m1!.conversion, 2 / 4);
+    assert.ok(
+      rows.every((m) => m.conversion <= 1),
+      "no question converts above 100%",
+    );
+  });
+
+  /* ------------------------------------------------------- retention by source */
+  await test("retention and time to first answer are split by where the account came from", async () => {
+    // 09:00 Israel time, ten days ago: a fixed hour so "same day" cannot depend on
+    // what time of day the suite happens to run
+    const d = new Date(NOW - 10 * 86_400_000);
+    const base = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 6, 0, 0);
+    const [r1] = await db
+      .insert(users)
+      .values({ email: "r1@t.local", name: "r1", utmSource: "google", utmMedium: "demandgen", utmCampaign: "quiz", createdAt: new Date(base) })
+      .returning();
+    const [r2] = await db
+      .insert(users)
+      .values({ email: "r2@t.local", name: "r2", referredBy: u1.id, createdAt: new Date(base) })
+      .returning();
+    const answer = (userId: string, at: number) => ({
+      userId,
+      marketId: "m1",
+      side: "YES" as const,
+      action: "BUY" as const,
+      shares: 1,
+      amount: 1,
+      priceBefore: 0.5,
+      priceAfter: 0.5,
+      createdAt: new Date(at),
+    });
+    await db.insert(trades).values([answer(r1.id, base + 45 * 60_000), answer(r2.id, base + 120 * 60_000)]);
+    await db.insert(analyticsEvents).values([
+      // r1 came back the next day; r2 only three days later
+      ev({ name: EVENTS.pageview, session: "ret1", path: "/rapid", userId: r1.id, at: base + 30 * 3_600_000 }),
+      ev({ name: EVENTS.pageview, session: "ret2", path: "/rapid", userId: r2.id, at: base + 3 * 86_400_000 }),
+    ]);
+
+    const rows = await getRetentionBySource(30, NOW + 1000);
+    const quiz = rows.find((x) => x.key === "quiz");
+    const invite = rows.find((x) => x.key === "invite");
+    assert.ok(quiz && invite, "a row per source");
+    assert.deepEqual(
+      { users: quiz!.users, eligibleD1: quiz!.eligibleD1, d1: quiz!.d1, eligibleD7: quiz!.eligibleD7, d7: quiz!.d7 },
+      { users: 3, eligibleD1: 1, d1: 1, eligibleD7: 1, d7: 1 },
+      "u1 and u2 signed up moments ago — the window has not closed on them, so they are not in the denominator",
+    );
+    assert.deepEqual(
+      { users: invite!.users, d1: invite!.d1, d7: invite!.d7 },
+      { users: 1, d1: 0, d7: 1 },
+      "a return three days later is a D7 and not a D1",
+    );
+    assert.ok(rows.some((x) => x.key === "paid"), "the gclid-only account is the campaign's, not organic");
+
+    const first = await getTimeToFirstTrade(30, NOW + 1000);
+    const inviteFirst = first.find((x) => x.key === "invite");
+    assert.deepEqual(
+      { accounts: inviteFirst!.accounts, traded: inviteFirst!.traded, medianMinutes: inviteFirst!.medianMinutes, sameDay: inviteFirst!.sameDay },
+      { accounts: 1, traded: 1, medianMinutes: 120, sameDay: 1 },
+    );
+    assert.equal(first.find((x) => x.key === "quiz")?.traded, 2, "u1 and r1");
+  });
+
+  /* --------------------------------------------------------- prop breakdowns */
+  await test("props that were only ever collected are now summarised", async () => {
+    await db.insert(analyticsEvents).values([
+      ev({ name: EVENTS.pageview, session: "P1", props: { first: 1, webview: 1 } }),
+      ev({ name: EVENTS.pageview, session: "P2", props: { first: 1, webview: 1 } }),
+      ev({ name: EVENTS.pageview, session: "P3", props: { first: 0, webview: 0 } }),
+      ev({ name: EVENTS.installApp, session: "P1", props: { action: "shown", platform: "ios" } }),
+      ev({ name: EVENTS.installApp, session: "P2", props: { action: "shown", platform: "ios" } }),
+      ev({ name: EVENTS.installApp, session: "P3", props: { action: "accepted", platform: "android" } }),
+      ev({ name: EVENTS.loginError, session: "P1", path: "/login", props: { error: "OAuthCallback" } }),
+      ev({ name: EVENTS.tradeError, session: "K", path: "/rapid", props: { reason: "אין מספיק נקודות", rapid: 1 } }),
+      ev({ name: EVENTS.survey, session: "P3", props: { status: "done" } }),
+      ev({ name: EVENTS.landing, session: "", visitor: "v-P4", utm: PAID, props: { webview: 1, lang: "he" } }),
+    ]);
+    const p = await getPropBreakdowns(r);
+    assert.equal(p.webview.find((x) => x.key === "1")?.count, 2, "two views inside an in-app browser");
+    assert.equal(p.webview.find((x) => x.key === "0")?.count, 1);
+    assert.equal(p.firstVisit.find((x) => x.key === "1")?.count, 2);
+    assert.equal(p.installApp.find((x) => x.key === "shown · ios")?.count, 2, "two props, one key");
+    assert.equal(p.installApp.find((x) => x.key === "accepted · android")?.count, 1);
+    assert.equal(p.loginErrors.find((x) => x.key === "OAuthCallback")?.count, 1);
+    assert.equal(p.tradeErrors.find((x) => x.key === "אין מספיק נקודות")?.count, 1);
+    assert.equal(p.survey.find((x) => x.key === "done")?.count, 1);
+    assert.equal(p.guestGate.find((x) => x.key === "10")?.count, 1, "the wall went up over ten answers");
+    assert.equal(p.landingWebview.find((x) => x.key === "1")?.count, 1);
+    assert.equal(p.landingLang.find((x) => x.key === "he")?.count, 1);
+    // a pageview from before the field existed is reported, not dropped
+    assert.ok((p.webview.find((x) => x.key === "?")?.count ?? 0) > 0);
+  });
+
+  /* ---------------------------------------------------------------- vitals -- */
+  await test("vitals split by device, and the deck's own responsiveness is a rule", async () => {
+    const vital = (session: string, path: string, device: string, metric: string, value: number) =>
+      ev({ name: EVENTS.webVital, session, path, device, value, props: { metric, rating: "" } });
+    await db.insert(analyticsEvents).values([
+      // the phone is where the players are, and where the deck is slow
+      ...[120, 260, 300, 340, 380, 420, 440, 460].map((v, i) => vital(`w${i}`, "/rapid", "mobile", "INP", v)),
+      ...[100, 100, 100, 100, 100, 100, 100, 100].map((v, i) => vital(`d${i}`, "/rapid", "desktop", "INP", v)),
+      ...[1000, 2000, 3000, 4000].map((v, i) => vital(`l${i}`, "/", "mobile", "LCP", v)),
+    ]);
+    const byDevice = await getWebVitalsByDevice(r);
+    const inpMobile = byDevice.find((v) => v.metric === "INP" && v.device === "mobile");
+    const inpDesktop = byDevice.find((v) => v.metric === "INP" && v.device === "desktop");
+    assert.equal(inpMobile?.samples, 8);
+    assert.equal(inpMobile?.p75, 420, "the phone's p75, not the blend");
+    assert.equal(inpDesktop?.p75, 100, "and the desktop that is fine cannot hide it");
+    assert.equal(byDevice.find((v) => v.metric === "LCP" && v.device === "mobile")?.p75, 3000);
+
+    const routes = await getRouteVitals(r, ["INP"]);
+    const rapidMobile = routes.find((v) => v.path === "/rapid" && v.device === "mobile");
+    assert.equal(rapidMobile?.p75, 420);
+    assert.equal(routes[0].p75, 420, "slowest route first");
+
+    const issues = await getIssues(r);
+    const inp = issues.find((i) => i.id === "slow-inp-rapid");
+    assert.ok(inp, "INP p75 over 200ms in the deck is a finding");
+    assert.ok(inp!.title.includes("420") && inp!.title.includes("mobile"), inp!.title);
   });
 
   if (failures.length) {

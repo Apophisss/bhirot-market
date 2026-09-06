@@ -58,6 +58,19 @@ export const EVENTS = {
   /** the "מצב זריז" offer that opens a visit (props.action = shown, props.loggedIn) */
   rapidGate: "rapid_gate",
   /**
+   * A card became the top card of the deck — the denominator the deck never had.
+   * Answers were counted from the first day and impressions were not, so "how many
+   * people skip this question" had no way of being asked. Once per card per run,
+   * on the marketId column (props.pos = its 1-based place in the run, props.loggedIn).
+   */
+  rapidSeen: "rapid_seen",
+  /**
+   * A run in the deck ended — the deck was left, or the page was hidden.
+   * props.shown/answered/skipped/seconds/guest: where a run dies, measured against
+   * the two numbers that shape it (GUEST_SOFT_ASK = 3, GUEST_LIMIT = 10).
+   */
+  rapidSession: "rapid_session",
+  /**
    * A signed-out visitor answered a question — on the landing page or in the deck.
    * Kept only in the browser until sign-in (src/lib/rapid-guest.ts), so nothing
    * server-side ever sees it; this is the one record that the free run was used.
@@ -110,6 +123,8 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.bundleDownload]: "הורדת באנדל נתונים",
   [EVENTS.installApp]: "הוספה למסך הבית",
   [EVENTS.rapidGate]: "הצעת מצב זריז בכניסה",
+  [EVENTS.rapidSeen]: "כרטיס הוצג בחפיסה",
+  [EVENTS.rapidSession]: "סוף ריצה בחפיסה (עומק הריצה)",
   [EVENTS.guestAnswer]: "תשובה של אורח (לפני הרשמה)",
   [EVENTS.guestGate]: "חסימת סוף הריצה החופשית הוצגה",
   [EVENTS.guestRedeem]: "תשובות אורח נכנסו לניקוד אחרי התחברות",
