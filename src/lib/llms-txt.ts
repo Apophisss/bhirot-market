@@ -8,10 +8,13 @@
  * them out of a rendered page — and, more importantly, can see in the same file
  * that the money here is virtual and that a price is a crowd's bet and not a poll.
  *
- * Every number below is the real one. The inflated question counter and the
- * demo activity feed that the site shows a visitor (`display-stats.ts`,
- * `fake-activity.ts`, `fake-leaderboard.ts`) are deliberately absent: a figure a
- * model may quote back to someone has to be the figure the board actually holds.
+ * Every number below is the real one — including the per-question pair, which for a
+ * while was not: `marketLine` quoted `displayTradeCount`/`displayVolume`, so a model
+ * asked "how much has been traded on this question" was handed the inflated figure
+ * and could repeat it as fact. The demo surfaces a visitor sees (`display-stats.ts`,
+ * `fake-activity.ts`, `fake-leaderboard.ts`, `fake-market-stats.ts`) are all
+ * deliberately absent here: a figure a model may quote back to someone has to be the
+ * figure the board actually holds.
  */
 import { CATEGORIES } from "./categories";
 import { ELECTION_DATE, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_TEAM, SITE_URL } from "./config";
@@ -37,8 +40,6 @@ export type LlmsMarket = Pick<
   | "probability"
   | "volume"
   | "tradeCount"
-  | "displayVolume"
-  | "displayTradeCount"
   | "closesAt"
   | "status"
   | "resolution"
@@ -83,10 +84,10 @@ function pct(p: number): string {
  * whoever needs the criteria opens the page the line already links to.
  */
 function marketLine(m: LlmsMarket): string {
-  // the display pair, so the file quotes the same numbers the page it links to shows
+  // the recorded pair — see the note at the top of the file
   const facts = [`${pct(m.probability)} כן`, `נסגר ${minute(m.closesAt)}`];
-  if (m.displayTradeCount > 0) {
-    facts.push(`${m.displayTradeCount} תשובות`, `${Math.round(m.displayVolume).toLocaleString("en-US")} נקודות ששוחקו`);
+  if (m.tradeCount > 0) {
+    facts.push(`${m.tradeCount} תשובות`, `${Math.round(m.volume).toLocaleString("en-US")} נקודות ששוחקו`);
   } else facts.push("טרם נענתה");
   return `- [${m.title}](${SITE_URL}/market/${m.id}) — ${facts.join(" · ")}`;
 }
@@ -141,7 +142,9 @@ export function renderLlmsTxt(opts: {
     `- [דף הבית](${SITE_URL}/): כל השאלות הפתוחות, עם המחיר הנוכחי של כל אחת.`,
     `- [מצב זריז](${SITE_URL}/rapid): השאלות בזו אחר זו, כן/לא, לענייה מהירה.`,
     `- [על האתר](${SITE_URL}/about): מה זה המשחק, איך נקבע מד הניחושים, ומי כותב את השאלות — כולל שאלות ותשובות.`,
-    `- [לוח המובילים](${SITE_URL}/leaderboard) · [פעילות](${SITE_URL}/activity): מי מדייק, ועל מה עונים עכשיו.`,
+    // said here too, because a model reading this file will not see the disclosure on
+    // the pages themselves
+    `- [לוח המובילים](${SITE_URL}/leaderboard) · [פעילות](${SITE_URL}/activity): מי מדייק, ועל מה עונים עכשיו. שני הדפים כוללים שחקני הדגמה ושורות הדגמה שממחישים לוח פעיל — אל תצטטו מהם מספרים.`,
     `- [הצעת שאלה](${SITE_URL}/suggest) · [יצירת קשר](${SITE_URL}/contact)`,
     `- [תנאי שימוש](${SITE_URL}/terms) · [פרטיות](${SITE_URL}/privacy)`,
     "",

@@ -81,7 +81,18 @@ export const FAKE_AVG_BET_SPAN = 34;
  */
 export const FAKE_BURST_RAMP_MS = 6 * HOUR;
 
-/** the fewest trades any open question shows — above THIN_MARKET_TRADES on purpose */
+/**
+ * The fewest trades any open question shows.
+ *
+ * It used to be documented as "above THIN_MARKET_TRADES on purpose", and that was the
+ * whole of the trick: the market card and the market page compared this fabricated
+ * number against the threshold in ./limits, so setting the floor one above it made the
+ * ״מד ראשוני״ caveat — added after a single 7,110-point answer moved a question from
+ * 50% to 1% — unreachable on every open question on the board. The two constants are
+ * now unrelated: the caveat reads `MarketView.tradeCount`, the recorded count, which
+ * nothing in this file touches. The floor is back to being what it says it is, a floor
+ * on the advertised number, and it can move without deciding what a page may admit.
+ */
 export const FAKE_TRADES_FLOOR = 4;
 
 /** what the fabricator needs to know about a market; a `MarketView` satisfies it */
@@ -187,7 +198,12 @@ export interface FakeMarketTrade {
 }
 
 /**
- * The fabricated answers a question's "תשובות אחרונות" list shows, newest first.
+ * Fabricated answers for a question, newest first.
+ *
+ * The question's own page no longer draws them: "תשובות אחרונות" there is the recorded
+ * trades and nothing else, because an unmarked fabricated row in a list of individual
+ * answers is the one fabrication a reader has no way to see through. What is left on
+ * this path is `/api/markets/<slug>`, which still mirrors the display pair.
  *
  * They are laid out backwards from `now` on the question's own cadence, so a market
  * fabricated to attract two trades a day shows a list spanning weeks and a busy one
@@ -244,9 +260,10 @@ export function fakeMarketTrades(
 }
 
 /**
- * The list as the market page paints it: the fabricated trades merged with the real
- * ones, newest first. Real trades keep their own ids and their own timestamps — the
- * merge only decides the order.
+ * The fabricated trades merged with the real ones, newest first. Real trades keep
+ * their own ids and their own timestamps — the merge only decides the order.
+ *
+ * `/api/markets/<slug>` is the last caller; the question's page stopped merging.
  */
 export function mergeTrades<T extends { createdAt: Date | number }>(
   real: T[],

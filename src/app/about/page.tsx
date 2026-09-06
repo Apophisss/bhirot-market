@@ -75,9 +75,13 @@ export default async function AboutPage() {
         <p>
           <strong>לוח המובילים אנונימי.</strong> אף שם ואף תמונת פרופיל אינם מופיעים בו — כל שחקן/ית מקבל/ת כינוי אקראי וקבוע
           (״ינשוף ממושמע״), והשרת כלל לא שולח לדף את השמות. אתם מזהים רק את השורה שלכם, שמסומנת ב״את/ה״.
+          {/* The disclosure stays; the file path does not. "src/lib/fake-leaderboard.ts"
+              was written for whoever reads the code and ended up in the Hebrew a player
+              reads — a sentence about honesty that only makes sense to someone with the
+              repository open. The same fact, said in the reader's own terms. */}
           לצד השחקנים האמיתיים מוצגים בלוח <strong>שחקני הדגמה</strong> שממחישים איך הוא נראה מלא: המספרים שלהם נוצרים
-          בחישוב מקומי (<code>src/lib/fake-leaderboard.ts</code>), אינם נשמרים במסד הנתונים, אינם עונים על שאלות,
-          ואינם משפיעים על אף מחיר, על מספר התשובות או על הניקוד של אף אחד.
+          בחישוב מקומי בכל טעינה של הדף, אינם נשמרים במסד הנתונים, אינם עונים על שאלות,
+          ואינם משפיעים על אף מחיר, על מספר התשובות או על הניקוד של אף אחד. גם ב<Link href="/leaderboard" className="text-accent-2 hover:underline">לוח המובילים</Link> עצמו מופיעה השורה הזאת.
         </p>
         <p>
           יש <strong>תקרה של {MAX_BET} נקודות לכל תשובה</strong> — בפאנל התשובה וגם במצב זריז — כדי שאף אחד לא יוכל להזיז שאלה
