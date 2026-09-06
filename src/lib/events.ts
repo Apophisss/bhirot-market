@@ -55,6 +55,8 @@ export const EVENTS = {
   bundleDownload: "bundle_download",
   /** the add-to-home-screen offer (props.action = shown/prompted/accepted/dismissed/instructions/installed, props.platform) */
   installApp: "install_app",
+  /** the "מצב זריז" offer that opens a visit (props.action = shown, props.loggedIn) */
+  rapidGate: "rapid_gate",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
@@ -86,6 +88,7 @@ export const EVENT_LABELS: Record<string, string> = {
   [EVENTS.logout]: "יציאה",
   [EVENTS.bundleDownload]: "הורדת באנדל נתונים",
   [EVENTS.installApp]: "הוספה למסך הבית",
+  [EVENTS.rapidGate]: "הצעת מצב זריז בכניסה",
 };
 
 /** Click ids used by `data-evt` attributes around the site (documented for the analyst). */
@@ -146,6 +149,8 @@ export const CLICK_IDS: Record<string, string> = {
   "footer-link": "קישור בפוטר",
   "footer-category": "קטגוריה בפוטר",
   "footer-install": "הוספה למסך הבית מהפוטר",
+  "entry-gate-rapid": "מעבר למצב זריז מהשער בכניסה",
+  "entry-gate-dismiss": "דחיית השער בכניסה",
   "install-prompt-add": "הוספה למסך הבית מהכרטיס",
   "install-prompt-later": "דחיית ההצעה להוסיף למסך הבית",
   "install-sheet-add": "התקנה בלחיצה אחת מתוך החלון",
