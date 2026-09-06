@@ -44,6 +44,8 @@ export const metadata: Metadata = {
  * means something — at the end of the run, on the screen that lists what it keeps.
  */
 const CTA = "/rapid";
+/** the one link on the page that does not start the run — for someone who already has an account */
+const LOGIN = "/login?callbackUrl=%2Frapid";
 
 /**
  * Below this, the number of open questions is not a sign of scale — it is a
@@ -189,6 +191,16 @@ export default async function WelcomePage() {
         <p className="mt-2.5 text-sm text-muted">
           {GUEST_LIMIT} תשובות בלי חשבון, והן נשמרות. ההרשמה עצמה חינם ובלחיצה אחת, ופותחת את כל הלוח, טבלת
           המובילים וליגות עם חברים.
+        </p>
+        {/* The whole page is written at someone who has never been here, and everything
+            on it now leads into the free run. Somebody who already has an account is not
+            being pitched — they are signed out on this browser, and the run they are
+            being offered is one they have already had. */}
+        <p className="mt-2 text-sm text-muted-2">
+          כבר יש לכם חשבון?{" "}
+          <Link href={LOGIN} className="font-semibold text-accent hover:underline">
+            התחברות
+          </Link>
         </p>
       </section>
     </div>
