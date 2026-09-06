@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6e1e4a38-4b2e-48d7-aac7-f3f87b4ff546",
-  "prevId": "1e6cbe34-96d0-47a6-97a2-9f57fcac85cb",
+  "id": "1519d702-51da-4eef-ba5d-a71f211c70ef",
+  "prevId": "6e1e4a38-4b2e-48d7-aac7-f3f87b4ff546",
   "tables": {
     "account": {
       "name": "account",
@@ -1257,6 +1257,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'trade'"
         }
       },
       "indexes": {

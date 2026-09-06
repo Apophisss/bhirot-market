@@ -82,8 +82,15 @@
     {
       "idx": 11,
       "version": "6",
-      "when": 1788652042222,
-      "tag": "0011_price_history_source",
+      "when": 1788651357118,
+      "tag": "0011_user_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1788653698569,
+      "tag": "0012_price_history_source",
       "breakpoints": true
     }
   ]

@@ -10,14 +10,13 @@ import { money, pct, closesLabel } from "@/lib/format";
 import { SITE_TEAM } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/limits";
 import {
-  RAPID_DEFAULT_STAKE,
   RAPID_MAX_STAKE,
   RAPID_MIN_STAKE,
   RAPID_STAKE_PRESETS,
   RAPID_STAKE_STEP,
-  clampStake,
   type RapidCard,
 } from "@/lib/rapid";
+import { setRapidStake, useRapidStake } from "@/lib/settings-client";
 import { addSkips, openSkipSnapshot, serverSkipSnapshot, skipSnapshot, subscribeSkipSnapshot } from "@/lib/rapid-skips";
 import {
   GUEST_LIMIT,
@@ -31,6 +30,8 @@ import {
 import { MarketImage } from "./MarketImage";
 import { RapidSpark } from "./RapidSpark";
 import { gaEvent } from "@/lib/gtag";
+import { track } from "@/lib/track";
+import { EVENTS } from "@/lib/events";
 import { checkAdConversions } from "@/components/AdConversions";
 
 /**
@@ -85,6 +86,17 @@ const SKIP_BATCH = 60;
 
 /** horizontal drag distance (px) that commits an answer */
 const DRAG_COMMIT = 96;
+/** downward drag distance (px) that sends the undo bar away */
+const UNDO_DISMISS = 44;
+/**
+ * A downward flick this fast (px per ms) sends the bar away whatever the distance.
+ * Forgiving on purpose: dismissing costs nothing — the answer goes out exactly as
+ * the five-second timer was about to send it — so a gesture that was clearly meant
+ * as "get this off my screen" should not have to be measured out.
+ */
+const UNDO_FLICK = 0.35;
+/** how long the undo bar takes to slide off screen once it has been dismissed */
+const UNDO_EXIT_MS = 160;
 /** wheel distance (px) that counts as one deliberate "next card" gesture */
 const WHEEL_STEP = 42;
 /** how long the deck ignores the wheel after a step, so one flick moves one card */
@@ -108,47 +120,13 @@ function scrollableUnder(from: EventTarget | null, stopAt: HTMLElement, dy: numb
 }
 
 /* ------------------------------------------------- the stake, as a store --
- * The chosen stake survives reloads. Reading localStorage during render would
- * break hydration, so it is exposed as an external store: the server snapshot
- * is the default and the stored value arrives on the first client render.
+ * The chosen stake used to live in `localStorage` alone, which meant it lived in
+ * one browser: the same account picked ₪50 on a phone and was handed ₪20 again on
+ * a laptop. It is a choice the user made, like every other choice on the site, so
+ * it belongs to the account — `savedStake` arrives already rendered from the
+ * server, and `setRapidStake` writes it back (src/lib/settings-client.ts).
+ * A guest, with no account to write to, keeps the browser store as before.
  */
-
-const STAKE_KEY = "bhirot:rapid:stake";
-let stakeCache: number | null = null;
-const stakeListeners = new Set<() => void>();
-
-function readStake(): number {
-  if (stakeCache == null) {
-    try {
-      const saved = window.localStorage.getItem(STAKE_KEY);
-      stakeCache = saved ? clampStake(Number(saved)) : RAPID_DEFAULT_STAKE;
-    } catch {
-      stakeCache = RAPID_DEFAULT_STAKE;
-    }
-  }
-  return stakeCache;
-}
-
-function writeStake(v: number) {
-  stakeCache = clampStake(v);
-  try {
-    window.localStorage.setItem(STAKE_KEY, String(stakeCache));
-  } catch {
-    /* private mode — keep it in memory for this run */
-  }
-  for (const l of stakeListeners) l();
-}
-
-function subscribeStake(cb: () => void) {
-  stakeListeners.add(cb);
-  return () => {
-    stakeListeners.delete(cb);
-  };
-}
-
-function useStake() {
-  return useSyncExternalStore(subscribeStake, readStake, () => RAPID_DEFAULT_STAKE);
-}
 
 /** The answers this browser gave before signing in (see src/lib/rapid-guest.ts). */
 function useGuestAnswers() {
@@ -174,12 +152,15 @@ export function RapidDeck({
   cards,
   loggedIn,
   balance,
+  savedStake = null,
   includeAnswered = false,
   children,
 }: {
   cards: RapidCard[];
   loggedIn: boolean;
   balance: number | null;
+  /** the stake this account chose, whatever device it chose it on — null for a guest */
+  savedStake?: number | null;
   /** the "כולל שאלות שכבר ראיתי" switch — it puts back both what was answered and what
    *  was skipped, and for a guest it is the only thing that keeps an already-answered
    *  question in the queue, since the server cannot filter for them */
@@ -216,7 +197,9 @@ export function RapidDeck({
   /** the furthest card the run has already judged — everything before it was answered or skipped */
   const judged = useRef(0);
 
-  const stake = useStake();
+  const stake = useRapidStake(savedStake);
+  /** the account gets the choice written back to it; a guest gets the browser store */
+  const setStake = useCallback((v: number) => setRapidStake(v, loggedIn), [loggedIn]);
   const guestAnswers = useGuestAnswers();
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const showKeys = useMediaQuery("(min-width: 1024px)");
@@ -566,6 +549,9 @@ export function RapidDeck({
           side,
           priceAtAnswer: side === "YES" ? card.probability : 1 - card.probability,
           title: card.title,
+          // the amount the card was showing while it was answered — redemption binds
+          // this, not the default (see GuestAnswer.stake)
+          stake,
           ts: Date.now(),
         });
         setAnswers((prev) => ({ ...prev, [card.id]: { marketId: card.id, side, stake, status: "guest" } }));
@@ -696,26 +682,26 @@ export function RapidDeck({
         case "+":
         case "=":
           e.preventDefault();
-          writeStake(stake + RAPID_STAKE_STEP);
+          setStake(stake + RAPID_STAKE_STEP);
           break;
         case "-":
         case "_":
           e.preventDefault();
-          writeStake(stake - RAPID_STAKE_STEP);
+          setStake(stake - RAPID_STAKE_STEP);
           break;
         default: {
           // 1…5 jump straight to a preset stake
           const preset = RAPID_STAKE_PRESETS[Number(e.key) - 1];
           if (preset != null) {
             e.preventDefault();
-            writeStake(preset);
+            setStake(preset);
           }
         }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [answer, feed, goTo, index, stake]);
+  }, [answer, feed, goTo, index, setStake, stake]);
 
   /* answers are binding — never let the tab close on money still in flight */
   useEffect(() => {
@@ -819,8 +805,25 @@ export function RapidDeck({
         The undo window, over the deck rather than on the card: by the time it opens
         the answered card has already scrolled away, so an affordance drawn on the
         card would be off screen for the whole five seconds it exists.
+
+        Swiping it down closes the window early: the bar sits over the next question,
+        and a user who does not want it there has already made up their mind — so the
+        answer is sent, exactly as it would have been five seconds later.
       */}
-      {held && <UndoBar key={held.card.id} held={held} onUndo={() => undo(held.card.id)} />}
+      {held && (
+        <UndoBar
+          key={held.card.id}
+          held={held}
+          reduceMotion={reduceMotion}
+          onUndo={() => undo(held.card.id)}
+          onDismiss={() => {
+            // a swipe is not a click, so the delegated tracker never sees it — and how
+            // often the bar is pushed away is what says whether five seconds is too long
+            track(EVENTS.click, { marketId: held.card.id, props: { id: "rapid-undo-dismiss" } });
+            release(held.card.id);
+          }}
+        />
+      )}
 
       {/* the free run is over, and the four answers behind this are the argument */}
       {guestGate && <GuestGate answers={guestAnswers} />}
@@ -828,6 +831,7 @@ export function RapidDeck({
       <aside className="scrollbar-none shrink-0 lg:w-72 lg:overflow-y-auto xl:w-80">
         <StakeBar
           stake={stake}
+          onStake={setStake}
           available={available}
           broke={broke}
           outOfMoney={outOfMoney}
@@ -893,21 +897,137 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
  * The countdown is derived from a deadline rather than counted down in state, so a
  * backgrounded tab (where timers are throttled) shows the true remaining time when
  * it comes back instead of a stale one.
+ *
+ * The bar can also be swiped down to get rid of it — it lands over the bottom of the
+ * next question, and five seconds is a long time to look at an offer you have already
+ * turned down. Swiping it away is not a cancel and not a second undo: `onDismiss`
+ * closes the window the way leaving the deck does, by sending the answer.
  */
-function UndoBar({ held, onUndo }: { held: { card: RapidCard; side: Side; until: number }; onUndo: () => void }) {
+function UndoBar({
+  held,
+  reduceMotion,
+  onUndo,
+  onDismiss,
+}: {
+  held: { card: RapidCard; side: Side; until: number };
+  reduceMotion: boolean;
+  onUndo: () => void;
+  onDismiss: () => void;
+}) {
   // keyed on the answered card, so a new answer remounts this with a fresh deadline
   // rather than needing an effect to reset the clock
   const [left, setLeft] = useState(() => Math.max(0, held.until - Date.now()));
+  /** how far down the finger has taken the bar */
+  const [dy, setDy] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  /** swiped away: the bar is on its way off screen and the answer is about to go */
+  const [gone, setGone] = useState(false);
+  const drag = useRef<{ id: number; x0: number; y0: number; t0: number; dy: number; axis: "?" | "x" | "y" } | null>(
+    null,
+  );
 
   useEffect(() => {
     const tick = window.setInterval(() => setLeft(Math.max(0, held.until - Date.now())), 200);
     return () => window.clearInterval(tick);
   }, [held.until]);
 
+  /* the callback is an inline arrow up in the deck, so it is a fresh function on every
+     render — and this component re-renders four times a second. Through a ref, so the
+     exit timer below is started once instead of being restarted by each tick. */
+  const dismiss = useRef(onDismiss);
+  useEffect(() => {
+    dismiss.current = onDismiss;
+  });
+
+  useEffect(() => {
+    if (!gone) return;
+    if (reduceMotion) {
+      dismiss.current();
+      return;
+    }
+    const t = window.setTimeout(() => dismiss.current(), UNDO_EXIT_MS);
+    return () => window.clearTimeout(t);
+  }, [gone, reduceMotion]);
+
+  function onPointerDown(e: React.PointerEvent) {
+    if (gone || e.button > 0) return;
+    if (e.pointerType === "mouse") {
+      // a mouse press on "בטל" belongs to the button, never to the swipe
+      const t = e.target as HTMLElement | null;
+      if (t?.closest("button, a, [role='button']")) return;
+    }
+    drag.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: e.timeStamp, dy: 0, axis: "?" };
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    const mx = e.clientX - d.x0;
+    const my = e.clientY - d.y0;
+    if (d.axis === "?") {
+      if (Math.abs(mx) < 10 && Math.abs(my) < 10) return;
+      d.axis = Math.abs(my) > Math.abs(mx) ? "y" : "x";
+      if (d.axis !== "y") {
+        drag.current = null; // a sideways gesture is not ours
+        return;
+      }
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setDragging(true);
+    }
+    // down only: the bar has nowhere to go upwards, so a pull that way is resisted
+    d.dy = my > 0 ? my : my / 4;
+    setDy(d.dy);
+  }
+
+  function endDrag(e: React.PointerEvent) {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    drag.current = null;
+    setDragging(false);
+    if (d.axis !== "y") return;
+    // the distance comes off the ref rather than the `dy` state, which React can
+    // still be a frame behind — the same reason the card's own swipe does
+    const flick = d.dy > 12 && d.dy / Math.max(1, e.timeStamp - d.t0) >= UNDO_FLICK;
+    if (d.dy >= UNDO_DISMISS || flick) {
+      setGone(true);
+      return;
+    }
+    setDy(0); // not far enough: back where it was
+  }
+
+  /** the OS took the gesture away — put the bar back rather than reading it as a swipe */
+  function cancelDrag(e: React.PointerEvent) {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    drag.current = null;
+    setDragging(false);
+    setDy(0);
+  }
+
   const seconds = Math.ceil(left / 1000);
   return (
     <div className="pb-safe pointer-events-none absolute inset-x-0 bottom-2 z-30 flex justify-center px-3 lg:bottom-3">
-      <div className="slide-up pointer-events-auto flex max-w-md items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 shadow-lg shadow-ink/15">
+      <div
+        className={`slide-up flex max-w-md items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 shadow-lg shadow-ink/15 ${
+          // once it is on its way out it stops taking taps: the answer is already going
+          gone ? "pointer-events-none" : "pointer-events-auto"
+        } ${dragging ? "cursor-grabbing select-none" : "cursor-grab"}`}
+        style={{
+          transform: gone ? "translateY(160%)" : dy ? `translateY(${dy}px)` : undefined,
+          opacity: gone ? 0 : dy > 0 ? Math.max(0.35, 1 - dy / (UNDO_DISMISS * 2.5)) : undefined,
+          transition:
+            dragging || reduceMotion
+              ? undefined
+              : `transform ${UNDO_EXIT_MS}ms ease-out, opacity ${UNDO_EXIT_MS}ms ease-out`,
+          // the swipe is ours: without this the browser scrolls the page under it
+          touchAction: "none",
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={cancelDrag}
+        onDragStart={(e) => e.preventDefault()}
+      >
         <span className={`shrink-0 text-sm font-black ${held.side === "YES" ? "text-yes" : "text-no"}`}>
           {held.side === "YES" ? "כן" : "לא"}
         </span>
@@ -1297,6 +1417,7 @@ function AnswerButton({
 
 function StakeBar({
   stake,
+  onStake,
   available,
   broke,
   outOfMoney,
@@ -1304,6 +1425,8 @@ function StakeBar({
   dimmed,
 }: {
   stake: number;
+  /** the deck's own setter — it knows whether the choice goes to the account or to the browser */
+  onStake: (v: number) => void;
   available: number | null;
   broke: boolean;
   outOfMoney: boolean;
@@ -1329,7 +1452,7 @@ function StakeBar({
           max={RAPID_MAX_STAKE}
           step={1}
           value={stake}
-          onChange={(e) => writeStake(Number(e.target.value))}
+          onChange={(e) => onStake(Number(e.target.value))}
           className="slider min-w-0 flex-1 lg:mt-1 lg:w-full"
           aria-describedby="rapid-stake-range"
         />
@@ -1342,7 +1465,7 @@ function StakeBar({
           {RAPID_STAKE_PRESETS.map((p) => (
             <button
               key={p}
-              onClick={() => writeStake(p)}
+              onClick={() => onStake(p)}
               className={`tabular tap shrink-0 rounded-lg border px-3 text-xs font-bold transition ${
                 stake === p
                   ? "border-accent bg-accent/15 text-accent-2"

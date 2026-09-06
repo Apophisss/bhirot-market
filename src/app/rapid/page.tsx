@@ -12,6 +12,9 @@ import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
 import { GUEST_LIMIT } from "@/lib/rapid-guest";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
+import { getSettings } from "@/lib/settings-store";
+import { parseRapidSort, type SettingsPatch } from "@/lib/settings";
+import { RememberDeckView } from "@/components/RememberDeckView";
 
 export const dynamic = "force-dynamic";
 
@@ -36,24 +39,76 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
   await ensureSynced();
   const sp = await searchParams;
   const category = sp.category ?? "all";
-  const sort = (RAPID_SORTS.find((s) => s.id === sp.sort)?.id ?? "mix") as RapidSort;
-  // "כולל שאלות שכבר ראיתי": both halves of what the deck subtracts — the questions
-  // this user answered, and the ones they skipped (see src/lib/rapid-feed.ts)
-  const includeAnswered = sp.all === "1";
 
   const [session, user] = await Promise.all([auth(), currentUser()]);
   const loggedIn = Boolean(session?.user?.id);
+  const settings = await getSettings(session?.user?.id);
+
+  /*
+    איך נקבע מה מוצג: ה-URL מנצח, ומה שלא נאמר בו נלקח מהחשבון.
+
+    המיון ו"כולל שאלות שכבר ראיתי" הם בחירה של המשתמש כמו כל בחירה אחרת באתר, והם
+    היו היחידים ששכחנו: כל כניסה חדשה ל-`/rapid` — ובפרט מכל מכשיר אחר — החזירה את
+    ברירת המחדל. לכן קישור מפורש עדיין קובע (אפשר לשלוח כתובת ולקבל בדיוק אותה
+    חפיסה), אבל כתובת שלא אומרת כלום מקבלת את מה שהחשבון בחר בפעם האחרונה.
+    בגלל זה גם כפתורי הכיבוי כותבים `sort=mix` ו-`all=0` במקום להשמיט: השמטה
+    פירושה עכשיו "כמו שנשמר", ולא "ברירת מחדל".
+  */
+  const sortParam = parseRapidSort(sp.sort);
+  const sort: RapidSort = sortParam ?? settings.rapidSort;
+  // "כולל שאלות שכבר ראיתי": both halves of what the deck subtracts — the questions
+  // this user answered, and the ones they skipped (see src/lib/rapid-feed.ts)
+  const includeAnswered = sp.all != null ? sp.all === "1" : settings.rapidIncludeAnswered;
+
   const [cards, askSurvey] = await Promise.all([
     listRapidCards({ userId: user?.id ?? null, category, sort, includeAnswered }),
     // סדר החפיסה כאן הוא בדיוק מה שהשאלון קובע, ולכן זה המקום להציע אותו למי שעדיין לא ענה
     shouldOfferSurvey(session?.user?.id),
   ]);
 
+  // מה שהמשתמש שינה עכשיו ביחס למה ששמור — נשמר מהדפדפן, כדי שרינדור של דף (GET)
+  // לא יכתוב במסד בדרך אגב
+  const remember: SettingsPatch | null = (() => {
+    if (!loggedIn) return null;
+    const patch: SettingsPatch = {};
+    if (sortParam && sortParam !== settings.rapidSort) patch.rapidSort = sortParam;
+    if (sp.all != null && includeAnswered !== settings.rapidIncludeAnswered) {
+      patch.rapidIncludeAnswered = includeAnswered;
+    }
+    return Object.keys(patch).length ? patch : null;
+  })();
+
+  /*
+    מה החפיסה תזכור אחרי הרינדור הזה — ולא מה היא זכרה לפניו.
+
+    זה ההבדל שמכריע איך נראים הקישורים: משתמש מחובר שהגיע ל-`?sort=hot` כותב את
+    "hot" לחשבון תוך כדי (`remember`), ולכן קישור "מומלץ בשבילי" שנבנה מול הערך
+    *הישן* היה יוצא `/rapid` — כתובת שכבר פירושה "כמו שנשמר", כלומר hot. ההקשה על
+    מיון אחד הייתה מחזירה את הקודם. לאורח אין לאן לכתוב, ולכן אצלו מה שנשמר הוא
+    ברירת המחדל, וה-URL הוא זה שנושא את התצוגה — בדיוק כמו קודם.
+  */
+  const persisted = loggedIn
+    ? { sort, includeAnswered }
+    : { sort: settings.rapidSort, includeAnswered: settings.rapidIncludeAnswered };
+
+  /**
+   * הקישורים של הסרגל: כל קישור נושא את התצוגה השלמה, ומשמיט בדיוק את מה שממילא
+   * יישמר — כי כתובת שלא אומרת דבר על המיון פירושה מעכשיו "כמו שנשמר". כך `/rapid`
+   * נשארת הכתובת של החפיסה כפי שהמשתמש הזה מכיר אותה, ולא נולדה כתובת ארוכה חדשה
+   * לכל הקשה.
+   */
   const link = (patch: Partial<Search>) => {
-    const next = { ...sp, ...patch };
+    const next: Record<string, string | undefined> = {
+      ...sp,
+      sort,
+      all: includeAnswered ? "1" : "0",
+      ...patch,
+    };
+    if (next.sort === persisted.sort) delete next.sort;
+    if (next.all != null && (next.all === "1") === persisted.includeAnswered) delete next.all;
     const usp = new URLSearchParams();
     for (const [k, v] of Object.entries(next)) {
-      if (v && !(k === "category" && v === "all") && !(k === "sort" && v === "mix")) usp.set(k, v);
+      if (v && !(k === "category" && v === "all")) usp.set(k, v);
     }
     const s = usp.toString();
     return s ? `/rapid?${s}` : "/rapid";
@@ -78,7 +133,7 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Link
-            href={link({ all: includeAnswered ? undefined : "1" })}
+            href={link({ all: includeAnswered ? "0" : "1" })}
             className={`tap inline-flex shrink-0 items-center rounded-lg border px-2.5 font-semibold ${
               includeAnswered ? "border-accent bg-accent/15 text-accent-2" : "border-border text-muted hover:text-text"
             }`}
@@ -96,7 +151,10 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
           like the whole board while quietly serving a single category, with no way back. */}
       <CategoryTabs
         active={category}
-        params={{ sort: sp.sort, all: sp.all }}
+        params={{
+          sort: sort === persisted.sort ? undefined : sort,
+          all: includeAnswered === persisted.includeAnswered ? undefined : includeAnswered ? "1" : "0",
+        }}
         basePath="/rapid"
         className={`shrink-0 ${category === "all" ? "short:hidden" : ""}`}
       />
@@ -113,20 +171,36 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
 
       {askSurvey && <SurveyPrompt next="/rapid" compact />}
 
+      {remember && <RememberDeckView patch={remember} />}
+
       <RapidDeck
         key={`${category}:${sort}:${includeAnswered}`}
         cards={cards}
         loggedIn={loggedIn}
         balance={user?.balance ?? null}
+        savedStake={loggedIn ? settings.rapidStake : null}
         includeAnswered={includeAnswered}
       >
-        <EmptyFeed category={category} includeAnswered={includeAnswered} />
+        <EmptyFeed
+          includeAnswered={includeAnswered}
+          withAnsweredHref={link({ all: "1" })}
+          allCategoriesHref={category === "all" ? null : link({ category: "all" })}
+        />
       </RapidDeck>
     </div>
   );
 }
 
-function EmptyFeed({ category, includeAnswered }: { category: string; includeAnswered: boolean }) {
+function EmptyFeed({
+  includeAnswered,
+  withAnsweredHref,
+  allCategoriesHref,
+}: {
+  includeAnswered: boolean;
+  withAnsweredHref: string;
+  /** null when the deck is already showing every category */
+  allCategoriesHref: string | null;
+}) {
   return (
     <div className="card flex flex-col items-center gap-3 p-8 text-center sm:p-12">
       <h2 className="text-xl font-extrabold text-text-strong">
@@ -138,14 +212,14 @@ function EmptyFeed({ category, includeAnswered }: { category: string; includeAns
       <div className="flex flex-wrap justify-center gap-2">
         {!includeAnswered && (
           <Link
-            href={category === "all" ? "/rapid?all=1" : `/rapid?category=${category}&all=1`}
+            href={withAnsweredHref}
             className="tap pressable flex items-center justify-center rounded-xl bg-accent px-5 font-bold text-white hover:bg-accent-2"
           >
             הצג גם שאלות שכבר ראיתי
           </Link>
         )}
-        {category !== "all" && (
-          <Link href="/rapid" className="tap pressable flex items-center justify-center rounded-xl border border-border-2 px-5 font-semibold hover:bg-surface-2">
+        {allCategoriesHref && (
+          <Link href={allCategoriesHref} className="tap pressable flex items-center justify-center rounded-xl border border-border-2 px-5 font-semibold hover:bg-surface-2">
             כל הקטגוריות
           </Link>
         )}

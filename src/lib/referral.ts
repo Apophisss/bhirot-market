@@ -9,7 +9,7 @@
 import { SITE_NAME, SITE_URL } from "./config";
 
 /** Points credited to the inviter for every friend who signs up through their link. */
-export const REFERRAL_BONUS = 2000;
+export const REFERRAL_BONUS = 500;
 
 /**
  * How many paid invites a single account gets. Past this the link keeps working and
