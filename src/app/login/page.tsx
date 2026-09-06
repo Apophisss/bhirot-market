@@ -6,11 +6,12 @@ import { redirect } from "next/navigation";
 import { SITE_NAME } from "@/lib/config";
 import { STARTING_BALANCE } from "@/lib/db/schema";
 import { money } from "@/lib/format";
+import { REFERRAL_BONUS } from "@/lib/referral";
 import { AD_CHECK_PARAM, AD_LANDING_COOKIE } from "@/lib/ad-attribution";
 import { shareCard } from "@/lib/seo";
 import { GuestAnswersRecap } from "@/components/GuestAnswersRecap";
 
-const LOGIN_DESCRIPTION = "התחברו וקבלו 10,000 נקודות למשחק הניחושים של בחירות 2026.";
+const LOGIN_DESCRIPTION = "הרשמה חינם בלחיצה אחת: 10,000 נקודות משחק, כל השאלות, טבלת מובילים וליגות עם חברים.";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Image src="/logo.svg" alt="" width={44} height={44} />
           <div>
             <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">התחברות ל{SITE_NAME}</h1>
-            <p className="text-sm text-muted">מקבלים {money(STARTING_BALANCE)} ומתחילים לנחש</p>
+            <p className="text-sm text-muted">חינם, בלחיצה אחת — ומקבלים {money(STARTING_BALANCE)} לשחק בהן</p>
           </div>
         </div>
 
@@ -115,6 +116,21 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             </form>
           )}
         </div>
+
+        {/*
+          The two questions a stranger has on this screen, answered on this screen:
+          what it costs (nothing — no card, no form, one Google button) and what it
+          is for. Someone who got here off the deck has already seen that answering
+          works; what they have not been told anywhere is that the rest of the game —
+          the whole board, the table, leagues with friends, a portfolio — is on the
+          other side of a click, and that the click is free.
+        */}
+        <ul className="mt-6 grid list-inside list-disc gap-1.5 text-[13px] leading-snug text-muted">
+          <li>חינם לגמרי — בלי אשראי ובלי טופס, לחיצה אחת עם Google</li>
+          <li>{money(STARTING_BALANCE)} משחק להתחיל איתן, ותשובות בלי הגבלה על כל הלוח</li>
+          <li>טבלת מובילים, ליגות עם חברים, ותיק שמראה כמה שווה כל תשובה עכשיו</li>
+          <li>{money(REFERRAL_BONUS)} על כל חבר/ה שמצטרפים בהזמנה שלכם</li>
+        </ul>
 
         <p className="mt-6 text-xs leading-relaxed text-muted-2">
           בהתחברות אתם מאשרים שזהו משחק בנקודות בלבד, ללא כל ערך כספי. אנחנו שומרים רק שם, אימייל ותמונת פרופיל

@@ -11,11 +11,11 @@ import { CATEGORIES } from "@/lib/categories";
 import { RapidDeck } from "@/components/RapidDeck";
 import { BoltIcon } from "@/components/BoltIcon";
 import { SurveyPrompt } from "@/components/SurveyPrompt";
-import { GUEST_LIMIT } from "@/lib/rapid-guest";
 import { shouldOfferSurvey } from "@/lib/survey-offer";
 import { getSettings } from "@/lib/settings-store";
 import { parseRapidSort, type SettingsPatch } from "@/lib/settings";
 import { RememberDeckView } from "@/components/RememberDeckView";
+import { GuestRunBanner } from "@/components/GuestRunBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -182,30 +182,10 @@ export default async function RapidPage({ searchParams }: { searchParams: Promis
         className="shrink-0 short:hidden"
       />
 
-      {/*
-        The guest note, as one line and one tap target.
-        ------------------------------------------------------------------------
-        It used to be a paragraph with a link inside it: two lines of text on a
-        375px phone, and the link's own 44px tap height on top — 78px measured, out
-        of the ~200px the card had. The offer is the same, but the whole row is now
-        the link, so the 44px it costs is the tap target rather than the price of
-        one.
-
-        On the shortest screens it steps aside altogether (`tiny:`): every card in the
-        deck already ends with "התשובות נשמרות · ההתחברות מכניסה אותן לניקוד", the
-        header carries a התחברות button on every page, and after GUEST_LIMIT answers the
-        deck puts the same offer up full-screen with the answers behind it.
-      */}
-      {!loggedIn && (
-        <Link
-          href="/login?callbackUrl=%2Frapid"
-          data-evt="rapid-guest-note"
-          className="tap flex shrink-0 items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-3 text-[13px] leading-snug text-text hover:bg-accent/15 tiny:hidden sm:text-sm"
-        >
-          <span className="min-w-0 flex-1 truncate">{GUEST_LIMIT} תשובות ראשונות בלי חשבון — הן נשמרות</span>
-          <span className="shrink-0 font-bold text-accent-2">התחברות ←</span>
-        </Link>
-      )}
+      {/* the free run, counted down in the browser rather than quoted from the server.
+          It is one row and one tap target on a phone, and steps aside entirely on the
+          shortest screens — see GuestRunBanner for what that costs and why. */}
+      {!loggedIn && <GuestRunBanner />}
 
       {askSurvey && <SurveyPrompt next="/rapid" compact />}
 

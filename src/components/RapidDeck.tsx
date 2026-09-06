@@ -20,6 +20,7 @@ import { setRapidStake, useRapidStake } from "@/lib/settings-client";
 import { addSkips, openSkipSnapshot, serverSkipSnapshot, skipSnapshot, subscribeSkipSnapshot } from "@/lib/rapid-skips";
 import {
   GUEST_LIMIT,
+  GUEST_RECAP_LIMIT,
   addGuestAnswer,
   guestGateReached,
   readGuestAnswers,
@@ -826,7 +827,7 @@ export function RapidDeck({
         />
       )}
 
-      {/* the free run is over, and the four answers behind this are the argument */}
+      {/* the free run is over, and the answers behind this are the argument */}
       {guestGate && <GuestGate answers={guestAnswers} />}
 
       <aside className="scrollbar-none shrink-0 flat:w-56 flat:overflow-y-auto lg:w-72 lg:overflow-y-auto xl:w-80">
@@ -851,18 +852,30 @@ export function RapidDeck({
  * The wall a signed-out visitor meets after `GUEST_LIMIT` answers.
  *
  * It is deliberately built out of what they just did rather than out of what the
- * site wants: the four questions are listed with the side they picked, because
- * "you have already answered four questions — sign in and they start counting"
- * is an entirely different proposition from "sign in to continue".
+ * site wants: the questions are listed with the side that was picked, because
+ * "you have already answered ten questions — sign in and they start counting" is
+ * an entirely different proposition from "sign in to continue".
+ *
+ * What it adds to that is the answer to the question a stranger actually has at
+ * this moment, which is not "why should I" but "what does this cost me": the
+ * account is free, it is one click of a Google button, and it opens the rest of
+ * the game rather than merely removing an obstacle. Those three are stated here,
+ * on the screen that asks, rather than left on a marketing page nobody is on.
+ *
+ * Only the last `GUEST_RECAP_LIMIT` answers are named. Ten rows plus a heading is
+ * taller than a phone, and the row that would be pushed off the bottom is the
+ * button — the recap is here to make the ask concrete, not to bury it.
  */
 function GuestGate({ answers }: { answers: GuestAnswer[] }) {
+  const listed = answers.slice(-GUEST_RECAP_LIMIT).reverse();
+  const rest = answers.length - listed.length;
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-bg/92 p-3 backdrop-blur-sm">
       {/*
-        The list of answers is the only part that scrolls. On a 454px phone the whole
+        The middle scrolls, the heading and the button do not. On a 454px phone the whole
         panel scrolled instead, which put the one button this screen exists for 216px
-        below the fold — a sign-in wall whose sign-in button is off screen. Now the
-        heading and the button are pinned and the four answers between them give way.
+        below the fold — a sign-in wall whose sign-in button is off screen. The answers
+        and the list of what an account opens are what give way.
       */}
       <div className="card flex max-h-full w-full max-w-md flex-col overflow-hidden p-4 text-center flat:p-3 sm:p-6">
         <h2 className="shrink-0 text-xl font-black text-text-strong flat:text-lg sm:text-2xl">
@@ -871,11 +884,13 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
         {/* sideways there is room for the offer or for the answers behind it, and the
             answers are the offer — the button says the rest */}
         <p className="mt-1.5 shrink-0 text-sm text-muted flat:hidden">
-          התחברו והן ייכנסו לניקוד שלכם, יחד עם {money(STARTING_BALANCE)} להמשך.
+          הרשמה חינם, בלחיצה אחת עם Google — התשובות שכבר נתתם נכנסות לניקוד, ואיתן{" "}
+          {money(STARTING_BALANCE)} להמשך.
         </p>
 
-        <ul className="scrollbar-none mt-4 min-h-0 flex-1 space-y-1.5 overflow-y-auto text-right flat:mt-2">
-          {answers.map((a) => (
+        <div className="scrollbar-none mt-4 min-h-0 flex-1 overflow-y-auto flat:mt-2">
+        <ul className="space-y-1.5 text-right">
+          {listed.map((a) => (
             <li key={a.marketSlug} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-2">
               <span className={`shrink-0 text-sm font-black ${a.side === "YES" ? "text-yes" : "text-no"}`}>
                 {a.side === "YES" ? "כן" : "לא"}
@@ -884,17 +899,33 @@ function GuestGate({ answers }: { answers: GuestAnswer[] }) {
               <span className="tabular shrink-0 text-[13px] text-muted-2">{pct(a.priceAtAnswer)}</span>
             </li>
           ))}
+          {rest > 0 && (
+            <li className="rounded-lg bg-surface-2 px-2.5 py-1.5 text-[13px] text-muted">
+              ועוד {rest} {rest === 1 ? "תשובה" : "תשובות"} שנשמרו לכם
+            </li>
+          )}
         </ul>
+
+        {/* what the account opens, in the words of things to do — not "הטבות" */}
+        <ul className="mt-3 grid list-inside list-disc gap-1 text-right text-[13px] leading-snug text-muted">
+          <li>להמשיך לענות בלי הגבלה, על כל הלוח</li>
+          <li>לעלות בטבלת המובילים ולראות כמה פעמים צדקתם</li>
+          <li>לפתוח ליגה עם חברים ולראות מי מוביל</li>
+          <li>לעקוב אחרי התיק שלכם — כמה שווה כל תשובה עכשיו</li>
+        </ul>
+        </div>
 
         <Link
           href="/login?callbackUrl=%2Frapid"
           data-evt="rapid-guest-gate"
           className="tap pressable mt-4 flex w-full shrink-0 items-center justify-center rounded-xl bg-accent px-5 text-base font-extrabold text-white shadow-md shadow-accent/25 hover:bg-accent-2 flat:mt-2"
         >
-          התחברות · והתשובות נשמרות
+          הרשמה חינם · והתשובות נשמרות
         </Link>
-        <p className="mt-2 shrink-0 text-[13px] text-muted-2 short:hidden">
-          התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
+        {/* what signing up costs is part of the offer, so it stays on a phone; sideways
+            there is no line for it and the button above says the same "חינם" */}
+        <p className="mt-2 shrink-0 text-[13px] text-muted-2 flat:hidden">
+          בלי אשראי ובלי טופס — שם, אימייל ותמונה מ-Google. התשובות שמורות בדפדפן שלכם עד ההתחברות. נקודות משחק בלבד.
         </p>
       </div>
     </div>

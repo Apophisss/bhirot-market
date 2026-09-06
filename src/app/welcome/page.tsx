@@ -11,6 +11,7 @@ import { daysUntil, money } from "@/lib/format";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { shareCard } from "@/lib/seo";
 import { displayOpenCount } from "@/lib/display-stats";
+import { GUEST_LIMIT } from "@/lib/rapid-guest";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +33,19 @@ export const metadata: Metadata = {
   ...shareCard({ title: `משחק ידע על הפוליטיקה הישראלית | ${SITE_NAME}`, description: DESCRIPTION, path: "/welcome" }),
 };
 
-/** The single destination every button on this page points at. */
-const CTA = "/login?callbackUrl=%2Frapid";
+/**
+ * The single destination every button on this page points at.
+ *
+ * The deck, not the sign-in screen. It used to be `/login`: an ad promising a free
+ * knowledge game, and one click later a stranger being asked for a Google account
+ * before a single question had been asked of them. The free run is `GUEST_LIMIT`
+ * questions and it needs no account at all (`src/lib/rapid-guest.ts`), so the button
+ * that says "להתחיל לשחק" now starts the game. The account is asked for where it
+ * means something — at the end of the run, on the screen that lists what it keeps.
+ */
+const CTA = "/rapid";
+/** the one link on the page that does not start the run — for someone who already has an account */
+const LOGIN = "/login?callbackUrl=%2Frapid";
 
 /**
  * Below this, the number of open questions is not a sign of scale — it is a
@@ -110,16 +122,18 @@ export default async function WelcomePage() {
             href={CTA}
             className="tap pressable inline-flex items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-extrabold text-brand-deep shadow-lg hover:bg-white/90 sm:text-lg"
           >
-            להתחיל לשחק — חינם
+            להתחיל לשחק — בלי הרשמה
           </Link>
-          <p className="text-sm text-white/70">התחברות בלחיצה עם Google. בלי אשראי, בלי טופס.</p>
+          <p className="text-sm text-white/70">
+            {GUEST_LIMIT} שאלות בלי חשבון. אחר כך הרשמה חינם בלחיצה אחת עם Google — בלי אשראי, בלי טופס.
+          </p>
         </div>
       </section>
 
       {questions.length > 0 && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענו על שאלה אחת עכשיו</h2>
+            <h2 className="text-xl font-black text-text-strong sm:text-2xl">ענו עכשיו — בלי חשבון</h2>
             {/* A new Israeli site asking for a Google account meets a wall of distrust, and
                 one honest number is the cheapest answer to it — but only while it is a
                 number worth quoting. See MIN_QUESTIONS_TO_QUOTE. */}
@@ -130,8 +144,9 @@ export default async function WelcomePage() {
             )}
           </div>
           <p className="text-sm leading-relaxed text-muted">
-            שאלות אמיתיות מהלוח, עם מד הביטחון של השחקנים בהן ברגע זה. אפשר לענות בלי חשבון — נשמור לכם את התשובה,
-            ונהפוך אותה לתשובה שנספרת בניקוד, ב-{money(RAPID_DEFAULT_STAKE)}, ברגע שתתחברו.
+            שאלות אמיתיות מהלוח, עם מד הביטחון של השחקנים בהן ברגע זה. {GUEST_LIMIT} התשובות הראשונות הן בלי חשבון
+            בכלל — נשמור לכם אותן, וכל אחת הופכת לתשובה שנספרת בניקוד, ב-{money(RAPID_DEFAULT_STAKE)}, ברגע
+            שנרשמים. ההרשמה חינם ובלחיצה אחת, והיא פותחת את כל הלוח, טבלת מובילים וליגות עם חברים.
           </p>
           {/* Real, current markets that answer back — a static card is a screenshot,
               a card that responds is a demonstration. */}
@@ -171,8 +186,22 @@ export default async function WelcomePage() {
           href={CTA}
           className="tap pressable inline-flex items-center justify-center rounded-xl bg-accent px-8 py-4 text-base font-extrabold text-white hover:bg-accent-2 sm:text-lg"
         >
-          לבדוק כמה אתם מכירים — חינם
+          לבדוק כמה אתם מכירים — בלי הרשמה
         </Link>
+        <p className="mt-2.5 text-sm text-muted">
+          {GUEST_LIMIT} תשובות בלי חשבון, והן נשמרות. ההרשמה עצמה חינם ובלחיצה אחת, ופותחת את כל הלוח, טבלת
+          המובילים וליגות עם חברים.
+        </p>
+        {/* The whole page is written at someone who has never been here, and everything
+            on it now leads into the free run. Somebody who already has an account is not
+            being pitched — they are signed out on this browser, and the run they are
+            being offered is one they have already had. */}
+        <p className="mt-2 text-sm text-muted-2">
+          כבר יש לכם חשבון?{" "}
+          <Link href={LOGIN} className="font-semibold text-accent hover:underline">
+            התחברות
+          </Link>
+        </p>
       </section>
     </div>
   );
