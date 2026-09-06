@@ -662,6 +662,15 @@
       "image": "/people/yaakov-asher.jpg",
       "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Yaakev_asher.jpg/330px-Yaakev_asher.jpg",
       "imageCredit": "Wikimedia Commons — Yaakov Asher"
+    },
+    {
+      "id": "adi-altschuler",
+      "name": "עדי אלטשולר",
+      "role": "יזמית חברתית, כלת פרס ישראל, מועמדת \"ישר!\" לשרת החינוך",
+      "wiki": "Adi Altschuler",
+      "image": "/people/adi-altschuler.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/0/05/%D7%A2%D7%93%D7%99_%D7%90%D7%9C%D7%98%D7%A9%D7%95%D7%9C%D7%A8.jpg",
+      "imageCredit": "Wikimedia Commons — Adi Altschuler"
     }
   ]
 }
