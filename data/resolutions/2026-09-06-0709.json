@@ -52,10 +52,16 @@
         "\"הפרישות והאיחודים בדקה ה-90\" חדשות 13 סוגרים רשימות תמונת מצב",
         "סריקת מדורי הבחירות ל-5-6.9.2026: ynet, N12/mako, 13tv, הארץ"
       ],
+      "researchedAt": "2026-09-06T07:18:17Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "מנהל האתר",
+        "at": "2026-09-06T07:25:22.891Z",
+        "proposalFingerprint": "a3ebbd03c7978e6f"
       },
-      "researchedAt": "2026-09-06T07:18:17Z"
+      "applied": {
+        "at": "2026-09-06T07:25:41.467Z"
+      }
     },
     {
       "slug": "smotrich-inside-likud-report-sat-night",
@@ -104,10 +110,16 @@
         "סמוטריץ' בדרך לליכוד מיזוג רשימה 2026",
         "סריקת מדורי הבחירות ל-5-6.9.2026: ynet, N12/mako, 13tv, הארץ"
       ],
+      "researchedAt": "2026-09-06T07:18:17Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "מנהל האתר",
+        "at": "2026-09-06T07:25:22.891Z",
+        "proposalFingerprint": "0f8488c7394ea0ee"
       },
-      "researchedAt": "2026-09-06T07:18:17Z"
+      "applied": {
+        "at": "2026-09-06T07:25:41.467Z"
+      }
     },
     {
       "slug": "haredi-parties-18-seats-poll-sat-night",
@@ -149,10 +161,16 @@
         "skarim.org/average-poll — חמשת הסקרים האחרונים (נבדק 6.9 בבוקר)",
         "סריקת מדורי הבחירות ל-5-6.9.2026: N12/mako, 13tv, ynet, הארץ"
       ],
+      "researchedAt": "2026-09-06T07:18:17Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "מנהל האתר",
+        "at": "2026-09-06T07:25:22.891Z",
+        "proposalFingerprint": "c0b6dc8c84af4bc7"
       },
-      "researchedAt": "2026-09-06T07:18:17Z"
+      "applied": {
+        "at": "2026-09-06T07:25:41.467Z"
+      }
     },
     {
       "slug": "yashar-ahead-of-likud-saturday-night-poll-sat-night",
@@ -206,10 +224,16 @@
         "Israel poll seats September 5 2026 Channel 12 Channel 13 Kan Yashar Likud",
         "skarim.org/average-poll ו-13tv.co.il/news/politics — נבדקו 6.9 בבוקר"
       ],
+      "researchedAt": "2026-09-06T07:18:17Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "מנהל האתר",
+        "at": "2026-09-06T07:25:22.891Z",
+        "proposalFingerprint": "9153b1de9f72b30d"
       },
-      "researchedAt": "2026-09-06T07:18:17Z"
+      "applied": {
+        "at": "2026-09-06T07:25:41.467Z"
+      }
     },
     {
       "slug": "eisenkot-saturday-night-tv-interview-sat-night",
@@ -259,10 +283,16 @@
         "איזנקוט ראיון ערוץ 14 כאן 11 חדשות 13 שבת 5.9.2026",
         "איזנקוט 5.9.2026 שבת ריאיון מפלגת ישר רשימה הפתעות"
       ],
+      "researchedAt": "2026-09-06T07:18:17Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "מנהל האתר",
+        "at": "2026-09-06T07:25:22.891Z",
+        "proposalFingerprint": "cee4efd3928d479a"
       },
-      "researchedAt": "2026-09-06T07:18:17Z"
+      "applied": {
+        "at": "2026-09-06T07:25:41.467Z"
+      }
     }
   ]
 }
