@@ -81,6 +81,59 @@ export function toView(m: MarketRow, now = Date.now()): MarketView {
   };
 }
 
+/**
+ * Every column of `market` except the two long-form editorial texts.
+ *
+ * `description` runs to four thousand characters and `resolutionCriteria` to a few
+ * hundred, and between them they are the whole weight of a board query: three hundred
+ * and fifty rows of prose that a card never prints. Only the market page, the JSON-LD
+ * it emits and the question generator's dedupe step read either one, so a listing asks
+ * for this projection and everything else keeps the full row (`columns: "full"`, which
+ * stays the default so no caller changes behaviour by accident).
+ *
+ * `q` still searches the description — that is a WHERE clause on the server and does
+ * not need the text to travel back with the row.
+ */
+export const MARKET_CARD_COLUMNS = {
+  id: markets.id,
+  title: markets.title,
+  subtitle: markets.subtitle,
+  category: markets.category,
+  tags: markets.tags,
+  imageUrl: markets.imageUrl,
+  people: markets.people,
+  sources: markets.sources,
+  featured: markets.featured,
+  appeal: markets.appeal,
+  topicality: markets.topicality,
+  status: markets.status,
+  resolution: markets.resolution,
+  resolutionNote: markets.resolutionNote,
+  resolvedAt: markets.resolvedAt,
+  closesAt: markets.closesAt,
+  liquidity: markets.liquidity,
+  qYes: markets.qYes,
+  qNo: markets.qNo,
+  probability: markets.probability,
+  volume: markets.volume,
+  tradeCount: markets.tradeCount,
+  createdBy: markets.createdBy,
+  createdAt: markets.createdAt,
+  updatedAt: markets.updatedAt,
+} as const;
+
+export type MarketCardRow = Omit<MarketRow, "description" | "resolutionCriteria">;
+
+/**
+ * A `MarketView` built from the card projection: the two texts that were not read are
+ * empty strings rather than missing, so a card view is still a `MarketView` and every
+ * component keeps one type. Nothing that renders a card reads them — audited caller by
+ * caller, and `scripts/test-board-cache.ts` fails if a card surface starts to.
+ */
+export function toCardView(r: MarketCardRow, now = Date.now()): MarketView {
+  return toView({ ...r, description: "", resolutionCriteria: "" }, now);
+}
+
 export type MarketSort = "trending" | "newest" | "closing" | "volume";
 
 export async function listMarkets(opts: {
@@ -93,6 +146,8 @@ export async function listMarkets(opts: {
   closingWithinHours?: number;
   /** only markets tagged with this person id (see data/people.json) */
   person?: string;
+  /** "card" drops `description` and `resolutionCriteria` from the read — see MARKET_CARD_COLUMNS */
+  columns?: "card" | "full";
 } = {}): Promise<MarketView[]> {
   const db = await getDb();
   const conds = [];
@@ -117,12 +172,14 @@ export async function listMarkets(opts: {
         : opts.sort === "volume"
           ? [desc(markets.volume)]
           : [desc(markets.featured), desc(markets.volume), desc(markets.createdAt)];
-  const rows = await db
-    .select()
-    .from(markets)
-    .where(conds.length ? and(...conds) : undefined)
-    .orderBy(...order)
-    .limit(opts.limit ?? 200);
+  const where = conds.length ? and(...conds) : undefined;
+  const limit = opts.limit ?? 200;
+  if (opts.columns === "card") {
+    const rows = await db.select(MARKET_CARD_COLUMNS).from(markets).where(where).orderBy(...order).limit(limit);
+    const now = Date.now();
+    return rows.map((r) => toCardView(r, now));
+  }
+  const rows = await db.select().from(markets).where(where).orderBy(...order).limit(limit);
   return rows.map((r) => toView(r));
 }
 
@@ -131,6 +188,18 @@ export async function getMarket(slug: string): Promise<MarketView | null> {
   const row = await db.query.markets.findFirst({ where: eq(markets.id, slug) });
   return row ? toView(row) : null;
 }
+
+/**
+ * How far back a card's curve reads the house market maker's own ticks.
+ *
+ * `price_history` grows by roughly sixteen thousand drift rows a day and the chart
+ * never draws more than thirty (`SYNTHETIC_HISTORY_WINDOW_DAYS`), so a day of slack
+ * is all the deck needs. This bounds `getPriceHistoryMany` only; `getPriceHistory` is
+ * the raw-truth accessor behind a documented public field (`history` in
+ * `/api/markets/<slug>`) and stays unwindowed — it reads one market through
+ * `price_history_market_idx`, which is a backwards index scan and not a table sort.
+ */
+const CHART_WINDOW_DAYS = 31;
 
 /**
  * A market's recorded prices, oldest first.
@@ -163,6 +232,11 @@ export async function getPriceHistory(slug: string, since?: Date) {
  * flat cap on the result. A flat cap read in market order would hand the whole budget
  * to the first few markets and leave the rest of the deck with no curve at all, which
  * is exactly what happens once every market carries months of drift ticks.
+ *
+ * The second guard is the clock, and it applies to DRIFT ROWS ONLY (see
+ * `CHART_WINDOW_DAYS`). Everything a person did — the opening price, every trade, every
+ * settlement — is read however old it is, so the series a card draws still starts where
+ * the market really opened and never has an estimate laid over a recorded price.
  */
 export async function getPriceHistoryMany(ids: string[]): Promise<Map<string, { t: number; p: number }[]>> {
   const out = new Map<string, { t: number; p: number }[]>();
@@ -175,6 +249,7 @@ export async function getPriceHistoryMany(ids: string[]): Promise<Map<string, { 
   const PER_MARKET_ROWS = 400;
   // SQLite binds one parameter per id and caps the statement at 999 of them
   const CHUNK = 300;
+  const since = new Date(Date.now() - CHART_WINDOW_DAYS * 86_400_000);
   for (let i = 0; i < unique.length; i += CHUNK) {
     const slice = unique.slice(i, i + CHUNK);
     const ranked = db
@@ -185,7 +260,11 @@ export async function getPriceHistoryMany(ids: string[]): Promise<Map<string, { 
         rank: sql<number>`row_number() over (partition by ${priceHistory.marketId} order by ${priceHistory.ts} desc, ${priceHistory.id} desc)`.as("rank"),
       })
       .from(priceHistory)
-      .where(inArray(priceHistory.marketId, slice))
+      // The window function has to sort everything it is handed, so the old drift tail
+      // was being sorted on every deck render for a curve nobody draws. Dropping it
+      // before the numbering is what keeps the sort proportional to the deck rather
+      // than to how long the board has been running.
+      .where(and(inArray(priceHistory.marketId, slice), or(gte(priceHistory.ts, since), ne(priceHistory.source, "drift"))))
       .as("ranked");
     const rows = await db
       .select({ marketId: ranked.marketId, probability: ranked.probability, ts: ranked.ts })

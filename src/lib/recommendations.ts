@@ -43,7 +43,7 @@ import {
 } from "./topicality";
 import { getCategory } from "./categories";
 import { getPerson } from "./content";
-import { toView, type MarketView } from "./markets";
+import { MARKET_CARD_COLUMNS, toCardView, type MarketView } from "./markets";
 import { hasSignal, type Horizon, type UserPreferences } from "./preferences";
 import { getPreferences } from "./preferences-store";
 
@@ -614,46 +614,84 @@ export interface RecommendationResult {
   personalized: boolean;
 }
 
-export async function getRecommendations(opts: RecommendationOptions = {}): Promise<RecommendationResult> {
-  const now = opts.now ?? Date.now();
-  const limit = Math.min(opts.limit ?? 6, 60);
-  const db = await getDb();
+/**
+ * The half of a recommendation that is the same for every visitor: the candidate pool
+ * and what the board as a whole has been doing. Two round trips, no user in either of
+ * them, and nothing here can tell one visitor from another — which is what lets
+ * `src/lib/board-cache.ts` hold one of these for the whole board and hand it to
+ * everybody, signed in or not.
+ *
+ * The pool is read through the card projection: the ranking reads a market's category,
+ * people, tags, price and dates, never its description.
+ */
+export interface RecommendationPool {
+  /** open, still-tradable markets, most traded first */
+  markets: MarketView[];
+  activity: ActivityRow[];
+  /** the clock the views were built against */
+  now: number;
+}
 
+export async function loadRecommendationPool(
+  opts: { category?: string; now?: number } = {},
+): Promise<RecommendationPool> {
+  const now = opts.now ?? Date.now();
+  const db = await getDb();
   const conds = [eq(markets.status, "open"), gt(markets.closesAt, new Date(now))];
   if (opts.category && opts.category !== "all") conds.push(eq(markets.category, opts.category));
-
-  const [rows, rawProfile, answered] = await Promise.all([
+  const [rows, activity] = await Promise.all([
     db
-      .select()
+      .select(MARKET_CARD_COLUMNS)
       .from(markets)
       .where(and(...conds))
       .orderBy(desc(markets.volume), desc(markets.createdAt))
       .limit(POOL_LIMIT),
+    getRecentActivity(now - TRENDING_WINDOW_HOURS * 3600_000),
+  ]);
+  return { markets: rows.map((r) => toCardView(r, now)), activity, now };
+}
+
+/**
+ * The other half: this visitor's own taste and the questions they have already
+ * answered, blended onto a pool that may have been loaded for somebody else.
+ *
+ * Everything personal is read here and nowhere else, so a shared pool can never leak a
+ * profile: the two queries below are keyed by `userId`, and with no user they do not
+ * run at all. The board frequencies and the popularity normalisation are recomputed
+ * against *this* visitor's remaining candidates, exactly as they were when the pool and
+ * the ranking were one function — a user who has answered half the board must not be
+ * scored against the half they can no longer see.
+ */
+export async function rankFromPool(
+  pool: RecommendationPool,
+  opts: RecommendationOptions = {},
+): Promise<RecommendationResult> {
+  const now = opts.now ?? pool.now;
+  const limit = Math.min(opts.limit ?? 6, 60);
+
+  const [rawProfile, answered] = await Promise.all([
     getTasteProfile(opts.userId, now),
     opts.userId && !opts.includeAnswered ? getAnsweredIds(opts.userId) : Promise.resolve(new Set<string>()),
   ]);
 
   const excluded = new Set([...(opts.exclude ?? []), ...answered]);
-  const pool = rows.filter((r) => !excluded.has(r.id));
-  if (!pool.length) return { items: [], profile: rawProfile, personalized: false };
+  const candidates = pool.markets.filter((m) => !excluded.has(m.id));
+  if (!candidates.length) return { items: [], profile: rawProfile, personalized: false };
 
   const profile = focusProfile(
     rawProfile,
-    boardFrequencies(pool.map((r) => ({ people: parseJson<string[]>(r.people, []), tags: parseJson<string[]>(r.tags, []) }))),
+    boardFrequencies(candidates.map((m) => ({ people: m.people, tags: m.tags }))),
   );
-  const activity = await getRecentActivity(now - TRENDING_WINDOW_HOURS * 3600_000);
   const popularity = popularityScores(
-    pool.map((m) => ({ id: m.id, volume: m.volume })),
-    activity,
+    candidates.map((m) => ({ id: m.id, volume: m.volume })),
+    pool.activity,
   );
 
-  const views = new Map<string, MarketView>();
-  const scored = pool.map((r) => {
-    const view = toView(r, now);
-    views.set(r.id, view);
-    return scoreCandidate(
+  const views = new Map<string, MarketView>(candidates.map((m) => [m.id, m]));
+  const scored = candidates.map((view) =>
+    scoreCandidate(
       {
-        id: r.id,
+        id: view.id,
         category: view.category,
         people: view.people,
         tags: view.tags,
@@ -661,14 +699,14 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
         closesAt: view.closesAt.getTime(),
         createdAt: view.createdAt.getTime(),
         featured: view.featured,
-        popularity: popularity.get(r.id) ?? 0,
+        popularity: popularity.get(view.id) ?? 0,
         appeal: view.appeal,
         topicality: view.topicality,
       },
       profile,
       now,
-    );
-  });
+    ),
+  );
 
   scored.sort((a, b) => b.score - a.score);
   const picked = diversify(scored.slice(0, Math.max(limit * 5, 40)), (s) => views.get(s.id)!.category, limit);
@@ -687,6 +725,12 @@ export async function getRecommendations(opts: RecommendationOptions = {}): Prom
     profile,
     personalized: profile.strength >= 1,
   };
+}
+
+export async function getRecommendations(opts: RecommendationOptions = {}): Promise<RecommendationResult> {
+  const now = opts.now ?? Date.now();
+  const pool = await loadRecommendationPool({ category: opts.category, now });
+  return rankFromPool(pool, { ...opts, now });
 }
 
 /** The user's own top categories, reported by GET /api/recommendations. */

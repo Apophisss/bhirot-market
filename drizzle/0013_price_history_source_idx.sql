@@ -1,0 +1,1 @@
+CREATE INDEX `price_history_source_idx` ON `price_history` (`marketId`,`source`,`ts`);
