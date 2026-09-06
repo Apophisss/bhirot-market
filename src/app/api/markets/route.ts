@@ -29,9 +29,15 @@ export async function GET(req: Request) {
       status: m.status,
       resolution: m.resolution,
       probability: m.probability,
-      // the public feed matches what the public pages show (src/lib/fake-market-stats.ts)
-      volume: m.displayVolume,
-      tradeCount: m.displayTradeCount,
+      // The recorded pair, not the display one. This endpoint is quoted, not read:
+      // llms.txt points models at it, and whatever it answers can come back as "the
+      // board has traded X" in somebody else's article. A number that leaves the site
+      // in machine-readable form has to be the number the site actually holds — the
+      // same rule /admin, /api/health and the analysis bundle already follow, and the
+      // reason the inflated pair (src/lib/fake-market-stats.ts) stays on the pages,
+      // where it is presentation, and stops here.
+      volume: m.volume,
+      tradeCount: m.tradeCount,
       closesAt: m.closesAt,
       createdAt: m.createdAt,
       createdBy: m.createdBy,

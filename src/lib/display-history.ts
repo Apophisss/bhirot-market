@@ -43,36 +43,25 @@ export function synthConfig(): SynthConfig {
   return cached;
 }
 
-/**
- * Presents a built series as one continuous traded curve.
+/*
+ * The provenance flags leave here intact, and that is the point of this module.
  *
- * The provenance flags are what the chart turns into "מקווקו = אומדן", "אומדן" over
- * the dashed prefix and the footnote "עדיין אין עסקאות — הגרף יתעדכן עם המסחר
- * הראשון". Those are the price-chart spelling of the zero-activity tells the cards
- * and the page no longer carry (see `fake-market-stats.ts`), so the same display
- * decision is applied here: the curve is drawn solid, and the labels never fire.
+ * There used to be an `asTraded()` between the builder and the callers: it stripped
+ * `synthetic` off every point, zeroed `syntheticCount` and nulled `opensAt`, so the
+ * fabricated prefix reached `PriceChart` and `RapidSpark` indistinguishable from
+ * recorded trading and was drawn as one solid, traded curve. Both components already
+ * knew how to draw an estimate — the dashed stroke, the hatched fill, the "אומדן"
+ * label over the prefix, the "פתיחת השאלה" divider — and none of it could ever fire.
  *
- * This changes nothing about the *shape* of the series — every point, real and
- * fabricated alike, is exactly the one `buildDisplayHistory` produced under the same
- * `maxDeviation` cap. `getPriceHistory` remains the raw-truth accessor for anything
- * that is not a picture, and `synthetic-history.ts` still records provenance for the
- * verifier (`npm run history:verify`) to check.
+ * Meanwhile /about §9 tells every reader, in as many words, that the site draws
+ * "קו מקווקו של אומדן" before the opening and that "כל מה שמימין לקו הפתיחה הוא נתון
+ * אמיתי". A promise the product cannot keep is worse than a flat chart: it is the
+ * one claim on that page a visitor can check in five seconds. So the flags stay, and
+ * the estimate is visible for as long as it is there — `buildDisplayHistory` retires
+ * the fabrication on its own once a market has `retireAtTrades` real trades
+ * (src/lib/synthetic-history.ts), which is what makes the label self-clearing rather
+ * than something a screen has to remember to stop showing.
  */
-function asTraded(h: DisplayHistory): DisplayHistory {
-  if (!h.synthetic) return h;
-  return {
-    ...h,
-    points: h.points.map(({ t, p }) => ({ t, p })),
-    synthetic: false,
-    // the counters travel with the flags: `/api/markets/<slug>` publishes both, and a
-    // series with no point marked as an estimate beside a `syntheticCount` of 40 is
-    // the contradiction this function exists to avoid
-    syntheticCount: 0,
-    realCount: h.points.length,
-    opensAt: null,
-    maxDeviation: 0,
-  };
-}
 
 /**
  * The series the chart draws: every real price_history row, verbatim, plus
@@ -81,19 +70,17 @@ function asTraded(h: DisplayHistory): DisplayHistory {
  */
 export async function getChartHistory(market: MarketView, now = Date.now()): Promise<DisplayHistory> {
   const real = await getPriceHistory(market.id);
-  return asTraded(
-    buildDisplayHistory(
-      {
-        marketId: market.id,
-        real,
-        probability: market.probability,
-        closesAt: market.closesAt.getTime(),
-        status: market.status,
-        tradeCount: market.tradeCount,
-        now,
-      },
-      synthConfig(),
-    ),
+  return buildDisplayHistory(
+    {
+      marketId: market.id,
+      real,
+      probability: market.probability,
+      closesAt: market.closesAt.getTime(),
+      status: market.status,
+      tradeCount: market.tradeCount,
+      now,
+    },
+    synthConfig(),
   );
 }
 
@@ -109,19 +96,17 @@ export async function getChartHistories(list: MarketView[], now = Date.now()): P
   for (const m of list) {
     out.set(
       m.id,
-      asTraded(
-        buildDisplayHistory(
-          {
-            marketId: m.id,
-            real: real.get(m.id) ?? [],
-            probability: m.probability,
-            closesAt: m.closesAt.getTime(),
-            status: m.status,
-            tradeCount: m.tradeCount,
-            now,
-          },
-          cfg,
-        ),
+      buildDisplayHistory(
+        {
+          marketId: m.id,
+          real: real.get(m.id) ?? [],
+          probability: m.probability,
+          closesAt: m.closesAt.getTime(),
+          status: m.status,
+          tradeCount: m.tradeCount,
+          now,
+        },
+        cfg,
       ),
     );
   }

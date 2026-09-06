@@ -121,13 +121,17 @@ export function RapidSpark({ spark, tradeCount }: { spark: Spark; tradeCount: nu
       </div>
       <figcaption className="flex items-center justify-between gap-2 text-[13px] leading-none text-muted-2">
         <span className="truncate">מאז {fmtDay.format(pts[0].t)}</span>
+        {/* Both numbers here are percentage points, and neither is written "נק׳":
+            that abbreviation means game points everywhere else on the card — the
+            stake, the score — and using it for a price move told a player they had
+            won 1.7 of them. */}
         {hasEstimate ? (
           <span className="shrink-0 rounded bg-surface-2 px-1 py-0.5 font-semibold">
-            מקווקו = אומדן{spark.band ? ` · עד ${(spark.band * 100).toFixed(1)} נק׳` : ""}
+            מקווקו = אומדן{spark.band ? ` · עד ${(spark.band * 100).toFixed(1)}%` : ""}
           </span>
         ) : change !== null && Math.abs(change) >= 0.005 ? (
           <span className={`tabular shrink-0 font-bold ${change >= 0 ? "text-yes" : "text-no"}`}>
-            {`${change >= 0 ? "+" : "-"}${Math.abs(change * 100).toFixed(1)} נק׳`}
+            {`${change >= 0 ? "▲" : "▼"}${Math.abs(change * 100).toFixed(1)}%`}
           </span>
         ) : (
           <span className="shrink-0">{tradeCount > 0 ? "מהלך המד" : "טרם נענתה"}</span>

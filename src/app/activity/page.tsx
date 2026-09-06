@@ -9,13 +9,19 @@ import { SITE_NAME } from "@/lib/config";
 import { shareCard } from "@/lib/seo";
 
 const DESCRIPTION =
-  "הזרם החי של בחירות מרקט: התשובות האחרונות בשאלות על בחירות 2026 — כמה נקודות, באיזה צד ובאיזה מחיר. בלי שמות.";
+  "זרם ההדגמה של בחירות מרקט: איך נראה לוח פעיל — תשובות בשאלות על בחירות 2026, כמה נקודות, באיזה צד ובאיזה מחיר. רוב השורות הן הדגמה, ואין בהן שמות.";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "פעילות אחרונה",
   description: DESCRIPTION,
   alternates: { canonical: "/activity" },
+  // Most of what this page shows is fabricated (src/lib/fake-activity.ts), so it is
+  // the one page on the site that must not be in an index: a search result promising
+  // "התשובות האחרונות" and delivering a demo is a claim the site cannot stand behind,
+  // and a page of invented activity is not what anyone should reach the site through.
+  // `follow` stays on — the questions it links to are real and worth crawling.
+  robots: { index: false, follow: true },
   ...shareCard({ title: `פעילות אחרונה | ${SITE_NAME}`, description: DESCRIPTION, path: "/activity" }),
 };
 
@@ -53,6 +59,16 @@ export default async function ActivityPage() {
         <h1 className="text-xl font-extrabold text-text-strong sm:text-2xl">פעילות אחרונה</h1>
         <p className="text-sm text-muted">כל התשובות בכל השאלות, מהחדשה לישנה — בלי שמות.</p>
       </div>
+      {/* The one line that makes the rest of the page honest. `buildInitialFeed` mixes
+          the recorded trades with a stream fabricated from the clock and marks
+          neither, so a reader has no way to tell them apart — and the site has 5 real
+          weekly players, which means almost every row here is a demo. Saying so once,
+          above the feed, is the minimum; the alternative is a page that quietly
+          overstates how busy the board is. */}
+      <p className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-[13px] leading-relaxed text-text">
+        <strong>זרם הדגמה.</strong> הדף מראה איך נראה לוח פעיל: רוב השורות כאן נוצרות בחישוב מקומי ואינן תשובות של שחקנים.
+        הן אינן משפיעות על אף מד, על הניקוד שלכם או על לוח המובילים. התשובות שלכם — כן.
+      </p>
       <div className="card p-3.5 sm:p-4">
         <ActivityFeed initial={items} markets={feedMarkets} startedAt={startedAt} />
       </div>

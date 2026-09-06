@@ -181,10 +181,6 @@ function market(over: Partial<LlmsMarket> & { id: string; title: string }): Llms
     probability: 0.34,
     volume: 1234,
     tradeCount: 7,
-    // the file quotes the display pair; a fixture that does not override it keeps
-    // the two sides equal so a test can go on reasoning about one number
-    displayVolume: 1234,
-    displayTradeCount: 7,
     closesAt: new Date("2026-09-15T20:59:59+03:00"),
     status: "open",
     resolution: null,
@@ -220,15 +216,37 @@ test("an open question is listed with its price, its deadline in Israel time and
   assert.match(txt, /נסגר 2026-09-15 20:59/);
 });
 
-// The board's own questions never reach this branch — `toView` fabricates a floor of
-// activity onto every one of them (src/lib/fake-market-stats.ts) — but the renderer
-// must still handle a zero rather than printing "0 תשובות · 0 נקודות ששוחקו".
+// Most of the board reaches this branch: 284 of the ~349 open questions have never
+// been answered, and the file quotes the recorded pair, so it says "טרם נענתה" rather
+// than printing "0 תשובות · 0 נקודות ששוחקו".
 test("a question with no activity to show says so rather than showing a zero", () => {
   const txt = renderLlmsTxt({
-    open: [market({ id: "x", title: "שאלה", tradeCount: 0, volume: 0, displayTradeCount: 0, displayVolume: 0 })],
+    open: [market({ id: "x", title: "שאלה", tradeCount: 0, volume: 0 })],
     resolved: [],
   });
   assert.match(txt, /טרם נענתה/);
+});
+
+/*
+ * The pair this file quotes used to be the fabricated one, which meant a model asked
+ * about a question was handed a number the site itself does not hold and could repeat
+ * it as fact. The inflated pair lives on `MarketView` beside the recorded one, so a
+ * fixture carrying both is the only way to prove which of the two comes out.
+ */
+test("llms.txt quotes the recorded answers and points, never the inflated pair", () => {
+  const txt = renderLlmsTxt({
+    open: [
+      Object.assign(market({ id: "x", title: "שאלה נסחרת", tradeCount: 2, volume: 40 }), {
+        displayTradeCount: 137,
+        displayVolume: 4321,
+      }),
+    ],
+    resolved: [],
+  });
+  assert.match(txt, /2 תשובות/);
+  assert.match(txt, /40 נקודות ששוחקו/);
+  assert.doesNotMatch(txt, /137/);
+  assert.doesNotMatch(txt, /4,321/);
 });
 
 test("a question past its deadline is not offered as open", () => {

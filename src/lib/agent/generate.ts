@@ -1,11 +1,21 @@
+import fs from "node:fs";
+import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { clampAppeal } from "../appeal";
 import { clampTopicality } from "../topicality";
 import { CATEGORY_IDS } from "../categories";
-import { loadPeople, MarketContentSchema, type MarketContent } from "../content";
+import { loadMarketsContent, loadPeople, MarketContentSchema, type MarketContent } from "../content";
 import { listMarkets } from "../markets";
+import {
+  RESOLUTION_RUN_VERSION,
+  ResolutionEntrySchema,
+  ResolutionRunSchema,
+  fingerprintMarket,
+  type ResolutionEntry,
+  type ResolutionRun,
+} from "../resolution";
 import { duplicateRisk, REASON_TEXT, type Comparable } from "../similarity";
 import { logAgentRun, upsertMarkets } from "../sync";
 import { EDITORIAL_GUIDE, RESEARCH_INSTRUCTIONS } from "./prompt";
@@ -53,9 +63,28 @@ export interface GeneratorResult {
   proposed: number;
   added: string[];
   rejected: { slug: string; reason: string }[];
-  resolved: string[];
+  /** verdicts written to a resolution run for a human to research and approve — never settled here */
+  proposedResolutions: string[];
+  /** the run file those verdicts were written to, or null when there was nothing to write */
+  resolutionRun: string | null;
   skippedResolutions: { slug: string; reason: string }[];
 }
+
+/**
+ * Where a proposal run is written, matching `RUNS_DIR` in scripts/resolve.ts so
+ * that `npm run resolve -- report/approve` picks the file up like any other run.
+ */
+const RUNS_DIR = "data/resolutions";
+
+/**
+ * The model's own certainty, on the 0–1 scale the run file speaks.
+ *
+ * Anything below LOW_CONFIDENCE (0.75) makes the report tell the human to read
+ * the evidence before approving, which is why "high" lands just above it and the
+ * other two land well below: the generator has web search and no verification
+ * step, so its confidence is a lead, not a finding.
+ */
+const CONFIDENCE: Record<"high" | "medium" | "low", number> = { high: 0.8, medium: 0.5, low: 0.25 };
 
 /** A stored market in the shape the duplicate check reads (../similarity). */
 function comparable(m: { id: string; title: string; resolutionCriteria: string; closesAt: Date; sources: { url: string }[] }): Comparable {
@@ -144,7 +173,8 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
     proposed: out.newMarkets.length,
     added: [],
     rejected: [],
-    resolved: [],
+    proposedResolutions: [],
+    resolutionRun: null,
     skippedResolutions: [],
   };
 
@@ -215,55 +245,119 @@ export async function runQuestionGenerator(opts: { source?: string; dryRun?: boo
     accepted.push(candidate.data);
   }
 
-  const toResolve: MarketContent[] = [];
+  /*
+   * A verdict this model returns is a lead, not a resolution, and it leaves here
+   * as a proposal in exactly the shape `npm run resolve -- propose` writes.
+   *
+   * It used to leave as a MarketContent with `status: "resolved"` and ride into
+   * `upsertMarkets` beside the new questions, which called `settleMarket` and
+   * credited every position on the board — no human, no evidence anyone had
+   * opened, and no way back, since nothing on the site un-settles a market. That
+   * contradicted the one rule AGENT.md states twice ("אף הכרעה לא מתפרסמת בלי
+   * אישור מפורש"), and the asymmetry it broke is the whole reason the two
+   * routines are separate: adding a question can be undone by cancelling it and
+   * refunding everyone, and settling cannot be undone at all.
+   *
+   * So the run file is where this stops. The entries land unapproved and, for
+   * YES, blocked — `checkEntry` refuses a YES with no evidence, and evidence
+   * means a quote copied off a page someone opened, which is precisely the work
+   * this step has not done. The URL the model named travels in the note instead,
+   * labelled as unverified, so the human researching the run has somewhere to
+   * start rather than something to rubber-stamp.
+   */
+  const contentBySlug = new Map(loadMarketsContent().markets.map((m) => [m.slug, m]));
+  const toPropose: ResolutionEntry[] = [];
   for (const r of out.resolutions) {
     const m = existing.find((x) => x.id === r.slug);
     if (!m || m.status !== "open") {
       result.skippedResolutions.push({ slug: r.slug, reason: "unknown or already resolved" });
       continue;
     }
-    if (r.confidence !== "high") {
-      result.skippedResolutions.push({ slug: r.slug, reason: `confidence ${r.confidence}` });
-      continue;
-    }
-    toResolve.push({
+    // The snapshot and the fingerprint come from data/markets.json when the question
+    // is in it, because that is the file `apply` will compare against later: a
+    // fingerprint taken off the database row would differ over nothing more than how
+    // the same instant is spelled, and `apply` would read that as "the question
+    // changed" and refuse an approval that was perfectly good.
+    const snapshot: Pick<
+      MarketContent,
+      "slug" | "title" | "subtitle" | "resolutionCriteria" | "category" | "closesAt" | "initialProbability" | "sources" | "status"
+    > = contentBySlug.get(m.id) ?? {
       slug: m.id,
       title: m.title,
       subtitle: m.subtitle ?? undefined,
-      description: m.description,
       resolutionCriteria: m.resolutionCriteria,
       category: m.category as MarketContent["category"],
-      tags: m.tags,
-      people: m.people,
-      imageUrl: m.imageUrl ?? undefined,
       closesAt: m.closesAt.toISOString(),
       initialProbability: m.probability,
-      liquidity: m.liquidity,
-      appeal: m.appeal,
-      topicality: m.topicality,
-      featured: m.featured,
-      status: r.resolution === "CANCELLED" ? "cancelled" : "resolved",
-      resolution: r.resolution === "CANCELLED" ? undefined : r.resolution,
-      resolutionNote: `${r.resolutionNote}\nמקור: ${r.sourceUrl}`,
-      resolvedAt: now.toISOString(),
       sources: m.sources,
-      createdAt: m.createdAt.toISOString(),
-      createdBy: m.createdBy,
+      status: "open",
+    };
+    toPropose.push(
+      ResolutionEntrySchema.parse({
+        slug: m.id,
+        market: {
+          title: snapshot.title,
+          subtitle: snapshot.subtitle,
+          resolutionCriteria: snapshot.resolutionCriteria,
+          category: snapshot.category,
+          closesAt: snapshot.closesAt,
+          initialProbability: snapshot.initialProbability,
+          sources: snapshot.sources,
+        },
+        fingerprint: fingerprintMarket(snapshot),
+        verdict: r.resolution,
+        confidence: CONFIDENCE[r.confidence],
+        note: `${r.resolutionNote}\n\nמקור שהמודל ציין ושטרם אומת: ${r.sourceUrl}`,
+        // deliberately empty: the model did not open the page, and a quote it wrote
+        // itself would be a fabricated quote wearing the word "ראיה"
+        evidence: [],
+        researchedAt: now.toISOString(),
+      }),
+    );
+  }
+
+  if (toPropose.length && !opts.dryRun) {
+    const runId = now.toISOString().slice(0, 16).replace("T", "-").replace(":", "");
+    const run: ResolutionRun = ResolutionRunSchema.parse({
+      version: RESOLUTION_RUN_VERSION,
+      runId,
+      createdAt: now.toISOString(),
+      createdBy: `editorial-${source}`,
+      note: "הצעות הכרעה של המחולל השעתי. אף אחת מהן לא נבדקה מול מקור — חקרו, מלאו evidence ו-searchedFor, ורק אז report/approve.",
+      entries: toPropose,
     });
+    const file = path.join(process.cwd(), RUNS_DIR, `${runId}.json`);
+    try {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, JSON.stringify(run, null, 2) + "\n");
+      result.resolutionRun = file;
+      result.proposedResolutions = toPropose.map((e) => e.slug);
+    } catch (err) {
+      // A serverless filesystem is read-only, and a run that cannot be written is not
+      // a run that failed: the questions above are the job, and a lost lead costs a
+      // search next time. It is loud in the log and visible in the response, and it
+      // still never reaches upsertMarkets.
+      const reason = `resolution run not written: ${err instanceof Error ? err.message : String(err)}`;
+      console.error(`[agent] ${reason}`);
+      for (const e of toPropose) result.skippedResolutions.push({ slug: e.slug, reason });
+    }
+  } else if (toPropose.length) {
+    result.proposedResolutions = toPropose.map((e) => e.slug);
   }
 
   if (!opts.dryRun) {
-    const sync = await upsertMarkets([...toInsert, ...toResolve], `editorial-${source}`);
+    // Only the new questions. Nothing this function builds is ever handed to
+    // upsertMarkets with a resolved or cancelled status — and ../sync would refuse it
+    // anyway, since `editorial-*` is not a source that may settle (see maySettle).
+    const sync = await upsertMarkets(toInsert, `editorial-${source}`);
     result.added = sync.added;
-    result.resolved = sync.resolved;
     await logAgentRun(
       `editorial-${source}`,
       `${out.briefingSummary}`.slice(0, 1900),
-      { added: sync.added, updated: [], resolved: sync.resolved, ok: true },
+      { added: sync.added, updated: [], resolved: [], ok: true },
     );
   } else {
     result.added = toInsert.map((m) => m.slug);
-    result.resolved = toResolve.map((m) => m.slug);
   }
   return result;
 }

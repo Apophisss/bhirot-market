@@ -9,11 +9,19 @@
  *   3. the question itself may not change between propose and apply;
  *   4. YES needs a real source, NO needs at least the record of the searches
  *      that came back empty, CANCELLED needs a reason;
- *   5. applying a verdict never touches price, liquidity or wording.
+ *   5. applying a verdict never touches price, liquidity or wording;
+ *   6. and, the second door into the same room: a payload that arrives at
+ *      `upsertMarkets` already saying "resolved" cannot settle a market unless it
+ *      came from a path that passed 1–5. That last one runs against a throwaway
+ *      SQLite database, because it is the balances it is about.
  *
  *   npm run test:resolution
  */
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
+  CONTENT_SETTLEMENT_SOURCE,
   applyResolution,
   approvalProblem,
   blocking,
@@ -24,13 +32,26 @@ import {
   fingerprintProposal,
   isApproved,
   isReady,
+  maySettle,
+  publishSource,
   ResolutionEntrySchema,
   ResolutionError,
   runNote,
+  settlementRefusal,
   summarizeRun,
   type ResolutionEntry,
 } from "../src/lib/resolution";
 import { MarketContentSchema, type MarketContent } from "../src/lib/content";
+
+// the db module reads DATABASE_URL lazily, on the first getDb() — setting it here,
+// before the settlement section runs, keeps that section off the real database
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "bhirot-resolution-"));
+process.env.DATABASE_URL = `file:${path.join(tmpDir, "test.db")}`;
+delete process.env.DATABASE_AUTH_TOKEN;
+
+import { eq } from "drizzle-orm";
+import { getDb, schema } from "../src/lib/db";
+import { upsertMarkets } from "../src/lib/sync";
 
 const NOW = Date.parse("2026-09-05T12:00:00Z");
 const HOUR = 3_600_000;
@@ -331,8 +352,69 @@ function approve(e: ResolutionEntry, by = "אופיר"): ResolutionEntry {
   check("blocking() keeps only the blockers", blocking(problems).every((p) => p.level === "block") && blocking(problems).length > 0);
 }
 
-if (failures) {
-  console.error(`\n${failures} failure(s)`);
-  process.exit(1);
+/* ------------------------------------------------- the settlement gate */
+
+{
+  check("the publish step's own source may settle", maySettle(publishSource("2026-09-05-1200")));
+  check("...and it fits the 40 characters the admin API allows", publishSource("2026-09-05-1200").length <= 40);
+  check("a sync of data/markets.json may settle", maySettle(CONTENT_SETTLEMENT_SOURCE));
+
+  // every path that has not been through an approval, named the way it names itself
+  for (const source of ["editorial-cron", "editorial-cli", "routine", "admin", "sync", "startup", "content", "cron-sync"]) {
+    check(`"${source}" may not settle`, !maySettle(source), source);
+    check(`...and the refusal says how to do it properly ("${source}")`, (settlementRefusal(source) ?? "").includes("npm run resolve"));
+  }
+  check("an allowed source draws no refusal", settlementRefusal(CONTENT_SETTLEMENT_SOURCE) === null);
 }
-console.log("✓ resolution: due detection, gates, approval integrity and apply semantics all hold");
+
+/*
+ * The gate where it counts: `upsertMarkets` calls `settleMarket`, which credits
+ * balances and cannot be undone from the site. The hourly generator used to reach
+ * it with a MarketContent that simply said `"status": "resolved"`, so this runs the
+ * real function against a real database and checks the market is still open
+ * afterwards.
+ */
+async function checkSettlementGate() {
+  const db = await getDb();
+  const statusOf = async (slug: string) => (await db.query.markets.findFirst({ where: eq(schema.markets.id, slug) }))?.status;
+
+  const open = market({ slug: "gate-question", closesAt: "2026-09-04T21:00:00+03:00" });
+  const verdict: MarketContent = {
+    ...open,
+    status: "resolved",
+    resolution: "YES",
+    resolutionNote: "ב-3.9.2026 פרסם ערוץ 14 סקר שנתן לליכוד 31 מנדטים.\n\nמקור: https://www.now14.co.il/article/example",
+    resolvedAt: "2026-09-05T09:00:00+03:00",
+  };
+
+  await upsertMarkets([open], "startup", { settlementSource: CONTENT_SETTLEMENT_SOURCE });
+  check("the question is on the board and open", (await statusOf(open.slug)) === "open");
+
+  for (const source of ["editorial-cron", "routine", "admin"]) {
+    const r = await upsertMarkets([verdict], source);
+    check(`a resolved payload from "${source}" settles nothing`, r.resolved.length === 0 && r.refused.includes(open.slug), r);
+    check(`...and the market is still open after it ("${source}")`, (await statusOf(open.slug)) === "open");
+  }
+
+  const cancelling = await upsertMarkets([{ ...verdict, status: "cancelled", resolution: undefined }], "editorial-cron");
+  check("a cancellation from the generator is refused too", cancelling.resolved.length === 0 && cancelling.refused.includes(open.slug));
+  check("...and the market is still open", (await statusOf(open.slug)) === "open");
+
+  const published = await upsertMarkets([verdict], publishSource("2026-09-05-1200"));
+  check("the publish step does settle it", published.resolved.includes(open.slug) && published.refused.length === 0, published);
+  check("...and the market is resolved on the board", (await statusOf(open.slug)) === "resolved");
+}
+
+checkSettlementGate()
+  .catch((err) => {
+    failures++;
+    console.error("✗ the settlement gate section threw", err);
+  })
+  .finally(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    if (failures) {
+      console.error(`\n${failures} failure(s)`);
+      process.exit(1);
+    }
+    console.log("✓ resolution: due detection, gates, approval integrity, apply semantics and the settlement gate all hold");
+  });
