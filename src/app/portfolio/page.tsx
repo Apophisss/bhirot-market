@@ -55,7 +55,10 @@ export default async function PortfolioPage() {
     <div className="space-y-5 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="min-w-0 truncate text-xl font-extrabold text-text-strong sm:text-2xl">הניקוד של {user.name}</h1>
-        <div className="flex shrink-0 items-center gap-2">
+        {/* three buttons, ~350px of them: `shrink-0` without `flex-wrap` pushed the last
+            one off the edge of a 320px phone — and off the left edge, since the page is
+            RTL, where nothing can scroll to it */}
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/leaderboard"
             data-evt="portfolio-leaderboard"
