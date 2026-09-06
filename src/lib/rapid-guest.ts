@@ -23,21 +23,38 @@ const KEY = "bhirot:rapid:guest";
 /**
  * How many questions may be answered without an account.
  *
- * Enough that the mechanic is understood and there is something worth claiming
- * (four answers read as "I have a stake in this"), few enough that the board is
- * not being given away — the point of the limit is that the fifth answer is worth
- * an account.
+ * It was four, which is barely a run: the wall went up while the visitor was still
+ * working out what the prices meant, so the account was being asked for in exchange
+ * for a demo. Ten is a round of the deck — long enough to have formed opinions on
+ * the board and to be holding a set of answers worth keeping, so the account is
+ * asked for at the point where it is about keeping a run rather than starting one.
+ *
+ * The limit is what makes that ask honest, not what makes the board scarce: the
+ * screens that raise it (the deck banner, the gate, the sign-in recap) all say the
+ * same three things — the account is free, it is one click, and here is what it
+ * opens.
  */
-export const GUEST_LIMIT = 4;
+export const GUEST_LIMIT = 10;
+
+/**
+ * How many answers a recap lists by name before summing up the rest.
+ *
+ * The gate and the sign-in screen exist to be acted on, and a ten-item list pushes
+ * the button that acts on them off the bottom of a phone. The newest answers are
+ * listed — they are the ones the visitor remembers giving — and the rest are
+ * counted.
+ */
+export const GUEST_RECAP_LIMIT = 4;
 
 /**
  * How many answers the browser will actually hold: the free run, plus the one
  * that hit the wall.
  *
- * The fifth tap is a decision the visitor made — they answered the question and
- * only then were asked to sign in. Throwing it away meant the sign-in screen
- * asked for an account in order to keep four answers while quietly discarding the
- * fifth, and coming back from Google landed on a deck that had never heard of it.
+ * The tap that raises the wall is a decision the visitor made — they answered the
+ * question and only then were asked to sign in. Throwing it away meant the sign-in
+ * screen asked for an account in order to keep the free run while quietly
+ * discarding the answer that ended it, and coming back from Google landed on a
+ * deck that had never heard of it.
  * It is kept and redeemed with the rest; the *limit* is about when the wall goes
  * up, not about what is remembered.
  */
@@ -159,6 +176,19 @@ export function guestGateReached(answers: GuestAnswer[]): boolean {
   return answers.length >= GUEST_LIMIT;
 }
 
+/**
+ * How many free answers are left.
+ *
+ * A ten-question run is long enough that "some answers are free" stops being
+ * information — the deck says how many are left so the wall is never a surprise,
+ * and so the visitor can see it coming while there is still something to do about
+ * it. Never negative: the answer that hits the wall is kept (see
+ * `GUEST_STORE_LIMIT`), and "‎-1 נותרו" is not a thing to show anyone.
+ */
+export function guestAnswersLeft(answers: GuestAnswer[]): number {
+  return Math.max(0, GUEST_LIMIT - answers.length);
+}
+
 /** Drops everything — called the moment the answers are claimed for an account. */
 export function clearGuestAnswers(): void {
   commit(EMPTY);
@@ -169,6 +199,11 @@ export function subscribeGuestAnswers(cb: () => void): () => void {
   return () => {
     listeners.delete(cb);
   };
+}
+
+/** Test seam: forgets what was read, so the next read goes back to storage. */
+export function resetGuestCache(): void {
+  cache = null;
 }
 
 /** The server snapshot: a visitor being rendered on the server has answered nothing. */

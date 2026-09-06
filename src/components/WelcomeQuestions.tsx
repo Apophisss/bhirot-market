@@ -9,6 +9,7 @@ import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import {
   addGuestAnswer,
   guestAnswerFor,
+  guestGateReached,
   readGuestAnswers,
   serverGuestAnswers,
   subscribeGuestAnswers,
@@ -35,9 +36,6 @@ export interface WelcomeQuestion {
 /** long enough to read what just happened, short enough that it does not feel like a wait */
 const HANDOFF_MS = 900;
 
-/** where an answer here continues: the deck, with the same free run and no account asked for */
-const NEXT = "/rapid";
-
 /**
  * The three questions on the landing page, answerable before there is an account.
  *
@@ -46,13 +44,15 @@ const NEXT = "/rapid";
  * single price had moved for them. The deck already lets a visitor answer without one
  * (`src/lib/rapid-guest.ts`), and this is the same mechanic one screen earlier: the
  * answer goes into the same store, and `<RapidGuestSync>` turns it into a real position
- * on the way back from Google.
+ * on the way back from Google. The sign-in that follows is asked in order to *keep*
+ * that answer — the same click, for a very different reason.
  *
- * The tap therefore continues into the deck rather than into the sign-in screen. It is
- * the same store on both sides, so the question just answered is already answered when
- * the deck opens (`carried` in `RapidDeck`) and the run picks up at the next one. The
- * account is asked for where it means something — after the free run, in order to keep
- * answers that already exist.
+ * Where the first answer *leads* is the deck, not the sign-in screen. One tap used to
+ * hand the visitor straight to `/login`, which made the free run exactly one question
+ * long on the one page built to prove that answering is easy — the wall arrived before
+ * the second question did. The run is `GUEST_LIMIT` questions and it starts here: the
+ * card that was answered hands over to `/rapid`, where the rest of it is, and only the
+ * answer that actually reaches the limit goes to `/login`.
  *
  * The stake is the deck's default rather than a choice: a stranger has no opinion yet
  * about how much of the play money to commit, and being asked would be one more screen.
@@ -67,12 +67,12 @@ export function WelcomeQuestions({ questions }: { questions: WelcomeQuestion[] }
 
   const choose = useCallback(
     (q: WelcomeQuestion, side: Side) => {
-      if (chosen) return; // the trip to the deck is already under way
+      if (chosen) return; // the handoff to the deck (or to the gate) is already under way
       setChosen({ id: q.id, side });
       // Always written, including the answer that goes past the free run: the store
       // keeps one more than the limit precisely so the tap that raises the wall is
-      // not the one that gets thrown away (see GUEST_STORE_LIMIT), and the gate the
-      // deck puts up lists it with the rest.
+      // not the one that gets thrown away (see GUEST_STORE_LIMIT), and the sign-in
+      // screen lists it with the rest.
       addGuestAnswer({
         marketSlug: q.id,
         side,
@@ -84,9 +84,13 @@ export function WelcomeQuestions({ questions }: { questions: WelcomeQuestion[] }
       });
       gaEvent("welcome_answer", { market_id: q.id, side });
       if (typeof navigator.vibrate === "function") navigator.vibrate(12);
+      // Where to next, read back from the store rather than from this component's state:
+      // the browser may already be carrying answers from an earlier visit or from the
+      // deck, and it is the total that decides whether there is any free run left.
+      const next = guestGateReached(readGuestAnswers()) ? "/login?callbackUrl=%2Frapid" : "/rapid";
       // the confirmation is the point of the pause: it is the first time the visitor sees
-      // that answering does something, and the deck it hands over to is more of the same
-      timer.current = window.setTimeout(() => router.push(NEXT), HANDOFF_MS);
+      // that answering does something, and it is what the rest of the run is built on
+      timer.current = window.setTimeout(() => router.push(next), HANDOFF_MS);
     },
     [chosen, router],
   );
@@ -121,7 +125,7 @@ function QuestionCard({
 }: {
   q: WelcomeQuestion;
   side: Side | null;
-  /** true only for the card just tapped — the one the trip to the deck is for */
+  /** true only for the card just tapped — the one the handoff is waiting on */
   handingOff: boolean;
   dimmed: boolean;
   onAnswer: (side: Side) => void;
@@ -159,7 +163,7 @@ function QuestionCard({
             {money(RAPID_DEFAULT_STAKE)} ← ≈{money(payout)} אם צדקתם
           </p>
           <p className="mt-1 text-[13px] text-muted">
-            {handingOff ? "ממשיכים לשאלה הבאה…" : "התשובה שמורה · התחברות מכניסה אותה לניקוד"}
+            {handingOff ? "שומרים לכם את התשובה…" : "התשובה שמורה · אפשר להמשיך לעוד שאלות, בלי חשבון"}
           </p>
         </div>
       ) : (

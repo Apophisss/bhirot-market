@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { pct } from "@/lib/format";
-import { readGuestAnswers, serverGuestAnswers, subscribeGuestAnswers } from "@/lib/rapid-guest";
+import { GUEST_RECAP_LIMIT, readGuestAnswers, serverGuestAnswers, subscribeGuestAnswers } from "@/lib/rapid-guest";
 
 /**
  * The answers a visitor already gave, shown back to them on the sign-in screen.
@@ -16,10 +16,17 @@ import { readGuestAnswers, serverGuestAnswers, subscribeGuestAnswers } from "@/l
  *
  * Rendered from the browser store, so it is empty for anyone arriving at the
  * sign-in screen without a run behind them and the page reads exactly as it did.
+ *
+ * The free run is ten answers long, and ten rows above the Google button is a
+ * screen where the button is below the fold — so the last `GUEST_RECAP_LIMIT` are
+ * named and the rest are counted. Naming the newest is the right end to keep: they
+ * are the ones the visitor just gave.
  */
 export function GuestAnswersRecap() {
   const answers = useSyncExternalStore(subscribeGuestAnswers, readGuestAnswers, serverGuestAnswers);
   if (!answers.length) return null;
+  const listed = answers.slice(-GUEST_RECAP_LIMIT).reverse();
+  const rest = answers.length - listed.length;
 
   return (
     <section className="mt-5 rounded-xl border border-accent/40 bg-accent/10 p-3.5">
@@ -30,7 +37,7 @@ export function GuestAnswersRecap() {
         {answers.length === 1 ? "היא נשמרה בדפדפן ותיכנס" : "הן נשמרו בדפדפן וייכנסו"} לניקוד שלכם ברגע שתתחברו.
       </p>
       <ul className="mt-2.5 space-y-1.5">
-        {answers.map((a) => (
+        {listed.map((a) => (
           <li key={a.marketSlug} className="flex items-center gap-2 rounded-lg bg-surface px-2.5 py-2">
             <span className={`shrink-0 text-[15px] font-black ${a.side === "YES" ? "text-yes" : "text-no"}`}>
               {a.side === "YES" ? "כן" : "לא"}
@@ -39,6 +46,11 @@ export function GuestAnswersRecap() {
             <span className="tabular shrink-0 text-[13px] text-muted-2">{pct(a.priceAtAnswer)}</span>
           </li>
         ))}
+        {rest > 0 && (
+          <li className="rounded-lg bg-surface px-2.5 py-1.5 text-[13px] text-muted">
+            ועוד {rest} {rest === 1 ? "תשובה" : "תשובות"} שנשמרו לכם
+          </li>
+        )}
       </ul>
     </section>
   );
