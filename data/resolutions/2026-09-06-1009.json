@@ -61,6 +61,12 @@
       },
       "applied": {
         "at": "2026-09-06T11:00:10.810Z"
+      },
+      "published": {
+        "at": "2026-09-06T11:01:53.630Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
       }
     },
     {
@@ -125,6 +131,12 @@
       },
       "applied": {
         "at": "2026-09-06T11:00:10.810Z"
+      },
+      "published": {
+        "at": "2026-09-06T11:01:53.630Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
       }
     },
     {
@@ -175,6 +187,12 @@
       },
       "applied": {
         "at": "2026-09-06T11:00:10.810Z"
+      },
+      "published": {
+        "at": "2026-09-06T11:01:53.630Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
       }
     },
     {
@@ -238,6 +256,12 @@
       },
       "applied": {
         "at": "2026-09-06T11:00:10.810Z"
+      },
+      "published": {
+        "at": "2026-09-06T11:01:53.630Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
       }
     },
     {
@@ -298,7 +322,19 @@
       },
       "applied": {
         "at": "2026-09-06T11:00:10.810Z"
+      },
+      "published": {
+        "at": "2026-09-06T11:01:53.630Z",
+        "target": "https://bhirot-market.com/api/admin/markets",
+        "result": "skipped",
+        "detail": "השרת לא דיווח על הכרעה — ייתכן שהשוק כבר היה מוכרע אצלו"
       }
     }
-  ]
+  ],
+  "publish": {
+    "at": "2026-09-06T11:01:53.630Z",
+    "target": "https://bhirot-market.com/api/admin/markets",
+    "ok": true,
+    "response": "{\"ok\":true,\"added\":[],\"updated\":[],\"resolved\":[],\"skipped\":[\"another-party-quits-sat-night\",\"smotrich-inside-likud-report-sat-night\",\"haredi-parties-18-seats-poll-sat-night\",\"yashar-ahead-of-likud-saturday-night-poll-sat-night\",\"eisenkot-saturday-night-tv-interview-sat-night\"]}"
+  }
 }
