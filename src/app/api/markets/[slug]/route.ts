@@ -25,7 +25,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
   // an endpoint that a journalist, a competitor or an LLM agent can diff against
   // /admin is the last place to inflate anything. The internal display fields are
   // stripped rather than published.
-  const { displayVolume: _dv, displayTradeCount: _dtc, ...row } = market;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to keep them out of `row`
+  const { displayVolume, displayTradeCount, ...row } = market;
   return NextResponse.json({
     ok: true,
     market: row,

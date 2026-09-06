@@ -57,6 +57,19 @@ function clientIp(req: Request): string {
   return h.get("x-real-ip") ?? h.get("cf-connecting-ip") ?? "0.0.0.0";
 }
 
+/**
+ * Facebook/Instagram/Gmail-style embedded browsers, and Android's bare WebView marker.
+ *
+ * Worth a name of its own because it is the one visitor segment that can fail for a
+ * reason no other metric records: Google's sign-in refuses some of these browsers
+ * outright, and Demand Gen serves its ads inside exactly those apps. The client has
+ * its own copy in src/components/Analytics.tsx — that file is a client component and
+ * cannot import this module, which reaches the database.
+ */
+export function inAppBrowser(ua: string): boolean {
+  return /\bwv\b|FBAN|FBAV|Instagram|GSA\/|Line\/|; wv\)/i.test(ua);
+}
+
 function deviceOf(ua: string): string {
   if (!ua) return "unknown";
   if (/ipad|tablet|playbook|silk/i.test(ua)) return "tablet";

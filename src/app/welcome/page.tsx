@@ -10,7 +10,7 @@ import { ELECTION_DATE, SITE_NAME, SITE_TEAM } from "@/lib/config";
 import { daysUntil, money } from "@/lib/format";
 import { RAPID_DEFAULT_STAKE } from "@/lib/rapid";
 import { headers } from "next/headers";
-import { recordEvents, requestContext } from "@/lib/analytics";
+import { inAppBrowser, recordEvents, requestContext } from "@/lib/analytics";
 import { EVENTS } from "@/lib/events";
 import { shareCard } from "@/lib/seo";
 import { displayOpenCount } from "@/lib/display-stats";
@@ -95,7 +95,9 @@ async function recordLanding(sp: Search) {
   const paid = Boolean(sp.utm_medium || sp.gclid || sp.gbraid || sp.wbraid);
   if (!paid) return;
   try {
-    const ctx = requestContext(new Request("http://internal/welcome", { headers: await headers() }));
+    const head = await headers();
+    const ctx = requestContext(new Request("http://internal/welcome", { headers: head }));
+    const ua = head.get("user-agent") ?? "";
     await recordEvents(
       [
         {
@@ -104,7 +106,16 @@ async function recordLanding(sp: Search) {
           source: sp.utm_source ?? "google",
           medium: sp.utm_medium ?? "cpc",
           campaign: sp.utm_campaign ?? "",
-          props: { content: (sp.utm_content ?? "").slice(0, 60) },
+          // This row is written before a line of JavaScript has run, so for a visitor
+          // who leaves during the load it is the only place they are measured at all —
+          // which makes it the only place these two can be recorded for them. An
+          // in-app browser is exactly the visitor Google's sign-in may refuse later,
+          // and the language says whether the targeting is reaching Hebrew speakers.
+          props: {
+            content: (sp.utm_content ?? "").slice(0, 60),
+            webview: inAppBrowser(ua) ? 1 : 0,
+            lang: (head.get("accept-language") ?? "").slice(0, 2).toLowerCase(),
+          },
         },
       ],
       ctx,
