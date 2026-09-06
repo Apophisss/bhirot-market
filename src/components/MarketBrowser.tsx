@@ -184,12 +184,22 @@ export function MarketBrowser({
           )}
           {total > shown && (
             <div className="flex flex-col items-center gap-1 pt-2">
+              {/*
+                No `rel="nofollow"` here, unlike the sort tabs above. The sort tabs
+                reorder the same questions, so following them only re-crawls what the
+                page already links to; ?show= is the only link on the board that
+                reaches question 13 and onwards. `nofollow` never kept those URLs out
+                of the index either — that is what the `robots: { index: false }`
+                branch in the listing and category pages does — it only stopped the
+                crawler from walking through to the questions themselves, which is
+                how most of a 350-question board ended up depending on the sitemap
+                alone for discovery.
+              */}
               <Link
                 href={link({ show: String(shown + PAGE_STEP) })}
                 data-evt="show-more"
                 className="tap pressable flex w-full items-center justify-center rounded-xl border border-border-2 bg-surface px-6 font-semibold text-text hover:bg-surface-2 sm:w-auto"
                 scroll={false}
-                rel="nofollow"
               >
                 הצגת עוד שאלות
               </Link>
