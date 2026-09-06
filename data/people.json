@@ -662,6 +662,15 @@
       "image": "/people/yaakov-asher.jpg",
       "imageSource": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Yaakev_asher.jpg/330px-Yaakev_asher.jpg",
       "imageCredit": "Wikimedia Commons — Yaakov Asher"
+    },
+    {
+      "id": "yaron-zelekha",
+      "name": "ירון זליכה",
+      "role": "כלכלן, יו\"ר המפלגה הכלכלית",
+      "wiki": "Yaron Zelekha",
+      "image": "/people/yaron-zelekha.jpg",
+      "imageSource": "https://upload.wikimedia.org/wikipedia/commons/9/92/Yaron_zalicha.jpg",
+      "imageCredit": "Wikimedia Commons — Yaron Zelekha"
     }
   ]
 }
