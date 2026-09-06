@@ -115,6 +115,7 @@ export const CLICK_IDS: Record<string, string> = {
   "hero-portfolio": "CTA לתיק שלי בהירו",
   "hero-about": "CTA איך זה עובד בהירו",
   "browser-rapid": "מעבר למצב זריז מרשימת השווקים",
+  "home-rapid-top": "רצועת מצב זריז בראש דף הבית",
   "home-rapid-end": "CTA מצב זריז בתחתית דף הבית",
   "market-rapid": "מעבר למצב זריז מדף השאלה",
   "market-rapid-side": "מעבר למצב זריז מהצד בדף השאלה",

@@ -138,6 +138,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         />
       )}
 
+      {/* The first thing on the page, on a phone and on a desktop: the board looks
+          like a list to read, and nothing on it says that answering question after
+          question is the mode the game is built around. One strip says it, above
+          the hero, before the first card. */}
+      {!filtered && <RapidCta evt="home-rapid-top" variant="promo" />}
+
       {/* signed-in phone users skip the pitch and land straight on the board */}
       {!filtered && session?.user && (
         <section className="card flex items-center justify-between gap-3 p-3 sm:hidden">
