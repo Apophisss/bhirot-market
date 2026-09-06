@@ -12,6 +12,7 @@ import { MobileNav } from "./MobileNav";
 import { MobileSearch } from "./MobileSearch";
 import { LoginLink } from "./LoginLink";
 import { RapidGuestSync } from "./RapidGuestSync";
+import { RapidEntryGate } from "./RapidEntryGate";
 import { needsSurvey } from "@/lib/preferences-store";
 import { countIncomingRequests } from "@/lib/friends";
 import { countLeagueInvites } from "@/lib/leagues";
@@ -180,6 +181,10 @@ export async function Header() {
           Each answer redeems at the amount it was given at, and the amount itself is
           adopted by the new account (src/components/RapidGuestSync.tsx) */}
       <RapidGuestSync loggedIn={Boolean(user)} />
+      {/* ההצעה שפותחת כל ביקור: מצב זריז, ומתחילים לשחק. כאן ולא בעמוד מסוים, כי היא
+          שייכת לכניסה לאתר ולא לדף הבית — ובהדר ממילא כבר ידוע אם המבקר מחובר
+          (src/components/RapidEntryGate.tsx) */}
+      <RapidEntryGate loggedIn={Boolean(user)} />
     </>
   );
 }

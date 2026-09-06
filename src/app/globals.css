@@ -282,7 +282,10 @@
      brings the scrim, the focus trap and Esc with it. The element sits outside the
      page flow, so it takes the page's own surface tokens rather than inheriting
      anything from the card that opened it. */
-  .install-sheet {
+  /* The same shell for the "מצב זריז" offer that opens a visit
+     (src/components/RapidEntryGate.tsx). */
+  .install-sheet,
+  .gate-sheet {
     margin: auto;
     padding: 0;
     width: min(28rem, calc(100vw - 2rem));
@@ -294,7 +297,8 @@
     border-radius: var(--radius-card);
     box-shadow: 0 24px 60px -20px rgba(10, 16, 32, 0.45);
   }
-  .install-sheet::backdrop {
+  .install-sheet::backdrop,
+  .gate-sheet::backdrop {
     background: rgba(10, 16, 32, 0.55);
     backdrop-filter: blur(2px);
   }
