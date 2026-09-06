@@ -52,10 +52,16 @@
         "סריקת מדור הבחירות של הארץ (haaretz.co.il/news/elections) לכתבות מ-4.9 עד 6.9",
         "סריקת מדורי mako news-politics ו-news-israel-elections לכותרות מ-5.9 ו-6.9"
       ],
+      "researchedAt": "2026-09-06T10:25:24Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "Ofir Zlotnik",
+        "at": "2026-09-06T10:59:32.982Z",
+        "proposalFingerprint": "03656b1d7f49db2a"
       },
-      "researchedAt": "2026-09-06T10:25:24Z"
+      "applied": {
+        "at": "2026-09-06T11:00:10.810Z"
+      }
     },
     {
       "slug": "smotrich-inside-likud-report-sat-night",
@@ -110,10 +116,16 @@
         "מפלגה פורשת מהמרוץ הודעה שבת 5.9.2026 בחירות 2026 מיזוג רשימה",
         "סריקת הליבלוג 'הפרשנויות והמשמעויות הפוליטיות' של N12 לרשומות מ-5.9 ו-6.9"
       ],
+      "researchedAt": "2026-09-06T10:25:24Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "Ofir Zlotnik",
+        "at": "2026-09-06T10:59:32.982Z",
+        "proposalFingerprint": "da11954bb3667b51"
       },
-      "researchedAt": "2026-09-06T10:25:24Z"
+      "applied": {
+        "at": "2026-09-06T11:00:10.810Z"
+      }
     },
     {
       "slug": "haredi-parties-18-seats-poll-sat-night",
@@ -154,10 +166,16 @@
         "סקר מנדטים מוצאי שבת 5.9.2026 חדשות 12 ישר איזנקוט ליכוד",
         "סריקת רשימת הסקרים המלאה ב-skarim.org/polls וב-skarim.org/average-poll"
       ],
+      "researchedAt": "2026-09-06T10:25:24Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "Ofir Zlotnik",
+        "at": "2026-09-06T10:59:32.982Z",
+        "proposalFingerprint": "3a82ed566328a8c8"
       },
-      "researchedAt": "2026-09-06T10:25:24Z"
+      "applied": {
+        "at": "2026-09-06T11:00:10.810Z"
+      }
     },
     {
       "slug": "yashar-ahead-of-likud-saturday-night-poll-sat-night",
@@ -211,10 +229,16 @@
         "כאן 11 סקר מנדטים מוצאי שבת 5 בספטמבר 2026 (site:kan.org.il)",
         "סקר חדשות 12 מוצאי שבת מהדורה מרכזית ישר איזנקוט ליכוד מנדטים ספטמבר 2026 סגירת הרשימות"
       ],
+      "researchedAt": "2026-09-06T10:25:24Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "Ofir Zlotnik",
+        "at": "2026-09-06T10:59:32.982Z",
+        "proposalFingerprint": "bcbbccab19f96ceb"
       },
-      "researchedAt": "2026-09-06T10:25:24Z"
+      "applied": {
+        "at": "2026-09-06T11:00:10.810Z"
+      }
     },
     {
       "slug": "eisenkot-saturday-night-tv-interview-sat-night",
@@ -265,10 +289,16 @@
         "\"איזנקוט\" \"בריאיון\" חדשות 12 אמש שבת ספטמבר 2026 ישר רשימה הפתעות",
         "סריקת ארכיון הפרקים של 'פגוש את העיתונות' ב-mako (הפרק מ-05.09.26)"
       ],
+      "researchedAt": "2026-09-06T10:25:24Z",
       "approval": {
-        "decision": "pending"
+        "decision": "approved",
+        "by": "Ofir Zlotnik",
+        "at": "2026-09-06T10:59:32.982Z",
+        "proposalFingerprint": "b1afa1f4307991ce"
       },
-      "researchedAt": "2026-09-06T10:25:24Z"
+      "applied": {
+        "at": "2026-09-06T11:00:10.810Z"
+      }
     }
   ]
 }
