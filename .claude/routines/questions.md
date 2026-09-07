@@ -77,7 +77,8 @@ npm run markets:audit              # מה כבר יש, איפה חורים, ומ
    ```bash
    node -e '
    const f=require("./data/markets.json");
-   fetch(process.env.SITE_URL+"/api/admin/markets",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+process.env.ADMIN_TOKEN},body:JSON.stringify({markets:f.markets,note:f.lastUpdateNote,source:"routine"})}).then(r=>r.json()).then(j=>console.log(JSON.stringify(j)))'
+const SLUGS=["<slug-1>","<slug-2>"];   // רק השאלות של הריצה הזאת — ה-API חוסם מעל 100 שווקים בבקשה, וזה upsert
+   fetch(process.env.SITE_URL+"/api/admin/markets",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+process.env.ADMIN_TOKEN},body:JSON.stringify({markets:f.markets.filter(m=>SLUGS.includes(m.id||m.slug)),note:f.lastUpdateNote,source:"routine"})}).then(r=>r.json()).then(j=>console.log(JSON.stringify(j)))'
    ```
    אין הרשאות בסביבה? זו לא תקלה: השאלות יעלו עם המיזוג של ה-PR והפריסה הבאה של `main`. אמרו
    את זה במפורש במקום לדלג בשקט.
