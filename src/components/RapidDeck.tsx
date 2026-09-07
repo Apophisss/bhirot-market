@@ -1630,14 +1630,24 @@ function RapidCardView({
             nothing when the question is long enough to need the room. */}
         <div className={`min-h-0 flex-1 ${card.spark ? "hidden card-tight:block" : ""}`} aria-hidden />
 
-        <div className="flex shrink-0 items-center gap-3 card-min:gap-2">
-          {/* the face is the first thing to go: on a card this short it competes with the
-              question for the width of the line, not only for its height */}
+        <div className="flex shrink-0 items-center gap-3 card-min:gap-2 card-narrow:gap-2">
+          {/* The face goes when the card runs out of *height* — it is the fourth step of
+              the drop order, after the byline, the subtitle and the chart.
+
+              Width used to remove it too (`card-narrow:hidden`), and that was the wrong
+              axis. `card-narrow` is a 330px card, which is every phone under ~356px wide:
+              a 320px iPhone, an iPhone in Display Zoom, a folded Galaxy. Those phones are
+              narrow, not short — measured at 355×800 the card gets 518px of height and
+              still had no face on it — so the one picture on the card was disappearing
+              from a card with room to spare, on exactly the devices that get the least
+              else. What the narrow card cannot afford is the *line*: at 44px the face and
+              a 16px question do not fit beside each other. So it shrinks with the line
+              instead of leaving it. */}
           <MarketImage
             src={card.image}
             fallback={card.fallbackImage}
             alt={card.personName ?? ""}
-            className="h-12 w-12 shrink-0 rounded-2xl border border-border object-cover card-tight:h-10 card-tight:w-10 card-min:hidden card-narrow:hidden card-tall:h-16 card-tall:w-16"
+            className="h-12 w-12 shrink-0 rounded-2xl border border-border object-cover card-tight:h-10 card-tight:w-10 card-min:hidden card-narrow:h-9 card-narrow:w-9 card-tall:h-16 card-tall:w-16"
           />
           <div className="min-w-0">
             {/* never clamped: a question that needs five lines gets five lines, and what
