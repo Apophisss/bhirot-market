@@ -183,7 +183,9 @@ git push
 # אם יש SITE_URL ו-ADMIN_TOKEN בסביבה:
 node -e '
 const f=require("./data/markets.json");
-fetch(process.env.SITE_URL+"/api/admin/markets",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+process.env.ADMIN_TOKEN},body:JSON.stringify({markets:f.markets,note:f.lastUpdateNote,source:"routine"})}).then(r=>r.json()).then(j=>console.log(JSON.stringify(j)))'
+const slugs=process.argv.slice(1);   // רק השאלות שהריצה הזאת הוסיפה — /api/admin/markets חוסם מעל 100 שווקים בבקשה
+const markets=f.markets.filter(m=>slugs.includes(m.slug));
+fetch(process.env.SITE_URL+"/api/admin/markets",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+process.env.ADMIN_TOKEN},body:JSON.stringify({markets,note:f.lastUpdateNote,source:"routine"})}).then(r=>r.json()).then(j=>console.log(JSON.stringify(j)))' <slug-1> <slug-2>
 ```
 
 אם אין שינויים (לא נוספו שאלות ולא הוכרעו שווקים) — אל תבצעו commit ריק. סיימו עם סיכום קצר.
