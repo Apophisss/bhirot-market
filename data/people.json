@@ -671,6 +671,15 @@
       "image": "/people/yaron-zelekha.jpg",
       "imageSource": "https://upload.wikimedia.org/wikipedia/commons/9/92/Yaron_zalicha.jpg",
       "imageCredit": "Wikimedia Commons — Yaron Zelekha"
+    },
+    {
+      "id": "yaakov-bardugo",
+      "name": "יעקב ברדוגו",
+      "role": "מגיש ופרשן בערוץ 14, מועמד הליכוד",
+      "wiki": "Yaakov_Bardugo",
+      "image": "/people/yaakov-bardugo.jpg",
+      "imageSource": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Yaakov_Bardugo_1.jpg/330px-Yaakov_Bardugo_1.jpg",
+      "imageCredit": "Wikimedia Commons — Yaakov Bardugo"
     }
   ]
 }
